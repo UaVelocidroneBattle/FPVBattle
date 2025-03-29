@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using Veloci.Data.Domain;
-using Veloci.Logic.Dto;
+using Veloci.Logic.API.Dto;
 
 namespace Veloci.Logic.Services;
 
@@ -10,7 +10,7 @@ public class RaceResultsConverter
 
     public List<TrackTime> ConvertTrackTimes(IEnumerable<TrackTimeDto> timesDtos)
     {
-        
+
         return timesDtos
             .Select(MapDtoToTrackTime)
             .Where(x => x != null)
@@ -26,10 +26,10 @@ public class RaceResultsConverter
 
     private TrackTime? MapDtoToTrackTime(TrackTimeDto dto, int index)
     {
-        if (dto.Country != "UA") return null;
-            
+        if (dto.country != "UA") return null;
+
         var time = _mapper.MapTrackTime(dto);
-        time.Time = int.Parse(dto.LapTime.Replace(".", ""), CultureInfo.InvariantCulture);
+        time.Time = int.Parse(dto.lap_time.Replace(".", ""), CultureInfo.InvariantCulture);
         time.GlobalRank = index + 1;
         return time;
     }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.API;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Helpers;
@@ -14,11 +15,11 @@ namespace Veloci.Logic.Services;
 
 public class CompetitionConductor
 {
+    private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
     private readonly TrackService _trackService;
     private readonly IMediator _mediator;
-    private readonly ResultsFetcher _resultsFetcher;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly CompetitionService _competitionService;
     private readonly MessageComposer _messageComposer;
@@ -26,17 +27,16 @@ public class CompetitionConductor
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
-        ResultsFetcher resultsFetcher,
         RaceResultsConverter resultsConverter,
         CompetitionService competitionService,
         MessageComposer messageComposer,
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
-        IRepository<Pilot> pilots)
+        IRepository<Pilot> pilots,
+        Velocidrone velocidrone)
     {
         _competitions = competitions;
-        _resultsFetcher = resultsFetcher;
         _resultsConverter = resultsConverter;
         _competitionService = competitionService;
         _messageComposer = messageComposer;
@@ -44,6 +44,7 @@ public class CompetitionConductor
         _trackService = trackService;
         _mediator = mediator;
         _pilots = pilots;
+        _velocidrone = velocidrone;
     }
 
     public async Task StartNewAsync()
@@ -59,7 +60,7 @@ public class CompetitionConductor
         }
 
         var track = await _trackService.GetRandomTrackAsync();
-        var resultsDto = await _resultsFetcher.FetchAsync(track.TrackId);
+        var resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
         var results = _resultsConverter.ConvertTrackTimes(resultsDto);
         var trackResults = new TrackResults
         {

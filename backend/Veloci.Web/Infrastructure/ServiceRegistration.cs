@@ -1,4 +1,5 @@
 using Veloci.Data.Repositories;
+using Veloci.Logic.API;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Helpers;
@@ -13,7 +14,7 @@ public static class ServiceRegistration
     public static IServiceCollection RegisterCustomServices(this IServiceCollection services)
     {
         services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
-        services.AddTransient<ResultsFetcher>();
+        services.AddTransient<Velocidrone>();
         services.AddTransient<CompetitionService>();
         services.AddTransient<CompetitionConductor>();
         services.AddTransient<RaceResultsConverter>();

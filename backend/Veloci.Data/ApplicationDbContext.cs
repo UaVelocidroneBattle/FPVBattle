@@ -24,6 +24,5 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<CompetitionResults>().ToTable("CompetitionResults");
         builder.Entity<Pilot>().ToTable("Pilots");
         builder.Entity<PilotAchievement>().ToTable("PilotAchievements");
-        builder.Entity<DroneModel>().ToTable("Models");
     }
 }

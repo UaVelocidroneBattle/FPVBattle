@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Veloci.Data.Domain;
 
 public class TrackTime
@@ -14,10 +16,16 @@ public class TrackTime
     }
 
     public string Id { get; set; } = Guid.NewGuid().ToString();
+
     public int Time { get; set; }
+
+    [MaxLength(128)]
     public string PlayerName { get; set; }
-    public int ModelId { get; set; }
-    
+
+    [MaxLength(128)]
+    public string ModelName { get; set; }
+
     public int GlobalRank { get; set; }
+
     public int LocalRank { get; set; }
 }

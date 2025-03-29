@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Veloci.Data.Domain;
 
 public class TrackTimeDelta
@@ -11,6 +13,8 @@ public class TrackTimeDelta
 
     public virtual Competition Competition { get; set; }
     public string CompetitionId { get; set; }
+
+    [MaxLength(128)]
     public string PlayerName { get; set; }
     public int TrackTime { get; set; }
     public int? TimeChange { get; set; }
@@ -18,7 +22,7 @@ public class TrackTimeDelta
     public int? RankOld { get; set; }
     public int LocalRank { get; set; }
     public int? LocalRankOld { get; set; }
-    public int? DroneModelId { get; set; }
-    public virtual DroneModel? DroneModel { get; set; }
-    public int? UnknownDroneModelId { get; set; }
+
+    [MaxLength(128)]
+    public string? ModelName { get; set; }
 }
