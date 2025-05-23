@@ -19,9 +19,9 @@ public class TelegramMessageEventHandler :
     INotificationHandler<DayStreakAchievements>,
     INotificationHandler<DayStreakPotentialLose>
 {
-    private readonly MessageComposer _messageComposer;
+    private readonly TelegramMessageComposer _messageComposer;
 
-    public TelegramMessageEventHandler(MessageComposer messageComposer)
+    public TelegramMessageEventHandler(TelegramMessageComposer messageComposer)
     {
         _messageComposer = messageComposer;
     }

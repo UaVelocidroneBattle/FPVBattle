@@ -17,7 +17,8 @@ public static class ServiceRegistration
         services.AddTransient<CompetitionService>();
         services.AddTransient<CompetitionConductor>();
         services.AddTransient<RaceResultsConverter>();
-        services.AddTransient<MessageComposer>();
+        services.AddTransient<TelegramMessageComposer>();
+        services.AddTransient<DiscordMessageComposer>();
         services.AddTransient<RaceResultDeltaAnalyzer>();
         services.AddTransient<TelegramBot>();
         services.AddTransient<ITelegramUpdateHandler, TelegramUpdateHandler>();

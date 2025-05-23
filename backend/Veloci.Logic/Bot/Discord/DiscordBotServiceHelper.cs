@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Veloci.Logic.Bot.Discord;
 
 namespace Veloci.Logic.Bot;
 
