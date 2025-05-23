@@ -32,34 +32,39 @@ public class AchievementService
 
     private async Task CheckSinglePilotAsync(List<Pilot> pilots)
     {
+        var pilotCheckAchievements = _achievements.OfType<IAchievementPilotCheck>().ToArray();
         foreach (var pilot in pilots)
         {
-            var achievementsToAdd = new List<PilotAchievement>();
-            var pilotCheckAchievements = _achievements.OfType<IAchievementPilotCheck>();
+            await CheckPilot(pilot, pilotCheckAchievements);
+        }
+    }
 
-            foreach (var achievement in pilotCheckAchievements)
-            {
-                var result = await achievement.CheckAsync(pilot);
+    private async Task CheckPilot(Pilot pilot, IAchievementPilotCheck[] pilotCheckAchievements)
+    {
+        var achievementsToAdd = new List<PilotAchievement>();
 
-                if (!result)
-                    continue;
+        foreach (var achievement in pilotCheckAchievements)
+        {
+            var triggered = await achievement.CheckAsync(pilot);
 
-                var pilotAchievement = new PilotAchievement
-                {
-                    Pilot = pilot,
-                    Date = DateTime.Now,
-                    Name = achievement.Name
-                };
-
-                achievementsToAdd.Add(pilotAchievement);
-            }
-
-            if (achievementsToAdd.Count == 0)
+            if (!triggered)
                 continue;
 
-            await _pilotAchievements.AddRangeAsync(achievementsToAdd);
-            // broadcast an event and send a notification?
+            var pilotAchievement = new PilotAchievement
+            {
+                Pilot = pilot,
+                Date = DateTime.Now,
+                Name = achievement.Name
+            };
+
+            achievementsToAdd.Add(pilotAchievement);
         }
+
+        if (achievementsToAdd.Count == 0)
+            return;
+
+        await _pilotAchievements.AddRangeAsync(achievementsToAdd);
+        // broadcast an event and send a notification?
     }
 
     private async Task SelfCheckAsync()
