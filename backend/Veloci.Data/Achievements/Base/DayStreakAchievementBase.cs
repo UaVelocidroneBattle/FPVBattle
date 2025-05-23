@@ -11,7 +11,7 @@ public abstract class DayStreakAchievementBase : IAchievementPilotCheck
 
     public async Task<bool> CheckAsync(Pilot pilot)
     {
-        if (pilot.Achievements.Any(a => a.Name == Name))
+        if (pilot.HasAchievement(Name))
             return false;
 
         return pilot.MaxDayStreak >= Days;

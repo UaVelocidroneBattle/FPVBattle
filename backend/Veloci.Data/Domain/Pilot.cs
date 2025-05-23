@@ -43,6 +43,11 @@ public class Pilot
     {
         DayStreak = 0;
     }
+
+    public bool HasAchievement(string achievementName)
+    {
+        return Achievements.Any(achievement => achievement.Name == achievementName);
+    }
 }
 
 public static class PilotExtensions
