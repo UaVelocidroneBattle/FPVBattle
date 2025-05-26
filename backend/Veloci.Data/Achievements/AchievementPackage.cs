@@ -22,7 +22,8 @@ public static class AchievementPackage
             .Add<DayStreak500Achievement>()
             .Add<DayStreak1000Achievement>()
 
-            .Add<BiggestDayStreakAchievement>();
+            .Add<BiggestDayStreakAchievement>()
+            ;
 
         return services;
     }

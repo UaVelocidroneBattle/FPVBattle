@@ -10,27 +10,24 @@ public class AchievementService
 {
     private readonly IRepository<Pilot> _pilots;
     private readonly IEnumerable<IAchievement> _achievements;
-    private readonly IRepository<PilotAchievement> _pilotAchievements;
 
     public AchievementService(
         IRepository<Pilot> pilots,
-        IServiceProvider serviceProvider,
-        IRepository<PilotAchievement> pilotAchievements)
+        IServiceProvider serviceProvider)
     {
         _pilots = pilots;
-        _pilotAchievements = pilotAchievements;
         _achievements = serviceProvider.GetServices<IAchievement>();
     }
 
     public async Task CheckAsync()
     {
         var pilots = await _pilots.GetAll().ToListAsync();
-        await CheckSinglePilotAsync(pilots);
+        await CheckPilotsAchievements(pilots);
         await SelfCheckAsync();
+        await _pilots.SaveChangesAsync();
     }
 
-
-    private async Task CheckSinglePilotAsync(List<Pilot> pilots)
+    private async Task CheckPilotsAchievements(List<Pilot> pilots)
     {
         var pilotCheckAchievements = _achievements.OfType<IAchievementPilotCheck>().ToArray();
         foreach (var pilot in pilots)
@@ -41,8 +38,6 @@ public class AchievementService
 
     private async Task CheckPilot(Pilot pilot, IAchievementPilotCheck[] pilotCheckAchievements)
     {
-        var achievementsToAdd = new List<PilotAchievement>();
-
         foreach (var achievement in pilotCheckAchievements)
         {
             var triggered = await achievement.CheckAsync(pilot);
@@ -57,13 +52,9 @@ public class AchievementService
                 Name = achievement.Name
             };
 
-            achievementsToAdd.Add(pilotAchievement);
+            pilot.Achievements.Add(pilotAchievement);
         }
 
-        if (achievementsToAdd.Count == 0)
-            return;
-
-        await _pilotAchievements.AddRangeAsync(achievementsToAdd);
         // broadcast an event and send a notification?
     }
 
