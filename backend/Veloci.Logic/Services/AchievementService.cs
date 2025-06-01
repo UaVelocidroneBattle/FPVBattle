@@ -21,13 +21,13 @@ public class AchievementService
 
     public async Task CheckAsync()
     {
-        var pilots = await _pilots.GetAll().ToListAsync();
+        var pilots = await _pilots.GetAll().ToArrayAsync();
         await CheckPilotsAchievements(pilots);
         await SelfCheckAsync();
         await _pilots.SaveChangesAsync();
     }
 
-    private async Task CheckPilotsAchievements(List<Pilot> pilots)
+    private async Task CheckPilotsAchievements(IEnumerable<Pilot> pilots)
     {
         var pilotCheckAchievements = _achievements.OfType<IAchievementPilotCheck>().ToArray();
         foreach (var pilot in pilots)
@@ -40,22 +40,20 @@ public class AchievementService
     {
         foreach (var achievement in pilotCheckAchievements)
         {
-            var triggered = await achievement.CheckAsync(pilot);
-
-            if (!triggered)
-                continue;
-
-            var pilotAchievement = new PilotAchievement
-            {
-                Pilot = pilot,
-                Date = DateTime.Now,
-                Name = achievement.Name
-            };
-
-            pilot.Achievements.Add(pilotAchievement);
+            await CheckPilotAchievemnt(pilot, achievement);
         }
 
         // broadcast an event and send a notification?
+    }
+
+    private static async Task CheckPilotAchievemnt(Pilot pilot, IAchievementPilotCheck achievement)
+    {
+        var triggered = await achievement.CheckAsync(pilot);
+
+        if (!triggered)
+            return;
+
+        pilot.AddAchievement(achievement);
     }
 
     private async Task SelfCheckAsync()

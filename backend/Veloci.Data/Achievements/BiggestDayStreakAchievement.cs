@@ -37,14 +37,7 @@ public class BiggestDayStreakAchievement : IAchievementSelfCheck
 
         if (currentAchievement is null)
         {
-            var achievement = new PilotAchievement
-            {
-                Pilot = pilotWithBiggestDayStreak,
-                Date = DateTime.Now,
-                Name = Name
-            };
-
-            await _pilotAchievements.AddAsync(achievement);
+            pilotWithBiggestDayStreak.AddAchievement(this);
             return;
         }
 
