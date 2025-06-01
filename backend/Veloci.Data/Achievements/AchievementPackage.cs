@@ -30,7 +30,7 @@ public static class AchievementPackage
 
     private static IServiceCollection Add<T>(this IServiceCollection services) where T : IAchievement
     {
-        services.AddTransient(typeof(IAchievement), typeof(T));
+        services.AddScoped(typeof(IAchievement), typeof(T));
         return services;
     }
 }
