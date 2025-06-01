@@ -45,5 +45,6 @@ public class BiggestDayStreakAchievement : IAchievementSelfCheck
             return;
 
         currentAchievement.Pilot = pilotWithBiggestDayStreak;
+        currentAchievement.Date = DateTime.Now;
     }
 }
