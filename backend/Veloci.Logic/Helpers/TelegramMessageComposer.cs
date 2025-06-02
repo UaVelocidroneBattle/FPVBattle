@@ -57,10 +57,11 @@ public class TelegramMessageComposer
         return "😔 Бачу трек не сподобався. Більше його не буде";
     }
 
-    public string TempLeaderboard(List<CompetitionResults> results)
+    public string TempLeaderboard(List<CompetitionResults> results, Track track)
     {
         var rows = TempLeaderboardRows(results);
-        return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
+        return $"🧐 Проміжні результати:{Environment.NewLine}" +
+               $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"`{string.Join($"{Environment.NewLine}", rows)}`";
     }
 
