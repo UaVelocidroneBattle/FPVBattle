@@ -69,7 +69,7 @@ public class DiscordBot : IDiscordBot
         await _client.StopAsync();
     }
 
-    private static readonly string[] AllowedChannels = ["velocidrone-battle", "лісопед"];
+    private static readonly string[] AllowedChannels = ["velocidrone-battle", "лісопед", "track-of-the-day"];
 
     public async Task SendMessage(string message)
     {
