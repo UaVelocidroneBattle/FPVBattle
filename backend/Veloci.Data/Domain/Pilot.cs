@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Veloci.Data.Achievements.Base;
 
 namespace Veloci.Data.Domain;
 
@@ -42,6 +43,23 @@ public class Pilot
     public void ResetDayStreak()
     {
         DayStreak = 0;
+    }
+
+    public bool HasAchievement(string achievementName)
+    {
+        return Achievements.Any(achievement => achievement.Name == achievementName);
+    }
+
+    public void AddAchievement(IAchievement achievement)
+    {
+        var pilotAchievement = new PilotAchievement
+        {
+            Pilot = this,
+            Date = DateTime.Now,
+            Name = achievement.Name
+        };
+
+        Achievements.Add(pilotAchievement);
     }
 }
 

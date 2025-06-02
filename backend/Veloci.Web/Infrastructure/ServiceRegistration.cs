@@ -13,21 +13,21 @@ public static class ServiceRegistration
 {
     public static IServiceCollection RegisterCustomServices(this IServiceCollection services)
     {
-        services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
-        services.AddTransient<Velocidrone>();
-        services.AddTransient<CompetitionService>();
-        services.AddTransient<CompetitionConductor>();
-        services.AddTransient<RaceResultsConverter>();
-        services.AddTransient<MessageComposer>();
-        services.AddTransient<RaceResultDeltaAnalyzer>();
-        services.AddTransient<TelegramBot>();
-        services.AddTransient<ITelegramUpdateHandler, TelegramUpdateHandler>();
-        services.AddTransient<ImageService>();
-        //services.AddTransient<ITrackFetcher, WebTrackFetcher>();
-        services.AddTransient<ITrackFetcher, ApiTrackFetcher>();
-        services.AddTransient<TrackService>();
-        services.AddTransient<PilotResultsCalculator>();
-        services.AddTransient<AchievementService>();
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<Velocidrone>();
+        services.AddScoped<CompetitionService>();
+        services.AddScoped<CompetitionConductor>();
+        services.AddScoped<RaceResultsConverter>();
+        services.AddScoped<MessageComposer>();
+        services.AddScoped<RaceResultDeltaAnalyzer>();
+        services.AddScoped<TelegramBot>();
+        services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
+        services.AddScoped<ImageService>();
+        //services.AddScoped<ITrackFetcher, WebTrackFetcher>();
+        services.AddScoped<ITrackFetcher, ApiTrackFetcher>();
+        services.AddScoped<TrackService>();
+        services.AddScoped<PilotResultsCalculator>();
+        services.AddScoped<AchievementService>();
 
         return services;
     }

@@ -22,14 +22,15 @@ public static class AchievementPackage
             .Add<DayStreak500Achievement>()
             .Add<DayStreak1000Achievement>()
 
-            .Add<BiggestDayStreakAchievement>();
+            .Add<BiggestDayStreakAchievement>()
+            ;
 
         return services;
     }
 
     private static IServiceCollection Add<T>(this IServiceCollection services) where T : IAchievement
     {
-        services.AddTransient(typeof(IAchievement), typeof(T));
+        services.AddScoped(typeof(IAchievement), typeof(T));
         return services;
     }
 }
