@@ -21,7 +21,7 @@ public class CompetitionConductor
     private readonly ResultsFetcher _resultsFetcher;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly CompetitionService _competitionService;
-    private readonly MessageComposer _messageComposer;
+    private readonly TelegramMessageComposer _messageComposer;
     private readonly ImageService _imageService;
 
     public CompetitionConductor(
@@ -29,7 +29,7 @@ public class CompetitionConductor
         ResultsFetcher resultsFetcher,
         RaceResultsConverter resultsConverter,
         CompetitionService competitionService,
-        MessageComposer messageComposer,
+        TelegramMessageComposer messageComposer,
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,

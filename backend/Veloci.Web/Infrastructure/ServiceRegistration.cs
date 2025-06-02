@@ -17,7 +17,8 @@ public static class ServiceRegistration
         services.AddScoped<CompetitionService>();
         services.AddScoped<CompetitionConductor>();
         services.AddScoped<RaceResultsConverter>();
-        services.AddScoped<MessageComposer>();
+        services.AddScoped<TelegramMessageComposer>();
+        services.AddScoped<DiscordMessageComposer>();
         services.AddScoped<RaceResultDeltaAnalyzer>();
         services.AddScoped<TelegramBot>();
         services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
