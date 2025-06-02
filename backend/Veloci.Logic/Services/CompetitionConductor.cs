@@ -22,14 +22,14 @@ public class CompetitionConductor
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly CompetitionService _competitionService;
-    private readonly MessageComposer _messageComposer;
+    private readonly TelegramMessageComposer _messageComposer;
     private readonly ImageService _imageService;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
         RaceResultsConverter resultsConverter,
         CompetitionService competitionService,
-        MessageComposer messageComposer,
+        TelegramMessageComposer messageComposer,
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
