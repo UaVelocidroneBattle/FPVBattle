@@ -11,6 +11,7 @@ using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
+using Veloci.Data.Achievements;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands;
@@ -85,10 +86,13 @@ public class Startup
         {
             o.WorkerCount = 1;
         });
-        services.RegisterCustomServices();
-        services.RegisterTelegramCommands();
-        services.UseTelegramBotService();
-        services.UseDiscordBotService();
+
+        services
+            .RegisterCustomServices()
+            .RegisterAchievements()
+            .RegisterTelegramCommands()
+            .UseTelegramBotService()
+            .UseDiscordBotService();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<IntermediateCompetitionResult>());
 
