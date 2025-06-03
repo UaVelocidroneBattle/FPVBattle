@@ -25,7 +25,7 @@ public class DayStreakFreezesCommand : ITelegramCommand
 
         return pilot is null
             ? $"Не знаю такого пілота 😕"
-            : $"Заморозок: {pilot.DayStreakFreezes}";
+            : $"Заморозок: {pilot.DayStreakFreezeCount}";
     }
 
     public bool RemoveMessageAfterDelay => false;

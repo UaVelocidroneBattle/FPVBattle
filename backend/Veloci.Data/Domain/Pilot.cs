@@ -25,8 +25,9 @@ public class Pilot
     public DateTime? LastRaceDate { get; set; }
     public int DayStreak { get; set; }
     public int MaxDayStreak { get; set; }
-    public int DayStreakFreezes { get; set; }
     public virtual ICollection<PilotAchievement> Achievements { get; set; }
+    public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
+    public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
 
     public void IncreaseDayStreak(DateTime today)
     {
@@ -43,7 +44,7 @@ public class Pilot
         // Every 30 days, the pilot gets a day streak freeze
         if (DayStreak % 30 == 0)
         {
-            DayStreakFreezes++;
+            DayStreakFreezes.Add(new DayStreakFreeze());
         }
     }
 
@@ -57,10 +58,15 @@ public class Pilot
 
     private bool SpendFreeze()
     {
-        if (DayStreakFreezes <= 0)
+        if (DayStreakFreezes.All(fr => fr.SpentOn != null))
             return false;
 
-        DayStreakFreezes--;
+        var freeze = DayStreakFreezes
+            .OrderBy(fr => fr.CreatedOn)
+            .FirstOrDefault(fr => fr.SpentOn == null);
+
+        freeze.SpentOn = DateTime.Now;
+
         return true;
     }
 

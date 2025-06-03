@@ -25,7 +25,8 @@ public class DayStreakTests
     {
         var pilot = new Pilot("TestPilot")
         {
-            DayStreak = 1
+            DayStreak = 1,
+            DayStreakFreezes = new List<DayStreakFreeze>()
         };
 
         var today = DateTime.Now;
@@ -33,7 +34,7 @@ public class DayStreakTests
 
         // Assert
         pilot.DayStreak.Should().Be(2);
-        pilot.DayStreakFreezes.Should().Be(0);
+        pilot.DayStreakFreezeCount.Should().Be(0);
     }
 
     [Fact]
@@ -41,7 +42,8 @@ public class DayStreakTests
     {
         var pilot = new Pilot("TestPilot")
         {
-            DayStreak = 29
+            DayStreak = 29,
+            DayStreakFreezes = new List<DayStreakFreeze>()
         };
 
         var today = DateTime.Now;
@@ -49,7 +51,7 @@ public class DayStreakTests
 
         // Assert
         pilot.DayStreak.Should().Be(30);
-        pilot.DayStreakFreezes.Should().Be(1);
+        pilot.DayStreakFreezeCount.Should().Be(1);
     }
 
     [Fact]
@@ -57,7 +59,8 @@ public class DayStreakTests
     {
         var pilot = new Pilot("TestPilot")
         {
-            DayStreak = 59
+            DayStreak = 59,
+            DayStreakFreezes = new List<DayStreakFreeze>()
         };
 
         var today = DateTime.Now;
@@ -65,7 +68,7 @@ public class DayStreakTests
 
         // Assert
         pilot.DayStreak.Should().Be(60);
-        pilot.DayStreakFreezes.Should().Be(1);
+        pilot.DayStreakFreezeCount.Should().Be(1);
     }
 
     [Fact]
@@ -74,14 +77,17 @@ public class DayStreakTests
         var pilot = new Pilot("TestPilot")
         {
             DayStreak = 50,
-            DayStreakFreezes = 2
+            DayStreakFreezes = new List<DayStreakFreeze>()
         };
+
+        pilot.DayStreakFreezes.Add(new DayStreakFreeze());
+        pilot.DayStreakFreezes.Add(new DayStreakFreeze());
 
         pilot.ResetDayStreak();
 
         // Assert
         pilot.DayStreak.Should().Be(50);
-        pilot.DayStreakFreezes.Should().Be(1);
+        pilot.DayStreakFreezeCount.Should().Be(1);
     }
 
     [Fact]
@@ -90,13 +96,13 @@ public class DayStreakTests
         var pilot = new Pilot("TestPilot")
         {
             DayStreak = 50,
-            DayStreakFreezes = 0
+            DayStreakFreezes = new List<DayStreakFreeze>()
         };
 
         pilot.ResetDayStreak();
 
         // Assert
         pilot.DayStreak.Should().Be(0);
-        pilot.DayStreakFreezes.Should().Be(0);
+        pilot.DayStreakFreezeCount.Should().Be(0);
     }
 }
