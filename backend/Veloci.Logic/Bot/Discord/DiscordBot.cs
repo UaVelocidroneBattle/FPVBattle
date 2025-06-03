@@ -19,14 +19,8 @@ public class DiscordBot : IDiscordBot
     public DiscordBot(IConfiguration configuration)
     {
         _token = configuration.GetSection("Discord:BotToken").Value;
-        _allowedChannels = configuration
-            .GetSection("Discord:Channels")
-            .GetChildren()
-            .ToArray()
-            .Select(x => x.Value)
-            .Where(x => !string.IsNullOrEmpty(x))
-            .Cast<string>()
-            .ToArray();
+
+        _allowedChannels = _allowedChannels = configuration.GetSection("Discord:Channels").Get<string[]>();
 
         Serilog.Log.Debug("Allowed discord channels: {@channels}", _allowedChannels);
     }
