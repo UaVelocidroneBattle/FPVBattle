@@ -60,7 +60,7 @@ public class TelegramMessageComposer
     public string TempLeaderboard(List<CompetitionResults> results, Track track)
     {
         var rows = TempLeaderboardRows(results);
-        return $"🧐 Проміжні результати:{Environment.NewLine}" +
+        return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"`{string.Join($"{Environment.NewLine}", rows)}`";
     }
