@@ -13,7 +13,7 @@ public class DayStreakTests
         var today = DateTime.Now;
 
         // Act
-        pilot.IncreaseDayStreak(today);
+        pilot.OnRaceFlown(today);
 
         // Assert
         pilot.DayStreak.Should().Be(1);
@@ -30,7 +30,7 @@ public class DayStreakTests
         };
 
         var today = DateTime.Now;
-        pilot.IncreaseDayStreak(today);
+        pilot.OnRaceFlown(today);
 
         // Assert
         pilot.DayStreak.Should().Be(2);
@@ -47,7 +47,7 @@ public class DayStreakTests
         };
 
         var today = DateTime.Now;
-        pilot.IncreaseDayStreak(today);
+        pilot.OnRaceFlown(today);
 
         // Assert
         pilot.DayStreak.Should().Be(30);
@@ -64,7 +64,7 @@ public class DayStreakTests
         };
 
         var today = DateTime.Now;
-        pilot.IncreaseDayStreak(today);
+        pilot.OnRaceFlown(today);
 
         // Assert
         pilot.DayStreak.Should().Be(60);
@@ -83,7 +83,30 @@ public class DayStreakTests
         pilot.DayStreakFreezes.Add(new DayStreakFreeze());
         pilot.DayStreakFreezes.Add(new DayStreakFreeze());
 
-        pilot.ResetDayStreak();
+        pilot.ResetDayStreak(DateTime.Now);
+
+        // Assert
+        pilot.DayStreak.Should().Be(50);
+        pilot.DayStreakFreezeCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// It should be ok to call ResetDayStreak multiple times during one day.
+    /// </summary>
+    [Fact]
+    public void reset_streak_can_be_called_multiple_times()
+    {
+        var pilot = new Pilot("TestPilot")
+        {
+            DayStreak = 50,
+            DayStreakFreezes = new List<DayStreakFreeze>()
+        };
+
+        pilot.DayStreakFreezes.Add(new DayStreakFreeze());
+        pilot.DayStreakFreezes.Add(new DayStreakFreeze());
+
+        pilot.ResetDayStreak(DateTime.Now);
+        pilot.ResetDayStreak(DateTime.Now);
 
         // Assert
         pilot.DayStreak.Should().Be(50);
@@ -99,7 +122,7 @@ public class DayStreakTests
             DayStreakFreezes = new List<DayStreakFreeze>()
         };
 
-        pilot.ResetDayStreak();
+        pilot.ResetDayStreak(DateTime.Now);
 
         // Assert
         pilot.DayStreak.Should().Be(0);
