@@ -27,6 +27,8 @@ public class DiscordBot : IDiscordBot
             .Where(x => !string.IsNullOrEmpty(x))
             .Cast<string>()
             .ToArray();
+
+        Serilog.Log.Debug("Allowed discord channels: {@channels}", _allowedChannels);
     }
 
     public async Task StartAsync()
