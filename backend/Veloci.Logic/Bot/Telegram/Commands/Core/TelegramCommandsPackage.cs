@@ -7,11 +7,12 @@ public static class TelegramCommandsPackage
     public static IServiceCollection RegisterTelegramCommands(this IServiceCollection services)
     {
         services
-            .AddTransient<TelegramCommandProcessor>()
-            .AddTransient<ITelegramCommand, HelpCommand>()
-            .AddTransient<ITelegramCommand, CurrentDayStreakCommand>()
-            .AddTransient<ITelegramCommand, MaxDayStreakCommand>()
-            .AddTransient<ITelegramCommand, TotalFlightDaysCommand>()
+            .AddScoped<TelegramCommandProcessor>()
+            .AddScoped<ITelegramCommand, HelpCommand>()
+            .AddScoped<ITelegramCommand, CurrentDayStreakCommand>()
+            .AddScoped<ITelegramCommand, MaxDayStreakCommand>()
+            .AddScoped<ITelegramCommand, TotalFlightDaysCommand>()
+            .AddScoped<ITelegramCommand, DayStreakFreezesCommand>()
             ;
 
         return services;

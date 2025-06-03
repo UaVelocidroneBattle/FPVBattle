@@ -138,8 +138,8 @@ public class CompetitionConductor
             pilot.IncreaseDayStreak(today);
         }
 
-        await _pilots.SaveChangesAsync();
         await _pilots.GetAll().ResetDayStreaksAsync(today);
+        await _pilots.SaveChangesAsync();
     }
 
     private async Task CancelAsync()

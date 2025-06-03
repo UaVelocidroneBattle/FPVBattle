@@ -25,6 +25,7 @@ public class Pilot
     public DateTime? LastRaceDate { get; set; }
     public int DayStreak { get; set; }
     public int MaxDayStreak { get; set; }
+    public int DayStreakFreezes { get; set; }
     public virtual ICollection<PilotAchievement> Achievements { get; set; }
 
     public void IncreaseDayStreak(DateTime today)
@@ -38,12 +39,31 @@ public class Pilot
             MaxDayStreak = DayStreak;
 
         LastRaceDate = today;
+
+        // Every 30 days, the pilot gets a day streak freeze
+        if (DayStreak % 30 == 0)
+        {
+            DayStreakFreezes++;
+        }
     }
 
     public void ResetDayStreak()
     {
+        if (SpendFreeze())
+            return;
+
         DayStreak = 0;
     }
+
+    private bool SpendFreeze()
+    {
+        if (DayStreakFreezes <= 0)
+            return false;
+
+        DayStreakFreezes--;
+        return true;
+    }
+
 
     public bool HasAchievement(string achievementName)
     {
@@ -69,6 +89,6 @@ public static class PilotExtensions
     {
         await allPilots
             .Where(p => p.LastRaceDate < today)
-            .ExecuteUpdateAsync(x => x.SetProperty(pilot => pilot.DayStreak, 0));
+            .ForEachAsync(pilot => pilot.ResetDayStreak());
     }
 }
