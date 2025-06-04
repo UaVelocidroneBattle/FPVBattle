@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250603204812_AddStreakFreezes")]
+    partial class AddStreakFreezes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,28 +290,6 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("CompetitionResults", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.DayStreakFreeze", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PilotName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("SpentOn")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PilotName");
-
-                    b.ToTable("DayStreakFreezes", (string)null);
-                });
-
             modelBuilder.Entity("Veloci.Data.Domain.DroneModel", b =>
                 {
                     b.Property<int>("Id")
@@ -331,6 +312,9 @@ namespace Veloci.Web.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DayStreak")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DayStreakFreezes")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("LastRaceDate")
@@ -600,15 +584,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Competition");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.DayStreakFreeze", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
-                        .WithMany("DayStreakFreezes")
-                        .HasForeignKey("PilotName");
-
-                    b.Navigation("Pilot");
-                });
-
             modelBuilder.Entity("Veloci.Data.Domain.PilotAchievement", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
@@ -669,8 +644,6 @@ namespace Veloci.Web.Data.Migrations
             modelBuilder.Entity("Veloci.Data.Domain.Pilot", b =>
                 {
                     b.Navigation("Achievements");
-
-                    b.Navigation("DayStreakFreezes");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.TrackMap", b =>

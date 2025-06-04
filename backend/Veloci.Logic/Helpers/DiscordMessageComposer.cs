@@ -156,12 +156,12 @@ public class DiscordMessageComposer
 
     public string DayStreakPotentialLose(IEnumerable<Pilot> pilots)
     {
-        var message = $"## ⚠️ Важливе повідомлення!{Environment.NewLine}" +
-                      $"Наступні пілоти можуть втратити свій day streak:{Environment.NewLine}{Environment.NewLine}";
+        var message = $"## ⚠️ УВАГА!{Environment.NewLine}" +
+                      $"Загроза втрати day streak:{Environment.NewLine}{Environment.NewLine}";
 
         foreach (var pilot in pilots)
         {
-            message += $"**{pilot.Name}** - **{pilot.DayStreak}** day streak{Environment.NewLine}";
+            message += $"**{pilot.Name}** - **{pilot.DayStreak}** streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
         }
 
         message += $"{Environment.NewLine}Швиденько запускайте симулятори і летіть! 🚀" +
@@ -256,6 +256,8 @@ public class DiscordMessageComposer
     }
 
     private static string MsToSec(int ms) => (ms / 1000.0).ToString(CultureInfo.InvariantCulture);
+
+    private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
 
     #endregion
 }
