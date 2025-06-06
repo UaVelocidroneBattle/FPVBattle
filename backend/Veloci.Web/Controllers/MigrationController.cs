@@ -18,78 +18,83 @@ public class MigrationController
         _pilots = pilots;
     }
 
-    [HttpGet("/api/migration/pilots")]
-    public async Task Pilots()
+    [HttpGet("/api/migration/streaks")]
+    public async Task Streaks()
     {
-        if (await _pilots.GetAll().AnyAsync()) return;
-
-        var allPilots = await _competitions.GetAll()
-            .NotCancelled()
-            .SelectMany(comp => comp.CompetitionResults)
-            .Select(res => res.PlayerName)
-            .Distinct()
-            .Select(name => new Pilot(name))
-            .ToListAsync();
-
         var competitions = await _competitions
             .GetAll()
-            .OrderByDescending(c => c.StartedOn)
+            .OrderBy(c => c.StartedOn)
             .Where(c => c.State == CompetitionState.Closed)
             .ToListAsync();
 
-        foreach (var pilot in allPilots)
-        {
-            pilot.LastRaceDate = competitions
-                .FirstOrDefault(c => c.CompetitionResults.Any(r => r.PlayerName == pilot.Name))?
-                .StartedOn;
+        var pilotList = new List<Pilot>();
 
-            pilot.MaxDayStreak = GetMaxDayStreak(pilot.Name, competitions);
+        foreach (var comp in competitions)
+        {
+            ProcessCompetition(comp, pilotList);
         }
 
-        var lastCompetition = competitions.FirstOrDefault();
+        var pilotsToUpdate = pilotList
+            .Where(p => p.DayStreak > 0)
+            .ToList();
 
-        if (lastCompetition is null)
-            throw new Exception("What do you mean no last competition?");
-
-        foreach (var result in lastCompetition.CompetitionResults)
+        foreach (var pilotToUpdate in pilotsToUpdate)
         {
-            var dayStreak = competitions
-                .TakeWhile(competition => competition.CompetitionResults.Any(r => r.PlayerName == result.PlayerName))
-                .Count();
-
-            var pilot = allPilots.FirstOrDefault(p => p.Name == result.PlayerName);
-
-            if (pilot is not null)
-                pilot.DayStreak = dayStreak;
+            await UpdatePilotAsync(pilotToUpdate);
         }
 
-        await _pilots.AddRangeAsync(allPilots);
+        await _pilots.SaveChangesAsync();
     }
 
-    private int GetMaxDayStreak(string pilot, List<Competition> competitions)
+    private void ProcessCompetition(Competition comp, List<Pilot> pilotList)
     {
-        var maxStreak = 0;
-        var currentStreak = 0;
-        DateTime? lastDate = null;
+        var today = comp.StartedOn.AddDays(1);
 
-        var pilotsCompetitions = competitions
-            .Where(competition => competition.CompetitionResults.Any(r => r.PlayerName == pilot));
+        var pilotNames = comp.CompetitionResults
+            .Select(x => x.PlayerName)
+            .ToList();
 
-        foreach (var competition in pilotsCompetitions)
+        var pilotsSkippedDay = pilotList
+            .Where(p => !pilotNames.Contains(p.Name))
+            .ToList();
+
+        foreach (var pilot in pilotsSkippedDay)
         {
-            if (lastDate.HasValue && (lastDate.Value.Date - competition.StartedOn.Date).Days == 1)
+            pilot.ResetDayStreak(today);
+        }
+
+        foreach (var pilotName in pilotNames)
+        {
+            var listed = pilotList.FirstOrDefault(x => x.Name == pilotName);
+
+            if (listed is null)
             {
-                currentStreak++;
+                pilotList.Add(new Pilot
+                {
+                    Name = pilotName,
+                    DayStreak = 1,
+                    DayStreakFreezes = new List<DayStreakFreeze>()
+                });
             }
             else
             {
-                currentStreak = 1;
+                listed.OnRaceFlown(today);
             }
-
-            maxStreak = Math.Max(maxStreak, currentStreak);
-            lastDate = competition.StartedOn;
         }
+    }
 
-        return maxStreak;
+    private async Task UpdatePilotAsync(Pilot pilotToUpdate)
+    {
+        var pilot = await _pilots.FindAsync(pilotToUpdate.Name);
+        pilot.DayStreak = pilotToUpdate.DayStreak;
+        pilot.DayStreakFreezes.Clear();
+
+        foreach (var freezie in pilotToUpdate.DayStreakFreezes)
+        {
+            pilot.DayStreakFreezes.Add(new DayStreakFreeze(freezie.CreatedOn)
+            {
+                SpentOn = freezie.SpentOn
+            });
+        }
     }
 }

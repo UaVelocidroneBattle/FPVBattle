@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/migration/pilots": {
+    "/api/migration/streaks": {
       "get": {
         "tags": [
           "Migration"
