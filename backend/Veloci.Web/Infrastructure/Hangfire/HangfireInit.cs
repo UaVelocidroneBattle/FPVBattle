@@ -30,5 +30,8 @@ public class HangfireInit
         RecurringJob.AddOrUpdate<CompetitionService>("Publish current leaderboard", x => x.PublishCurrentLeaderboardAsync(), "1 */2 * * *");
 
         RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
+
+        // TODO: Remove this after testing
+        RecurringJob.AddOrUpdate<DiscordTestService>("Discord test", x => x.TestAsync(), "15 11 2 1 *");
     }
 }

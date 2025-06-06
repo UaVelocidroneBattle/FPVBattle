@@ -77,18 +77,20 @@ public class DiscordBot : IDiscordBot
 
 
 
-    private async Task SendMessage(ITextChannel channel, string message)
+    private async Task<ulong?> SendMessage(ITextChannel channel, string message)
     {
         if (_client is null)
-            return;
+            return null;
 
         try
         {
-            await channel.SendMessageAsync(message);
+            var result = await channel.SendMessageAsync(message);
+            return result.Id;
         }
         catch (Exception e)
         {
             Serilog.Log.Error(e, "Failed to send message. Guild: {Guild}, Channel: {Channel}", channel.Guild.Name, channel.Name);
+            return null;
         }
     }
 
