@@ -34,11 +34,7 @@ public class MigrationController
             ProcessCompetition(comp, pilotList);
         }
 
-        var pilotsToUpdate = pilotList
-            .Where(p => p.DayStreak > 0)
-            .ToList();
-
-        foreach (var pilotToUpdate in pilotsToUpdate)
+        foreach (var pilotToUpdate in pilotList)
         {
             await UpdatePilotAsync(pilotToUpdate);
         }
@@ -87,6 +83,7 @@ public class MigrationController
     {
         var pilot = await _pilots.FindAsync(pilotToUpdate.Name);
         pilot.DayStreak = pilotToUpdate.DayStreak;
+        pilot.MaxDayStreak = pilotToUpdate.MaxDayStreak;
         pilot.DayStreakFreezes.Clear();
 
         foreach (var freezie in pilotToUpdate.DayStreakFreezes)
