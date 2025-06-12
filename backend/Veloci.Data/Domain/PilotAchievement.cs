@@ -2,7 +2,7 @@ namespace Veloci.Data.Domain;
 
 public class PilotAchievement
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.Empty;
 
     public virtual Pilot Pilot { get; set; }
 
