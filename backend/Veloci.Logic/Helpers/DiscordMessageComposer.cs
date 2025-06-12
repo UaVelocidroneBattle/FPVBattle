@@ -56,19 +56,25 @@ public class DiscordMessageComposer
         return "😔 Бачу трек не сподобався. Більше його не буде";
     }
 
-    public string TempLeaderboard(List<CompetitionResults> results)
+    public string TempLeaderboard(List<CompetitionResults>? results)
     {
+        var message = $"### 🧐 Leaderboard:{Environment.NewLine}";
+
+        if (results is null || results.Count == 0)
+        {
+            return $"{message}```Чекаємо на перші результати```";
+        }
+
         var rows = TempLeaderboardRows(results);
-        return $"### 🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
+        return $"{message}" +
                $"```{string.Join($"{Environment.NewLine}", rows)}```";
     }
 
-    public string Leaderboard(IEnumerable<CompetitionResults> results, string trackName, bool includeExtraNewLine = true)
+    public string Leaderboard(IEnumerable<CompetitionResults> results)
     {
         var rows = results.Select(LeaderboardRow);
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-        return $"## 🏆 Результати дня{Environment.NewLine}" +
-               $"Трек: **{trackName}**{Environment.NewLine}{Environment.NewLine}" +
+        var divider = Environment.NewLine;
+        return $"### 🏆 Leaderboard{Environment.NewLine}" +
                $"{string.Join($"{divider}", rows)}";
     }
 
