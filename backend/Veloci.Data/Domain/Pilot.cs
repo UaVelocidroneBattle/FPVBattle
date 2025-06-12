@@ -42,7 +42,7 @@ public class Pilot
 
         IncrementDayStreak();
 
-        AddFreezie();
+        AddFreezie(today);
     }
 
     private void IncrementDayStreak()
@@ -53,12 +53,12 @@ public class Pilot
             MaxDayStreak = DayStreak;
     }
 
-    private void AddFreezie()
+    private void AddFreezie(DateTime today)
     {
         // Every 30 days, the pilot gets a day streak freeze
         if (DayStreak % 30 == 0)
         {
-            DayStreakFreezes.Add(new DayStreakFreeze());
+            DayStreakFreezes.Add(new DayStreakFreeze(today));
         }
     }
 
@@ -84,7 +84,7 @@ public class Pilot
 
         if (freeze == null) return false;
 
-        freeze.SpentOn = DateTime.Now;
+        freeze.SpentOn = today;
 
         return true;
     }
