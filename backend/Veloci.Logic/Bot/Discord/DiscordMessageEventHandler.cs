@@ -4,6 +4,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
+using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Bot.Discord;
 
@@ -22,15 +23,18 @@ public class DiscordMessageEventHandler :
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBot _discordBot;
     private readonly IRepository<Competition> _competitions;
+    private readonly CompetitionService _competitionService;
 
     public DiscordMessageEventHandler(
         DiscordMessageComposer messageComposer,
         IDiscordBot discordBot,
-        IRepository<Competition> competitions)
+        IRepository<Competition> competitions,
+        CompetitionService competitionService)
     {
         _messageComposer = messageComposer;
         _discordBot = discordBot;
         _competitions = competitions;
+        _competitionService = competitionService;
     }
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
@@ -42,7 +46,7 @@ public class DiscordMessageEventHandler :
         var leaderboardMessage = _messageComposer.TempLeaderboard(null);
         var messageId = await _discordBot.SendMessageAsync(leaderboardMessage);
         notification.Competition.AddOrUpdateVariable(CompetitionVariables.DiscordLeaderboardMessageId, messageId.Value);
-        //await _competitions.SaveChangesAsync(cancellationToken);
+        await _competitions.SaveChangesAsync(cancellationToken);
 
         await _discordBot.ChangeChannelTopicAsync(notification.Track.FullName);
     }
@@ -62,7 +66,8 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.TimeUpdate(notification.Deltas);
         await _discordBot.SendMessageInThreadAsync(leaderboardMessageId.Value, CompetitionVariables.DiscordTimeUpdatesThreadName, message);
 
-        var leaderboardMessage = _messageComposer.TempLeaderboard(notification.Competition.CompetitionResults);
+        var leaderboard = _competitionService.GetLocalLeaderboard(notification.Competition);
+        var leaderboardMessage = _messageComposer.TempLeaderboard(leaderboard);
         await _discordBot.EditMessageAsync(leaderboardMessageId.Value, leaderboardMessage);
     }
 
