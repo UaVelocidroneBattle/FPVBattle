@@ -53,15 +53,10 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
     {
-        var leaderboardMessageId = notification.Competition
-            .GetVariable(CompetitionVariables.DiscordLeaderboardMessageId)?
-            .ULongValue;
+        var leaderboardMessageId = GetLeaderboardMessageId(notification.Competition);
 
         if (leaderboardMessageId is null)
-        {
-            Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", notification.Competition.Id);
             return;
-        }
 
         var message = _messageComposer.TimeUpdate(notification.Deltas);
         await _discordBot.SendMessageInThreadAsync(leaderboardMessageId.Value, CompetitionVariables.DiscordTimeUpdatesThreadName, message);
@@ -78,15 +73,10 @@ public class DiscordMessageEventHandler :
         if (competition.CompetitionResults.Count == 0)
             return;
 
-        var leaderboardMessageId = notification.Competition
-            .GetVariable(CompetitionVariables.DiscordLeaderboardMessageId)?
-            .ULongValue;
+        var leaderboardMessageId = GetLeaderboardMessageId(competition);
 
         if (leaderboardMessageId is null)
-        {
-            Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", notification.Competition.Id);
             return;
-        }
 
         var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults);
         await _discordBot.EditMessageAsync(leaderboardMessageId.Value, resultsMessage);
@@ -158,5 +148,18 @@ public class DiscordMessageEventHandler :
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
         await _discordBot.SendMessageAsync(message);
+    }
+
+    private ulong? GetLeaderboardMessageId(Competition competition)
+    {
+        var leaderboardMessageId = competition
+            .GetVariable(CompetitionVariables.DiscordLeaderboardMessageId)?
+            .ULongValue;
+
+        if (leaderboardMessageId is not null)
+            return leaderboardMessageId;
+
+        Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
+        return null;
     }
 }

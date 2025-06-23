@@ -54,6 +54,12 @@ public class DiscordBot : IDiscordBot
             .OfType<ITextChannel>()
             .FirstOrDefault(c => c.Name == _channelName);
 
+        if (_channel is null)
+        {
+            Serilog.Log.Error("Discord channel with name {ChannelName} not found.", _channelName);
+            return Task.CompletedTask;
+        }
+
         Serilog.Log.Information("Discord bot is ready.");
         return Task.CompletedTask;
     }

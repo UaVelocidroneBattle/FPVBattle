@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Veloci.Data.Domain;
 
 namespace Veloci.Tests;
@@ -21,9 +22,9 @@ public class CompetitionVariablesTests
 
         // Assert
         var variable = competition.GetVariable(variableName);
-        Assert.NotNull(variable);
-        Assert.Equal(variableName, variable.Name);
-        Assert.Equal(variableValue, variable.StringValue);
+        variable.Should().NotBeNull();
+        variable.Name.Should().Be(variableName);
+        variable.StringValue.Should().Be(variableValue);
     }
 
     [Fact]
@@ -46,9 +47,9 @@ public class CompetitionVariablesTests
 
         // Assert
         var variable = competition.GetVariable(variableName);
-        Assert.NotNull(variable);
-        Assert.Equal(variableName, variable.Name);
-        Assert.Equal(variableValue, variable.StringValue);
+        variable.Should().NotBeNull();
+        variable.Name.Should().Be(variableName);
+        variable.StringValue.Should().Be(variableValue);
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class CompetitionVariablesTests
         var variable = competition.GetVariable(variableName);
 
         // Assert
-        Assert.Null(variable);
+        variable.Should().BeNull();
     }
 
     [Fact]
@@ -87,8 +88,8 @@ public class CompetitionVariablesTests
         var variable = competition.GetVariable(variableName);
 
         // Assert
-        Assert.NotNull(variable);
-        Assert.Equal(variableName, variable.Name);
+        variable.Should().NotBeNull();
+        variable.Name.Should().Be(variableName);
     }
 
     [Fact]
@@ -102,7 +103,7 @@ public class CompetitionVariablesTests
         variable.UpdateValue(newValue);
 
         // Assert
-        Assert.Equal(newValue, variable.StringValue);
+        variable.StringValue.Should().Be(newValue);
     }
 
     [Fact]
@@ -116,7 +117,7 @@ public class CompetitionVariablesTests
         variable.UpdateValue(newValue);
 
         // Assert
-        Assert.Equal(newValue, variable.IntValue);
+        variable.IntValue.Should().Be(newValue);
     }
 
     [Fact]
@@ -130,7 +131,7 @@ public class CompetitionVariablesTests
         variable.UpdateValue(newValue);
 
         // Assert
-        Assert.Equal(newValue, (ulong)variable.ULongValue);
+        variable.ULongValue.Should().Be(newValue);
     }
 
     [Fact]
@@ -144,6 +145,6 @@ public class CompetitionVariablesTests
         variable.UpdateValue(newValue);
 
         // Assert
-        Assert.Equal(newValue, variable.DoubleValue);
+        variable.DoubleValue.Should().Be(newValue);
     }
 }
