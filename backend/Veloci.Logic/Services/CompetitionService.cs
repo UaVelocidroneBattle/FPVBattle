@@ -76,7 +76,7 @@ public class CompetitionService
         competition.TimeDeltas.AddRange(deltas);
         competition.ResultsPosted = false;
         await _competitions.SaveChangesAsync();
-        await _mediator.Publish(new CurrentResultUpdateMessage(deltas));
+        await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas));
     }
 
     private async Task MapModelsAsync(List<TrackTimeDelta> deltas)
