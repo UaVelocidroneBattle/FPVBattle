@@ -137,8 +137,8 @@ public class CompetitionConductor
             pilot.OnRaceFlown(today);
         }
 
-        await _pilots.GetAll().ResetDayStreaksAsync(today);
         await _pilots.SaveChangesAsync();
+        await _pilots.GetAll().ResetDayStreaksAsync(today);
     }
 
     private async Task CancelAsync()

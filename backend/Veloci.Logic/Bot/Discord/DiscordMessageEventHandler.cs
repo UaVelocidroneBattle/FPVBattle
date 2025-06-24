@@ -1,12 +1,15 @@
 ﻿using MediatR;
+using Serilog;
+using Veloci.Data.Domain;
+using Veloci.Data.Repositories;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
+using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Bot.Discord;
 
 public class DiscordMessageEventHandler :
     INotificationHandler<CompetitionStarted>,
-    INotificationHandler<IntermediateCompetitionResult>,
     INotificationHandler<CurrentResultUpdateMessage>,
     INotificationHandler<CompetitionStopped>,
     INotificationHandler<TempSeasonResults>,
@@ -19,41 +22,65 @@ public class DiscordMessageEventHandler :
 {
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBot _discordBot;
+    private readonly IRepository<Competition> _competitions;
+    private readonly CompetitionService _competitionService;
 
-    public DiscordMessageEventHandler(DiscordMessageComposer messageComposer, IDiscordBot discordBot)
+    public DiscordMessageEventHandler(
+        DiscordMessageComposer messageComposer,
+        IDiscordBot discordBot,
+        IRepository<Competition> competitions,
+        CompetitionService competitionService)
     {
         _messageComposer = messageComposer;
         _discordBot = discordBot;
+        _competitions = competitions;
+        _competitionService = competitionService;
     }
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
         var track = notification.Track;
-        var message = _messageComposer.StartCompetition(track);
-        await _discordBot.SendMessageAsync(message);
-        await _discordBot.ChangeChannelTopicAsync(notification.Track.FullName);
-    }
+        var startMessage = _messageComposer.StartCompetition(track);
+        await _discordBot.SendMessageAsync(startMessage);
 
-    public async Task Handle(IntermediateCompetitionResult notification, CancellationToken cancellationToken)
-    {
-        var message = _messageComposer.TempLeaderboard(notification.Leaderboard);
-        await _discordBot.SendMessageAsync(message);
+        var leaderboardMessage = _messageComposer.TempLeaderboard(null);
+        var messageId = await _discordBot.SendMessageAsync(leaderboardMessage);
+        notification.Competition.AddOrUpdateVariable(CompetitionVariables.DiscordLeaderboardMessageId, messageId.Value);
+        await _competitions.SaveChangesAsync(cancellationToken);
+
+        await _discordBot.ChangeChannelTopicAsync(notification.Track.FullName);
     }
 
     public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
     {
+        var leaderboardMessageId = GetLeaderboardMessageId(notification.Competition);
+
+        if (leaderboardMessageId is null)
+            return;
+
         var message = _messageComposer.TimeUpdate(notification.Deltas);
-        await _discordBot.SendMessageAsync(message);
+        await _discordBot.SendMessageInThreadAsync(leaderboardMessageId.Value, CompetitionVariables.DiscordTimeUpdatesThreadName, message);
+
+        var leaderboard = _competitionService.GetLocalLeaderboard(notification.Competition);
+        var leaderboardMessage = _messageComposer.TempLeaderboard(leaderboard);
+        await _discordBot.EditMessageAsync(leaderboardMessageId.Value, leaderboardMessage);
     }
 
     public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
     {
         var competition = notification.Competition;
 
-        if (competition.CompetitionResults.Count == 0) return;
+        if (competition.CompetitionResults.Count == 0)
+            return;
 
-        var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults, competition.Track.FullName, false);
-        await _discordBot.SendMessageAsync(resultsMessage);
+        var leaderboardMessageId = GetLeaderboardMessageId(competition);
+
+        if (leaderboardMessageId is null)
+            return;
+
+        var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults);
+        await _discordBot.EditMessageAsync(leaderboardMessageId.Value, resultsMessage);
+        await _discordBot.ArchiveThreadAsync(CompetitionVariables.DiscordTimeUpdatesThreadName);
         await _discordBot.ChangeChannelTopicAsync(string.Empty);
     }
 
@@ -121,5 +148,18 @@ public class DiscordMessageEventHandler :
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
         await _discordBot.SendMessageAsync(message);
+    }
+
+    private ulong? GetLeaderboardMessageId(Competition competition)
+    {
+        var leaderboardMessageId = competition
+            .GetVariable(CompetitionVariables.DiscordLeaderboardMessageId)?
+            .ULongValue;
+
+        if (leaderboardMessageId is not null)
+            return leaderboardMessageId;
+
+        Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
+        return null;
     }
 }

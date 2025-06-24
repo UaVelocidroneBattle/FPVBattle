@@ -21,7 +21,37 @@ public class Competition
 
     public virtual List<CompetitionResults> CompetitionResults { get; set; }
 
+    public virtual List<CompetitionVariable> Variables { get; set; }
+
     public bool ResultsPosted { get; set; }
+
+    public void AddOrUpdateVariable(string name, object value)
+    {
+        Variables ??= new List<CompetitionVariable>();
+
+        var variable = Variables.FirstOrDefault(v => v.Name == name);
+
+        if (variable is null)
+        {
+            variable = new CompetitionVariable
+            {
+                Name = name,
+                CompetitionId = Id
+            };
+
+            variable.UpdateValue(value);
+            Variables.Add(variable);
+        }
+        else
+        {
+            variable.UpdateValue(value);
+        }
+    }
+
+    public CompetitionVariable? GetVariable(string name)
+    {
+        return Variables.FirstOrDefault(v => v.Name == name);
+    }
 }
 
 public static class IQueryableCompetionExtensions
