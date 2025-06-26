@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250603204812_AddStreakFreezes")]
+    partial class AddStreakFreezes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,64 +290,21 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("CompetitionResults", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.CompetitionVariable", b =>
+            modelBuilder.Entity("Veloci.Data.Domain.DroneModel", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool?>("BoolValue")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CompetitionId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<double?>("DoubleValue")
-                        .HasColumnType("REAL");
-
-                    b.Property<int?>("IntValue")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("StringValue")
-                        .HasColumnType("TEXT");
-
-                    b.Property<ulong?>("ULongValue")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("CompetitionId");
-
-                    b.ToTable("CompetitionVariables", (string)null);
+                    b.ToTable("Models", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.DayStreakFreeze", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PilotName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("SpentOn")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PilotName");
-
-                    b.ToTable("DayStreakFreezes", (string)null);
-                });
-                
             modelBuilder.Entity("Veloci.Data.Domain.Pilot", b =>
                 {
                     b.Property<string>("Name")
@@ -352,6 +312,9 @@ namespace Veloci.Web.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DayStreak")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DayStreakFreezes")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("LastRaceDate")
@@ -470,14 +433,11 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("LocalRank")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ModelName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("ModelId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PlayerName")
                         .IsRequired()
-                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Time")
@@ -502,19 +462,17 @@ namespace Veloci.Web.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("DroneModelId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("LocalRank")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("LocalRankOld")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ModelName")
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("PlayerName")
                         .IsRequired()
-                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Rank")
@@ -529,9 +487,14 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("TrackTime")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("UnknownDroneModelId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompetitionId");
+
+                    b.HasIndex("DroneModelId");
 
                     b.ToTable("TrackTimeDeltas", (string)null);
                 });
@@ -621,24 +584,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Competition");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.CompetitionVariable", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.Competition", null)
-                        .WithMany("Variables")
-                        .HasForeignKey("CompetitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Veloci.Data.Domain.DayStreakFreeze", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
-                        .WithMany("DayStreakFreezes")
-                        .HasForeignKey("PilotName");
-
-                    b.Navigation("Pilot");
-                });
-
             modelBuilder.Entity("Veloci.Data.Domain.PilotAchievement", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
@@ -680,7 +625,13 @@ namespace Veloci.Web.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Veloci.Data.Domain.DroneModel", "DroneModel")
+                        .WithMany()
+                        .HasForeignKey("DroneModelId");
+
                     b.Navigation("Competition");
+
+                    b.Navigation("DroneModel");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
@@ -688,15 +639,11 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("CompetitionResults");
 
                     b.Navigation("TimeDeltas");
-
-                    b.Navigation("Variables");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.Pilot", b =>
                 {
                     b.Navigation("Achievements");
-
-                    b.Navigation("DayStreakFreezes");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.TrackMap", b =>

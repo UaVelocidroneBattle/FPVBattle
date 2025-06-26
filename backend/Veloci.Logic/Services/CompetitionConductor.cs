@@ -127,8 +127,7 @@ public class CompetitionConductor
 
         foreach (var results in competitionResults)
         {
-            var pilot = await _pilots.GetAll()
-                .FirstOrDefaultAsync(p => p.Name == results.PlayerName);
+            var pilot = await _pilots.FindAsync(results.PlayerName);
 
             if (pilot is null)
             {
@@ -136,7 +135,7 @@ public class CompetitionConductor
                 await _pilots.AddAsync(pilot);
             }
 
-            pilot.IncreaseDayStreak(today);
+            pilot.OnRaceFlown(today);
         }
 
         await _pilots.SaveChangesAsync();

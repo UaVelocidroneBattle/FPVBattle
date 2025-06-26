@@ -60,7 +60,7 @@ public class TelegramMessageComposer
     public string TempLeaderboard(List<CompetitionResults> results, Track track)
     {
         var rows = TempLeaderboardRows(results);
-        return $"🧐 Проміжні результати:{Environment.NewLine}" +
+        return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"`{string.Join($"{Environment.NewLine}", rows)}`";
     }
@@ -159,12 +159,12 @@ public class TelegramMessageComposer
 
     public string DayStreakPotentialLose(IEnumerable<Pilot> pilots)
     {
-        var message = $"⚠️ *Важливе повідомлення!*{Environment.NewLine}" +
-                      $"Наступні пілоти можуть втратити свій day streak:{Environment.NewLine}{Environment.NewLine}";
+        var message = $"⚠️ *УВАГА!*{Environment.NewLine}" +
+                      $"Загроза втрати day streak:{Environment.NewLine}{Environment.NewLine}";
 
         foreach (var pilot in pilots)
         {
-            message += $"*{pilot.Name}* - *{pilot.DayStreak}* day streak{Environment.NewLine}";
+            message += $"*{pilot.Name}* - *{pilot.DayStreak}* streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
         }
 
         message += $"{Environment.NewLine}Швиденько запускайте симулятори і летіть! 🚀" +
@@ -259,6 +259,8 @@ public class TelegramMessageComposer
     }
 
     private static string MsToSec(int ms) => (ms / 1000.0).ToString(CultureInfo.InvariantCulture);
+
+    private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
 
     #endregion
 }

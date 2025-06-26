@@ -56,19 +56,25 @@ public class DiscordMessageComposer
         return "😔 Бачу трек не сподобався. Більше його не буде";
     }
 
-    public string TempLeaderboard(List<CompetitionResults> results)
+    public string TempLeaderboard(List<CompetitionResults>? results)
     {
+        var message = $"### 🧐 Leaderboard:{Environment.NewLine}";
+
+        if (results is null || results.Count == 0)
+        {
+            return $"{message}```Чекаємо на перші результати```";
+        }
+
         var rows = TempLeaderboardRows(results);
-        return $"### 🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
+        return $"{message}" +
                $"```{string.Join($"{Environment.NewLine}", rows)}```";
     }
 
-    public string Leaderboard(IEnumerable<CompetitionResults> results, string trackName, bool includeExtraNewLine = true)
+    public string Leaderboard(IEnumerable<CompetitionResults> results)
     {
         var rows = results.Select(LeaderboardRow);
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-        return $"## 🏆 Результати дня{Environment.NewLine}" +
-               $"Трек: **{trackName}**{Environment.NewLine}{Environment.NewLine}" +
+        var divider = Environment.NewLine;
+        return $"### 🏆 Leaderboard{Environment.NewLine}" +
                $"{string.Join($"{divider}", rows)}";
     }
 
@@ -156,12 +162,12 @@ public class DiscordMessageComposer
 
     public string DayStreakPotentialLose(IEnumerable<Pilot> pilots)
     {
-        var message = $"## ⚠️ Важливе повідомлення!{Environment.NewLine}" +
-                      $"Наступні пілоти можуть втратити свій day streak:{Environment.NewLine}{Environment.NewLine}";
+        var message = $"## ⚠️ УВАГА!{Environment.NewLine}" +
+                      $"Загроза втрати day streak:{Environment.NewLine}{Environment.NewLine}";
 
         foreach (var pilot in pilots)
         {
-            message += $"**{pilot.Name}** - **{pilot.DayStreak}** day streak{Environment.NewLine}";
+            message += $"**{pilot.Name}** - **{pilot.DayStreak}** streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
         }
 
         message += $"{Environment.NewLine}Швиденько запускайте симулятори і летіть! 🚀" +
@@ -256,6 +262,8 @@ public class DiscordMessageComposer
     }
 
     private static string MsToSec(int ms) => (ms / 1000.0).ToString(CultureInfo.InvariantCulture);
+
+    private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
 
     #endregion
 }
