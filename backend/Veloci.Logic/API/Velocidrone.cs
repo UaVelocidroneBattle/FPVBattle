@@ -1,25 +1,26 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Veloci.Logic.API.Dto;
+using Veloci.Logic.API.Options;
 using Veloci.Logic.Services;
 
 namespace Veloci.Logic.API;
 
 public class Velocidrone
 {
-    private readonly HttpClient _httpClient;
+    private static HttpClient? _httpClient;
     private readonly string? _apiToken;
 
-    public Velocidrone(IConfiguration configuration)
+    public Velocidrone(IOptions<ApiSettings> options)
     {
-        _httpClient = new HttpClient
+        _httpClient ??= new HttpClient
         {
             BaseAddress = new Uri(VelocidroneApiConstants.BaseUrl)
         };
 
-        _apiToken = configuration.GetSection("API:Token").Value;
+        _apiToken = options?.Value?.Token;
     }
 
     public async Task<ICollection<TrackTimeDto>> LeaderboardAsync(int trackId)

@@ -27,7 +27,7 @@ public class DiscordMessageComposer
                $"Трек дня:{Environment.NewLine}" +
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
-               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}";
+               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}⠀";
     }
 
     public BotPoll Poll(string trackName)
@@ -83,14 +83,16 @@ public class DiscordMessageComposer
         var rows = results.Select(TempSeasonResultsRow);
         var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
         return $"## 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}";
+               $"{string.Join($"{divider}", rows)}" +
+               $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
     public string SeasonResults(IEnumerable<SeasonResult> results)
     {
         var rows = results.Select(SeasonResultsRow);
         return $"# 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}";
+               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}" +
+               $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
     public string MedalCount(IEnumerable<SeasonResult> results, bool includeExtraNewLine = true)

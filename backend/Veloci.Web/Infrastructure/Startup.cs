@@ -12,6 +12,7 @@ using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
 using Veloci.Data.Achievements;
+using Veloci.Logic.API.Options;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands;
@@ -54,6 +55,7 @@ public class Startup
         services.AddControllersWithViews();
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
+        services.Configure<ApiSettings>(Configuration.GetSection("API"));
 
         services.Configure<IdentityOptions>(options =>
         {
