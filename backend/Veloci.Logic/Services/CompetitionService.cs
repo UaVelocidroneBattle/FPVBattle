@@ -125,7 +125,8 @@ public class CompetitionService
                 TrackTime = x.TrackTime,
                 LocalRank = i + 1,
                 GlobalRank = x.Rank,
-                Points = PointsByRank(i + 1)
+                Points = PointsByRank(i + 1),
+                ModelName = x.ModelName
             })
             .ToList();
     }

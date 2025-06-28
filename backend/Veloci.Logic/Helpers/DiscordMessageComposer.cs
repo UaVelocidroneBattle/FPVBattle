@@ -194,11 +194,12 @@ public class DiscordMessageComposer
     {
         var positionLength = results.Count().ToString().Length + 2;
         var pilotNameLength = results.Max(r => r.PlayerName.Length) + 2;
+        var timeLength = results.Max(r => MsToSec(r.TrackTime).ToString().Length) + 3;
         var rows = new List<string>();
 
         foreach (var result in results)
         {
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.PlayerName, pilotNameLength)}{MsToSec(result.TrackTime)}s");
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.PlayerName, pilotNameLength)}{FillWithSpaces(MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
         }
 
         return rows;
