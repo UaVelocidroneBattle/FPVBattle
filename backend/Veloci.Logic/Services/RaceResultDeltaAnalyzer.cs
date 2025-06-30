@@ -20,7 +20,7 @@ public class RaceResultDeltaAnalyzer
                     LocalRank = trackTime.LocalRank,
                     Rank = trackTime.GlobalRank,
                     TrackTime = trackTime.Time,
-                    DroneModelId = trackTime.ModelId
+                    ModelName = trackTime.ModelName
                 });
 
                 continue;
@@ -38,7 +38,7 @@ public class RaceResultDeltaAnalyzer
                 RankOld = existingTime.GlobalRank,
                 TrackTime = trackTime.Time,
                 TimeChange = trackTime.Time - existingTime.Time,
-                DroneModelId = trackTime.ModelId
+                ModelName = trackTime.ModelName
             });
         }
 

@@ -17,6 +17,7 @@ public class TrackFilter
         new ("Trainer", RegexOptions.Compiled | RegexOptions.IgnoreCase),
         new ("Whoop", RegexOptions.Compiled | RegexOptions.IgnoreCase),
         new ("LiPo-Suction", RegexOptions.Compiled | RegexOptions.IgnoreCase),
+        new ("WeeBleed", RegexOptions.Compiled | RegexOptions.IgnoreCase),
         new ("^level (01,02, 03)", RegexOptions.Compiled | RegexOptions.IgnoreCase),
 
         //From old bot

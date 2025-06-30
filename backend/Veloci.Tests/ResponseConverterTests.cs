@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using FluentAssertions;
-using Veloci.Logic.Dto;
+using Veloci.Logic.API.Dto;
 using Veloci.Logic.Services;
 
 namespace Veloci.Tests;
@@ -45,23 +45,23 @@ public class ResponseConverterTests
         var times = _converter.ConvertTrackTimes(data);
 
         times.Should().HaveCount(3);
-        
+
         var first = times[0];
         first.PlayerName.Should().Be("SWEEPER");
         first.LocalRank.Should().Be(1);
         first.GlobalRank.Should().Be(1);
-        
+
         var second = times[1];
         second.PlayerName.Should().Be("APX - BURAK");
         second.LocalRank.Should().Be(2);
         second.GlobalRank.Should().Be(2);
-        
+
         var third = times[2];
         third.PlayerName.Should().Be("FPV FPV");
         third.LocalRank.Should().Be(3);
         third.GlobalRank.Should().Be(4);
     }
-    
+
     [Fact]
     public void can_parse_time()
     {
