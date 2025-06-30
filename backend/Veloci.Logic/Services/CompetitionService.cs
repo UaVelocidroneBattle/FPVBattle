@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.API;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Notifications;
 
@@ -12,30 +13,27 @@ namespace Veloci.Logic.Services;
 
 public class CompetitionService
 {
+    private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<DroneModel> _models;
-    private readonly ResultsFetcher _resultsFetcher;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
 
     public CompetitionService(
         IRepository<Competition> competitions,
-        ResultsFetcher resultsFetcher,
         RaceResultsConverter resultsConverter,
         RaceResultDeltaAnalyzer analyzer,
         IMediator mediator,
         IRepository<Pilot> pilots,
-        IRepository<DroneModel> models)
+        Velocidrone velocidrone)
     {
         _competitions = competitions;
-        _resultsFetcher = resultsFetcher;
         _resultsConverter = resultsConverter;
         _analyzer = analyzer;
         _mediator = mediator;
         _pilots = pilots;
-        _models = models;
+        _velocidrone = velocidrone;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
@@ -58,7 +56,7 @@ public class CompetitionService
     {
         Log.Debug("Starting updating results for competition {competitionId}", competition.Id);
 
-        var resultsDto = await _resultsFetcher.FetchAsync(competition.Track.TrackId);
+        var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
         var times = _resultsConverter.ConvertTrackTimes(resultsDto);
         var results = new TrackResults
         {
@@ -70,33 +68,11 @@ public class CompetitionService
         if (!deltas.Any())
             return;
 
-        await MapModelsAsync(deltas);
-
         competition.CurrentResults = results;
         competition.TimeDeltas.AddRange(deltas);
         competition.ResultsPosted = false;
         await _competitions.SaveChangesAsync();
         await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas));
-    }
-
-    private async Task MapModelsAsync(List<TrackTimeDelta> deltas)
-    {
-        foreach (var delta in deltas)
-        {
-            if (delta.DroneModelId is null)
-                continue;
-
-            var model = await _models.FindAsync(delta.DroneModelId);
-
-            if (model is null)
-            {
-                delta.UnknownDroneModelId = delta.DroneModelId;
-                delta.DroneModelId = null;
-                continue;
-            }
-
-            delta.DroneModel = model;
-        }
     }
 
     [DisableConcurrentExecution("Competition", 1)]
@@ -149,7 +125,8 @@ public class CompetitionService
                 TrackTime = x.TrackTime,
                 LocalRank = i + 1,
                 GlobalRank = x.Rank,
-                Points = PointsByRank(i + 1)
+                Points = PointsByRank(i + 1),
+                ModelName = x.ModelName
             })
             .ToList();
     }

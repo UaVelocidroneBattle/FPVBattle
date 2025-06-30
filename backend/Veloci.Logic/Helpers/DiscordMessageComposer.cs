@@ -27,7 +27,7 @@ public class DiscordMessageComposer
                $"Трек дня:{Environment.NewLine}" +
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
-               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}";
+               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}⠀";
     }
 
     public BotPoll Poll(string trackName)
@@ -83,14 +83,16 @@ public class DiscordMessageComposer
         var rows = results.Select(TempSeasonResultsRow);
         var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
         return $"## 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}";
+               $"{string.Join($"{divider}", rows)}" +
+               $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
     public string SeasonResults(IEnumerable<SeasonResult> results)
     {
         var rows = results.Select(SeasonResultsRow);
         return $"# 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}";
+               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}" +
+               $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
     public string MedalCount(IEnumerable<SeasonResult> results, bool includeExtraNewLine = true)
@@ -182,7 +184,7 @@ public class DiscordMessageComposer
     {
         var timeChangePart = delta.TimeChange.HasValue ? $" ({MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
-        var modelPart = delta.DroneModel is not null ? $" / {delta.DroneModel.Name}" : string.Empty;
+        var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
 
         return $"✈️  **{delta.PlayerName}**{modelPart}{Environment.NewLine}" +
                $"⏱️  {MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
@@ -192,11 +194,12 @@ public class DiscordMessageComposer
     {
         var positionLength = results.Count().ToString().Length + 2;
         var pilotNameLength = results.Max(r => r.PlayerName.Length) + 2;
+        var timeLength = results.Max(r => MsToSec(r.TrackTime).ToString().Length) + 3;
         var rows = new List<string>();
 
         foreach (var result in results)
         {
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.PlayerName, pilotNameLength)}{MsToSec(result.TrackTime)}s");
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.PlayerName, pilotNameLength)}{FillWithSpaces(MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
         }
 
         return rows;
