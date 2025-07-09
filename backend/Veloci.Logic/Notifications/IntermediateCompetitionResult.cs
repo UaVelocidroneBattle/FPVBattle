@@ -9,7 +9,7 @@ public record IntermediateCompetitionResult(List<CompetitionResults> Leaderboard
 
 public record CompetitionStopped (Competition Competition) : INotification;
 
-public record CompetitionStarted(Competition Competition, Track Track) : INotification;
+public record CompetitionStarted(Competition Competition, Track Track, IList<string> PilotsFlownOnTrack) : INotification;
 
 public record TempSeasonResults(List<SeasonResult> Results) : INotification;
 

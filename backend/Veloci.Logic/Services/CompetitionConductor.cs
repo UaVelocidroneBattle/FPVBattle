@@ -77,12 +77,28 @@ public class CompetitionConductor
 
         await _competitions.AddAsync(competition);
 
-        await _mediator.Publish(new CompetitionStarted(competition, track));
+        var pilotsFlownOnTrack = await GetPilotsFlownOnTrackAsync(trackResults);
+        await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack));
 
         //possible needs to be moved to CompetitionStarted event handler in TelegramHandler
         await CreatePoll(track, competition);
 
         await _competitions.SaveChangesAsync();
+    }
+
+    private async Task<IList<string>> GetPilotsFlownOnTrackAsync(TrackResults trackResults)
+    {
+        var result = new List<string>();
+
+        foreach (var time in trackResults.Times)
+        {
+            var pilot = await _pilots.FindAsync(time.PlayerName);
+
+            if (pilot is not null)
+                result.Add(pilot.Name);
+        }
+
+        return result;
     }
 
     private async Task CreatePoll(Track track, Competition competition)

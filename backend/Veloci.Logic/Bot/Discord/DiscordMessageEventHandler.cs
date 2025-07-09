@@ -41,7 +41,7 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
         var track = notification.Track;
-        var startMessage = _messageComposer.StartCompetition(track);
+        var startMessage = _messageComposer.StartCompetition(track, notification.PilotsFlownOnTrack);
         await _discordBot.SendMessageAsync(startMessage);
 
         var leaderboardMessage = _messageComposer.TempLeaderboard(null);

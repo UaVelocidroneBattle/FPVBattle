@@ -14,7 +14,7 @@ public class DiscordMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track)
+    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack)
     {
         var rating = string.Empty;
 
@@ -23,11 +23,16 @@ public class DiscordMessageComposer
             rating = $"Попередній рейтинг: **{Math.Round(track.Rating.Value.Value, 1):F1}**/3{Environment.NewLine}{Environment.NewLine}";
         }
 
+        var flownPilotsText = pilotsFlownOnTrack.Count != 0 ?
+            $"Трек вже літали:{Environment.NewLine}**{string.Join(", ", pilotsFlownOnTrack)}**{Environment.NewLine}" :
+            $"Трек ще ніхто з вас не літав.{Environment.NewLine}";
+
         return $"## 📅  Вітаємо на щоденному **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
-               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}⠀";
+               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
+               $"{flownPilotsText}⠀";
     }
 
     public BotPoll Poll(string trackName)
