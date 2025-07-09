@@ -17,6 +17,18 @@
         }
       }
     },
+    "/test/ImageTest": {
+      "get": {
+        "tags": [
+          "Testing"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/pilots/All": {
       "get": {
         "tags": [
@@ -345,6 +357,9 @@
   "tags": [
     {
       "name": "Migration"
+    },
+    {
+      "name": "Testing"
     },
     {
       "name": "Pilots"

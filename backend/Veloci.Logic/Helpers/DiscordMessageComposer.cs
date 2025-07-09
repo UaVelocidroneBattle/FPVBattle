@@ -23,7 +23,7 @@ public class DiscordMessageComposer
             rating = $"Попередній рейтинг: **{Math.Round(track.Rating.Value.Value, 1):F1}**/3{Environment.NewLine}{Environment.NewLine}";
         }
 
-        return $"## 📅  Вітаємо на щоденному **UA Velocidrone Battle**!{Environment.NewLine}{Environment.NewLine}" +
+        return $"## 📅  Вітаємо на щоденному **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
@@ -58,7 +58,7 @@ public class DiscordMessageComposer
 
     public string TempLeaderboard(List<CompetitionResults>? results)
     {
-        var message = $"### 🧐 Leaderboard:{Environment.NewLine}";
+        var message = $"### 🧐 Leaderboard:{Environment.NewLine}{Environment.NewLine}⠀";
 
         if (results is null || results.Count == 0)
         {
@@ -74,7 +74,7 @@ public class DiscordMessageComposer
     {
         var rows = results.Select(LeaderboardRow);
         var divider = Environment.NewLine;
-        return $"### 🏆 Leaderboard{Environment.NewLine}" +
+        return $"### 🏆 Leaderboard{Environment.NewLine}{Environment.NewLine}⠀" +
                $"{string.Join($"{divider}", rows)}";
     }
 
@@ -82,7 +82,7 @@ public class DiscordMessageComposer
     {
         var rows = results.Select(TempSeasonResultsRow);
         var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-        return $"## 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}" +
+        return $"## 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
                $"{string.Join($"{divider}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
@@ -90,7 +90,7 @@ public class DiscordMessageComposer
     public string SeasonResults(IEnumerable<SeasonResult> results)
     {
         var rows = results.Select(SeasonResultsRow);
-        return $"# 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}" +
+        return $"# 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
                $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
@@ -104,7 +104,8 @@ public class DiscordMessageComposer
         var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
 
         return $"## Медалі за місяць{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}";
+               $"{string.Join($"{divider}", rows)}" +
+               $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
     public IEnumerable<string> YearResults(YearResultsModel model)
@@ -147,17 +148,17 @@ public class DiscordMessageComposer
     {
         return pilot.DayStreak switch
         {
-            10 or 20 => $"🎉 **{pilot.Name}** має вже **{pilot.DayStreak}** day streak",
-            50 => $"🎉 **{pilot.Name}** досягнув **{pilot.DayStreak}** day streak",
-            75 => $"🎉 **{pilot.Name}** тримає **{pilot.DayStreak}** day streak",
-            100 => $"🎉 **{pilot.Name}** подолав **{pilot.DayStreak}** day streak",
-            150 => $"🎉 **{pilot.Name}** перетнув **{pilot.DayStreak}** day streak",
-            200 => $"🎉 **{pilot.Name}** має неймовірні **{pilot.DayStreak}** day streak",
-            250 => $"🎉 **{pilot.Name}** має вже **{pilot.DayStreak}** day streak",
-            300 => $"🎉 **{pilot.Name}** досягнув вражаючих **{pilot.DayStreak}** day streak",
-            365 => $"🎉 **{pilot.Name}** відзначає **{pilot.DayStreak}** day streak. Цілий рік!",
-            500 => $"🎉 **{pilot.Name}** подолав **{pilot.DayStreak}** day streak. Це вау!",
-            1000 => $"🎉 **{pilot.Name}** має вражаючі **{pilot.DayStreak}** day streak",
+            10 or 20 => $"**{pilot.Name}** має вже **{pilot.DayStreak}** day streak",
+            50 => $"**{pilot.Name}** досягнув **{pilot.DayStreak}** day streak",
+            75 => $"**{pilot.Name}** тримає **{pilot.DayStreak}** day streak",
+            100 => $"**{pilot.Name}** подолав **{pilot.DayStreak}** day streak",
+            150 => $"**{pilot.Name}** перетнув **{pilot.DayStreak}** day streak",
+            200 => $"**{pilot.Name}** має неймовірні **{pilot.DayStreak}** day streak",
+            250 => $"**{pilot.Name}** має вже **{pilot.DayStreak}** day streak",
+            300 => $"**{pilot.Name}** досягнув вражаючих **{pilot.DayStreak}** day streak",
+            365 => $"**{pilot.Name}** відзначає **{pilot.DayStreak}** day streak. Цілий рік!",
+            500 => $"**{pilot.Name}** подолав **{pilot.DayStreak}** day streak. Це вау!",
+            1000 => $"**{pilot.Name}** має вражаючі **{pilot.DayStreak}** day streak",
             _ => string.Empty
         };
     }
@@ -237,7 +238,7 @@ public class DiscordMessageComposer
             1 => "🥇",
             2 => "🥈",
             3 => "🥉",
-            _ => $"#{result.Rank}"
+            _ => $"{result.Rank}"
         };
 
         return $"{icon} - **{result.PlayerName}** - {result.Points} балів";
@@ -249,7 +250,7 @@ public class DiscordMessageComposer
             return null;
 
         var medals = $"{MedalsRow("🥇", result.GoldenCount)}{MedalsRow("🥈", result.SilverCount)}{MedalsRow("🥉", result.BronzeCount)}";
-        return $"*{result.PlayerName}*:{Environment.NewLine}{medals}";
+        return $"**{result.PlayerName}**:{Environment.NewLine}{medals}";
     }
 
     private string MedalsRow(string medalIcon, int count)

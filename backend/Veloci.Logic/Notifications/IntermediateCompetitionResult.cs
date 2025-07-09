@@ -13,7 +13,7 @@ public record CompetitionStarted(Competition Competition, Track Track) : INotifi
 
 public record TempSeasonResults(List<SeasonResult> Results) : INotification;
 
-public record SeasonFinished(List<SeasonResult> Results, string SeasonName, string WinnerName, byte[] Image) : INotification;
+public record SeasonFinished(List<SeasonResult> Results, string SeasonName, string[] Winners, byte[] Image) : INotification;
 
 public record BadTrack(Competition Competition, Track Track) : INotification;
 

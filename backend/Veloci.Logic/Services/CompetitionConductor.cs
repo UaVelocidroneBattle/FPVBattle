@@ -247,11 +247,15 @@ public class CompetitionConductor
         if (results.Count == 0) return;
 
         var seasonName = firstDayOfPreviousMonth.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
-        var winnerName = results.FirstOrDefault().PlayerName;
 
-        var image = await _imageService.CreateWinnerImageAsync(seasonName, winnerName);
+        var winners = results
+            .Take(3)
+            .Select(x => x.PlayerName)
+            .ToArray();
 
-        await _mediator.Publish(new SeasonFinished(results, seasonName, winnerName, image));
+        var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
+
+        await _mediator.Publish(new SeasonFinished(results, seasonName, winners, image));
     }
 
     private async Task<Competition?> GetActiveCompetitionAsync()
