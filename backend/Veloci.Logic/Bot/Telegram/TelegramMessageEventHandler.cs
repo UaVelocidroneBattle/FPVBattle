@@ -51,7 +51,7 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
-        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track);
+        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.PilotsFlownOnTrack);
         await TelegramBot.SendMessageAsync(startCompetitionMessage);
     }
 

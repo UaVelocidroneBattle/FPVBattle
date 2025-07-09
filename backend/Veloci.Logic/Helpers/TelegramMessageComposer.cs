@@ -14,7 +14,7 @@ public class TelegramMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track)
+    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack)
     {
         var rating = string.Empty;
 
@@ -23,12 +23,17 @@ public class TelegramMessageComposer
             rating = $"Попередній рейтинг: *{Math.Round(track.Rating.Value.Value, 1):F1}*/3{Environment.NewLine}{Environment.NewLine}";
         }
 
-        return $"📅 Вітаємо на щоденному *UA Velocidrone Battle*!{Environment.NewLine}{Environment.NewLine}" +
+        var flownPilotsText = pilotsFlownOnTrack.Count != 0 ?
+            $"Трек вже літали:{Environment.NewLine}*{string.Join(", ", pilotsFlownOnTrack)}*{Environment.NewLine}" :
+            $"Трек ще ніхто з вас не літав.{Environment.NewLine}";
+
+        return $"📅 Вітаємо на щоденному *FPV Battle*!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
+               $"{flownPilotsText}{Environment.NewLine}" +
                $"👾 Також не забувайте додаватись в наш Discord:{Environment.NewLine}*https://discord.gg/dftg24XB*{Environment.NewLine}";
     }
 

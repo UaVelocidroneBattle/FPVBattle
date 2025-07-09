@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Hangfire;
+using MediatR;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
@@ -40,7 +41,7 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
         var track = notification.Track;
-        var startMessage = _messageComposer.StartCompetition(track);
+        var startMessage = _messageComposer.StartCompetition(track, notification.PilotsFlownOnTrack);
         await _discordBot.SendMessageAsync(startMessage);
 
         var leaderboardMessage = _messageComposer.TempLeaderboard(null);
@@ -95,8 +96,10 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.SeasonResults(notification.Results);
         await _discordBot.SendMessageAsync(message);
 
+        await _discordBot.SendImageAsync(notification.Image);
+
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        await _discordBot.SendMessageAsync(medalCountMessage);
+        BackgroundJob.Schedule(() => _discordBot.SendMessageAsync(medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)

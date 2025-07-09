@@ -11,6 +11,7 @@ public interface IDiscordBot
     Task SendMessageInThreadAsync(ulong messageId, string threadName, string message);
     Task ArchiveThreadAsync(string threadName);
     Task ChangeChannelTopicAsync(string message);
+    Task SendImageAsync(byte[] imageBytes);
 }
 
 public class DiscordBot : IDiscordBot
@@ -187,6 +188,21 @@ public class DiscordBot : IDiscordBot
         catch (Exception e)
         {
             Serilog.Log.Error(e, "Failed to change channel topic. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
+        }
+    }
+
+    public async Task SendImageAsync(byte[] imageBytes)
+    {
+        if (_client is null || _channel is null)
+            return;
+
+        try
+        {
+            var result = await _channel.SendFileAsync(new MemoryStream(imageBytes), "winners");
+        }
+        catch (Exception e)
+        {
+            Serilog.Log.Error(e, "Failed to send an image. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
         }
     }
 }
