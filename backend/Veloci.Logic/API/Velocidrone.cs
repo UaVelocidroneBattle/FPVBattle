@@ -25,7 +25,7 @@ public class Velocidrone
 
     public async Task<ICollection<TrackTimeDto>> LeaderboardAsync(int trackId)
     {
-        var payload = $"track_id={trackId}&sim_version=1.16&offset=0&count=10000&race_mode=6";
+        var payload = $"track_id={trackId}&sim_version=1.16&offset=0&count=1000&race_mode=6";
         var postData = $"post_data={Uri.EscapeDataString(payload)}";
 
         var response = await DoRequestAsync<LeaderboardDto>("api/leaderboard", HttpMethod.Post, postData);
