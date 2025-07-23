@@ -17,7 +17,8 @@ public class TelegramMessageEventHandler :
     INotificationHandler<CheerUp>,
     INotificationHandler<YearResults>,
     INotificationHandler<DayStreakAchievements>,
-    INotificationHandler<DayStreakPotentialLose>
+    INotificationHandler<DayStreakPotentialLose>,
+    INotificationHandler<GotAchievements>
 {
     private readonly TelegramMessageComposer _messageComposer;
 
@@ -121,6 +122,12 @@ public class TelegramMessageEventHandler :
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.AchievementList(notification.Results);
         await TelegramBot.SendMessageAsync(message);
     }
 }

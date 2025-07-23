@@ -19,7 +19,8 @@ public class DiscordMessageEventHandler :
     INotificationHandler<CheerUp>,
     INotificationHandler<YearResults>,
     INotificationHandler<DayStreakAchievements>,
-    INotificationHandler<DayStreakPotentialLose>
+    INotificationHandler<DayStreakPotentialLose>,
+    INotificationHandler<GotAchievements>
 {
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBot _discordBot;
@@ -164,5 +165,11 @@ public class DiscordMessageEventHandler :
 
         Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
         return null;
+    }
+
+    public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.AchievementList(notification.Results);
+        await _discordBot.SendMessageAsync(message);
     }
 }

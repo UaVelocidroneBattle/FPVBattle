@@ -1,7 +1,9 @@
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services.Achievements;
 
@@ -9,24 +11,41 @@ public class AchievementService
 {
     private readonly IRepository<Pilot> _pilots;
     private readonly IEnumerable<IAchievement> _achievements;
+    private readonly IMediator _mediator;
 
     public AchievementService(
         IRepository<Pilot> pilots,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IMediator mediator)
     {
         _pilots = pilots;
+        _mediator = mediator;
         _achievements = serviceProvider.GetServices<IAchievement>();
     }
 
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
     {
-        await ProcessAchievementsAndSaveAsync<IAchievementAfterCompetition>(
-            achievement => CheckAchievementAfterCompetition(achievement, competition),
-            cancellationToken);
+        var achievements = _achievements.OfType<IAchievementAfterCompetition>().ToList();
+        var results = new AchievementCheckResults();
+
+        foreach (var achievement in achievements)
+        {
+            var achievementResults = await CheckAchievementAfterCompetition(achievement, competition, cancellationToken);
+
+            if (achievementResults.Any())
+                results.AddRange(achievementResults);
+        }
+
+        await _pilots.SaveChangesAsync(cancellationToken);
+
+        if (results.Any())
+            await _mediator.Publish(new GotAchievements(results), cancellationToken);
     }
 
-    private async Task CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition)
+    private async Task<AchievementCheckResults> CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition, CancellationToken cancellationToken)
     {
+        var results = new AchievementCheckResults();
+
         foreach (var result in competition.CompetitionResults)
         {
             var pilot = await _pilots.FindAsync(result.PlayerName);
@@ -40,18 +59,35 @@ public class AchievementService
                 continue;
 
             pilot.AddAchievement(achievement);
+            results.Add(new AchievementCheckResult(pilot, achievement));
         }
+
+        return results;
     }
 
     public async Task CheckAfterSeasonAsync(List<SeasonResult> results, CancellationToken cancellationToken)
     {
-        await ProcessAchievementsAndSaveAsync<IAchievementAfterSeason>(
-            achievement => CheckAchievementAfterSeason(achievement, results),
-            cancellationToken);
+        var achievements = _achievements.OfType<IAchievementAfterSeason>().ToList();
+        var checkResults = new AchievementCheckResults();
+
+        foreach (var achievement in achievements)
+        {
+            var achievementResults = await CheckAchievementAfterSeason(achievement, results, cancellationToken);
+
+            if (achievementResults.Any())
+                checkResults.AddRange(achievementResults);
+        }
+
+        await _pilots.SaveChangesAsync(cancellationToken);
+
+        if (checkResults.Any())
+            await _mediator.Publish(new GotAchievements(checkResults), cancellationToken);
     }
 
-    private async Task CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results)
+    private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results, CancellationToken cancellationToken)
     {
+        var checkResults = new AchievementCheckResults();
+
         foreach (var result in results)
         {
             var pilot = await _pilots.FindAsync(result.PlayerName);
@@ -65,18 +101,35 @@ public class AchievementService
                 continue;
 
             pilot.AddAchievement(achievement);
+            checkResults.Add(new AchievementCheckResult(pilot, achievement));
         }
+
+        return checkResults;
     }
 
     public async Task CheckAfterTimeUpdateAsync(List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
     {
-        await ProcessAchievementsAndSaveAsync<IAchievementAfterTimeUpdate>(
-            achievement => CheckAchievementAfterTimeUpdate(achievement, deltas),
-            cancellationToken);
+        var achievements = _achievements.OfType<IAchievementAfterTimeUpdate>().ToList();
+        var checkResults = new AchievementCheckResults();
+
+        foreach (var achievement in achievements)
+        {
+            var achievementResults = await CheckAchievementAfterTimeUpdate(achievement, deltas, cancellationToken);
+
+            if (achievementResults.Any())
+                checkResults.AddRange(achievementResults);
+        }
+
+        await _pilots.SaveChangesAsync(cancellationToken);
+
+        if (checkResults.Any())
+            await _mediator.Publish(new GotAchievements(checkResults), cancellationToken);
     }
 
-    private async Task CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas)
+    private async Task<AchievementCheckResults> CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
     {
+        var checkResults = new AchievementCheckResults();
+
         foreach (var delta in deltas)
         {
             var pilot = await _pilots.FindAsync(delta.PlayerName);
@@ -90,7 +143,10 @@ public class AchievementService
                 continue;
 
             pilot.AddAchievement(achievement);
+            checkResults.Add(new AchievementCheckResult(pilot, achievement));
         }
+
+        return checkResults;
     }
 
     public async Task CheckGlobalsAsync(CancellationToken cancellationToken = default)
@@ -115,4 +171,13 @@ public class AchievementService
         }
         await _pilots.SaveChangesAsync(cancellationToken);
     }
+}
+
+public class AchievementCheckResults : List<AchievementCheckResult>
+{ }
+
+public class AchievementCheckResult(Pilot pilot, IAchievement achievement)
+{
+    public Pilot Pilot { get; set; } = pilot;
+    public IAchievement Achievement { get; set; } = achievement;
 }
