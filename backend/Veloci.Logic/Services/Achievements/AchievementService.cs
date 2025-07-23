@@ -20,17 +20,12 @@ public class AchievementService
 
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
     {
-        var achievements = _achievements.OfType<IAchievementAfterCompetition>().ToList();
-
-        foreach (var achievement in achievements)
-        {
-            await CheckAchievementAfterCompetition(achievement, competition, cancellationToken);
-        }
-
-        await _pilots.SaveChangesAsync(cancellationToken);
+        await ProcessAchievementsAndSaveAsync<IAchievementAfterCompetition>(
+            achievement => CheckAchievementAfterCompetition(achievement, competition),
+            cancellationToken);
     }
 
-    private async Task CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition, CancellationToken cancellationToken)
+    private async Task CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition)
     {
         foreach (var result in competition.CompetitionResults)
         {
@@ -50,17 +45,12 @@ public class AchievementService
 
     public async Task CheckAfterSeasonAsync(List<SeasonResult> results, CancellationToken cancellationToken)
     {
-        var achievements = _achievements.OfType<IAchievementAfterSeason>().ToList();
-
-        foreach (var achievement in achievements)
-        {
-            await CheckAchievementAfterSeason(achievement, results, cancellationToken);
-        }
-
-        await _pilots.SaveChangesAsync(cancellationToken);
+        await ProcessAchievementsAndSaveAsync<IAchievementAfterSeason>(
+            achievement => CheckAchievementAfterSeason(achievement, results),
+            cancellationToken);
     }
 
-    private async Task CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results, CancellationToken cancellationToken)
+    private async Task CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results)
     {
         foreach (var result in results)
         {
@@ -80,17 +70,12 @@ public class AchievementService
 
     public async Task CheckAfterTimeUpdateAsync(List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
     {
-        var achievements = _achievements.OfType<IAchievementAfterTimeUpdate>().ToList();
-
-        foreach (var achievement in achievements)
-        {
-            await CheckAchievementAfterTimeUpdate(achievement, deltas, cancellationToken);
-        }
-
-        await _pilots.SaveChangesAsync(cancellationToken);
+        await ProcessAchievementsAndSaveAsync<IAchievementAfterTimeUpdate>(
+            achievement => CheckAchievementAfterTimeUpdate(achievement, deltas),
+            cancellationToken);
     }
 
-    private async Task CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
+    private async Task CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas)
     {
         foreach (var delta in deltas)
         {
@@ -108,13 +93,26 @@ public class AchievementService
         }
     }
 
-    public async Task CheckGlobalsAsync()
+    public async Task CheckGlobalsAsync(CancellationToken cancellationToken = default)
     {
-        var achievements = _achievements.OfType<IGlobalAchievement>();
+        await ProcessAchievementsAndSaveAsync<IGlobalAchievement>(
+            achievement => achievement.CheckAsync(),
+            cancellationToken);
+    }
 
-        foreach (var achievement in achievements)
+    private IEnumerable<T> GetAchievements<T>() where T : IAchievement
+    {
+        return _achievements.OfType<T>();
+    }
+
+    private async Task ProcessAchievementsAndSaveAsync<T>(
+        Func<T, Task> processor,
+        CancellationToken cancellationToken) where T : IAchievement
+    {
+        foreach (var achievement in GetAchievements<T>())
         {
-            await achievement.CheckAsync();
+            await processor(achievement);
         }
+        await _pilots.SaveChangesAsync(cancellationToken);
     }
 }

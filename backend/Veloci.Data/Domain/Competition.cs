@@ -53,9 +53,16 @@ public class Competition
         return Variables.FirstOrDefault(v => v.Name == name);
     }
 
-    public CompetitionResults? GetWinner()
+    public bool IsPilotAtLocalRank(Pilot pilot, int rank)
     {
-        return CompetitionResults.SingleOrDefault(res => res.LocalRank == 1);
+        return CompetitionResults.GetByLocalRank(rank)?.PlayerName == pilot.Name;
+    }
+
+    public CompetitionResults? GetSlowest()
+    {
+        return CompetitionResults
+            .OrderBy(res => res.LocalRank)
+            .LastOrDefault();
     }
 }
 

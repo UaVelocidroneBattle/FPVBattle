@@ -22,7 +22,6 @@ public class ThirdPlaceInRaceAchievement : IAchievementAfterCompetition
         if (pilot.HasAchievement(Name))
             return false;
 
-        return competition.CompetitionResults
-            .SingleOrDefault(res => res.LocalRank == 3)?.PlayerName == pilot.Name;
+        return competition.IsPilotAtLocalRank(pilot, 3);
     }
 }

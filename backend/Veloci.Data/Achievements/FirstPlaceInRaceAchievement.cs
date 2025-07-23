@@ -14,6 +14,6 @@ public class FirstPlaceInRaceAchievement : IAchievementAfterCompetition
         if (pilot.HasAchievement(Name))
             return false;
 
-        return competition.GetWinner()?.PlayerName == pilot.Name;
+        return competition.IsPilotAtLocalRank(pilot, 1);
     }
 }

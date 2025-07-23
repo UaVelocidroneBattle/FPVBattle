@@ -14,6 +14,6 @@ public class ThirdInSeasonAchievement : IAchievementAfterSeason
         if (pilot.HasAchievement(Name))
             return false;
 
-        return seasonResults.SingleOrDefault(res => res.Rank == 3)?.PlayerName == pilot.Name;
+        return seasonResults.GetByPlace(3)?.PlayerName == pilot.Name;
     }
 }

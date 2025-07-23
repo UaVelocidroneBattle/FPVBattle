@@ -14,8 +14,6 @@ public class LastInRaceAchievement : IAchievementAfterCompetition
         if (pilot.HasAchievement(Name))
             return false;
 
-        return competition.CompetitionResults
-            .OrderBy(res => res.LocalRank)
-            .LastOrDefault()?.PlayerName == pilot.Name;
+        return competition.GetSlowest()?.PlayerName == pilot.Name;
     }
 }

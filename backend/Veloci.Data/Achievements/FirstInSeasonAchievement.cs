@@ -14,6 +14,6 @@ public class FirstInSeasonAchievement : IAchievementAfterSeason
         if (pilot.HasAchievement(Name))
             return false;
 
-        return seasonResults.SingleOrDefault(res => res.Rank == 1)?.PlayerName == pilot.Name;
+        return seasonResults.GetByPlace(1)?.PlayerName == pilot.Name;
     }
 }

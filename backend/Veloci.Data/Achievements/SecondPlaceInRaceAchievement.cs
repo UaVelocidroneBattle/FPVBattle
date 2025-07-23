@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
@@ -22,7 +21,6 @@ public class SecondPlaceInRaceAchievement : IAchievementAfterCompetition
         if (pilot.HasAchievement(Name))
             return false;
 
-        return competition.CompetitionResults
-            .SingleOrDefault(res => res.LocalRank == 2)?.PlayerName == pilot.Name;
+        return competition.IsPilotAtLocalRank(pilot, 2);
     }
 }
