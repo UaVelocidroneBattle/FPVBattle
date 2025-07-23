@@ -34,7 +34,8 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
 
         var currentAchievement = await _pilotAchievements
             .GetAll()
-            .SingleOrDefaultAsync(pa => pa.Name == Name);
+            .FindByName(Name)
+            .SingleOrDefaultAsync();
 
         if (currentAchievement is null)
         {
