@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
-using Veloci.Data.Repositories;
 
 namespace Veloci.Data.Achievements;
 
@@ -16,7 +14,6 @@ public class FirstPlaceInRaceAchievement : IAchievementAfterCompetition
         if (pilot.HasAchievement(Name))
             return false;
 
-        return competition.CompetitionResults
-            .SingleOrDefault(res => res.LocalRank == 1)?.PlayerName == pilot.Name;
+        return competition.GetWinner()?.PlayerName == pilot.Name;
     }
 }

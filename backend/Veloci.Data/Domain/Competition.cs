@@ -52,6 +52,11 @@ public class Competition
     {
         return Variables.FirstOrDefault(v => v.Name == name);
     }
+
+    public CompetitionResults? GetWinner()
+    {
+        return CompetitionResults.SingleOrDefault(res => res.LocalRank == 1);
+    }
 }
 
 public static class IQueryableCompetionExtensions
