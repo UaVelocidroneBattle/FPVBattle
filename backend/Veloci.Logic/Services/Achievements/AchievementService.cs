@@ -25,7 +25,7 @@ public class AchievementService
 
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
     {
-        var achievements = _achievements.OfType<IAchievementAfterCompetition>().ToList();
+        var achievements = GetAchievements<IAchievementAfterCompetition>();
         var results = new AchievementCheckResults();
 
         foreach (var achievement in achievements)
@@ -67,7 +67,7 @@ public class AchievementService
 
     public async Task CheckAfterSeasonAsync(List<SeasonResult> results, CancellationToken cancellationToken)
     {
-        var achievements = _achievements.OfType<IAchievementAfterSeason>().ToList();
+        var achievements = GetAchievements<IAchievementAfterSeason>();
         var checkResults = new AchievementCheckResults();
 
         foreach (var achievement in achievements)
@@ -109,7 +109,7 @@ public class AchievementService
 
     public async Task CheckAfterTimeUpdateAsync(List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
     {
-        var achievements = _achievements.OfType<IAchievementAfterTimeUpdate>().ToList();
+        var achievements = GetAchievements<IAchievementAfterTimeUpdate>();
         var checkResults = new AchievementCheckResults();
 
         foreach (var achievement in achievements)
