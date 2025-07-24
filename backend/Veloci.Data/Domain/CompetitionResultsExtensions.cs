@@ -6,4 +6,9 @@ public static class CompetitionResultsExtensions
     {
         return competitionResults.SingleOrDefault(res => res.LocalRank == rank);
     }
+
+    public static CompetitionResults? GetByPilotName(this IEnumerable<CompetitionResults> competitionResults, string name)
+    {
+        return competitionResults.FirstOrDefault(res => res.PlayerName == name);
+    }
 }

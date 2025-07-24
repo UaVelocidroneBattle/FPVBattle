@@ -25,24 +25,13 @@ public class AchievementService
 
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
     {
-        var achievements = GetAchievements<IAchievementAfterCompetition>();
-        var results = new AchievementCheckResults();
-
-        foreach (var achievement in achievements)
-        {
-            var achievementResults = await CheckAchievementAfterCompetition(achievement, competition, cancellationToken);
-
-            if (achievementResults.Any())
-                results.AddRange(achievementResults);
-        }
-
-        await _pilots.SaveChangesAsync(cancellationToken);
-
-        if (results.Any())
-            await _mediator.Publish(new GotAchievements(results), cancellationToken);
+        await CheckAndPublishAchievementsAsync<IAchievementAfterCompetition>(
+            achievement => CheckAchievementAfterCompetition(achievement, competition),
+            cancellationToken
+        );
     }
 
-    private async Task<AchievementCheckResults> CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition, CancellationToken cancellationToken)
+    private async Task<AchievementCheckResults> CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition)
     {
         var results = new AchievementCheckResults();
 
@@ -67,24 +56,13 @@ public class AchievementService
 
     public async Task CheckAfterSeasonAsync(List<SeasonResult> results, CancellationToken cancellationToken)
     {
-        var achievements = GetAchievements<IAchievementAfterSeason>();
-        var checkResults = new AchievementCheckResults();
-
-        foreach (var achievement in achievements)
-        {
-            var achievementResults = await CheckAchievementAfterSeason(achievement, results, cancellationToken);
-
-            if (achievementResults.Any())
-                checkResults.AddRange(achievementResults);
-        }
-
-        await _pilots.SaveChangesAsync(cancellationToken);
-
-        if (checkResults.Any())
-            await _mediator.Publish(new GotAchievements(checkResults), cancellationToken);
+        await CheckAndPublishAchievementsAsync<IAchievementAfterSeason>(
+            achievement => CheckAchievementAfterSeason(achievement, results),
+            cancellationToken
+        );
     }
 
-    private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results, CancellationToken cancellationToken)
+    private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results)
     {
         var checkResults = new AchievementCheckResults();
 
@@ -109,24 +87,13 @@ public class AchievementService
 
     public async Task CheckAfterTimeUpdateAsync(List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
     {
-        var achievements = GetAchievements<IAchievementAfterTimeUpdate>();
-        var checkResults = new AchievementCheckResults();
-
-        foreach (var achievement in achievements)
-        {
-            var achievementResults = await CheckAchievementAfterTimeUpdate(achievement, deltas, cancellationToken);
-
-            if (achievementResults.Any())
-                checkResults.AddRange(achievementResults);
-        }
-
-        await _pilots.SaveChangesAsync(cancellationToken);
-
-        if (checkResults.Any())
-            await _mediator.Publish(new GotAchievements(checkResults), cancellationToken);
+        await CheckAndPublishAchievementsAsync<IAchievementAfterTimeUpdate>(
+            achievement => CheckAchievementAfterTimeUpdate(achievement, deltas),
+            cancellationToken
+        );
     }
 
-    private async Task<AchievementCheckResults> CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
+    private async Task<AchievementCheckResults> CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas)
     {
         var checkResults = new AchievementCheckResults();
 
@@ -149,11 +116,14 @@ public class AchievementService
         return checkResults;
     }
 
-    public async Task CheckGlobalsAsync(CancellationToken cancellationToken = default)
+    public async Task CheckGlobalsAsync()
     {
-        await ProcessAchievementsAndSaveAsync<IGlobalAchievement>(
-            achievement => achievement.CheckAsync(),
-            cancellationToken);
+        var achievements = GetAchievements<IGlobalAchievement>();
+
+        foreach (var achievement in achievements)
+        {
+            await achievement.CheckAsync();
+        }
     }
 
     private IEnumerable<T> GetAchievements<T>() where T : IAchievement
@@ -161,15 +131,26 @@ public class AchievementService
         return _achievements.OfType<T>();
     }
 
-    private async Task ProcessAchievementsAndSaveAsync<T>(
-        Func<T, Task> processor,
-        CancellationToken cancellationToken) where T : IAchievement
+    private async Task CheckAndPublishAchievementsAsync<T>(
+        Func<T, Task<AchievementCheckResults>> processor,
+        CancellationToken cancellationToken
+    ) where T : IAchievement
     {
-        foreach (var achievement in GetAchievements<T>())
+        var achievements = GetAchievements<T>();
+        var allResults = new AchievementCheckResults();
+
+        foreach (var achievement in achievements)
         {
-            await processor(achievement);
+            var results = await processor(achievement);
+
+            if (results.Any())
+                allResults.AddRange(results);
         }
+
         await _pilots.SaveChangesAsync(cancellationToken);
+
+        if (allResults.Any())
+            await _mediator.Publish(new GotAchievements(allResults), cancellationToken);
     }
 }
 

@@ -31,6 +31,7 @@ public static class AchievementPackage
             .AddAchievement<FirstInSeasonAchievement>()
 
             .AddAchievement<BiggestDayStreakAchievement>()
+            .AddAchievement<OvertakeTheDuckAchievement>()
             ;
 
         return services;
