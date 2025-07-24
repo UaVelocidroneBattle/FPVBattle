@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Veloci.Data.Domain;
 using Veloci.Logic.Bot;
+using Veloci.Logic.Services.Achievements;
 using Veloci.Logic.Services.YearResults;
 
 namespace Veloci.Logic.Helpers;
@@ -182,6 +183,21 @@ public class DiscordMessageComposer
                    $"{Environment.NewLine}У вас менше години.";
 
         return message;
+    }
+
+    public string AchievementList(AchievementCheckResults results)
+    {
+        if (!results.Any())
+            return string.Empty;
+
+        var message = new StringBuilder($"### 🚀 Нові ачівменти:{Environment.NewLine}{Environment.NewLine}");
+
+        foreach (var result in results)
+        {
+            message.AppendLine($"**{result.Pilot.Name}** → 🎖 {result.Achievement.Title} ({result.Achievement.Description})");
+        }
+
+        return message.ToString();
     }
 
     #region Private

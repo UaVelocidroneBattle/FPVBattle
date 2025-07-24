@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Veloci.Data.Domain;
 using Veloci.Logic.Bot;
+using Veloci.Logic.Services.Achievements;
 using Veloci.Logic.Services.YearResults;
 
 namespace Veloci.Logic.Helpers;
@@ -34,7 +35,7 @@ public class TelegramMessageComposer
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
                $"{flownPilotsText}{Environment.NewLine}" +
-               $"👾 Також не забувайте додаватись в наш Discord:{Environment.NewLine}*https://discord.gg/dftg24XB*{Environment.NewLine}";
+               $"👾 Також не забувайте додаватись в наш Discord:{Environment.NewLine}*https://discord.gg/FrpC2WV8Cw*{Environment.NewLine}";
     }
 
     public BotPoll Poll(string trackName)
@@ -177,6 +178,21 @@ public class TelegramMessageComposer
                    $"{Environment.NewLine}У вас менше години.";
 
         return message;
+    }
+
+    public string AchievementList(AchievementCheckResults results)
+    {
+        if (!results.Any())
+            return string.Empty;
+
+        var message = new StringBuilder($"🚀 *Нові ачівменти:*{Environment.NewLine}{Environment.NewLine}");
+
+        foreach (var result in results)
+        {
+            message.AppendLine($"*{result.Pilot.Name}* → 🎖 {result.Achievement.Title} ({result.Achievement.Description})");
+        }
+
+        return message.ToString();
     }
 
     #region Private

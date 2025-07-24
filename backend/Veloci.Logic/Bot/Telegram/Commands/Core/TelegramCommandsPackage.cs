@@ -9,10 +9,9 @@ public static class TelegramCommandsPackage
         services
             .AddScoped<TelegramCommandProcessor>()
             .AddScoped<ITelegramCommand, HelpCommand>()
-            .AddScoped<ITelegramCommand, CurrentDayStreakCommand>()
-            .AddScoped<ITelegramCommand, MaxDayStreakCommand>()
             .AddScoped<ITelegramCommand, TotalFlightDaysCommand>()
-            .AddScoped<ITelegramCommand, DayStreakFreezesCommand>()
+            .AddScoped<ITelegramCommand, DayStreakCommand>()
+            .AddScoped<ITelegramCommand, AchievementsCommand>()
             ;
 
         return services;

@@ -98,6 +98,7 @@ public class CompetitionConductor
                 result.Add(pilot.Name);
         }
 
+        result.Sort();
         return result;
     }
 

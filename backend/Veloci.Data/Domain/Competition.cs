@@ -52,6 +52,18 @@ public class Competition
     {
         return Variables.FirstOrDefault(v => v.Name == name);
     }
+
+    public bool IsPilotAtLocalRank(Pilot pilot, int rank)
+    {
+        return CompetitionResults.GetByLocalRank(rank)?.PlayerName == pilot.Name;
+    }
+
+    public CompetitionResults? GetSlowest()
+    {
+        return CompetitionResults
+            .OrderBy(res => res.LocalRank)
+            .LastOrDefault();
+    }
 }
 
 public static class IQueryableCompetionExtensions

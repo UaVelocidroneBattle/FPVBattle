@@ -5,7 +5,7 @@ using Veloci.Data.Repositories;
 
 namespace Veloci.Data.Achievements;
 
-public class BiggestDayStreakAchievement : IAchievementSelfCheck
+public class BiggestDayStreakAchievement : IGlobalAchievement
 {
     private readonly IRepository<Pilot> _pilots;
     private readonly IRepository<PilotAchievement> _pilotAchievements;
@@ -19,7 +19,8 @@ public class BiggestDayStreakAchievement : IAchievementSelfCheck
     }
 
     public string Name => "BiggestDayStreak";
-    public string Title => "Biggest day streak";
+    public string Title => "Президент";
+    public string Description => "Пілот з найбільшим дейстріком";
 
     public async Task CheckAsync()
     {
@@ -33,7 +34,8 @@ public class BiggestDayStreakAchievement : IAchievementSelfCheck
 
         var currentAchievement = await _pilotAchievements
             .GetAll()
-            .SingleOrDefaultAsync(pa => pa.Name == Name);
+            .FindByName(Name)
+            .SingleOrDefaultAsync();
 
         if (currentAchievement is null)
         {

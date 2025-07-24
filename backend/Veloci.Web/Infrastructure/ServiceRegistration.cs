@@ -1,9 +1,9 @@
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
-using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
+using Veloci.Logic.Services.Achievements;
 using Veloci.Logic.Services.Tracks;
 using Veloci.Web.Controllers.Heatmap;
 
