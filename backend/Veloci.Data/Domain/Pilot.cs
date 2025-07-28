@@ -104,7 +104,8 @@ public class Pilot
 
     public bool HasAchievement(string achievementName)
     {
-        return Achievements is not null && Achievements.Any(achievement => achievement.Name == achievementName);
+        Achievements ??= new List<PilotAchievement>();
+        return Achievements.Any(achievement => achievement.Name == achievementName);
     }
 
     public void AddAchievement(IAchievement achievement)
