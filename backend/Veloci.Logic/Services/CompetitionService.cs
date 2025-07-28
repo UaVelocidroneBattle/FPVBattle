@@ -39,9 +39,7 @@ public class CompetitionService
     [DisableConcurrentExecution("Competition", 60)]
     public async Task UpdateResultsAsync()
     {
-        Log.Information("🔄 Starting scheduled job: UpdateResults");
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
+        
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -56,9 +54,7 @@ public class CompetitionService
         {
             await UpdateResultsAsync(competition);
         }
-
-        stopwatch.Stop();
-        Log.Information("Job UpdateResults completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
+        
     }
 
     private async Task UpdateResultsAsync(Competition competition)
@@ -94,9 +90,7 @@ public class CompetitionService
     [DisableConcurrentExecution("Competition", 1)]
     public async Task PublishCurrentLeaderboardAsync()
     {
-        Log.Information("📊 Starting scheduled job: PublishCurrentLeaderboard");
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
+        
         var activeCompetitions = await GetCurrentCompetitions().ToListAsync();
 
         if (!activeCompetitions.Any())
@@ -109,9 +103,7 @@ public class CompetitionService
         {
             await PublishCurrentLeaderboardAsync(activeCompetition);
         }
-
-        stopwatch.Stop();
-        Log.Information("Job PublishCurrentLeaderboard completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
+        
     }
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)
@@ -261,9 +253,7 @@ public class CompetitionService
 
     public async Task PublishDayStreakAchievements()
     {
-        Log.Information("🎆 Starting scheduled job: PublishDayStreakAchievements");
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
+        
         var streaks = new[] { 10, 20, 50, 75, 100, 150, 200, 250, 300, 365, 500, 1000 };
 
         var pilots = await _pilots
@@ -280,16 +270,12 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakAchievements(pilots));
-
-        stopwatch.Stop();
-        Log.Information("Job PublishDayStreakAchievements completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
+        
     }
 
     public async Task DayStreakPotentialLoseNotification()
     {
-        Log.Information("⚠️ Starting scheduled job: DayStreakPotentialLoseNotification");
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
+        
         var activeCompetition = await GetCurrentCompetitions()
             .FirstOrDefaultAsync();
 
@@ -320,8 +306,6 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakPotentialLose(pilots));
-
-        stopwatch.Stop();
-        Log.Information("Job DayStreakPotentialLoseNotification completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
+        
     }
 }

@@ -83,6 +83,10 @@ public class Startup
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
         );
+        
+        // Add global job execution logging filter
+        GlobalJobFilters.Filters.Add(new JobExecutionLoggingAttribute());
+        
         services.AddHangfireServer(o =>
         {
             o.WorkerCount = 1;
