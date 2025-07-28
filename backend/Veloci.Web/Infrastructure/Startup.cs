@@ -176,13 +176,17 @@ public class Startup
 
             if (logconfig?.Value?.Path != null)
             {
-                configuration.WriteTo.File(Path.Join(logconfig.Value.Path, "log.log"), rollingInterval: RollingInterval.Day, buffered: true);
+                logger.WriteTo.File(
+                    Path.Join(logconfig.Value.Path, "log.log"),
+                    rollingInterval: RollingInterval.Day,
+                    buffered: true,
+                    flushToDiskInterval: TimeSpan.FromSeconds(10));
             }
 
             if (!string.IsNullOrEmpty(logconfig?.Value.SematextToken))
             {
                 var token = logconfig?.Value.SematextToken;
-                configuration.WriteTo.Elasticsearch(
+                logger.WriteTo.Elasticsearch(
                     new ElasticsearchSinkOptions(new Uri($@"https://logsene-receiver.eu.sematext.com/{token}/_doc/"))
                     {
                         AutoRegisterTemplate = true,
