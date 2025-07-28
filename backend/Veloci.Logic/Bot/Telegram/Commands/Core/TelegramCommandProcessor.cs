@@ -21,11 +21,10 @@ public class TelegramCommandProcessor
 
         if (parsed is null)
         {
-            Log.Debug("Received non-command message from user {UserId} in chat {ChatId}", message.From?.Id, message.Chat.Id);
             return;
         }
 
-        Log.Information("⚙️ Processing Telegram command {Command} from user {UserId} with {ParameterCount} parameters", 
+        Log.Information("⚙️ Processing Telegram command {Command} from user {UserId} with {ParameterCount} parameters",
             parsed.Command, message.From?.Id, parsed.Parameters?.Length ?? 0);
 
         var command = GetCommand(parsed.Command);
@@ -40,7 +39,7 @@ public class TelegramCommandProcessor
         {
             var result = await command.ExecuteAsync(parsed.Parameters);
             var messageId = await TelegramBot.ReplyMessageAsync(result, message.MessageId, message.Chat.Id.ToString());
-            
+
             Log.Information("✅ Executed command {Command} successfully", parsed.Command);
 
             if (messageId.HasValue && command.RemoveMessageAfterDelay)
@@ -67,7 +66,7 @@ public class TelegramCommandProcessor
             return null;
 
         var parameters = split.Skip(1).ToArray();
-        Log.Debug("Parsed Telegram command {Command} with parameters: [{Parameters}]", 
+        Log.Debug("Parsed Telegram command {Command} with parameters: [{Parameters}]",
             command.ToLower(), string.Join(", ", parameters));
 
         return new ParsedMessage
@@ -80,9 +79,9 @@ public class TelegramCommandProcessor
     private ITelegramCommand? GetCommand(string command)
     {
         var availableCommands = _serviceProvider.GetServices<ITelegramCommand>().ToList();
-        Log.Debug("Looking for command {Command} among {AvailableCommandCount} registered commands", 
+        Log.Debug("Looking for command {Command} among {AvailableCommandCount} registered commands",
             command, availableCommands.Count);
-            
+
         return availableCommands.FirstOrDefault(c => c.Keywords.Contains(command));
     }
 }
