@@ -41,7 +41,7 @@ public class CompetitionService
     {
         Log.Information("🔄 Starting scheduled job: UpdateResults");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -52,13 +52,11 @@ public class CompetitionService
             return;
         }
 
-        Log.Information("Fetching results for {CompetitionCount} active competitions", activeCompetitions.Count);
-        
         foreach (var competition in activeCompetitions)
         {
             await UpdateResultsAsync(competition);
         }
-        
+
         stopwatch.Stop();
         Log.Information("Job UpdateResults completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
     }
@@ -70,7 +68,7 @@ public class CompetitionService
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
         var times = _resultsConverter.ConvertTrackTimes(resultsDto);
         Log.Debug("Retrieved {ResultCount} results from Velocidrone API for competition {CompetitionId}", times.Count, competition.Id);
-        
+
         var results = new TrackResults
         {
             Times = times
@@ -81,7 +79,6 @@ public class CompetitionService
 
         if (!deltas.Any())
         {
-            Log.Debug("No new results detected for competition {CompetitionId}", competition.Id);
             return;
         }
 
@@ -89,7 +86,7 @@ public class CompetitionService
         competition.TimeDeltas.AddRange(deltas);
         competition.ResultsPosted = false;
         await _competitions.SaveChangesAsync();
-        
+
         Log.Information("Updated results for competition {CompetitionId}: {DeltaCount} new results added", competition.Id, deltas.Count);
         await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas));
     }
@@ -99,29 +96,27 @@ public class CompetitionService
     {
         Log.Information("📊 Starting scheduled job: PublishCurrentLeaderboard");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         var activeCompetitions = await GetCurrentCompetitions().ToListAsync();
-        
+
         if (!activeCompetitions.Any())
         {
             Log.Debug("No active competitions found for leaderboard publishing");
             return;
         }
-        
-        Log.Debug("Processing {CompetitionCount} active competitions for leaderboard publishing", activeCompetitions.Count);
 
         foreach (var activeCompetition in activeCompetitions)
         {
             await PublishCurrentLeaderboardAsync(activeCompetition);
         }
-        
+
         stopwatch.Stop();
         Log.Information("Job PublishCurrentLeaderboard completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
     }
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)
     {
-        if (competition.ResultsPosted) 
+        if (competition.ResultsPosted)
         {
             Log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
             return;
@@ -129,7 +124,7 @@ public class CompetitionService
 
         if (competition.TimeDeltas.Count == 0)
         {
-            Log.Information("No results yet for competition {CompetitionId}, sending cheer-up message", competition.Id);
+            Log.Information("No results yet for competition {CompetitionId}", competition.Id);
             await SendCheerUpMessageAsync(ChatMessageType.NobodyFlying);
             return;
         }
@@ -138,7 +133,6 @@ public class CompetitionService
 
         if (leaderboard.Count < 2)
         {
-            Log.Information("Only {ResultCount} pilot(s) in competition {CompetitionId}, sending cheer-up message", leaderboard.Count, competition.Id);
             await SendCheerUpMessageAsync(ChatMessageType.OnlyOneFlew);
             return;
         }
@@ -174,7 +168,7 @@ public class CompetitionService
     public async Task<List<SeasonResult>> GetSeasonResultsAsync(DateTime from, DateTime to)
     {
         Log.Debug("Calculating season results from {StartDate} to {EndDate}", from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
-        
+
         var results = await GetSeasonResultsQuery(from, to)
             .OrderByDescending(result => result.Points)
             .ToListAsync();
@@ -235,7 +229,7 @@ public class CompetitionService
 
     private async Task SendCheerUpMessageAsync(ChatMessageType type)
     {
-        if (DoNotDisturb(DateTime.Now)) 
+        if (DoNotDisturb(DateTime.Now))
         {
             Log.Debug("Skipping cheer-up message due to do-not-disturb hours (current time: {CurrentTime})", DateTime.Now.ToString("HH:mm"));
             return;
@@ -243,7 +237,7 @@ public class CompetitionService
 
         var cheerUpMessage = ChatMessages.GetRandomByTypeWithProbability(type);
 
-        if (cheerUpMessage is null) 
+        if (cheerUpMessage is null)
         {
             Log.Debug("No cheer-up message selected for type {MessageType}", type);
             return;
@@ -269,7 +263,7 @@ public class CompetitionService
     {
         Log.Information("🎆 Starting scheduled job: PublishDayStreakAchievements");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         var streaks = new[] { 10, 20, 50, 75, 100, 150, 200, 250, 300, 365, 500, 1000 };
 
         var pilots = await _pilots
@@ -282,11 +276,11 @@ public class CompetitionService
             return;
         }
 
-        Log.Information("Found {PilotCount} pilots with milestone day streaks: {PilotNames}", 
-            pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})"))); 
-        
+        Log.Information("Found {PilotCount} pilots with milestone day streaks: {PilotNames}",
+            pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
+
         await _mediator.Publish(new DayStreakAchievements(pilots));
-        
+
         stopwatch.Stop();
         Log.Information("Job PublishDayStreakAchievements completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
     }
@@ -295,7 +289,7 @@ public class CompetitionService
     {
         Log.Information("⚠️ Starting scheduled job: DayStreakPotentialLoseNotification");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         var activeCompetition = await GetCurrentCompetitions()
             .FirstOrDefaultAsync();
 
@@ -308,7 +302,7 @@ public class CompetitionService
         var leaderboard = GetLocalLeaderboard(activeCompetition)
             .Select(r => r.PlayerName)
             .ToArray();
-        
+
         Log.Debug("Current leaderboard has {ParticipantCount} participants", leaderboard.Length);
 
         var pilots = await _pilots
@@ -322,11 +316,11 @@ public class CompetitionService
             return;
         }
 
-        Log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}", 
-            pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})"))); 
-        
+        Log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}",
+            pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
+
         await _mediator.Publish(new DayStreakPotentialLose(pilots));
-        
+
         stopwatch.Stop();
         Log.Information("Job DayStreakPotentialLoseNotification completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
     }
