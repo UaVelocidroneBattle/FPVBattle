@@ -79,9 +79,6 @@ public class TelegramCommandProcessor
     private ITelegramCommand? GetCommand(string command)
     {
         var availableCommands = _serviceProvider.GetServices<ITelegramCommand>().ToList();
-        Log.Debug("Looking for command {Command} among {AvailableCommandCount} registered commands",
-            command, availableCommands.Count);
-
         return availableCommands.FirstOrDefault(c => c.Keywords.Contains(command));
     }
 }
