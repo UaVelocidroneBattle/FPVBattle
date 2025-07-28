@@ -19,8 +19,9 @@ public class OvertakeTheDuckAchievement : IAchievementAfterCompetition
             return false;
 
         var duckResult = competition.CompetitionResults.GetByPilotName(duckName);
+        var leaderboardMiddle = competition.GetSlowest()?.LocalRank / 2;
 
-        if (duckResult is null || duckResult.LocalRank == 1)
+        if (duckResult is null || duckResult.LocalRank == 1 || duckResult.LocalRank > leaderboardMiddle)
             return false;
 
         var pilotResult = competition.CompetitionResults.GetByPilotName(pilot.Name);
