@@ -49,19 +49,24 @@ public class CompetitionConductor
 
     public async Task StartNewAsync()
     {
-        Log.Information("Starting a new competition");
+        Log.Information("🏁 Starting a new competition");
 
         var activeComp = await GetActiveCompetitionAsync();
 
         if (activeComp is not null)
         {
+            Log.Information("Found active competition {CompetitionId}, stopping poll and cancelling before starting new one", activeComp.Id);
             await StopPollAsync();
             await CancelAsync();
         }
 
         var track = await _trackService.GetRandomTrackAsync();
+        Log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for new competition", track.Name, track.TrackId);
+        
         var resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
         var results = _resultsConverter.ConvertTrackTimes(resultsDto);
+        Log.Debug("Retrieved {ResultCount} initial results from Velocidrone API for track {TrackId}", results.Count, track.TrackId);
+        
         var trackResults = new TrackResults
         {
             Times = results
@@ -78,12 +83,15 @@ public class CompetitionConductor
         await _competitions.AddAsync(competition);
 
         var pilotsFlownOnTrack = await GetPilotsFlownOnTrackAsync(trackResults);
+        Log.Information("🚀 Competition {CompetitionId} started with {PilotCount} existing pilots on track {TrackName}", competition.Id, pilotsFlownOnTrack.Count, track.Name);
+        
         await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack));
 
         //possible needs to be moved to CompetitionStarted event handler in TelegramHandler
         await CreatePoll(track, competition);
 
         await _competitions.SaveChangesAsync();
+        Log.Information("Competition {CompetitionId} setup completed successfully", competition.Id);
     }
 
     private async Task<IList<string>> GetPilotsFlownOnTrackAsync(TrackResults trackResults)
@@ -104,11 +112,18 @@ public class CompetitionConductor
 
     private async Task CreatePoll(Track track, Competition competition)
     {
+        Log.Debug("Creating poll for track {TrackName}", track.FullName);
         var poll = _messageComposer.Poll(track.FullName);
         var pollId = await TelegramBot.SendPollAsync(poll);
 
-        if (pollId is null) return;
+        if (pollId is null) 
+        {
+            Log.Warning("Failed to create poll for track {TrackName}", track.FullName);
+            return;
+        }
 
+        Log.Information("🗳️ Created poll {PollId} for track {TrackName}", pollId.Value, track.FullName);
+        
         var rating = competition.Track.Rating;
 
         if (rating is null)
@@ -127,21 +142,26 @@ public class CompetitionConductor
         if (competition is null)
             throw new Exception("There are no active competitions");
 
-        Log.Information("Stopping a competition {competitionId}", competition.Id);
+        Log.Information("Stopping competition {CompetitionId} for track {TrackName}", competition.Id, competition.Track.Name);
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _competitionService.GetLocalLeaderboard(competition);
+        
+        Log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results", competition.Id, competition.CompetitionResults.Count);
 
         await UpdateDayStreakAsync(competition.CompetitionResults);
         await _competitions.SaveChangesAsync();
 
         await _mediator.Publish(new CompetitionStopped(competition));
+        Log.Information("Competition {CompetitionId} closure process completed", competition.Id);
     }
 
     private async Task UpdateDayStreakAsync(List<CompetitionResults> competitionResults)
     {
         var today = DateTime.Today;
+        Log.Debug("Updating day streaks for {PilotCount} pilots on {Date}", competitionResults.Count, today.ToString("yyyy-MM-dd"));
 
+        var newPilots = 0;
         foreach (var results in competitionResults)
         {
             var pilot = await _pilots.FindAsync(results.PlayerName);
@@ -150,6 +170,8 @@ public class CompetitionConductor
             {
                 pilot = new Pilot(results.PlayerName);
                 await _pilots.AddAsync(pilot);
+                newPilots++;
+                Log.Debug("Created new pilot record for {PilotName}", results.PlayerName);
             }
 
             pilot.OnRaceFlown(today);
@@ -157,6 +179,8 @@ public class CompetitionConductor
 
         await _pilots.SaveChangesAsync();
         await _pilots.GetAll().ResetDayStreaksAsync(today);
+        
+        Log.Information("Updated day streaks for {PilotCount} pilots ({NewPilots} new pilots created)", competitionResults.Count, newPilots);
     }
 
     private async Task CancelAsync()
@@ -184,15 +208,16 @@ public class CompetitionConductor
 
         if (competition.Track.Rating is null)
         {
-            Log.Error("No poll to stop");
+            Log.Error("No poll to stop for competition {CompetitionId}", competition.Id);
             return;
         }
 
+        Log.Information("Stopping poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
         var telegramPoll = await TelegramBot.StopPollAsync(competition.Track.Rating.PollMessageId);
 
         if (telegramPoll is null)
         {
-            Log.Error("Poll is already stopped");
+            Log.Error("Poll {PollId} is already stopped", competition.Track.Rating.PollMessageId);
             return;
         }
 
@@ -206,27 +231,32 @@ public class CompetitionConductor
             ? null
             : totalPoints / (double)telegramPoll.TotalVoterCount;
 
+        Log.Information("Poll {PollId} voting completed: {VoterCount} voters, calculated rating: {Rating:F2}", 
+            competition.Track.Rating.PollMessageId, telegramPoll.TotalVoterCount, rating ?? 0);
+
         competition.Track.Rating.Value = rating;
         await _competitions.SaveChangesAsync();
 
         if (rating is null or >= 0)
             return;
 
+        Log.Warning("👎 Track {TrackName} received negative rating {Rating:F2}, marking as bad track", competition.Track.FullName, rating);
         await _mediator.Publish(new BadTrack(competition, competition.Track));
     }
 
     public async Task SeasonResultsAsync()
     {
-        Log.Debug("Publishing season results");
-
         var now = DateTime.Now;
+        Log.Information("Processing season results for {Date} (Day {Day} of month)", now.ToString("yyyy-MM-dd"), now.Day);
 
         if (now.Day == 1)
         {
+            Log.Information("First day of month detected, stopping previous season");
             await StopSeasonAsync();
         }
         else
         {
+            Log.Debug("Publishing temporary season results");
             await TempSeasonResultsAsync();
         }
     }
@@ -246,11 +276,18 @@ public class CompetitionConductor
         var today = DateTime.Now;
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
         var results = await _competitionService.GetSeasonResultsAsync(firstDayOfMonth, today);
+        
+        Log.Debug("Retrieved {ResultCount} results for temporary season leaderboard ({StartDate} to {EndDate})", 
+            results.Count, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
 
         if (results.Count == 0)
+        {
+            Log.Information("No results found for current season, skipping temporary results publication");
             return;
+        }
 
         await _mediator.Publish(new TempSeasonResults(results));
+        Log.Information("Published temporary season results with {ResultCount} entries", results.Count);
     }
 
     private async Task StopSeasonAsync()
@@ -258,21 +295,32 @@ public class CompetitionConductor
         var today = DateTime.Now;
         var firstDayOfPreviousMonth = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
         var firstDayOfCurrentMonth = new DateTime(today.Year, today.Month, 1);
+        var seasonName = firstDayOfPreviousMonth.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
+        
+        Log.Information("Finalizing season {SeasonName} ({StartDate} to {EndDate})", 
+            seasonName, firstDayOfPreviousMonth.ToString("yyyy-MM-dd"), firstDayOfCurrentMonth.AddDays(-1).ToString("yyyy-MM-dd"));
 
         var results = await _competitionService.GetSeasonResultsAsync(firstDayOfPreviousMonth, firstDayOfCurrentMonth);
 
-        if (results.Count == 0) return;
-
-        var seasonName = firstDayOfPreviousMonth.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
+        if (results.Count == 0) 
+        {
+            Log.Warning("No results found for season {SeasonName}, skipping season finalization", seasonName);
+            return;
+        }
 
         var winners = results
             .Take(3)
             .Select(x => x.PlayerName)
             .ToArray();
+            
+        Log.Information("Season {SeasonName} completed with {ResultCount} participants. Winners: {Winners}", 
+            seasonName, results.Count, string.Join(", ", winners));
 
         var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
+        Log.Debug("Generated winner image for season {SeasonName}", seasonName);
 
         await _mediator.Publish(new SeasonFinished(results, seasonName, winners, image));
+        Log.Information("Season {SeasonName} finalization completed", seasonName);
     }
 
     private async Task<Competition?> GetActiveCompetitionAsync()

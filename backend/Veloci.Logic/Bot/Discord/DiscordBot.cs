@@ -88,7 +88,12 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            Serilog.Log.Information("💬 Sending Discord message to channel {ChannelName}: {MessagePreview}...", 
+                _channel.Name, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+                
             var result = await _channel.SendMessageAsync(message);
+            
+            Serilog.Log.Information("Sent Discord message {MessageId} to channel {ChannelName}", result.Id, _channel.Name);
             return result.Id;
         }
         catch (Exception e)
@@ -113,10 +118,15 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            Serilog.Log.Information("Editing Discord message {MessageId} in channel {ChannelName}: {MessagePreview}...", 
+                messageId, _channel.Name, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+                
             await _channel.ModifyMessageAsync(messageId, x =>
             {
                 x.Content = message;
             });
+            
+            Serilog.Log.Debug("Discord message {MessageId} edited successfully", messageId);
         }
         catch (Exception e)
         {
@@ -137,10 +147,20 @@ public class DiscordBot : IDiscordBot
         {
             if (thread is null)
             {
+                Serilog.Log.Information("🧵 Creating Discord thread {ThreadName} for message {MessageId}", threadName, messageId);
                 thread = await _channel.CreateThreadAsync(threadName, ThreadType.PublicThread, ThreadArchiveDuration.OneDay, messageToReply);
+                Serilog.Log.Debug("Discord thread {ThreadName} created successfully", threadName);
+            }
+            else
+            {
+                Serilog.Log.Debug("Using existing Discord thread {ThreadName}", threadName);
             }
 
+            Serilog.Log.Information("Sending message to Discord thread {ThreadName}: {MessagePreview}...", 
+                threadName, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+                
             await thread.SendMessageAsync(message);
+            Serilog.Log.Debug("Message sent successfully to Discord thread {ThreadName}", threadName);
 
         }
         catch (Exception e)
@@ -165,7 +185,9 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            Serilog.Log.Information("Archiving Discord thread {ThreadName}", threadName);
             await thread.ModifyAsync(x => x.Archived = true);
+            Serilog.Log.Debug("Discord thread {ThreadName} archived successfully", threadName);
         }
         catch (Exception e)
         {
@@ -180,10 +202,12 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            Serilog.Log.Information("Changing Discord channel {ChannelName} topic to: {Topic}", _channel.Name, message);
             await _channel.ModifyAsync(x =>
             {
                 x.Topic = message;
             });
+            Serilog.Log.Debug("Discord channel topic changed successfully");
         }
         catch (Exception e)
         {
@@ -198,7 +222,9 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            Serilog.Log.Information("🖼️ Sending Discord image to channel {ChannelName} ({ImageSize} bytes)", _channel.Name, imageBytes.Length);
             var result = await _channel.SendFileAsync(new MemoryStream(imageBytes), "winners");
+            Serilog.Log.Information("Discord image sent successfully as message {MessageId}", result.Id);
         }
         catch (Exception e)
         {
