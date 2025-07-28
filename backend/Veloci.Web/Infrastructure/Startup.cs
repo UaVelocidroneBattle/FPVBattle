@@ -158,10 +158,11 @@ public class Startup
             var logger = configuration
                 .MinimumLevel.Debug()
 
-                // .MinimumLevel.Override("Hangfire.Processing.BackgroundExecution", LogEventLevel.Warning)
-                // .MinimumLevel.Override("Hangfire.Storage.SQLite.ExpirationManager", LogEventLevel.Warning)
-                // .MinimumLevel.Override("Hangfire.Storage.SQLite.CountersAggregator", LogEventLevel.Warning)
-                // .MinimumLevel.Override("Hangfire.Server.ServerHeartbeatProcess", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Processing.BackgroundExecution", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Storage.SQLite.ExpirationManager", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Storage.SQLite.CountersAggregator", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Server.ServerHeartbeatProcess", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Server.RecurringJobScheduler", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
@@ -190,9 +191,7 @@ public class Startup
                     });
             }
 
-            logger.WriteTo.Console();
-            //Use following line to get correct source if we need them. Could be usefull to create new ignore settings.
-            //logger.WriteTo.Console(LogEventLevel.Debug, "[{Timestamp:HH:mm:ss} {Level:u3}] ({SourceContext}.{Method}) {Message:lj}{NewLine}{Exception}");
+            logger.WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
         });
     }
 }
