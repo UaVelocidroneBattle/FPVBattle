@@ -17,18 +17,44 @@ public class TelegramBotHostedService : IHostedService, IDisposable
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Log.Information("Starting telegram bot");
-        _telegramBot.Init();
+        try
+        {
+            Log.Information("Bot service TelegramBotHostedService starting...");
+            _telegramBot.Init();
+            Log.Information("✅ Bot service TelegramBotHostedService started successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bot service TelegramBotHostedService encountered issues during startup");
+            throw;
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        Log.Information("Stopping telegram bot");
-        _telegramBot.Stop();
+        try
+        {
+            Log.Information("Bot service TelegramBotHostedService stopping...");
+            _telegramBot.Stop();
+            Log.Information("🛑 Bot service TelegramBotHostedService stopped gracefully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Bot service TelegramBotHostedService encountered issues during shutdown");
+            throw;
+        }
     }
 
     public void Dispose()
     {
-        _scope.Dispose();
+        try
+        {
+            Log.Debug("Disposing TelegramBotHostedService resources");
+            _scope.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error disposing TelegramBotHostedService resources");
+        }
     }
 }

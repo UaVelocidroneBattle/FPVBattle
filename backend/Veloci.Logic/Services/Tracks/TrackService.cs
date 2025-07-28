@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Services.Tracks.Models;
@@ -27,19 +28,32 @@ public class TrackService
 
     public async Task<Track> GetRandomTrackAsync()
     {
+        Log.Information("🎯 Starting track selection process");
+        
         var maps = await _trackFetcher.FetchMapsAsync();
+        Log.Debug("Fetched {MapCount} maps from track fetcher", maps.Count());
+        
         var filteredTracks = GetCandidateTracks(maps);
+        var usedTrackIds = await GetUsedTrackIdsAsync();
+        
+        Log.Information("Found {FilteredCount} candidate tracks for 5-inch racing, excluding {UsedTrackCount} recently used tracks", 
+            filteredTracks.Count, usedTrackIds.Count);
 
+        var attempts = 0;
         while (true)
         {
+            attempts++;
             var track = GetRandomElement(filteredTracks);
             var dbTrack = await GetTrackAsync(track.Id)
                           ?? await CreateNewTrackAsync(track.Map.Name, track.Map.Id, track.Name, track.Id);
 
-            var usedTrackIds = await GetUsedTrackIdsAsync();
+            Log.Debug("Track selection attempt {Attempt}: Evaluating {TrackName} (ID: {TrackId}) - Rating: {Rating}, Recently used: {RecentlyUsed}", 
+                attempts, dbTrack.Name, dbTrack.TrackId, dbTrack.Rating?.Value, usedTrackIds.Contains(dbTrack.Id));
 
             if (dbTrack.Rating?.Value is null or >= 0 && !usedTrackIds.Contains(dbTrack.Id))
             {
+                Log.Information("✅ Selected track {TrackName} (ID: {TrackId}) from {FilteredCount} candidates after {Attempts} attempts", 
+                    dbTrack.Name, dbTrack.TrackId, filteredTracks.Count, attempts);
                 return dbTrack;
             }
         }
@@ -48,8 +62,13 @@ public class TrackService
     private List<ParsedTrackModel> GetCandidateTracks(IEnumerable<ParsedMapModel> maps)
     {
         var allTracks = maps.SelectMany(m => m.Tracks).ToList();
+        Log.Debug("Total tracks from all maps: {TrackCount}", allTracks.Count);
+        
         var trackFilter = new TrackFilter();
         var filteredTracks = allTracks.Where(t => trackFilter.IsTrackGoodFor5inchRacing(t)).ToList();
+        
+        Log.Debug("Filtered to {FilteredCount} tracks suitable for 5-inch racing (from {TotalCount} total)", 
+            filteredTracks.Count, allTracks.Count);
 
         return filteredTracks;
     }
@@ -63,13 +82,18 @@ public class TrackService
 
     private async Task<Track> CreateNewTrackAsync(string mapName, int mapId, string trackName, int trackId)
     {
+        Log.Debug("Creating new track {TrackName} (ID: {TrackId}) in map {MapName}", trackName, trackId, mapName);
+        
         var dbMap = await _maps
                         .GetAll()
                         .FirstOrDefaultAsync(m => m.Name == mapName)
                     ?? await CreateNewMapAsync(mapName, mapId);
 
         if (dbMap.MapId == 0)
+        {
+            Log.Debug("Updating map {MapName} with MapId {MapId} (legacy data migration)", mapName, mapId);
             dbMap.MapId = mapId; // since MapId property was added later, some maps dont have this value
+        }
 
         var track = new Track
         {
@@ -79,6 +103,7 @@ public class TrackService
         };
 
         await _tracks.AddAsync(track);
+        Log.Information("✨ Created new track {TrackName} (ID: {TrackId}) in map {MapName}", trackName, trackId, mapName);
 
         return track;
     }
@@ -86,9 +111,13 @@ public class TrackService
     private async Task<List<string>> GetUsedTrackIdsAsync()
     {
         if (_usedTrackIds is not null)
+        {
+            Log.Debug("Using cached list of {UsedTrackCount} recently used track IDs", _usedTrackIds.Count);
             return _usedTrackIds;
+        }
 
         var start = DateTime.Now.AddMonths(-6);
+        Log.Debug("Querying for tracks used since {StartDate}", start.ToString("yyyy-MM-dd"));
 
         var ids = await _competitions
             .GetAll(comp => comp.StartedOn > start)
@@ -96,12 +125,15 @@ public class TrackService
             .ToListAsync();
 
         _usedTrackIds = ids;
+        Log.Debug("Found {UsedTrackCount} tracks used in the last 6 months", ids.Count);
 
         return ids;
     }
 
     private async Task<TrackMap> CreateNewMapAsync(string name, int mapId)
     {
+        Log.Information("Creating new map {MapName} (ID: {MapId})", name, mapId);
+        
         var map = new TrackMap
         {
             Name = name,
@@ -109,6 +141,7 @@ public class TrackService
         };
 
         await _maps.AddAsync(map);
+        Log.Debug("Successfully created map {MapName}", name);
 
         return map;
     }
@@ -117,6 +150,7 @@ public class TrackService
     {
         var random = new Random();
         var randomIndex = random.Next(0, list.Count);
+        Log.Debug("Selected random element at index {Index} from list of {Count} items", randomIndex, list.Count);
         return list[randomIndex];
     }
 }

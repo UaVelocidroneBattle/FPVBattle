@@ -69,10 +69,15 @@ public class TelegramBot
     {
         try
         {
+            Log.Information("📲 Sending Telegram message to channel: {MessagePreview}...", 
+                message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+            
             var result = await _client.SendTextMessageAsync(
                 chatId: _channelId,
                 text: Isolate(message),
                 parseMode: ParseMode.MarkdownV2);
+                
+            Log.Debug("Telegram message sent successfully with {MessageLength} characters", message.Length);
         }
         catch (Exception ex)
         {
@@ -84,12 +89,16 @@ public class TelegramBot
     {
         try
         {
+            Log.Information("Sending Telegram reply to message {MessageId} in chat {ChatId}: {MessagePreview}...", 
+                messageId, chatId, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+            
             var result = await _client.SendTextMessageAsync(
                 chatId: chatId,
                 replyToMessageId: messageId,
                 parseMode: ParseMode.MarkdownV2,
                 text: Isolate(message));
 
+            Log.Debug("Telegram reply sent successfully as message {ReplyMessageId}", result.MessageId);
             return result.MessageId;
         }
         catch (Exception ex)
@@ -111,15 +120,20 @@ public class TelegramBot
 
         try
         {
+            Log.Information("🖼️ Sending Telegram photo from URL {PhotoUrl} with caption: {Caption}", 
+                fileUrl, message ?? "(no caption)");
+                
             var result = await _client.SendPhotoAsync(
                 chatId: _channelId,
                 caption: message,
                 photo: new InputFileUrl(fileUrl)
             );
+            
+            Log.Debug("Telegram photo sent successfully as message {MessageId}", result.MessageId);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Telegram. Failed to send a photo");
+            Log.Error(ex, "Telegram. Failed to send a photo from URL {PhotoUrl}", fileUrl);
         }
     }
 
@@ -132,15 +146,20 @@ public class TelegramBot
 
         try
         {
+            Log.Information("Sending Telegram photo from stream ({FileSize} bytes) with caption: {Caption}", 
+                file.Length, message ?? "(no caption)");
+                
             var result = await _client.SendPhotoAsync(
                 chatId: _channelId,
                 photo: new InputFileStream(file),
                 caption: message
             );
+            
+            Log.Debug("Telegram photo from stream sent successfully as message {MessageId}", result.MessageId);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Telegram. Failed to send a photo");
+            Log.Error(ex, "Telegram. Failed to send a photo from stream");
         }
     }
 
@@ -148,17 +167,21 @@ public class TelegramBot
     {
         try
         {
+            Log.Information("🗳️ Sending Telegram poll: {Question} with {OptionCount} options", 
+                poll.Question, poll.Options.Count());
+                
             var message = await _client.SendPollAsync(
                 chatId: _channelId,
                 question: poll.Question,
                 options: poll.Options.Select(x => x.Text)
             );
 
+            Log.Information("Telegram poll sent successfully as message {MessageId}", message.MessageId);
             return message.MessageId;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Telegram. Failed to send a poll");
+            Log.Error(ex, "Telegram. Failed to send a poll with question '{Question}'", poll.Question);
             return null;
         }
     }
@@ -167,11 +190,20 @@ public class TelegramBot
     {
         try
         {
-            return await _client.StopPollAsync(_channelId, messageId);
+            Log.Information("Stopping Telegram poll with message ID {MessageId}", messageId);
+            var result = await _client.StopPollAsync(_channelId, messageId);
+            
+            if (result != null)
+            {
+                Log.Information("Telegram poll {MessageId} stopped successfully with {VoterCount} total votes", 
+                    messageId, result.TotalVoterCount);
+            }
+            
+            return result;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Telegram. Failed to stop the poll");
+            Log.Error(ex, "Telegram. Failed to stop the poll with message ID {MessageId}", messageId);
             return null;
         }
     }
@@ -180,11 +212,13 @@ public class TelegramBot
     {
         try
         {
+            Log.Debug("Removing Telegram message {MessageId} from chat {ChatId}", messageId, chatId);
             await _client.DeleteMessageAsync(chatId, messageId);
+            Log.Debug("Telegram message {MessageId} removed successfully", messageId);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Telegram. Failed to remove the message");
+            Log.Error(ex, "Telegram. Failed to remove message {MessageId} from chat {ChatId}", messageId, chatId);
         }
     }
 
