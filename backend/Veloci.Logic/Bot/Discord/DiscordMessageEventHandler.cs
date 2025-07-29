@@ -13,6 +13,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<CompetitionStarted>,
     INotificationHandler<CurrentResultUpdateMessage>,
     INotificationHandler<CompetitionStopped>,
+    INotificationHandler<CompetitionCancelled>,
     INotificationHandler<TempSeasonResults>,
     INotificationHandler<SeasonFinished>,
     INotificationHandler<BadTrack>,
@@ -23,7 +24,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<GotAchievements>
 {
     private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
-    
+
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBot _discordBot;
     private readonly IRepository<Competition> _competitions;
@@ -72,6 +73,9 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
     {
+        await _discordBot.ArchiveThreadAsync(CompetitionVariables.DiscordTimeUpdatesThreadName);
+        await _discordBot.ChangeChannelTopicAsync(string.Empty);
+
         var competition = notification.Competition;
 
         if (competition.CompetitionResults.Count == 0)
@@ -84,6 +88,10 @@ public class DiscordMessageEventHandler :
 
         var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults);
         await _discordBot.EditMessageAsync(leaderboardMessageId.Value, resultsMessage);
+    }
+
+    public async Task Handle(CompetitionCancelled notification, CancellationToken cancellationToken)
+    {
         await _discordBot.ArchiveThreadAsync(CompetitionVariables.DiscordTimeUpdatesThreadName);
         await _discordBot.ChangeChannelTopicAsync(string.Empty);
     }

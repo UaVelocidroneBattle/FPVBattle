@@ -16,7 +16,7 @@ namespace Veloci.Logic.Services;
 public class CompetitionConductor
 {
     private static readonly ILogger _log = Log.ForContext<CompetitionConductor>();
-    
+
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
@@ -195,6 +195,7 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Cancelled;
         await _competitions.SaveChangesAsync();
+        await _mediator.Publish(new CompetitionCancelled(competition));
     }
 
     public async Task StopPollAsync()
