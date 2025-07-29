@@ -1,3 +1,4 @@
+using Hangfire;
 using MediatR;
 using Veloci.Logic.Notifications;
 
@@ -17,17 +18,16 @@ public class AchievementsEventHandler :
 
     public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
     {
-        await _achievementService.CheckAfterTimeUpdateAsync(notification.Deltas, cancellationToken);
+        BackgroundJob.Enqueue(() => _achievementService.CheckAfterTimeUpdateAsync(notification.Deltas, cancellationToken));
     }
 
     public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
     {
-        await _achievementService.CheckAfterCompetitionAsync(notification.Competition, cancellationToken);
-        await _achievementService.CheckGlobalsAsync();
+        BackgroundJob.Enqueue(() => _achievementService.CheckAfterCompetitionAndGlobalsAsync(notification.Competition, cancellationToken));
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
-        await _achievementService.CheckAfterSeasonAsync(notification.Results, cancellationToken);
+        BackgroundJob.Enqueue(() => _achievementService.CheckAfterSeasonAsync(notification.Results, cancellationToken));
     }
 }

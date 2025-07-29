@@ -11,7 +11,7 @@ namespace Veloci.Logic.Services.Achievements;
 public class AchievementService
 {
     private static readonly ILogger _log = Log.ForContext<AchievementService>();
-    
+
     private readonly IRepository<Pilot> _pilots;
     private readonly IEnumerable<IAchievement> _achievements;
     private readonly IMediator _mediator;
@@ -26,9 +26,15 @@ public class AchievementService
         _achievements = serviceProvider.GetServices<IAchievement>();
     }
 
+    public async Task CheckAfterCompetitionAndGlobalsAsync(Competition competition, CancellationToken cancellationToken)
+    {
+        await CheckAfterCompetitionAsync(competition, cancellationToken);
+        await CheckGlobalsAsync();
+    }
+
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
     {
-        _log.Information("Checking achievements after competition {CompetitionId} for track {TrackName}", 
+        _log.Information("Checking achievements after competition {CompetitionId} for track {TrackName}",
             competition.Id, competition.Track.Name);
 
         await CheckAndPublishAchievementsAsync<IAchievementAfterCompetition>(
@@ -40,7 +46,7 @@ public class AchievementService
     private async Task<AchievementCheckResults> CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition)
     {
         var results = new AchievementCheckResults();
-        _log.Debug("Checking achievement {AchievementName} for {PilotCount} pilots", 
+        _log.Debug("Checking achievement {AchievementName} for {PilotCount} pilots",
             achievement.Name, competition.CompetitionResults.Count);
 
         foreach (var result in competition.CompetitionResults)
@@ -60,7 +66,7 @@ public class AchievementService
             results.Add(new AchievementCheckResult(pilot, achievement));
         }
 
-        _log.Debug("Achievement {AchievementName} check completed: {TriggeredCount} pilots earned it", 
+        _log.Debug("Achievement {AchievementName} check completed: {TriggeredCount} pilots earned it",
             achievement.Name, results.Count);
         return results;
     }
@@ -68,7 +74,7 @@ public class AchievementService
     public async Task CheckAfterSeasonAsync(List<SeasonResult> results, CancellationToken cancellationToken)
     {
         _log.Information("Checking achievements after season completion for {PilotCount} pilots", results.Count);
-        
+
         await CheckAndPublishAchievementsAsync<IAchievementAfterSeason>(
             achievement => CheckAchievementAfterSeason(achievement, results),
             cancellationToken
@@ -78,7 +84,7 @@ public class AchievementService
     private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement, List<SeasonResult> results)
     {
         var checkResults = new AchievementCheckResults();
-        _log.Debug("Checking season achievement {AchievementName} for {PilotCount} pilots", 
+        _log.Debug("Checking season achievement {AchievementName} for {PilotCount} pilots",
             achievement.Name, results.Count);
 
         foreach (var result in results)
@@ -98,7 +104,7 @@ public class AchievementService
             checkResults.Add(new AchievementCheckResult(pilot, achievement));
         }
 
-        _log.Debug("Season achievement {AchievementName} check completed: {TriggeredCount} pilots earned it", 
+        _log.Debug("Season achievement {AchievementName} check completed: {TriggeredCount} pilots earned it",
             achievement.Name, checkResults.Count);
         return checkResults;
     }
@@ -106,7 +112,7 @@ public class AchievementService
     public async Task CheckAfterTimeUpdateAsync(List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
     {
         _log.Information("Checking achievements after time updates for {DeltaCount} result changes", deltas.Count);
-        
+
         await CheckAndPublishAchievementsAsync<IAchievementAfterTimeUpdate>(
             achievement => CheckAchievementAfterTimeUpdate(achievement, deltas),
             cancellationToken
@@ -116,7 +122,7 @@ public class AchievementService
     private async Task<AchievementCheckResults> CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement, List<TrackTimeDelta> deltas)
     {
         var checkResults = new AchievementCheckResults();
-        _log.Debug("Checking time update achievement {AchievementName} for {DeltaCount} time changes", 
+        _log.Debug("Checking time update achievement {AchievementName} for {DeltaCount} time changes",
             achievement.Name, deltas.Count);
 
         foreach (var delta in deltas)
@@ -139,7 +145,7 @@ public class AchievementService
             checkResults.Add(new AchievementCheckResult(pilot, achievement));
         }
 
-        _log.Debug("Time update achievement {AchievementName} check completed: {TriggeredCount} pilots earned it", 
+        _log.Debug("Time update achievement {AchievementName} check completed: {TriggeredCount} pilots earned it",
             achievement.Name, checkResults.Count);
         return checkResults;
     }
@@ -154,7 +160,7 @@ public class AchievementService
             _log.Debug("Checking global achievement {AchievementName}", achievement.Name);
             await achievement.CheckAsync();
         }
-        
+
         _log.Debug("Global achievement check completed");
     }
 
@@ -169,7 +175,7 @@ public class AchievementService
     ) where T : IAchievement
     {
         var achievements = GetAchievements<T>().ToList();
-        _log.Debug("Processing {AchievementCount} achievements of type {AchievementType}", 
+        _log.Debug("Processing {AchievementCount} achievements of type {AchievementType}",
             achievements.Count, typeof(T).Name);
 
         var allResults = new AchievementCheckResults();
@@ -187,7 +193,7 @@ public class AchievementService
         if (allResults.Any())
         {
             var uniquePilots = allResults.Select(r => r.Pilot.Name).Distinct().Count();
-            _log.Information("Achievement check completed: {TriggeredCount} achievements awarded to {PilotCount} pilots", 
+            _log.Information("Achievement check completed: {TriggeredCount} achievements awarded to {PilotCount} pilots",
                 allResults.Count, uniquePilots);
             await _mediator.Publish(new GotAchievements(allResults), cancellationToken);
         }
