@@ -22,6 +22,8 @@ public class DiscordMessageEventHandler :
     INotificationHandler<DayStreakPotentialLose>,
     INotificationHandler<GotAchievements>
 {
+    private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
+    
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBot _discordBot;
     private readonly IRepository<Competition> _competitions;
@@ -163,7 +165,7 @@ public class DiscordMessageEventHandler :
         if (leaderboardMessageId is not null)
             return leaderboardMessageId;
 
-        Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
+        _log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
         return null;
     }
 

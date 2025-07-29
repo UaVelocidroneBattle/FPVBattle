@@ -7,6 +7,8 @@ namespace Veloci.Logic.Bot.Telegram.Commands.Core;
 
 public class TelegramCommandProcessor
 {
+    private static readonly ILogger _log = Log.ForContext<TelegramCommandProcessor>();
+    
     private readonly IServiceProvider _serviceProvider;
 
     public TelegramCommandProcessor(IServiceProvider serviceProvider)
@@ -24,14 +26,14 @@ public class TelegramCommandProcessor
             return;
         }
 
-        Log.Information("⚙️ Processing Telegram command {Command} from user {UserId} with {ParameterCount} parameters",
+        _log.Information("⚙️ Processing Telegram command {Command} from user {UserId} with {ParameterCount} parameters",
             parsed.Command, message.From?.Id, parsed.Parameters?.Length ?? 0);
 
         var command = GetCommand(parsed.Command);
 
         if (command is null)
         {
-            Log.Warning("Unknown command attempted: {Command} from user {UserId}", parsed.Command, message.From?.Id);
+            _log.Warning("Unknown command attempted: {Command} from user {UserId}", parsed.Command, message.From?.Id);
             return;
         }
 
@@ -40,17 +42,17 @@ public class TelegramCommandProcessor
             var result = await command.ExecuteAsync(parsed.Parameters);
             var messageId = await TelegramBot.ReplyMessageAsync(result, message.MessageId, message.Chat.Id.ToString());
 
-            Log.Information("✅ Executed command {Command} successfully", parsed.Command);
+            _log.Information("✅ Executed command {Command} successfully", parsed.Command);
 
             if (messageId.HasValue && command.RemoveMessageAfterDelay)
             {
-                Log.Debug("Command {Command} scheduled for auto-removal in 60 seconds", parsed.Command);
+                _log.Debug("Command {Command} scheduled for auto-removal in 60 seconds", parsed.Command);
                 BackgroundJob.Schedule(() => TelegramBot.RemoveMessageAsync(messageId.Value, message.Chat.Id.ToString()), TimeSpan.FromSeconds(60));
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to execute command {Command} from user {UserId}", parsed.Command, message.From?.Id);
+            _log.Error(ex, "Failed to execute command {Command} from user {UserId}", parsed.Command, message.From?.Id);
         }
     }
 
@@ -66,7 +68,7 @@ public class TelegramCommandProcessor
             return null;
 
         var parameters = split.Skip(1).ToArray();
-        Log.Debug("Parsed Telegram command {Command} with parameters: [{Parameters}]",
+        _log.Debug("Parsed Telegram command {Command} with parameters: [{Parameters}]",
             command.ToLower(), string.Join(", ", parameters));
 
         return new ParsedMessage
