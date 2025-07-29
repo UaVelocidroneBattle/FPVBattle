@@ -1,6 +1,6 @@
 using Veloci.Data.Domain;
 
-namespace Veloci.Data.Achievements.Base;
+namespace Veloci.Logic.Achievements.Base;
 
 public interface IAchievement
 {

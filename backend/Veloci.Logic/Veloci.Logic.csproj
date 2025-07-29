@@ -25,4 +25,8 @@
       <ProjectReference Include="..\Veloci.Data\Veloci.Data.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Achievements\" />
+    </ItemGroup>
+
 </Project>

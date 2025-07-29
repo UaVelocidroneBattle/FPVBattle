@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Veloci.Logic.Helpers;
 
 public class UkrainianHelper
@@ -16,5 +18,17 @@ public class UkrainianHelper
             2 or 3 or 4 => "рази",
             _ => "разів"
         };
+    }
+
+    public static DateTime GetCurrentKyivTime()
+    {
+        var utcNow = DateTime.UtcNow;
+        return ConvertToKyivTime(utcNow);
+    }
+
+    public static DateTime ConvertToKyivTime(DateTime utcTime)
+    {
+        var ukraineTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Kyiv");
+        return TimeZoneInfo.ConvertTimeFromUtc(utcTime, ukraineTimeZone);
     }
 }

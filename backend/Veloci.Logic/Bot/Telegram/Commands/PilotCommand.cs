@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Achievements.Base;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 
 namespace Veloci.Logic.Bot.Telegram.Commands;

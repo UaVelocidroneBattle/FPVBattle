@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Achievements.Base;
+using Veloci.Logic.Services.Achievements;
 
-namespace Veloci.Data.Achievements;
+namespace Veloci.Logic.Achievements.Collection;
 
 public class BiggestDayStreakAchievement : IGlobalAchievement
 {

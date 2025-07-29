@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Veloci.Logic.Achievements.Collection;
 
-namespace Veloci.Data.Achievements.Base;
+namespace Veloci.Logic.Achievements.Base;
 
 public static class AchievementPackage
 {
@@ -31,6 +32,14 @@ public static class AchievementPackage
             .AddAchievement<FirstInSeasonAchievement>()
 
             .AddAchievement<BiggestDayStreakAchievement>()
+
+            .AddAchievement<GlobalFirstPlaceAchievement>()
+
+            .AddAchievement<EarlyBirdAchievement>()
+            .AddAchievement<LateBirdAchievement>()
+
+            .AddAchievement<FirstResultAchievement>()
+
             .AddAchievement<OvertakeTheDuckAchievement>()
             ;
 

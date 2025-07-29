@@ -1,9 +1,9 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Achievements.Base;
 using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services.Achievements;
@@ -30,7 +30,7 @@ public class AchievementService
     {
         _log.Information("Checking achievements after competition {CompetitionId} for track {TrackName}", 
             competition.Id, competition.Track.Name);
-            
+
         await CheckAndPublishAchievementsAsync<IAchievementAfterCompetition>(
             achievement => CheckAchievementAfterCompetition(achievement, competition),
             cancellationToken
@@ -171,7 +171,7 @@ public class AchievementService
         var achievements = GetAchievements<T>().ToList();
         _log.Debug("Processing {AchievementCount} achievements of type {AchievementType}", 
             achievements.Count, typeof(T).Name);
-            
+
         var allResults = new AchievementCheckResults();
 
         foreach (var achievement in achievements)

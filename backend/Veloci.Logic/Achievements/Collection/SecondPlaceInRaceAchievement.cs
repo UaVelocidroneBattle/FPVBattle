@@ -1,8 +1,8 @@
-using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Achievements.Base;
 
-namespace Veloci.Data.Achievements;
+namespace Veloci.Logic.Achievements.Collection;
 
 public class SecondPlaceInRaceAchievement : IAchievementAfterCompetition
 {
