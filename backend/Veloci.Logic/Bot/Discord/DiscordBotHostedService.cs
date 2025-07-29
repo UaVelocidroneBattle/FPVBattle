@@ -7,6 +7,8 @@ namespace Veloci.Logic.Bot;
 
 public class DiscordBotHostedService : IHostedService, IDisposable
 {
+    private static readonly ILogger _log = Log.ForContext<DiscordBotHostedService>();
+    
     private readonly DiscordBot _bot;
     private readonly IServiceScope _scope;
 
@@ -20,13 +22,13 @@ public class DiscordBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            Log.Information("Bot service DiscordBotHostedService starting...");
+            _log.Information("Bot service DiscordBotHostedService starting...");
             await _bot.StartAsync();
-            Log.Information("✅ Bot service DiscordBotHostedService started successfully");
+            _log.Information("✅ Bot service DiscordBotHostedService started successfully");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Bot service DiscordBotHostedService encountered issues during startup");
+            _log.Error(ex, "Bot service DiscordBotHostedService encountered issues during startup");
             throw;
         }
     }
@@ -35,13 +37,13 @@ public class DiscordBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            Log.Information("Bot service DiscordBotHostedService stopping...");
+            _log.Information("Bot service DiscordBotHostedService stopping...");
             await _bot.Stop();
-            Log.Information("🛑 Bot service DiscordBotHostedService stopped gracefully");
+            _log.Information("🛑 Bot service DiscordBotHostedService stopped gracefully");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Bot service DiscordBotHostedService encountered issues during shutdown");
+            _log.Error(ex, "Bot service DiscordBotHostedService encountered issues during shutdown");
             throw;
         }
     }
@@ -50,12 +52,12 @@ public class DiscordBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            Log.Debug("Disposing DiscordBotHostedService resources");
+            _log.Debug("Disposing DiscordBotHostedService resources");
             _scope.Dispose();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error disposing DiscordBotHostedService resources");
+            _log.Error(ex, "Error disposing DiscordBotHostedService resources");
         }
     }
 }

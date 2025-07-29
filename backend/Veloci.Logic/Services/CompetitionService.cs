@@ -13,6 +13,8 @@ namespace Veloci.Logic.Services;
 
 public class CompetitionService
 {
+    private static readonly ILogger _log = Log.ForContext<CompetitionService>();
+    
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
@@ -46,7 +48,7 @@ public class CompetitionService
 
         if (!activeCompetitions.Any())
         {
-            Log.Debug("No active competitions found for result updates");
+            _log.Debug("No active competitions found for result updates");
             return;
         }
 
@@ -59,11 +61,11 @@ public class CompetitionService
 
     private async Task UpdateResultsAsync(Competition competition)
     {
-        Log.Debug("Starting updating results for competition {CompetitionId} on track {TrackName}", competition.Id, competition.Track.Name);
+        _log.Debug("Starting updating results for competition {CompetitionId} on track {TrackName}", competition.Id, competition.Track.Name);
 
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
         var times = _resultsConverter.ConvertTrackTimes(resultsDto);
-        Log.Debug("Retrieved {ResultCount} results from Velocidrone API for competition {CompetitionId}", times.Count, competition.Id);
+        _log.Debug("Retrieved {ResultCount} results from Velocidrone API for competition {CompetitionId}", times.Count, competition.Id);
 
         var results = new TrackResults
         {
@@ -71,7 +73,7 @@ public class CompetitionService
         };
 
         var deltas = _analyzer.CompareResults(competition.CurrentResults, results);
-        Log.Debug("Found {DeltaCount} result changes for competition {CompetitionId}", deltas.Count, competition.Id);
+        _log.Debug("Found {DeltaCount} result changes for competition {CompetitionId}", deltas.Count, competition.Id);
 
         if (!deltas.Any())
         {
@@ -83,7 +85,7 @@ public class CompetitionService
         competition.ResultsPosted = false;
         await _competitions.SaveChangesAsync();
 
-        Log.Information("Updated results for competition {CompetitionId}: {DeltaCount} new results added", competition.Id, deltas.Count);
+        _log.Information("Updated results for competition {CompetitionId}: {DeltaCount} new results added", competition.Id, deltas.Count);
         await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas));
     }
 
@@ -95,7 +97,7 @@ public class CompetitionService
 
         if (!activeCompetitions.Any())
         {
-            Log.Debug("No active competitions found for leaderboard publishing");
+            _log.Debug("No active competitions found for leaderboard publishing");
             return;
         }
 
@@ -110,13 +112,13 @@ public class CompetitionService
     {
         if (competition.ResultsPosted)
         {
-            Log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
+            _log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
             return;
         }
 
         if (competition.TimeDeltas.Count == 0)
         {
-            Log.Information("No results yet for competition {CompetitionId}", competition.Id);
+            _log.Information("No results yet for competition {CompetitionId}", competition.Id);
             await SendCheerUpMessageAsync(ChatMessageType.NobodyFlying);
             return;
         }
@@ -129,13 +131,13 @@ public class CompetitionService
             return;
         }
 
-        Log.Information("🏆 Publishing leaderboard for competition {CompetitionId} with {ResultCount} results", competition.Id, leaderboard.Count);
+        _log.Information("🏆 Publishing leaderboard for competition {CompetitionId} with {ResultCount} results", competition.Id, leaderboard.Count);
 
         await _mediator.Publish(new IntermediateCompetitionResult(leaderboard, competition));
 
         competition.ResultsPosted = true;
         await _competitions.SaveChangesAsync();
-        Log.Debug("Marked leaderboard as published for competition {CompetitionId}", competition.Id);
+        _log.Debug("Marked leaderboard as published for competition {CompetitionId}", competition.Id);
     }
 
     public List<CompetitionResults> GetLocalLeaderboard(Competition competition)
@@ -159,7 +161,7 @@ public class CompetitionService
 
     public async Task<List<SeasonResult>> GetSeasonResultsAsync(DateTime from, DateTime to)
     {
-        Log.Debug("Calculating season results from {StartDate} to {EndDate}", from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
+        _log.Debug("Calculating season results from {StartDate} to {EndDate}", from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
 
         var results = await GetSeasonResultsQuery(from, to)
             .OrderByDescending(result => result.Points)
@@ -170,7 +172,7 @@ public class CompetitionService
             results[i].Rank = i + 1;
         }
 
-        Log.Debug("Season results calculated: {ResultCount} pilots ranked", results.Count);
+        _log.Debug("Season results calculated: {ResultCount} pilots ranked", results.Count);
         return results;
     }
 
@@ -223,7 +225,7 @@ public class CompetitionService
     {
         if (DoNotDisturb(DateTime.Now))
         {
-            Log.Debug("Skipping cheer-up message due to do-not-disturb hours (current time: {CurrentTime})", DateTime.Now.ToString("HH:mm"));
+            _log.Debug("Skipping cheer-up message due to do-not-disturb hours (current time: {CurrentTime})", DateTime.Now.ToString("HH:mm"));
             return;
         }
 
@@ -231,11 +233,11 @@ public class CompetitionService
 
         if (cheerUpMessage is null)
         {
-            Log.Debug("No cheer-up message selected for type {MessageType}", type);
+            _log.Debug("No cheer-up message selected for type {MessageType}", type);
             return;
         }
 
-        Log.Information("Sending cheer-up message of type {MessageType}", type);
+        _log.Information("Sending cheer-up message of type {MessageType}", type);
         await _mediator.Publish(new CheerUp(cheerUpMessage));
     }
 
@@ -262,11 +264,11 @@ public class CompetitionService
 
         if (pilots.Count == 0)
         {
-            Log.Debug("No pilots achieved milestone day streaks today");
+            _log.Debug("No pilots achieved milestone day streaks today");
             return;
         }
 
-        Log.Information("Found {PilotCount} pilots with milestone day streaks: {PilotNames}",
+        _log.Information("Found {PilotCount} pilots with milestone day streaks: {PilotNames}",
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakAchievements(pilots));
@@ -281,7 +283,7 @@ public class CompetitionService
 
         if (activeCompetition is null)
         {
-            Log.Debug("No active competition found for day streak potential lose notification");
+            _log.Debug("No active competition found for day streak potential lose notification");
             return;
         }
 
@@ -289,7 +291,7 @@ public class CompetitionService
             .Select(r => r.PlayerName)
             .ToArray();
 
-        Log.Debug("Current leaderboard has {ParticipantCount} participants", leaderboard.Length);
+        _log.Debug("Current leaderboard has {ParticipantCount} participants", leaderboard.Length);
 
         var pilots = await _pilots
             .GetAll(p => p.DayStreak > 10)
@@ -298,11 +300,11 @@ public class CompetitionService
 
         if (pilots.Count == 0)
         {
-            Log.Debug("All pilots with significant day streaks have already participated today");
+            _log.Debug("All pilots with significant day streaks have already participated today");
             return;
         }
 
-        Log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}",
+        _log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}",
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakPotentialLose(pilots));

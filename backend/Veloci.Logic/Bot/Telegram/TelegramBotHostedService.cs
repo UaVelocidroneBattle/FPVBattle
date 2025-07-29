@@ -6,6 +6,8 @@ namespace Veloci.Logic.Bot.Telegram;
 
 public class TelegramBotHostedService : IHostedService, IDisposable
 {
+    private static readonly ILogger _log = Log.ForContext<TelegramBotHostedService>();
+    
     private TelegramBot _telegramBot;
     private IServiceScope _scope;
 
@@ -19,13 +21,13 @@ public class TelegramBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            Log.Information("Bot service TelegramBotHostedService starting...");
+            _log.Information("Bot service TelegramBotHostedService starting...");
             _telegramBot.Init();
-            Log.Information("✅ Bot service TelegramBotHostedService started successfully");
+            _log.Information("✅ Bot service TelegramBotHostedService started successfully");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Bot service TelegramBotHostedService encountered issues during startup");
+            _log.Error(ex, "Bot service TelegramBotHostedService encountered issues during startup");
             throw;
         }
     }
@@ -34,13 +36,13 @@ public class TelegramBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            Log.Information("Bot service TelegramBotHostedService stopping...");
+            _log.Information("Bot service TelegramBotHostedService stopping...");
             _telegramBot.Stop();
-            Log.Information("🛑 Bot service TelegramBotHostedService stopped gracefully");
+            _log.Information("🛑 Bot service TelegramBotHostedService stopped gracefully");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Bot service TelegramBotHostedService encountered issues during shutdown");
+            _log.Error(ex, "Bot service TelegramBotHostedService encountered issues during shutdown");
             throw;
         }
     }
@@ -49,12 +51,12 @@ public class TelegramBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            Log.Debug("Disposing TelegramBotHostedService resources");
+            _log.Debug("Disposing TelegramBotHostedService resources");
             _scope.Dispose();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error disposing TelegramBotHostedService resources");
+            _log.Error(ex, "Error disposing TelegramBotHostedService resources");
         }
     }
 }
