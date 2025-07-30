@@ -19,6 +19,6 @@ public class LateBirdAchievement : IAchievementAfterTimeUpdate
 
         var ukraineTime = UkrainianHelper.GetCurrentKyivTime();
 
-        return ukraineTime.Hour is >= hourFrom and <= hourTo;
+        return ukraineTime.Hour is >= hourFrom and < hourTo;
     }
 }
