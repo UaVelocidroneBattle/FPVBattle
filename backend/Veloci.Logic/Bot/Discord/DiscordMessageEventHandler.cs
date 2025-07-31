@@ -21,7 +21,9 @@ public class DiscordMessageEventHandler :
     INotificationHandler<YearResults>,
     INotificationHandler<DayStreakAchievements>,
     INotificationHandler<DayStreakPotentialLose>,
-    INotificationHandler<GotAchievements>
+    INotificationHandler<GotAchievements>,
+    INotificationHandler<NewPatreonSupporterNotification>,
+    INotificationHandler<MonthlyPatreonSupportersNotification>
 {
     private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
 
@@ -180,6 +182,44 @@ public class DiscordMessageEventHandler :
     public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.AchievementList(notification.Results);
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
+    {
+        var message = $"🎉 Welcome new Patreon supporter: **{notification.Supporter.Name}**";
+        if (!string.IsNullOrEmpty(notification.Supporter.TierName))
+        {
+            message += $" ({notification.Supporter.TierName})";
+        }
+        message += "! Thank you for your support! ❤️";
+        
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
+    {
+        if (!notification.Supporters.Any())
+            return;
+
+        var message = $"📊 **Monthly Patreon Supporters** ({notification.Supporters.Count}):\n\n";
+        
+        var groupedByTier = notification.Supporters
+            .GroupBy(s => s.TierName ?? "Unknown Tier")
+            .OrderByDescending(g => g.Average(s => s.Amount ?? 0));
+
+        foreach (var tierGroup in groupedByTier)
+        {
+            message += $"**{tierGroup.Key}:**\n";
+            foreach (var supporter in tierGroup.OrderBy(s => s.Name))
+            {
+                message += $"• {supporter.Name}\n";
+            }
+            message += "\n";
+        }
+
+        message += "Thank you all for your continued support! 🙏";
+        
         await _discordBot.SendMessageAsync(message);
     }
 }
