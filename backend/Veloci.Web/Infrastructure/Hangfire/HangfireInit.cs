@@ -38,6 +38,9 @@ public class HangfireInit
 
         Log.Information("Setting up yearly recurring jobs");
         RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
+
+        Log.Information("Setting up Patreon integration jobs");
+        RecurringJob.AddOrUpdate<PatreonSyncJob>("Patreon sync", x => x.SyncSupportersAsync(), "0 9 * * *");
         
         Log.Information("Hangfire recurring job initialization completed");
     }

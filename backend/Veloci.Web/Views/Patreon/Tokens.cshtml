@@ -1,0 +1,65 @@
+@model Veloci.Web.Controllers.PatreonTokenResponse
+@{
+    ViewData["Title"] = "Patreon OAuth Tokens";
+}
+
+<div class="container">
+    <h1 class="display-4">Patreon OAuth Tokens</h1>
+    <p class="lead">Successfully received tokens from Patreon. Please copy and securely store these tokens:</p>
+    
+    <div class="alert alert-warning" role="alert">
+        <strong>Important:</strong> These tokens will only be displayed once. Please copy them immediately and store them securely.
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Access Token</h3>
+            <div class="form-group">
+                <textarea class="form-control" rows="3" readonly onclick="this.select()">@Model.AccessToken</textarea>
+                <small class="form-text text-muted">Use this token for API calls. Expires in @Model.ExpiresIn seconds.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <h3>Refresh Token</h3>
+            <div class="form-group">
+                <textarea class="form-control" rows="3" readonly onclick="this.select()">@Model.RefreshToken</textarea>
+                <small class="form-text text-muted">Use this token to refresh the access token when it expires.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <h3>Configuration Instructions</h3>
+            <p>Add these tokens to your configuration:</p>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">User Secrets (Development)</h5>
+                    <pre><code>{
+  "Patreon": {
+    "AccessToken": "@Model.AccessToken",
+    "RefreshToken": "@Model.RefreshToken"
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">Next Steps</h4>
+                <ul class="mb-0">
+                    <li>Copy the tokens above</li>
+                    <li>Store them securely in User Secrets or environment variables</li>
+                    <li>Configure the PatreonSyncJob to run daily</li>
+                    <li>Test the integration with the Patreon API</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
