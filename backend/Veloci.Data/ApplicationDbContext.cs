@@ -27,5 +27,6 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<DayStreakFreeze>().ToTable("DayStreakFreezes");
         builder.Entity<CompetitionVariable>().ToTable("CompetitionVariables");
         builder.Entity<PatreonSupporter>().ToTable("PatreonSupporters");
+        builder.Entity<PatreonTokens>().ToTable("PatreonTokens");
     }
 }
