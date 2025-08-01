@@ -1,9 +1,11 @@
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.API.Options;
 using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services;
@@ -11,28 +13,45 @@ namespace Veloci.Logic.Services;
 public class PatreonSyncJob
 {
     private static readonly ILogger _log = Log.ForContext<PatreonSyncJob>();
-    
+
     private readonly IPatreonService _patreonService;
     private readonly IRepository<PatreonSupporter> _supportersRepository;
     private readonly IMediator _mediator;
+    private readonly PatreonOptions _options;
 
     public PatreonSyncJob(
         IPatreonService patreonService,
         IRepository<PatreonSupporter> supportersRepository,
-        IMediator mediator)
+        IMediator mediator,
+        IOptions<PatreonOptions> options)
     {
         _patreonService = patreonService;
         _supportersRepository = supportersRepository;
         _mediator = mediator;
+        _options = options.Value;
     }
 
     [DisableConcurrentExecution("PatreonSync", 60)]
     public async Task SyncSupportersAsync()
     {
+        if (!_options.EnableSync)
+        {
+            return;
+        }
+
         try
         {
-            var supportersFromApi = await _patreonService.GetCampaignMembersAsync();
-            
+            // Get campaigns first
+            var campaigns = await _patreonService.GetCampaignsAsync();
+            if (!campaigns.Any())
+            {
+                _log.Information("No campaigns found in Patreon API");
+                return;
+            }
+
+            var campaignId = campaigns.First().Id;
+            var supportersFromApi = await _patreonService.GetCampaignMembersAsync(campaignId);
+
             if (!supportersFromApi.Any())
             {
                 _log.Information("No supporters received from Patreon API");
@@ -79,7 +98,7 @@ public class PatreonSyncJob
                 }
             }
 
-            // Update existing supporters  
+            // Update existing supporters
             if (updatedSupporters.Any())
             {
                 foreach (var updatedSupporter in updatedSupporters)
@@ -91,7 +110,7 @@ public class PatreonSyncJob
 
             await _supportersRepository.SaveChangesAsync();
 
-            _log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}", 
+            _log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
                 newSupporters.Count, updatedSupporters.Count);
 
             // Send monthly supporters list if it's the first day of the month
