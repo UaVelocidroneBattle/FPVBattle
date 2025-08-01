@@ -1,11 +1,15 @@
+using Veloci.Logic.API.Options;
 using Veloci.Logic.Services;
 
 namespace Veloci.Web.Infrastructure;
 
 public static class PatreonServiceExtensions
 {
-    public static IServiceCollection AddPatreonServices(this IServiceCollection services)
+    public static IServiceCollection AddPatreonServices(this IServiceCollection services, IConfiguration configuration)
     {
+        // Configure Patreon options
+        services.Configure<PatreonOptions>(configuration.GetSection(PatreonOptions.SectionName));
+
         services.AddScoped<IPatreonService, PatreonService>();
         services.AddScoped<PatreonSyncJob>();
 
@@ -21,7 +25,7 @@ public static class PatreonServiceExtensions
         services.AddHttpClient("PatreonOAuth", client =>
         {
             client.BaseAddress = new Uri("https://www.patreon.com/api/oauth2/");
-            client.Timeout = TimeSpan.FromSeconds(30);    
+            client.Timeout = TimeSpan.FromSeconds(30);
             client.DefaultRequestHeaders.Add("User-Agent", "VelocidroneBot/1.0");
         });
 
