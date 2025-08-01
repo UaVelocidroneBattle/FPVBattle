@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.API.Options;
 
 namespace Veloci.Logic.Services;
 
@@ -12,15 +12,15 @@ public class PatreonService : IPatreonService
 {
     private readonly HttpClient _httpClient;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _configuration;
+    private readonly PatreonOptions _options;
     private readonly ILogger<PatreonService> _logger;
     private readonly IRepository<PatreonTokens> _tokensRepository;
 
-    public PatreonService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<PatreonService> logger, IRepository<PatreonTokens> tokensRepository)
+    public PatreonService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IOptions<PatreonOptions> options, ILogger<PatreonService> logger, IRepository<PatreonTokens> tokensRepository)
     {
         _httpClient = httpClient;
         _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
+        _options = options.Value;
         _logger = logger;
         _tokensRepository = tokensRepository;
     }
@@ -31,7 +31,7 @@ public class PatreonService : IPatreonService
         {
             // First try to get tokens from database (most up-to-date)
             var dbTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync();
-            
+
             if (dbTokens != null)
             {
                 _logger.LogDebug("Using tokens from database");
@@ -39,14 +39,11 @@ public class PatreonService : IPatreonService
             }
 
             // Fallback to configuration tokens (initial setup)
-            var configAccessToken = _configuration["Patreon:AccessToken"];
-            var configRefreshToken = _configuration["Patreon:RefreshToken"];
-
-            if (!string.IsNullOrEmpty(configAccessToken) && !string.IsNullOrEmpty(configRefreshToken))
+            if (!string.IsNullOrEmpty(_options.AccessToken) && !string.IsNullOrEmpty(_options.RefreshToken))
             {
                 _logger.LogDebug("Using tokens from configuration");
                 var configTokens = new PatreonTokens();
-                configTokens.UpdateFromTokenResponse(configAccessToken, configRefreshToken, 86400); // Assume 24h expiry
+                configTokens.UpdateFromTokenResponse(_options.AccessToken, _options.RefreshToken, 86400); // Assume 24h expiry
                 return configTokens;
             }
 
@@ -75,13 +72,13 @@ public class PatreonService : IPatreonService
             if (tokens.IsExpiringSoon(10))
             {
                 _logger.LogInformation("Patreon access token is expiring soon, refreshing...");
-                
+
                 var newAccessToken = await RefreshAccessTokenAsync(tokens.RefreshToken);
                 if (newAccessToken != null)
                 {
                     return newAccessToken;
                 }
-                
+
                 _logger.LogWarning("Failed to refresh Patreon access token, using existing token");
             }
 
@@ -99,7 +96,7 @@ public class PatreonService : IPatreonService
         try
         {
             var existingTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync();
-            
+
             if (existingTokens != null)
             {
                 existingTokens.UpdateFromTokenResponse(accessToken, refreshToken, expiresIn, scope);
@@ -133,7 +130,7 @@ public class PatreonService : IPatreonService
             }
 
             var response = await MakeAuthenticatedRequestAsync("campaigns", accessToken);
-            
+
             if (response == null)
             {
                 _logger.LogError("Failed to get campaigns from Patreon API after retry");
@@ -172,7 +169,7 @@ public class PatreonService : IPatreonService
             try
             {
                 var response = await MakeAuthenticatedRequestAsync(url, accessToken);
-                
+
                 if (response == null)
                 {
                     _logger.LogError("Failed to get campaign members from Patreon API after retry");
@@ -228,7 +225,7 @@ public class PatreonService : IPatreonService
                 // If 401 Unauthorized and we haven't exhausted retries, try to refresh token
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && attempt < maxRetries)
                 {
-                    _logger.LogWarning("Received 401 Unauthorized, attempting to refresh token (attempt {Attempt}/{MaxRetries})", 
+                    _logger.LogWarning("Received 401 Unauthorized, attempting to refresh token (attempt {Attempt}/{MaxRetries})",
                         attempt + 1, maxRetries + 1);
 
                     var tokens = await GetCurrentTokensAsync();
@@ -252,7 +249,7 @@ public class PatreonService : IPatreonService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error making authenticated request to {Url} (attempt {Attempt})", url, attempt + 1);
-                
+
                 if (attempt == maxRetries)
                 {
                     return null;
@@ -277,7 +274,7 @@ public class PatreonService : IPatreonService
                 Email = member.Attributes?.Email ?? user?.Attributes?.Email,
                 TierName = tier?.Attributes?.Title,
                 Amount = member.Attributes?.CurrentlyEntitledAmountCents.HasValue == true
-                    ? member.Attributes.CurrentlyEntitledAmountCents.Value / 100m 
+                    ? member.Attributes.CurrentlyEntitledAmountCents.Value / 100m
                     : null,
                 Status = member.Attributes?.PatronStatus ?? "unknown",
                 FirstSupportedAt = member.Attributes?.PledgeRelationshipStart ?? DateTime.UtcNow,
@@ -301,10 +298,7 @@ public class PatreonService : IPatreonService
     {
         try
         {
-            var clientId = _configuration["Patreon:ClientId"];
-            var clientSecret = _configuration["Patreon:ClientSecret"];
-
-            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+            if (string.IsNullOrEmpty(_options.ClientId) || string.IsNullOrEmpty(_options.ClientSecret))
             {
                 _logger.LogError("Patreon client credentials not configured");
                 return null;
@@ -314,13 +308,13 @@ public class PatreonService : IPatreonService
             {
                 ["grant_type"] = "refresh_token",
                 ["refresh_token"] = refreshToken,
-                ["client_id"] = clientId,
-                ["client_secret"] = clientSecret
+                ["client_id"] = _options.ClientId,
+                ["client_secret"] = _options.ClientSecret
             };
 
             using var oauthClient = _httpClientFactory.CreateClient("PatreonOAuth");
             var response = await oauthClient.PostAsync("token", new FormUrlEncodedContent(requestBody));
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to refresh Patreon access token: {StatusCode}", response.StatusCode);

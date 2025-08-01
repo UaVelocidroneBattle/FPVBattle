@@ -93,7 +93,7 @@ public class Startup
         });
 
         services
-            .RegisterCustomServices()
+            .RegisterCustomServices(Configuration)
             .RegisterAchievements()
             .RegisterTelegramCommands()
             .UseTelegramBotService()

@@ -1,25 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Veloci.Logic.API.Options;
 
 namespace Veloci.Web.Controllers;
 
 public class PatreonController : Controller
 {
-    private readonly IConfiguration _configuration;
+    private readonly PatreonOptions _options;
     private readonly ILogger<PatreonController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public PatreonController(IConfiguration configuration, ILogger<PatreonController> logger, IHttpClientFactory httpClientFactory)
+    public PatreonController(IOptions<PatreonOptions> options, ILogger<PatreonController> logger, IHttpClientFactory httpClientFactory)
     {
-        _configuration = configuration;
+        _options = options.Value;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
     }
 
     public IActionResult Connect()
     {
-        var clientId = _configuration["Patreon:ClientId"];
-        var redirectUri = _configuration["Patreon:RedirectUri"];
+        var clientId = _options.ClientId;
+        var redirectUri = _options.RedirectUri;
 
         if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
         {
@@ -75,9 +77,9 @@ public class PatreonController : Controller
     {
         try
         {
-            var clientId = _configuration["Patreon:ClientId"];
-            var clientSecret = _configuration["Patreon:ClientSecret"];
-            var redirectUri = _configuration["Patreon:RedirectUri"];
+            var clientId = _options.ClientId;
+            var clientSecret = _options.ClientSecret;
+            var redirectUri = _options.RedirectUri;
 
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(redirectUri))
             {
