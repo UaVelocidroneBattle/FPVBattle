@@ -1,42 +1,142 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Veloci.Data.Domain;
+using Veloci.Data.Repositories;
 
 namespace Veloci.Logic.Services;
 
 public class PatreonService : IPatreonService
 {
     private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly ILogger<PatreonService> _logger;
+    private readonly IRepository<PatreonTokens> _tokensRepository;
 
-    public PatreonService(HttpClient httpClient, IConfiguration configuration, ILogger<PatreonService> logger)
+    public PatreonService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<PatreonService> logger, IRepository<PatreonTokens> tokensRepository)
     {
         _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _logger = logger;
+        _tokensRepository = tokensRepository;
+    }
+
+    public async Task<PatreonTokens?> GetCurrentTokensAsync()
+    {
+        try
+        {
+            // First try to get tokens from database (most up-to-date)
+            var dbTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync();
+            
+            if (dbTokens != null)
+            {
+                _logger.LogDebug("Using tokens from database");
+                return dbTokens;
+            }
+
+            // Fallback to configuration tokens (initial setup)
+            var configAccessToken = _configuration["Patreon:AccessToken"];
+            var configRefreshToken = _configuration["Patreon:RefreshToken"];
+
+            if (!string.IsNullOrEmpty(configAccessToken) && !string.IsNullOrEmpty(configRefreshToken))
+            {
+                _logger.LogDebug("Using tokens from configuration");
+                var configTokens = new PatreonTokens();
+                configTokens.UpdateFromTokenResponse(configAccessToken, configRefreshToken, 86400); // Assume 24h expiry
+                return configTokens;
+            }
+
+            _logger.LogWarning("No Patreon tokens found in database or configuration");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving current Patreon tokens");
+            return null;
+        }
+    }
+
+    public async Task<string?> GetValidAccessTokenAsync()
+    {
+        try
+        {
+            var tokens = await GetCurrentTokensAsync();
+            if (tokens == null)
+            {
+                _logger.LogWarning("No Patreon tokens available");
+                return null;
+            }
+
+            // Check if token is expired or expiring soon (10 minute buffer)
+            if (tokens.IsExpiringSoon(10))
+            {
+                _logger.LogInformation("Patreon access token is expiring soon, refreshing...");
+                
+                var newAccessToken = await RefreshAccessTokenAsync(tokens.RefreshToken);
+                if (newAccessToken != null)
+                {
+                    return newAccessToken;
+                }
+                
+                _logger.LogWarning("Failed to refresh Patreon access token, using existing token");
+            }
+
+            return tokens.AccessToken;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting valid Patreon access token");
+            return null;
+        }
+    }
+
+    public async Task UpdateStoredTokensAsync(string accessToken, string refreshToken, int expiresIn, string? scope = null)
+    {
+        try
+        {
+            var existingTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync();
+            
+            if (existingTokens != null)
+            {
+                existingTokens.UpdateFromTokenResponse(accessToken, refreshToken, expiresIn, scope);
+                await _tokensRepository.UpdateAsync(existingTokens);
+            }
+            else
+            {
+                var newTokens = new PatreonTokens();
+                newTokens.UpdateFromTokenResponse(accessToken, refreshToken, expiresIn, scope);
+                await _tokensRepository.AddAsync(newTokens);
+            }
+
+            await _tokensRepository.SaveChangesAsync();
+            _logger.LogInformation("Updated Patreon tokens in database");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error storing Patreon tokens to database");
+        }
     }
 
     public async Task<List<PatreonSupporter>> GetCampaignMembersAsync()
     {
         try
         {
-            var accessToken = _configuration["Patreon:AccessToken"];
+            var accessToken = await GetValidAccessTokenAsync();
             if (string.IsNullOrEmpty(accessToken))
             {
-                _logger.LogWarning("Patreon access token not configured");
+                _logger.LogWarning("No valid Patreon access token available");
                 return new List<PatreonSupporter>();
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://www.patreon.com/api/oauth2/v2/campaigns");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-
-            var response = await _httpClient.SendAsync(request);
+            var response = await MakeAuthenticatedRequestAsync("campaigns", accessToken);
             
-            if (!response.IsSuccessStatusCode)
+            if (response == null)
             {
-                _logger.LogError("Failed to get campaigns from Patreon API: {StatusCode}", response.StatusCode);
+                _logger.LogError("Failed to get campaigns from Patreon API after retry");
                 return new List<PatreonSupporter>();
             }
 
@@ -65,20 +165,17 @@ public class PatreonService : IPatreonService
     private async Task<List<PatreonSupporter>> GetCampaignMembersAsync(string campaignId, string accessToken)
     {
         var supporters = new List<PatreonSupporter>();
-        var url = $"https://www.patreon.com/api/oauth2/v2/campaigns/{campaignId}/members?include=currently_entitled_tiers,user&fields[member]=full_name,email,patron_status,currently_entitled_amount_cents,pledge_relationship_start&fields[user]=full_name,email&fields[tier]=title";
+        var url = $"campaigns/{campaignId}/members?include=currently_entitled_tiers,user&fields[member]=full_name,email,patron_status,currently_entitled_amount_cents,pledge_relationship_start&fields[user]=full_name,email&fields[tier]=title";
 
         while (!string.IsNullOrEmpty(url))
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-
-                var response = await _httpClient.SendAsync(request);
+                var response = await MakeAuthenticatedRequestAsync(url, accessToken);
                 
-                if (!response.IsSuccessStatusCode)
+                if (response == null)
                 {
-                    _logger.LogError("Failed to get campaign members from Patreon API: {StatusCode}", response.StatusCode);
+                    _logger.LogError("Failed to get campaign members from Patreon API after retry");
                     break;
                 }
 
@@ -110,6 +207,60 @@ public class PatreonService : IPatreonService
         }
 
         return supporters;
+    }
+
+    private async Task<HttpResponseMessage?> MakeAuthenticatedRequestAsync(string url, string accessToken, int maxRetries = 1)
+    {
+        for (int attempt = 0; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return response;
+                }
+
+                // If 401 Unauthorized and we haven't exhausted retries, try to refresh token
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && attempt < maxRetries)
+                {
+                    _logger.LogWarning("Received 401 Unauthorized, attempting to refresh token (attempt {Attempt}/{MaxRetries})", 
+                        attempt + 1, maxRetries + 1);
+
+                    var tokens = await GetCurrentTokensAsync();
+                    if (tokens != null)
+                    {
+                        var newAccessToken = await RefreshAccessTokenAsync(tokens.RefreshToken);
+                        if (!string.IsNullOrEmpty(newAccessToken))
+                        {
+                            accessToken = newAccessToken; // Use refreshed token for retry
+                            _logger.LogInformation("Successfully refreshed token, retrying request");
+                            continue; // Retry with new token
+                        }
+                    }
+
+                    _logger.LogError("Failed to refresh token for retry");
+                }
+
+                _logger.LogError("Request failed with status: {StatusCode}", response.StatusCode);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error making authenticated request to {Url} (attempt {Attempt})", url, attempt + 1);
+                
+                if (attempt == maxRetries)
+                {
+                    return null;
+                }
+            }
+        }
+
+        return null;
     }
 
     private PatreonSupporter? CreatePatreonSupporter(PatreonMember member, PatreonMembersResponse response)
@@ -167,12 +318,8 @@ public class PatreonService : IPatreonService
                 ["client_secret"] = clientSecret
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://www.patreon.com/api/oauth2/token")
-            {
-                Content = new FormUrlEncodedContent(requestBody)
-            };
-
-            var response = await _httpClient.SendAsync(request);
+            using var oauthClient = _httpClientFactory.CreateClient("PatreonOAuth");
+            var response = await oauthClient.PostAsync("token", new FormUrlEncodedContent(requestBody));
             
             if (!response.IsSuccessStatusCode)
             {
@@ -186,7 +333,15 @@ public class PatreonService : IPatreonService
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
             });
 
-            return tokenData?.AccessToken;
+            if (tokenData != null)
+            {
+                // Store the refreshed tokens in database
+                await UpdateStoredTokensAsync(tokenData.AccessToken, tokenData.RefreshToken, tokenData.ExpiresIn, tokenData.Scope);
+                _logger.LogInformation("Successfully refreshed and stored Patreon access token");
+                return tokenData.AccessToken;
+            }
+
+            return null;
         }
         catch (Exception ex)
         {
@@ -283,4 +438,5 @@ public class PatreonTokenResponse
     public string RefreshToken { get; set; } = null!;
     public string TokenType { get; set; } = null!;
     public int ExpiresIn { get; set; }
+    public string? Scope { get; set; }
 }

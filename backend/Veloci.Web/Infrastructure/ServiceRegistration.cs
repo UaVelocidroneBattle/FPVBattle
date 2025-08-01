@@ -29,8 +29,7 @@ public static class ServiceRegistration
         services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
         services.AddScoped<AchievementService>();
-        services.AddScoped<IPatreonService, PatreonService>();
-        services.AddScoped<PatreonSyncJob>();
+        services.AddPatreonServices();
 
         return services;
     }

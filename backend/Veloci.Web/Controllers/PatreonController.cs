@@ -7,13 +7,13 @@ public class PatreonController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<PatreonController> _logger;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public PatreonController(IConfiguration configuration, ILogger<PatreonController> logger, HttpClient httpClient)
+    public PatreonController(IConfiguration configuration, ILogger<PatreonController> logger, IHttpClientFactory httpClientFactory)
     {
         _configuration = configuration;
         _logger = logger;
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
     }
 
     public IActionResult Connect()
@@ -94,12 +94,8 @@ public class PatreonController : Controller
                 ["redirect_uri"] = redirectUri
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://www.patreon.com/api/oauth2/token")
-            {
-                Content = new FormUrlEncodedContent(requestBody)
-            };
-
-            var response = await _httpClient.SendAsync(request);
+            using var client = _httpClientFactory.CreateClient("PatreonOAuth");
+            var response = await client.PostAsync("token", new FormUrlEncodedContent(requestBody));
             
             if (!response.IsSuccessStatusCode)
             {
