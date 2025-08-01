@@ -83,10 +83,10 @@ public class Startup
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
         );
-        
+
         // Add global job execution logging filter
         GlobalJobFilters.Filters.Add(new JobExecutionLoggingAttribute());
-        
+
         services.AddHangfireServer(o =>
         {
             o.WorkerCount = 1;
@@ -112,7 +112,7 @@ public class Startup
             app.UseMigrationsEndPoint();
             app.MapOpenApi();
         }
-        else
+        else if (app.Environment.IsProduction())
         {
             using (var scope = app.Services.CreateScope())
             {
