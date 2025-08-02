@@ -27,7 +27,7 @@ public class PatreonService : IPatreonService
         }
     }
 
-    public async Task<List<PatreonSupporter>> GetCampaignMembersAsync(string campaignId)
+    public async Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId)
     {
         try
         {
@@ -43,12 +43,12 @@ public class PatreonService : IPatreonService
                 }
             }
 
-            return supporters;
+            return supporters.ToArray();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching campaign members for campaign {CampaignId}", campaignId);
-            return new List<PatreonSupporter>();
+            return [];
         }
     }
 
