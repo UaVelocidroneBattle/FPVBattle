@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Veloci.Data.Domain;
+using Veloci.Logic.Services.Patreon.Models;
 
 namespace Veloci.Logic.Services;
 
