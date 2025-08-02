@@ -18,7 +18,7 @@ public class PatreonApiClient : IPatreonApiClient
         _logger = logger;
     }
 
-    public async Task<List<PatreonCampaign>> GetCampaignsAsync()
+    public async Task<PatreonCampaign[]> GetCampaignsAsync()
     {
         try
         {
@@ -26,7 +26,7 @@ public class PatreonApiClient : IPatreonApiClient
             if (string.IsNullOrEmpty(accessToken))
             {
                 _logger.LogWarning("No valid Patreon access token available");
-                return new List<PatreonCampaign>();
+                return [];
             }
 
             var response = await MakeAuthenticatedRequestAsync("campaigns", accessToken);
@@ -34,19 +34,19 @@ public class PatreonApiClient : IPatreonApiClient
             if (response == null)
             {
                 _logger.LogError("Failed to get campaigns from Patreon API after retry");
-                return new List<PatreonCampaign>();
+                return [];
             }
 
             var campaignsJson = await response.Content.ReadAsStringAsync();
             var campaignsData = JsonSerializer.Deserialize<PatreonCampaignsResponse>(campaignsJson,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
 
-            return campaignsData?.Data ?? new List<PatreonCampaign>();
+            return campaignsData?.Data.ToArray() ?? [];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching campaigns from Patreon API");
-            return new List<PatreonCampaign>();
+            return [];
         }
     }
 

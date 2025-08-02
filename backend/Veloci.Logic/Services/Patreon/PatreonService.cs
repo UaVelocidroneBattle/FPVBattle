@@ -14,7 +14,7 @@ public class PatreonService : IPatreonService
         _logger = logger;
     }
 
-    public async Task<List<PatreonCampaign>> GetCampaignsAsync()
+    public async Task<PatreonCampaign[]> GetCampaignsAsync()
     {
         try
         {
@@ -23,7 +23,7 @@ public class PatreonService : IPatreonService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching campaigns");
-            return new List<PatreonCampaign>();
+            return [];
         }
     }
 
