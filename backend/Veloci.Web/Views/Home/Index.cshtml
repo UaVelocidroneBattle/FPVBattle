@@ -5,13 +5,10 @@
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-    
-    @if (Context.Request.Host.Host.Contains("localhost"))
-    {
-        <div class="mt-4">
-            <h3>Development Tools</h3>
-            <a href="@Url.Action("Connect", "Patreon")" class="btn btn-primary">Connect Patreon</a>
-            <small class="form-text text-muted">Configure Patreon OAuth integration (Development only)</small>
-        </div>
-    }
+
+    <div class="mt-4">
+        <h3>Development Tools</h3>
+        <a href="@Url.Action("Connect", "Patreon")" class="btn btn-primary">Connect Patreon</a>
+        <small class="form-text text-muted">Configure Patreon OAuth integration (Development only)</small>
+    </div>
 </div>
