@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Veloci.Logic.API.Options;
+using Veloci.Logic.Services;
 
 namespace Veloci.Web.Controllers;
 
@@ -10,12 +11,14 @@ public class PatreonController : Controller
     private readonly PatreonOptions _options;
     private readonly ILogger<PatreonController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IPatreonTokenManager _patreonTokenManager;
 
-    public PatreonController(IOptions<PatreonOptions> options, ILogger<PatreonController> logger, IHttpClientFactory httpClientFactory)
+    public PatreonController(IOptions<PatreonOptions> options, ILogger<PatreonController> logger, IHttpClientFactory httpClientFactory, IPatreonTokenManager patreonTokenManager)
     {
         _options = options.Value;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _patreonTokenManager = patreonTokenManager;
     }
 
     public IActionResult Connect()
@@ -64,6 +67,8 @@ public class PatreonController : Controller
                 return BadRequest("Failed to exchange authorization code for tokens");
             }
 
+            await _patreonTokenManager.UpdateStoredTokensAsync(tokenResponse.AccessToken, tokenResponse.RefreshToken, tokenResponse.ExpiresIn, tokenResponse.Scope);
+
             return View("Tokens", tokenResponse);
         }
         catch (Exception ex)
@@ -98,11 +103,11 @@ public class PatreonController : Controller
 
             using var client = _httpClientFactory.CreateClient("PatreonOAuth");
             var response = await client.PostAsync("token", new FormUrlEncodedContent(requestBody));
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to exchange code for tokens. Status: {StatusCode}, Content: {Content}", 
+                _logger.LogError("Failed to exchange code for tokens. Status: {StatusCode}, Content: {Content}",
                     response.StatusCode, errorContent);
                 return null;
             }
@@ -123,11 +128,38 @@ public class PatreonController : Controller
     }
 }
 
+/// <summary>
+/// Represents the OAuth2 token response from Patreon's token exchange endpoint.
+/// Contains authentication tokens required for accessing the Patreon API.
+/// </summary>
 public class PatreonTokenResponse
 {
+    /// <summary>
+    /// Single-use access token for authenticating API requests to Patreon.
+    /// This token expires after the duration specified in ExpiresIn.
+    /// </summary>
     public string AccessToken { get; set; } = null!;
+    
+    /// <summary>
+    /// Single-use refresh token for obtaining a new access token when the current one expires.
+    /// Should be stored securely and used only when the access token needs renewal.
+    /// </summary>
     public string RefreshToken { get; set; } = null!;
+    
+    /// <summary>
+    /// The type of token issued, always "Bearer" for Patreon OAuth2 implementation.
+    /// </summary>
     public string TokenType { get; set; } = null!;
+    
+    /// <summary>
+    /// Token lifetime duration in seconds indicating how long the access token remains valid.
+    /// After this time, the refresh token must be used to obtain a new access token.
+    /// </summary>
     public int ExpiresIn { get; set; }
+    
+    /// <summary>
+    /// Token permissions defining what resources and actions the token can access.
+    /// Typically includes "identity campaigns.members" for accessing supporter data.
+    /// </summary>
     public string? Scope { get; set; }
 }
