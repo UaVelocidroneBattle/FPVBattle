@@ -13,11 +13,11 @@ namespace Veloci.Logic.Services;
 public class PatreonSyncJob
 {
     private static readonly ILogger _log = Log.ForContext<PatreonSyncJob>();
+    private readonly IMediator _mediator;
+    private readonly PatreonOptions _options;
 
     private readonly IPatreonService _patreonService;
     private readonly IRepository<PatreonSupporter> _supportersRepository;
-    private readonly IMediator _mediator;
-    private readonly PatreonOptions _options;
 
     public PatreonSyncJob(
         IPatreonService patreonService,
@@ -105,6 +105,7 @@ public class PatreonSyncJob
                 {
                     await _supportersRepository.UpdateAsync(updatedSupporter);
                 }
+
                 _log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
             }
 
@@ -132,7 +133,7 @@ public class PatreonSyncJob
 
     private bool UpdateSupporterData(PatreonSupporter existing, PatreonSupporter updated)
     {
-        bool hasChanges = false;
+        var hasChanges = false;
 
         if (existing.Name != updated.Name)
         {
