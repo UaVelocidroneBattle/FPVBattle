@@ -32,7 +32,7 @@ public class PatreonController : Controller
             return BadRequest("Patreon configuration is not set up");
         }
 
-        var scopes = "identity campaigns.members";
+        var scopes = "identity campaigns campaigns.members campaigns.members[email]";
         var state = Guid.NewGuid().ToString();
 
         var authUrl = $"https://www.patreon.com/oauth2/authorize" +
