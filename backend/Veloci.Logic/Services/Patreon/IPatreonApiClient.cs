@@ -2,7 +2,7 @@ namespace Veloci.Logic.Services;
 
 public interface IPatreonApiClient
 {
-    Task<List<PatreonCampaign>> GetCampaignsAsync();
+    Task<PatreonCampaign[]> GetCampaignsAsync();
     Task<PatreonMembersResponse> GetCampaignMembersAsync(string campaignId);
 }
 
