@@ -56,7 +56,8 @@ public class PatreonService : IPatreonService
     {
         try
         {
-            var user = response.Included?.FirstOrDefault(i => i.Type == "user" && i.Id == member.Relationships?.User?.Data?.Id);
+            var user = response.Included?.FirstOrDefault(i =>
+                i.Type == "user" && i.Id == member.Relationships?.User?.Data?.Id);
             var tier = GetMemberTier(member, response);
 
             return new PatreonSupporter

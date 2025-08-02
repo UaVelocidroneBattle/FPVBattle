@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API.Options;
@@ -11,11 +11,12 @@ namespace Veloci.Logic.Services;
 public class PatreonTokenManager : IPatreonTokenManager
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly PatreonOptions _options;
     private readonly ILogger<PatreonTokenManager> _logger;
+    private readonly PatreonOptions _options;
     private readonly IRepository<PatreonTokens> _tokensRepository;
 
-    public PatreonTokenManager(IHttpClientFactory httpClientFactory, IOptions<PatreonOptions> options, ILogger<PatreonTokenManager> logger, IRepository<PatreonTokens> tokensRepository)
+    public PatreonTokenManager(IHttpClientFactory httpClientFactory, IOptions<PatreonOptions> options,
+        ILogger<PatreonTokenManager> logger, IRepository<PatreonTokens> tokensRepository)
     {
         _httpClientFactory = httpClientFactory;
         _options = options.Value;
@@ -41,7 +42,8 @@ public class PatreonTokenManager : IPatreonTokenManager
             {
                 _logger.LogDebug("Using tokens from configuration");
                 var configTokens = new PatreonTokens();
-                configTokens.UpdateFromTokenResponse(_options.AccessToken, _options.RefreshToken, 86400); // Assume 24h expiry
+                configTokens.UpdateFromTokenResponse(_options.AccessToken, _options.RefreshToken,
+                    86400); // Assume 24h expiry
                 return configTokens;
             }
 
@@ -67,7 +69,7 @@ public class PatreonTokenManager : IPatreonTokenManager
             }
 
             // Check if token is expired or expiring soon (10 minute buffer)
-            if (tokens.IsExpiringSoon(10))
+            if (tokens.IsExpiringSoon())
             {
                 _logger.LogInformation("Patreon access token is expiring soon, refreshing...");
 
@@ -117,15 +119,14 @@ public class PatreonTokenManager : IPatreonTokenManager
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            var tokenData = JsonSerializer.Deserialize<PatreonTokenResponse>(json, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            });
+            var tokenData = JsonSerializer.Deserialize<PatreonTokenResponse>(json,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
 
             if (tokenData != null)
             {
                 // Store the refreshed tokens in database
-                await UpdateStoredTokensAsync(tokenData.AccessToken, tokenData.RefreshToken, tokenData.ExpiresIn, tokenData.Scope);
+                await UpdateStoredTokensAsync(tokenData.AccessToken, tokenData.RefreshToken, tokenData.ExpiresIn,
+                    tokenData.Scope);
                 _logger.LogInformation("Successfully refreshed and stored Patreon access token");
                 return tokenData.AccessToken;
             }
@@ -139,7 +140,8 @@ public class PatreonTokenManager : IPatreonTokenManager
         }
     }
 
-    public async Task UpdateStoredTokensAsync(string accessToken, string refreshToken, int expiresIn, string? scope = null)
+    public async Task UpdateStoredTokensAsync(string accessToken, string refreshToken, int expiresIn,
+        string? scope = null)
     {
         try
         {
