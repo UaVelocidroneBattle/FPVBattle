@@ -58,7 +58,7 @@ public class PatreonSyncJob
                 return;
             }
 
-            _log.Information("Retrieved {Count} supporters from Patreon API", supportersFromApi.Count);
+            _log.Information("Retrieved {Count} supporters from Patreon API", supportersFromApi.Length);
 
             var existingSupporters = await _supportersRepository
                 .GetAll()
