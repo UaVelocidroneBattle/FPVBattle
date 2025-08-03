@@ -11,17 +11,20 @@ public class HangfireInit
     public static void InitRecurrentJobs(IConfiguration configuration)
     {
         Log.Information("Initializing Hangfire recurring jobs");
-        
+
         using (var connection = JobStorage.Current.GetConnection())
         {
             var existingJobs = connection.GetRecurringJobs();
             Log.Information("Removing {JobCount} existing recurring jobs", existingJobs.Count);
-            
+
             foreach (var recurringJob in existingJobs)
             {
                 RecurringJob.RemoveIfExists(recurringJob.Id);
             }
         }
+
+        // Temporary job
+        RecurringJob.AddOrUpdate<PilotIdGrabber>("Grab pilot ID's", x => x.GrabPilotIds(), "*/4 * * * *");
 
         Log.Information("Setting up daily competition schedule recurring jobs");
         RecurringJob.AddOrUpdate<CompetitionService>("Day streak potential lose", x => x.DayStreakPotentialLoseNotification(), "5 14 * * *");
@@ -38,7 +41,7 @@ public class HangfireInit
 
         Log.Information("Setting up yearly recurring jobs");
         RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
-        
+
         Log.Information("Hangfire recurring job initialization completed");
     }
 }

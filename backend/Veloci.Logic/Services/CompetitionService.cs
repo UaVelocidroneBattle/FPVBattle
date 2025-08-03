@@ -14,7 +14,7 @@ namespace Veloci.Logic.Services;
 public class CompetitionService
 {
     private static readonly ILogger _log = Log.ForContext<CompetitionService>();
-    
+
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
@@ -41,7 +41,7 @@ public class CompetitionService
     [DisableConcurrentExecution("Competition", 60)]
     public async Task UpdateResultsAsync()
     {
-        
+
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -56,7 +56,7 @@ public class CompetitionService
         {
             await UpdateResultsAsync(competition);
         }
-        
+
     }
 
     private async Task UpdateResultsAsync(Competition competition)
@@ -92,7 +92,7 @@ public class CompetitionService
     [DisableConcurrentExecution("Competition", 1)]
     public async Task PublishCurrentLeaderboardAsync()
     {
-        
+
         var activeCompetitions = await GetCurrentCompetitions().ToListAsync();
 
         if (!activeCompetitions.Any())
@@ -105,7 +105,7 @@ public class CompetitionService
         {
             await PublishCurrentLeaderboardAsync(activeCompetition);
         }
-        
+
     }
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)
@@ -150,6 +150,7 @@ public class CompetitionService
             {
                 CompetitionId = x.CompetitionId,
                 PlayerName = x.PlayerName,
+                UserId = x.UserId,
                 TrackTime = x.TrackTime,
                 LocalRank = i + 1,
                 GlobalRank = x.Rank,
@@ -255,7 +256,7 @@ public class CompetitionService
 
     public async Task PublishDayStreakAchievements()
     {
-        
+
         var streaks = new[] { 10, 20, 50, 75, 100, 150, 200, 250, 300, 365, 500, 1000 };
 
         var pilots = await _pilots
@@ -272,12 +273,12 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakAchievements(pilots));
-        
+
     }
 
     public async Task DayStreakPotentialLoseNotification()
     {
-        
+
         var activeCompetition = await GetCurrentCompetitions()
             .FirstOrDefaultAsync();
 
@@ -308,6 +309,6 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakPotentialLose(pilots));
-        
+
     }
 }
