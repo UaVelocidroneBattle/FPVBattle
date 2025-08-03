@@ -24,14 +24,7 @@ public class PatreonApiClient : IPatreonApiClient
         try
         {
             var campaignsData = await MakeAuthenticatedRequestAsync<PatreonCampaignsResponse>("campaigns");
-
-            if (campaignsData == null)
-            {
-                _logger.LogError("Failed to get campaigns from Patreon API");
-                return [];
-            }
-
-            return campaignsData.Data.ToArray();
+            return campaignsData?.Data.ToArray() ?? [];
         }
         catch (Exception ex)
         {
@@ -55,7 +48,6 @@ public class PatreonApiClient : IPatreonApiClient
 
                 if (data == null)
                 {
-                    _logger.LogError("Failed to get campaign members from Patreon API");
                     break;
                 }
 
@@ -81,6 +73,11 @@ public class PatreonApiClient : IPatreonApiClient
         return new PatreonMembersResponse { Data = allMembers, Included = allIncluded };
     }
 
+    /// <summary>
+    /// Makes an authenticated GET request to the Patreon API and deserializes the JSON response.
+    /// Returns null on failure (invalid token, HTTP error, or deserialization failure).
+    /// On 401 responses, attempts to refresh the access token for future requests.
+    /// </summary>
     private async Task<T?> MakeAuthenticatedRequestAsync<T>(string url) where T : class
     {
         try
@@ -100,8 +97,16 @@ public class PatreonApiClient : IPatreonApiClient
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(json,
+                var result = JsonSerializer.Deserialize<T>(json,
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+                
+                if (result == null)
+                {
+                    _logger.LogError("Failed to deserialize Patreon API response for {Url}. Response content: {ResponseContent}", 
+                        url, string.IsNullOrEmpty(json) ? "[empty]" : json);
+                }
+                
+                return result;
             }
 
             // If 401 Unauthorized, attempt to refresh token for next job run
