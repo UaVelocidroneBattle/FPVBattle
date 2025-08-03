@@ -68,7 +68,7 @@ public class PatreonController : Controller
                 return BadRequest("Failed to exchange authorization code for tokens");
             }
 
-            //await _patreonTokenManager.UpdateStoredTokensAsync(tokenResponse.AccessToken, tokenResponse.RefreshToken, tokenResponse.ExpiresIn, tokenResponse.Scope);
+            await _patreonTokenManager.UpdateStoredTokensAsync(tokenResponse.AccessToken, tokenResponse.RefreshToken, tokenResponse.ExpiresIn, tokenResponse.Scope);
 
             return View("Tokens", tokenResponse);
         }
