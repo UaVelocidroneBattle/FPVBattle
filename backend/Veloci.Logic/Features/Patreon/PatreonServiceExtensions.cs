@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Veloci.Logic.Features.Patreon.Commands;
+using Veloci.Logic.Features.Patreon.Jobs;
 using Veloci.Logic.Features.Patreon.Models;
 using Veloci.Logic.Features.Patreon.Services;
+using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Patreon;
 
@@ -20,6 +22,9 @@ public static class PatreonServiceExtensions
 
         // Register MediatR command handler
         services.AddScoped<PatreonSyncJob>();
+        
+        // Register job registrar
+        services.AddScoped<IJobRegistrar, PatreonJobRegistrar>();
 
         // Configure HttpClient for Patreon API (used by PatreonApiClient)
         services.AddHttpClient<IPatreonApiClient, PatreonApiClient>("PatreonClient", client =>
