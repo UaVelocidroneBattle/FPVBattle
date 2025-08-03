@@ -19,11 +19,11 @@ public class PatreonApiClient : IPatreonApiClient
         _logger = logger;
     }
 
-    public async Task<PatreonCampaign[]> GetCampaignsAsync()
+    public async Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct = default)
     {
         try
         {
-            var campaignsData = await MakeAuthenticatedRequestAsync<PatreonCampaignsResponse>("campaigns");
+            var campaignsData = await MakeAuthenticatedRequestAsync<PatreonCampaignsResponse>("campaigns", ct);
             return campaignsData?.Data.ToArray() ?? [];
         }
         catch (Exception ex)
@@ -33,7 +33,7 @@ public class PatreonApiClient : IPatreonApiClient
         }
     }
 
-    public async Task<PatreonMembersResponse> GetCampaignMembersAsync(string campaignId)
+    public async Task<PatreonMembersResponse> GetCampaignMembersAsync(string campaignId, CancellationToken ct = default)
     {
         var allMembers = new List<PatreonMember>();
         var allIncluded = new List<PatreonIncluded>();
@@ -42,9 +42,11 @@ public class PatreonApiClient : IPatreonApiClient
 
         while (!string.IsNullOrEmpty(url))
         {
+            ct.ThrowIfCancellationRequested();
+            
             try
             {
-                var data = await MakeAuthenticatedRequestAsync<PatreonMembersResponse>(url);
+                var data = await MakeAuthenticatedRequestAsync<PatreonMembersResponse>(url, ct);
 
                 if (data == null)
                 {
@@ -78,11 +80,11 @@ public class PatreonApiClient : IPatreonApiClient
     /// Returns null on failure (invalid token, HTTP error, or deserialization failure).
     /// On 401 responses, attempts to refresh the access token for future requests.
     /// </summary>
-    private async Task<T?> MakeAuthenticatedRequestAsync<T>(string url) where T : class
+    private async Task<T?> MakeAuthenticatedRequestAsync<T>(string url, CancellationToken ct = default) where T : class
     {
         try
         {
-            var accessToken = await _tokenManager.GetValidAccessTokenAsync();
+            var accessToken = await _tokenManager.GetValidAccessTokenAsync(ct);
             if (string.IsNullOrEmpty(accessToken))
             {
                 _logger.LogWarning("No valid Patreon access token available");
@@ -92,11 +94,11 @@ public class PatreonApiClient : IPatreonApiClient
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request, ct);
 
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync();
+                var json = await response.Content.ReadAsStringAsync(ct);
                 var result = JsonSerializer.Deserialize<T>(json,
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
                 
@@ -114,10 +116,10 @@ public class PatreonApiClient : IPatreonApiClient
             {
                 _logger.LogWarning("Received 401 Unauthorized, attempting to refresh token");
                 
-                var tokens = await _tokenManager.GetCurrentTokensAsync();
+                var tokens = await _tokenManager.GetCurrentTokensAsync(ct);
                 if (tokens != null)
                 {
-                    var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken);
+                    var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken, ct);
                     if (!string.IsNullOrEmpty(newAccessToken))
                     {
                         _logger.LogInformation("Successfully refreshed token for next job run");

@@ -12,12 +12,14 @@ public interface IPatreonApiClient
     /// Retrieves all campaigns associated with the authenticated user.
     /// A campaign represents a creator's Patreon page with details like name, summary, and patron count.
     /// </summary>
-    Task<PatreonCampaign[]> GetCampaignsAsync();
+    /// <param name="ct">Cancellation token to cancel the operation</param>
+    Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct = default);
     
     /// <summary>
     /// Retrieves all members (patrons) for a specific campaign.
     /// Members represent users who support a campaign with pledges and subscriptions.
     /// </summary>
     /// <param name="campaignId">The unique identifier of the campaign</param>
-    Task<PatreonMembersResponse> GetCampaignMembersAsync(string campaignId);
+    /// <param name="ct">Cancellation token to cancel the operation</param>
+    Task<PatreonMembersResponse> GetCampaignMembersAsync(string campaignId, CancellationToken ct = default);
 }

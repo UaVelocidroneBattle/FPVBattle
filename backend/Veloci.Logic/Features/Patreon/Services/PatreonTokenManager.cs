@@ -24,12 +24,12 @@ public class PatreonTokenManager : IPatreonTokenManager
         _tokensRepository = tokensRepository;
     }
 
-    public async Task<PatreonTokens?> GetCurrentTokensAsync()
+    public async Task<PatreonTokens?> GetCurrentTokensAsync(CancellationToken ct = default)
     {
         try
         {
             // First try to get tokens from database (most up-to-date)
-            var dbTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync();
+            var dbTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync(ct);
 
             if (dbTokens != null)
             {
@@ -57,11 +57,11 @@ public class PatreonTokenManager : IPatreonTokenManager
         }
     }
 
-    public async Task<string?> GetValidAccessTokenAsync()
+    public async Task<string?> GetValidAccessTokenAsync(CancellationToken ct = default)
     {
         try
         {
-            var tokens = await GetCurrentTokensAsync();
+            var tokens = await GetCurrentTokensAsync(ct);
             if (tokens == null)
             {
                 _logger.LogWarning("No Patreon tokens available");
@@ -73,7 +73,7 @@ public class PatreonTokenManager : IPatreonTokenManager
             {
                 _logger.LogInformation("Patreon access token is expiring soon, refreshing...");
 
-                var newAccessToken = await RefreshAccessTokenAsync(tokens.RefreshToken);
+                var newAccessToken = await RefreshAccessTokenAsync(tokens.RefreshToken, ct);
                 if (newAccessToken != null)
                 {
                     return newAccessToken;
@@ -91,7 +91,7 @@ public class PatreonTokenManager : IPatreonTokenManager
         }
     }
 
-    public async Task<string?> RefreshAccessTokenAsync(string refreshToken)
+    public async Task<string?> RefreshAccessTokenAsync(string refreshToken, CancellationToken ct = default)
     {
         try
         {
@@ -110,7 +110,7 @@ public class PatreonTokenManager : IPatreonTokenManager
             };
 
             using var oauthClient = _httpClientFactory.CreateClient("PatreonOAuth");
-            var response = await oauthClient.PostAsync("token", new FormUrlEncodedContent(requestBody));
+            var response = await oauthClient.PostAsync("token", new FormUrlEncodedContent(requestBody), ct);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -118,7 +118,7 @@ public class PatreonTokenManager : IPatreonTokenManager
                 return null;
             }
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync(ct);
             var tokenData = JsonSerializer.Deserialize<PatreonTokenResponse>(json,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
 
@@ -126,7 +126,7 @@ public class PatreonTokenManager : IPatreonTokenManager
             {
                 // Store the refreshed tokens in database
                 await UpdateStoredTokensAsync(tokenData.AccessToken, tokenData.RefreshToken, tokenData.ExpiresIn,
-                    tokenData.Scope);
+                    tokenData.Scope, ct);
                 _logger.LogInformation("Successfully refreshed and stored Patreon access token");
                 return tokenData.AccessToken;
             }
@@ -141,11 +141,11 @@ public class PatreonTokenManager : IPatreonTokenManager
     }
 
     public async Task UpdateStoredTokensAsync(string accessToken, string refreshToken, int expiresIn,
-        string? scope = null)
+        string? scope = null, CancellationToken ct = default)
     {
         try
         {
-            var existingTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync();
+            var existingTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync(ct);
 
             if (existingTokens != null)
             {
@@ -159,7 +159,7 @@ public class PatreonTokenManager : IPatreonTokenManager
                 await _tokensRepository.AddAsync(newTokens);
             }
 
-            await _tokensRepository.SaveChangesAsync();
+            await _tokensRepository.SaveChangesAsync(ct);
             _logger.LogInformation("Updated Patreon tokens in database");
         }
         catch (Exception ex)
