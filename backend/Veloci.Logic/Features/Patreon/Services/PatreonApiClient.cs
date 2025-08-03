@@ -23,18 +23,11 @@ public class PatreonApiClient : IPatreonApiClient
     {
         try
         {
-            var accessToken = await _tokenManager.GetValidAccessTokenAsync();
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                _logger.LogWarning("No valid Patreon access token available");
-                return [];
-            }
-
-            var response = await MakeAuthenticatedRequestAsync("campaigns", accessToken);
+            var response = await MakeAuthenticatedRequestAsync("campaigns");
 
             if (response == null)
             {
-                _logger.LogError("Failed to get campaigns from Patreon API after retry");
+                _logger.LogError("Failed to get campaigns from Patreon API");
                 return [];
             }
 
@@ -62,18 +55,11 @@ public class PatreonApiClient : IPatreonApiClient
         {
             try
             {
-                var accessToken = await _tokenManager.GetValidAccessTokenAsync();
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    _logger.LogWarning("No valid Patreon access token available");
-                    break;
-                }
-
-                var response = await MakeAuthenticatedRequestAsync(url, accessToken);
+                var response = await MakeAuthenticatedRequestAsync(url);
 
                 if (response == null)
                 {
-                    _logger.LogError("Failed to get campaign members from Patreon API after retry");
+                    _logger.LogError("Failed to get campaign members from Patreon API");
                     break;
                 }
 
@@ -103,60 +89,54 @@ public class PatreonApiClient : IPatreonApiClient
         return new PatreonMembersResponse { Data = allMembers, Included = allIncluded };
     }
 
-    private async Task<HttpResponseMessage?> MakeAuthenticatedRequestAsync(string url, string accessToken,
-        int maxRetries = 1)
+    private async Task<HttpResponseMessage?> MakeAuthenticatedRequestAsync(string url)
     {
-        for (var attempt = 0; attempt <= maxRetries; attempt++)
+        try
         {
-            try
+            var accessToken = await _tokenManager.GetValidAccessTokenAsync();
+            if (string.IsNullOrEmpty(accessToken))
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                var response = await _httpClient.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return response;
-                }
-
-                // If 401 Unauthorized and we haven't exhausted retries, try to refresh token
-                if (response.StatusCode == HttpStatusCode.Unauthorized && attempt < maxRetries)
-                {
-                    _logger.LogWarning(
-                        "Received 401 Unauthorized, attempting to refresh token (attempt {Attempt}/{MaxRetries})",
-                        attempt + 1, maxRetries + 1);
-
-                    var tokens = await _tokenManager.GetCurrentTokensAsync();
-                    if (tokens != null)
-                    {
-                        var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken);
-                        if (!string.IsNullOrEmpty(newAccessToken))
-                        {
-                            accessToken = newAccessToken; // Use refreshed token for retry
-                            _logger.LogInformation("Successfully refreshed token, retrying request");
-                            continue; // Retry with new token
-                        }
-                    }
-
-                    _logger.LogError("Failed to refresh token for retry");
-                }
-
-                _logger.LogError("Request failed with status: {StatusCode}", response.StatusCode);
+                _logger.LogWarning("No valid Patreon access token available");
                 return null;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error making authenticated request to {Url} (attempt {Attempt})", url,
-                    attempt + 1);
 
-                if (attempt == maxRetries)
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
+            }
+
+            // If 401 Unauthorized, attempt to refresh token for next job run
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                _logger.LogWarning("Received 401 Unauthorized, attempting to refresh token");
+                
+                var tokens = await _tokenManager.GetCurrentTokensAsync();
+                if (tokens != null)
                 {
-                    return null;
+                    var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken);
+                    if (!string.IsNullOrEmpty(newAccessToken))
+                    {
+                        _logger.LogInformation("Successfully refreshed token for next job run");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to refresh token");
+                    }
                 }
             }
-        }
 
-        return null;
+            _logger.LogError("Request failed with status: {StatusCode}", response.StatusCode);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error making authenticated request to {Url}", url);
+            return null;
+        }
     }
 }
