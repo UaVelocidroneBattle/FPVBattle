@@ -19,6 +19,7 @@ public static class PatreonServiceExtensions
         services.AddScoped<IPatreonTokenManager, PatreonTokenManager>();
         services.AddScoped<IPatreonApiClient, PatreonApiClient>();
         services.AddScoped<IPatreonService, PatreonService>();
+        services.AddScoped<IPatreonOAuthService, PatreonOAuthService>();
 
         // Register MediatR command handler
         services.AddScoped<PatreonSyncJob>();
