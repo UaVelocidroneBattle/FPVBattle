@@ -1,6 +1,7 @@
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.Bot.Telegram;
+using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
 using Veloci.Logic.Services.Achievements;

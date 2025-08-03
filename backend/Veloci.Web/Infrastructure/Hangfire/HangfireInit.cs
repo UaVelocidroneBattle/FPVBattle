@@ -1,6 +1,8 @@
 using Hangfire;
 using Hangfire.Storage;
+using MediatR;
 using Serilog;
+using Veloci.Logic.Features.Patreon.Commands;
 using Veloci.Logic.Services;
 using Veloci.Logic.Services.YearResults;
 
@@ -11,12 +13,12 @@ public class HangfireInit
     public static void InitRecurrentJobs(IConfiguration configuration)
     {
         Log.Information("Initializing Hangfire recurring jobs");
-        
+
         using (var connection = JobStorage.Current.GetConnection())
         {
             var existingJobs = connection.GetRecurringJobs();
             Log.Information("Removing {JobCount} existing recurring jobs", existingJobs.Count);
-            
+
             foreach (var recurringJob in existingJobs)
             {
                 RecurringJob.RemoveIfExists(recurringJob.Id);
@@ -40,8 +42,8 @@ public class HangfireInit
         RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
 
         Log.Information("Setting up Patreon integration jobs");
-        RecurringJob.AddOrUpdate<PatreonSyncJob>("Patreon sync", x => x.SyncSupportersAsync(), "0 9 * * *");
-        
+        RecurringJob.AddOrUpdate<PatreonSyncJob>("Patreon sync", x => x.Handle(CancellationToken.None), "0 9 * * *");
+
         Log.Information("Hangfire recurring job initialization completed");
     }
 }

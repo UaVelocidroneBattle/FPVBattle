@@ -51,7 +51,17 @@ public class Startup
         services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddControllersWithViews();
+        services.AddControllersWithViews()
+            .AddApplicationPart(typeof(Veloci.Logic.Features.Patreon.PatreonController).Assembly);
+        
+        // Configure view location formats to support Features folder structure in RCL
+        services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
+        {
+            // Add our Features folder patterns to view discovery
+            // {0} = action name, {1} = controller name
+            options.ViewLocationFormats.Add("/Features/{1}/Views/{1}/{0}.cshtml");
+            options.ViewLocationFormats.Add("/Features/{1}/Views/Shared/{0}.cshtml");
+        });
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
         services.Configure<ApiSettings>(Configuration.GetSection("API"));

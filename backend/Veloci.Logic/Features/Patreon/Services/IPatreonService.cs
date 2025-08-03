@@ -1,7 +1,7 @@
 using Veloci.Data.Domain;
-using Veloci.Logic.Services.Patreon.Models;
+using Veloci.Logic.Features.Patreon.Models;
 
-namespace Veloci.Logic.Services;
+namespace Veloci.Logic.Features.Patreon.Services;
 
 public interface IPatreonService
 {

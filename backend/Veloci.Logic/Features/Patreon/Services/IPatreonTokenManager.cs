@@ -1,6 +1,6 @@
 using Veloci.Data.Domain;
 
-namespace Veloci.Logic.Services;
+namespace Veloci.Logic.Features.Patreon.Services;
 
 public interface IPatreonTokenManager
 {

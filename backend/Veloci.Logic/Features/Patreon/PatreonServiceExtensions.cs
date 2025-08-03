@@ -1,7 +1,10 @@
-using Veloci.Logic.API.Options;
-using Veloci.Logic.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Veloci.Logic.Features.Patreon.Commands;
+using Veloci.Logic.Features.Patreon.Models;
+using Veloci.Logic.Features.Patreon.Services;
 
-namespace Veloci.Web.Infrastructure;
+namespace Veloci.Logic.Features.Patreon;
 
 public static class PatreonServiceExtensions
 {
@@ -14,6 +17,8 @@ public static class PatreonServiceExtensions
         services.AddScoped<IPatreonTokenManager, PatreonTokenManager>();
         services.AddScoped<IPatreonApiClient, PatreonApiClient>();
         services.AddScoped<IPatreonService, PatreonService>();
+
+        // Register MediatR command handler
         services.AddScoped<PatreonSyncJob>();
 
         // Configure HttpClient for Patreon API (used by PatreonApiClient)

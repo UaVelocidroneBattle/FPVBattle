@@ -1,6 +1,6 @@
-using Veloci.Logic.Services.Patreon.Models;
+using Veloci.Logic.Features.Patreon.Models;
 
-namespace Veloci.Logic.Services;
+namespace Veloci.Logic.Features.Patreon.Services;
 
 /// <summary>
 /// Client interface for interacting with Patreon API v2.

@@ -1,4 +1,4 @@
-namespace Veloci.Logic.Services.Patreon.Models;
+namespace Veloci.Logic.Features.Patreon.Models;
 
 /// <summary>
 /// Root response object for campaigns endpoint following JSON:API specification.

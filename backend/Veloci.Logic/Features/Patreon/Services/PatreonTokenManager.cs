@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.API.Options;
+using Veloci.Logic.Features.Patreon.Models;
 
-namespace Veloci.Logic.Services;
+namespace Veloci.Logic.Features.Patreon.Services;
 
 public class PatreonTokenManager : IPatreonTokenManager
 {
@@ -167,14 +167,4 @@ public class PatreonTokenManager : IPatreonTokenManager
             _logger.LogError(ex, "Error storing Patreon tokens to database");
         }
     }
-}
-
-// DTO for token response (moved from PatreonService)
-public class PatreonTokenResponse
-{
-    public string AccessToken { get; set; } = null!;
-    public string RefreshToken { get; set; } = null!;
-    public string TokenType { get; set; } = null!;
-    public int ExpiresIn { get; set; }
-    public string? Scope { get; set; }
 }

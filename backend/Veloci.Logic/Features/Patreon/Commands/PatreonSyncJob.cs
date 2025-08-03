@@ -5,10 +5,11 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.API.Options;
-using Veloci.Logic.Notifications;
+using Veloci.Logic.Features.Patreon.Models;
+using Veloci.Logic.Features.Patreon.Notifications;
+using Veloci.Logic.Features.Patreon.Services;
 
-namespace Veloci.Logic.Services;
+namespace Veloci.Logic.Features.Patreon.Commands;
 
 public class PatreonSyncJob
 {
@@ -32,7 +33,7 @@ public class PatreonSyncJob
     }
 
     [DisableConcurrentExecution("PatreonSync", 60)]
-    public async Task SyncSupportersAsync()
+    public async Task Handle(CancellationToken ct)
     {
         if (!_options.EnableSync)
         {
@@ -62,7 +63,7 @@ public class PatreonSyncJob
 
             var existingSupporters = await _supportersRepository
                 .GetAll()
-                .ToDictionaryAsync(s => s.PatreonId);
+                .ToDictionaryAsync(s => s.PatreonId, ct);
 
             var newSupporters = new List<PatreonSupporter>();
             var updatedSupporters = new List<PatreonSupporter>();
@@ -94,7 +95,7 @@ public class PatreonSyncJob
                 // Send notifications for new supporters
                 foreach (var newSupporter in newSupporters)
                 {
-                    await _mediator.Publish(new NewPatreonSupporterNotification(newSupporter));
+                    await _mediator.Publish(new NewPatreonSupporterNotification(newSupporter), ct);
                 }
             }
 
@@ -119,9 +120,9 @@ public class PatreonSyncJob
             {
                 var allActiveSupporters = await _supportersRepository
                     .GetAll(s => s.Status == "active_patron")
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
-                await _mediator.Publish(new MonthlyPatreonSupportersNotification(allActiveSupporters));
+                await _mediator.Publish(new MonthlyPatreonSupportersNotification(allActiveSupporters), ct);
             }
         }
         catch (Exception ex)
