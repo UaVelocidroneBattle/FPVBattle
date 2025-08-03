@@ -43,6 +43,22 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
 
             await TelegramBot.SendMessageAsync("Добре 🫡");
             BackgroundJob.Schedule(() => _competitionConductor.StartNewAsync(), new TimeSpan(0, 0, 5));
+
+            return;
+        }
+
+        if (MessageParser.IsCompetitionStop(text))
+        {
+            if (!TelegramBot.IsMainChannelId(message.Chat.Id.ToString()))
+                return;
+
+            await TelegramBot.SendMessageAsync("Добре 🫡");
+            BackgroundJob.Enqueue(() => _competitionConductor.StopPollAsync());
+            BackgroundJob.Schedule(() => _competitionConductor.StopAsync(), new TimeSpan(0, 0, 10));
+            BackgroundJob.Schedule(() => _competitionConductor.SeasonResultsAsync(), new TimeSpan(0, 0, 30));
+            BackgroundJob.Schedule(() => _competitionConductor.StartNewAsync(), new TimeSpan(0, 0, 45));
+
+            return;
         }
 
         await _commandProcessor.ProcessAsync(message);
