@@ -23,19 +23,15 @@ public class PatreonApiClient : IPatreonApiClient
     {
         try
         {
-            var response = await MakeAuthenticatedRequestAsync("campaigns");
+            var campaignsData = await MakeAuthenticatedRequestAsync<PatreonCampaignsResponse>("campaigns");
 
-            if (response == null)
+            if (campaignsData == null)
             {
                 _logger.LogError("Failed to get campaigns from Patreon API");
                 return [];
             }
 
-            var campaignsJson = await response.Content.ReadAsStringAsync();
-            var campaignsData = JsonSerializer.Deserialize<PatreonCampaignsResponse>(campaignsJson,
-                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
-
-            return campaignsData?.Data.ToArray() ?? [];
+            return campaignsData.Data.ToArray();
         }
         catch (Exception ex)
         {
@@ -55,29 +51,25 @@ public class PatreonApiClient : IPatreonApiClient
         {
             try
             {
-                var response = await MakeAuthenticatedRequestAsync(url);
+                var data = await MakeAuthenticatedRequestAsync<PatreonMembersResponse>(url);
 
-                if (response == null)
+                if (data == null)
                 {
                     _logger.LogError("Failed to get campaign members from Patreon API");
                     break;
                 }
 
-                var json = await response.Content.ReadAsStringAsync();
-                var data = JsonSerializer.Deserialize<PatreonMembersResponse>(json,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
-
-                if (data?.Data != null)
+                if (data.Data != null)
                 {
                     allMembers.AddRange(data.Data);
                 }
 
-                if (data?.Included != null)
+                if (data.Included != null)
                 {
                     allIncluded.AddRange(data.Included);
                 }
 
-                url = data?.Links?.Next;
+                url = data.Links?.Next;
             }
             catch (Exception ex)
             {
@@ -89,7 +81,7 @@ public class PatreonApiClient : IPatreonApiClient
         return new PatreonMembersResponse { Data = allMembers, Included = allIncluded };
     }
 
-    private async Task<HttpResponseMessage?> MakeAuthenticatedRequestAsync(string url)
+    private async Task<T?> MakeAuthenticatedRequestAsync<T>(string url) where T : class
     {
         try
         {
@@ -107,7 +99,9 @@ public class PatreonApiClient : IPatreonApiClient
 
             if (response.IsSuccessStatusCode)
             {
-                return response;
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<T>(json,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
             }
 
             // If 401 Unauthorized, attempt to refresh token for next job run
