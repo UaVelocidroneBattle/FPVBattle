@@ -169,7 +169,6 @@ public class PatreonIncludedAttributes
     public string? Title { get; set; }
 }
 
-
 /// <summary>
 ///     Contains pagination links for navigating through paginated API responses.
 ///     Allows retrieval of additional pages when the response contains more data than the page limit.

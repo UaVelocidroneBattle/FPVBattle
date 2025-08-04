@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace Veloci.Data.Domain;
 
+[DebuggerDisplay("{Name} - {TierName} ({Status})")]
 public class PatreonSupporter
 {
     [Key]
