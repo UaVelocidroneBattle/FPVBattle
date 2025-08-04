@@ -21,6 +21,9 @@ public class PatreonOAuthService : IPatreonOAuthService
         _httpClientFactory = httpClientFactory;
     }
 
+    /// <summary>
+    /// Generates Patreon OAuth authorization URL with required scopes for campaign and member access.
+    /// </summary>
     public string GenerateAuthorizationUrl(string state)
     {
         var clientId = _options.ClientId;
@@ -44,6 +47,9 @@ public class PatreonOAuthService : IPatreonOAuthService
         return authUrl;
     }
 
+    /// <summary>
+    /// Exchanges authorization code for access and refresh tokens using Patreon OAuth token endpoint.
+    /// </summary>
     public async Task<PatreonTokenResponse?> ExchangeCodeForTokensAsync(string code)
     {
         try

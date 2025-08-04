@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Veloci.Data.Domain;
+using Veloci.Logic.Features.Patreon.Exceptions;
 using Veloci.Logic.Features.Patreon.Models;
 
 namespace Veloci.Logic.Features.Patreon.Services;
@@ -15,45 +16,36 @@ public class PatreonService : IPatreonService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Retrieves all campaigns for the authenticated user from Patreon API.
+    /// </summary>
     public async Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct)
     {
-        try
-        {
-            return await _apiClient.GetCampaignsAsync(ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching campaigns");
-            return [];
-        }
+        _logger.LogDebug("Fetching Patreon campaigns");
+        return await _apiClient.GetCampaignsAsync(ct);
     }
 
+    /// <summary>
+    /// Retrieves campaign members from Patreon API and processes them into supporter objects.
+    /// Combines member data with user profiles and tier information from API includes.
+    /// </summary>
     public async Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId, CancellationToken ct)
     {
-        try
-        {
-            var membersResponse = await _apiClient.GetCampaignMembersAsync(campaignId, ct);
+        _logger.LogDebug("Fetching campaign members for campaign {CampaignId}", campaignId);
 
-            var supporters = new List<PatreonSupporter>();
-            foreach (var member in membersResponse.Data)
-            {
-                var supporter = CreatePatreonSupporter(member, membersResponse);
-                if (supporter != null)
-                {
-                    supporters.Add(supporter);
-                }
-            }
+        var membersResponse = await _apiClient.GetCampaignMembersAsync(campaignId, ct);
 
-            return supporters.ToArray();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching campaign members for campaign {CampaignId}", campaignId);
-            return [];
-        }
+        var supporters = membersResponse.Data.Select(member => CreatePatreonSupporter(member, membersResponse)).ToArray();
+
+        _logger.LogDebug("Successfully processed {SupporterCount} supporters for campaign {CampaignId}", supporters.Length, campaignId);
+
+        return supporters;
     }
 
-    private PatreonSupporter? CreatePatreonSupporter(PatreonMember member, PatreonMembersResponse response)
+    /// <summary>
+    /// Creates a PatreonSupporter from raw API member data by combining member, user, and tier information.
+    /// </summary>
+    private PatreonSupporter CreatePatreonSupporter(PatreonMember member, PatreonMembersResponse response)
     {
         try
         {
@@ -77,12 +69,17 @@ public class PatreonService : IPatreonService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating PatreonSupporter from member data");
-            return null;
+            throw new PatreonMemberParsingException($"Failed to parse member data for member ID: {member.Id}")
+            {
+                MemberId = member.Id
+            };
         }
     }
 
-    private PatreonTier? GetMemberTier(PatreonMember member, PatreonMembersResponse response)
+    /// <summary>
+    /// Extracts the member's current tier from the API response by matching tier IDs.
+    /// </summary>
+    private static PatreonTier? GetMemberTier(PatreonMember member, PatreonMembersResponse response)
     {
         var tierIds = member.Relationships?.CurrentlyEntitledTiers?.Data?.Select(t => t.Id) ?? [];
         return response.Included?.FirstOrDefault(i => i.Type == "tier" && tierIds.Contains(i.Id)) as PatreonTier;

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Veloci.Logic.Features.Patreon.Exceptions;
 using Veloci.Logic.Features.Patreon.Models;
 
 namespace Veloci.Logic.Features.Patreon.Services;
@@ -21,16 +22,8 @@ public class PatreonApiClient : IPatreonApiClient
 
     public async Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct = default)
     {
-        try
-        {
-            var campaignsData = await MakeAuthenticatedRequestAsync<PatreonCampaignsResponse>("campaigns", ct);
-            return campaignsData?.Data.ToArray() ?? [];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching campaigns from Patreon API");
-            return [];
-        }
+        var campaignsData = await MakeAuthenticatedRequestAsync<PatreonCampaignsResponse>("campaigns", ct);
+        return campaignsData?.Data.ToArray() ?? [];
     }
 
     public async Task<PatreonMembersResponse> GetCampaignMembersAsync(string campaignId, CancellationToken ct = default)
@@ -44,32 +37,24 @@ public class PatreonApiClient : IPatreonApiClient
         {
             ct.ThrowIfCancellationRequested();
             
-            try
+            var data = await MakeAuthenticatedRequestAsync<PatreonMembersResponse>(url, ct);
+
+            if (data == null)
             {
-                var data = await MakeAuthenticatedRequestAsync<PatreonMembersResponse>(url, ct);
-
-                if (data == null)
-                {
-                    break;
-                }
-
-                if (data.Data != null)
-                {
-                    allMembers.AddRange(data.Data);
-                }
-
-                if (data.Included != null)
-                {
-                    allIncluded.AddRange(data.Included);
-                }
-
-                url = data.Links?.Next;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing campaign members page");
                 break;
             }
+
+            if (data.Data != null)
+            {
+                allMembers.AddRange(data.Data);
+            }
+
+            if (data.Included != null)
+            {
+                allIncluded.AddRange(data.Included);
+            }
+
+            url = data.Links?.Next;
         }
 
         return new PatreonMembersResponse { Data = allMembers, Included = allIncluded };
@@ -77,67 +62,111 @@ public class PatreonApiClient : IPatreonApiClient
 
     /// <summary>
     /// Makes an authenticated GET request to the Patreon API and deserializes the JSON response.
-    /// Returns null on failure (invalid token, HTTP error, or deserialization failure).
+    /// Throws specific exceptions for different failure scenarios.
     /// On 401 responses, attempts to refresh the access token for future requests.
     /// </summary>
     private async Task<T?> MakeAuthenticatedRequestAsync<T>(string url, CancellationToken ct = default) where T : class
     {
+        _logger.LogDebug("Making Patreon API request to {Url}", url);
+
         try
         {
             var accessToken = await _tokenManager.GetValidAccessTokenAsync(ct);
             if (string.IsNullOrEmpty(accessToken))
             {
-                _logger.LogWarning("No valid Patreon access token available");
-                return null;
+                throw new PatreonAuthenticationException("No valid Patreon access token available")
+                {
+                    Endpoint = url
+                };
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             var response = await _httpClient.SendAsync(request, ct);
+            var responseContent = await response.Content.ReadAsStringAsync(ct);
 
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync(ct);
-                var result = JsonSerializer.Deserialize<T>(json,
+                var result = JsonSerializer.Deserialize<T>(responseContent,
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
                 
                 if (result == null)
                 {
-                    _logger.LogError("Failed to deserialize Patreon API response for {Url}. Response content: {ResponseContent}", 
-                        url, string.IsNullOrEmpty(json) ? "[empty]" : json);
+                    throw new PatreonApiException($"Failed to deserialize Patreon API response")
+                    {
+                        Endpoint = url,
+                        StatusCode = response.StatusCode,
+                        ResponseContent = string.IsNullOrEmpty(responseContent) ? "[empty]" : responseContent
+                    };
                 }
                 
                 return result;
             }
 
-            // If 401 Unauthorized, attempt to refresh token for next job run
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            // Handle specific HTTP status codes
+            switch (response.StatusCode)
             {
-                _logger.LogWarning("Received 401 Unauthorized, attempting to refresh token");
-                
-                var tokens = await _tokenManager.GetCurrentTokensAsync(ct);
-                if (tokens != null)
-                {
-                    var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken, ct);
-                    if (!string.IsNullOrEmpty(newAccessToken))
+                case HttpStatusCode.Unauthorized:
+                    _logger.LogWarning("Received 401 Unauthorized for {Url}, attempting to refresh token", url);
+                    
+                    var tokens = await _tokenManager.GetCurrentTokensAsync(ct);
+                    var tokenRefreshAttempted = false;
+                    
+                    if (tokens != null)
                     {
-                        _logger.LogInformation("Successfully refreshed token for next job run");
+                        var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken, ct);
+                        tokenRefreshAttempted = true;
+                        
+                        if (string.IsNullOrEmpty(newAccessToken))
+                        {
+                            _logger.LogError("Failed to refresh token for {Url}", url);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Successfully refreshed token for next request");
+                        }
                     }
-                    else
+                    
+                    throw new PatreonAuthenticationException($"Authentication failed for Patreon API request")
                     {
-                        _logger.LogError("Failed to refresh token");
-                    }
-                }
-            }
+                        Endpoint = url,
+                        StatusCode = response.StatusCode,
+                        ResponseContent = responseContent,
+                        TokenRefreshAttempted = tokenRefreshAttempted
+                    };
 
-            _logger.LogError("Request failed with status: {StatusCode}", response.StatusCode);
-            return null;
+                case HttpStatusCode.TooManyRequests:
+                    var retryAfterHeader = response.Headers.RetryAfter;
+                    var retryAfter = retryAfterHeader?.Delta ?? TimeSpan.FromMinutes(1);
+                    
+                    throw new PatreonRateLimitException($"Rate limit exceeded for Patreon API request")
+                    {
+                        Endpoint = url,
+                        StatusCode = response.StatusCode,
+                        ResponseContent = responseContent,
+                        RetryAfter = retryAfter
+                    };
+
+                default:
+                    throw new PatreonApiException($"Patreon API request failed with status: {response.StatusCode}")
+                    {
+                        Endpoint = url,
+                        StatusCode = response.StatusCode,
+                        ResponseContent = responseContent
+                    };
+            }
+        }
+        catch (PatreonException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error making authenticated request to {Url}", url);
-            return null;
+            throw new PatreonApiException($"Unexpected error during Patreon API request", ex)
+            {
+                Endpoint = url
+            };
         }
     }
 }
