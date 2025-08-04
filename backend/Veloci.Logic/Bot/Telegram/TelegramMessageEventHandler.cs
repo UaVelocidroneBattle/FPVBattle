@@ -136,12 +136,12 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
-        var message = $"🎉 Welcome new Patreon supporter: *{notification.Supporter.Name}*";
+        var message = $"🎉 Вітаємо нового підтримувача Patreon: *{notification.Supporter.Name}*";
         if (!string.IsNullOrEmpty(notification.Supporter.TierName))
         {
             message += $" ({notification.Supporter.TierName})";
         }
-        message += "! Thank you for your support! ❤️";
+        message += "! Дякуємо за підтримку! ❤️";
         
         await TelegramBot.SendMessageAsync(message);
     }
@@ -151,10 +151,10 @@ public class TelegramMessageEventHandler :
         if (!notification.Supporters.Any())
             return;
 
-        var message = $"📊 *Monthly Patreon Supporters* ({notification.Supporters.Count}):\n\n";
+        var message = $"📊 *Щомісячні підтримувачі Patreon* ({notification.Supporters.Count}):\n\n";
         
         var groupedByTier = notification.Supporters
-            .GroupBy(s => s.TierName ?? "Unknown Tier")
+            .GroupBy(s => s.TierName ?? "Невідомий рівень")
             .OrderByDescending(g => g.Average(s => s.Amount ?? 0));
 
         foreach (var tierGroup in groupedByTier)
@@ -167,7 +167,7 @@ public class TelegramMessageEventHandler :
             message += "\n";
         }
 
-        message += "Thank you all for your continued support! 🙏";
+        message += "Дякуємо всім за постійну підтримку! 🙏";
         
         await TelegramBot.SendMessageAsync(message);
     }
