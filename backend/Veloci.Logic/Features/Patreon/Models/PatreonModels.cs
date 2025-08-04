@@ -169,13 +169,6 @@ public class PatreonIncludedAttributes
     public string? Title { get; set; }
 }
 
-/// <summary>
-///     Specialized included resource representing a Patreon tier/reward level.
-///     Inherits from PatreonIncluded but can be extended with tier-specific properties.
-/// </summary>
-public class PatreonTier : PatreonIncluded
-{
-}
 
 /// <summary>
 ///     Contains pagination links for navigating through paginated API responses.

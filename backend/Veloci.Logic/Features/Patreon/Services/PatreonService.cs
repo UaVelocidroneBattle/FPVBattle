@@ -81,9 +81,9 @@ public class PatreonService : IPatreonService
     /// <summary>
     ///     Extracts the member's current tier from the API response by matching tier IDs.
     /// </summary>
-    private static PatreonTier? GetMemberTier(PatreonMember member, PatreonMembersResponse response)
+    private static PatreonIncluded? GetMemberTier(PatreonMember member, PatreonMembersResponse response)
     {
         var tierIds = member.Relationships?.CurrentlyEntitledTiers?.Data?.Select(t => t.Id) ?? [];
-        return response.Included?.FirstOrDefault(i => i.Type == "tier" && tierIds.Contains(i.Id)) as PatreonTier;
+        return response.Included?.FirstOrDefault(i => i.Type == "tier" && tierIds.Contains(i.Id));
     }
 }
