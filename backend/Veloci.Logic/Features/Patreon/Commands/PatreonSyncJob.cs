@@ -40,8 +40,6 @@ public class PatreonSyncJob
             return;
         }
 
-        try
-        {
             // Get campaigns first
             var campaigns = await _patreonService.GetCampaignsAsync();
             if (!campaigns.Any())
@@ -114,22 +112,6 @@ public class PatreonSyncJob
 
             _log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
                 newSupporters.Count, updatedSupporters.Count);
-
-            // Send monthly supporters list if it's the first day of the month
-            if (DateTime.Today.Day == 1)
-            {
-                var allActiveSupporters = await _supportersRepository
-                    .GetAll(s => s.Status == "active_patron")
-                    .ToListAsync(ct);
-
-                await _mediator.Publish(new MonthlyPatreonSupportersNotification(allActiveSupporters), ct);
-            }
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Error during Patreon supporters sync");
-            throw;
-        }
     }
 
     private bool UpdateSupporterData(PatreonSupporter existing, PatreonSupporter updated)
