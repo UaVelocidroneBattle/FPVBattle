@@ -1,8 +1,8 @@
 namespace Veloci.Logic.Features.Patreon.Models;
 
 /// <summary>
-/// Root response object for campaigns endpoint following JSON:API specification.
-/// Contains a collection of campaign resources in the 'data' array.
+///     Root response object for campaigns endpoint following JSON:API specification.
+///     Contains a collection of campaign resources in the 'data' array.
 /// </summary>
 public class PatreonCampaignsResponse
 {
@@ -10,9 +10,9 @@ public class PatreonCampaignsResponse
 }
 
 /// <summary>
-/// Represents a Patreon campaign resource.
-/// A campaign is a creator's Patreon page containing their content, goals, and patron information.
-/// Each campaign has a unique ID and follows JSON:API resource format.
+///     Represents a Patreon campaign resource.
+///     A campaign is a creator's Patreon page containing their content, goals, and patron information.
+///     Each campaign has a unique ID and follows JSON:API resource format.
 /// </summary>
 public class PatreonCampaign
 {
@@ -24,8 +24,8 @@ public class PatreonCampaign
 }
 
 /// <summary>
-/// Root response object for campaign members endpoint following JSON:API specification.
-/// Contains member data, related resources, and pagination links.
+///     Root response object for campaign members endpoint following JSON:API specification.
+///     Contains member data, related resources, and pagination links.
 /// </summary>
 public class PatreonMembersResponse
 {
@@ -33,8 +33,8 @@ public class PatreonMembersResponse
     public List<PatreonMember> Data { get; set; } = new();
 
     /// <summary>
-    /// Related resources referenced by member relationships (users, tiers, etc.).
-    /// Used to avoid duplication in JSON:API responses by including referenced data once.
+    ///     Related resources referenced by member relationships (users, tiers, etc.).
+    ///     Used to avoid duplication in JSON:API responses by including referenced data once.
     /// </summary>
     public List<PatreonIncluded> Included { get; set; } = new();
 
@@ -43,9 +43,9 @@ public class PatreonMembersResponse
 }
 
 /// <summary>
-/// Represents a member resource (patron) who supports a campaign.
-/// In API v2, member replaces the deprecated "pledge" resource and contains
-/// information about a user's membership to a specific campaign.
+///     Represents a member resource (patron) who supports a campaign.
+///     In API v2, member replaces the deprecated "pledge" resource and contains
+///     information about a user's membership to a specific campaign.
 /// </summary>
 public class PatreonMember
 {
@@ -63,8 +63,8 @@ public class PatreonMember
 }
 
 /// <summary>
-/// Contains member-specific data attributes for a patron's campaign membership.
-/// These attributes describe the financial and temporal aspects of the patronage.
+///     Contains member-specific data attributes for a patron's campaign membership.
+///     These attributes describe the financial and temporal aspects of the patronage.
 /// </summary>
 public class PatreonMemberAttributes
 {
@@ -75,14 +75,14 @@ public class PatreonMemberAttributes
     public string? Email { get; set; }
 
     /// <summary>
-    /// Current status of the patron's membership.
-    /// Common values: "active_patron", "declined_patron", "former_patron"
+    ///     Current status of the patron's membership.
+    ///     Common values: "active_patron", "declined_patron", "former_patron"
     /// </summary>
     public string? PatronStatus { get; set; }
 
     /// <summary>
-    /// Amount in cents the patron is currently entitled to based on their active pledge.
-    /// Used to determine tier access and benefits.
+    ///     Amount in cents the patron is currently entitled to based on their active pledge.
+    ///     Used to determine tier access and benefits.
     /// </summary>
     public int? CurrentlyEntitledAmountCents { get; set; }
 
@@ -91,8 +91,8 @@ public class PatreonMemberAttributes
 }
 
 /// <summary>
-/// Contains references to related resources for a member following JSON:API relationships pattern.
-/// These relationships link to other resources that provide additional context about the member.
+///     Contains references to related resources for a member following JSON:API relationships pattern.
+///     These relationships link to other resources that provide additional context about the member.
 /// </summary>
 public class PatreonMemberRelationships
 {
@@ -104,8 +104,8 @@ public class PatreonMemberRelationships
 }
 
 /// <summary>
-/// JSON:API relationship wrapper for a single related resource reference.
-/// Contains the resource identifier that can be resolved from the 'included' array.
+///     JSON:API relationship wrapper for a single related resource reference.
+///     Contains the resource identifier that can be resolved from the 'included' array.
 /// </summary>
 public class PatreonRelationshipData
 {
@@ -114,8 +114,8 @@ public class PatreonRelationshipData
 }
 
 /// <summary>
-/// JSON:API relationship wrapper for multiple related resource references.
-/// Contains an array of resource identifiers that can be resolved from the 'included' array.
+///     JSON:API relationship wrapper for multiple related resource references.
+///     Contains an array of resource identifiers that can be resolved from the 'included' array.
 /// </summary>
 public class PatreonRelationshipDataList
 {
@@ -124,8 +124,8 @@ public class PatreonRelationshipDataList
 }
 
 /// <summary>
-/// JSON:API resource identifier containing only the type and ID of a related resource.
-/// Used in relationships to reference other resources without duplicating their full data.
+///     JSON:API resource identifier containing only the type and ID of a related resource.
+///     Used in relationships to reference other resources without duplicating their full data.
 /// </summary>
 public class PatreonRelationshipItem
 {
@@ -137,9 +137,9 @@ public class PatreonRelationshipItem
 }
 
 /// <summary>
-/// Represents additional related resources included in the response to avoid duplication.
-/// These are full resource objects referenced by member relationships (users, tiers, etc.).
-/// Part of JSON:API's compound document structure.
+///     Represents additional related resources included in the response to avoid duplication.
+///     These are full resource objects referenced by member relationships (users, tiers, etc.).
+///     Part of JSON:API's compound document structure.
 /// </summary>
 public class PatreonIncluded
 {
@@ -154,8 +154,8 @@ public class PatreonIncluded
 }
 
 /// <summary>
-/// Contains attributes for included resources like users and tiers.
-/// The available attributes depend on the resource type and requested fields.
+///     Contains attributes for included resources like users and tiers.
+///     The available attributes depend on the resource type and requested fields.
 /// </summary>
 public class PatreonIncludedAttributes
 {
@@ -170,16 +170,16 @@ public class PatreonIncludedAttributes
 }
 
 /// <summary>
-/// Specialized included resource representing a Patreon tier/reward level.
-/// Inherits from PatreonIncluded but can be extended with tier-specific properties.
+///     Specialized included resource representing a Patreon tier/reward level.
+///     Inherits from PatreonIncluded but can be extended with tier-specific properties.
 /// </summary>
 public class PatreonTier : PatreonIncluded
 {
 }
 
 /// <summary>
-/// Contains pagination links for navigating through paginated API responses.
-/// Allows retrieval of additional pages when the response contains more data than the page limit.
+///     Contains pagination links for navigating through paginated API responses.
+///     Allows retrieval of additional pages when the response contains more data than the page limit.
 /// </summary>
 public class PatreonLinks
 {

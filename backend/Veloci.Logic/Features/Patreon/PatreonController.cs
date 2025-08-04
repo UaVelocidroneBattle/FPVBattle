@@ -11,8 +11,8 @@ public class PatreonController : Controller
     private readonly IPatreonTokenManager _tokenManager;
 
     public PatreonController(
-        ILogger<PatreonController> logger, 
-        IPatreonOAuthService oauthService, 
+        ILogger<PatreonController> logger,
+        IPatreonOAuthService oauthService,
         IPatreonTokenManager tokenManager)
     {
         _logger = logger;
@@ -57,7 +57,8 @@ public class PatreonController : Controller
                 return BadRequest("Failed to exchange authorization code for tokens");
             }
 
-            await _tokenManager.UpdateStoredTokensAsync(tokenResponse.AccessToken, tokenResponse.RefreshToken, tokenResponse.ExpiresIn, tokenResponse.Scope);
+            await _tokenManager.UpdateStoredTokensAsync(tokenResponse.AccessToken, tokenResponse.RefreshToken,
+                tokenResponse.ExpiresIn, tokenResponse.Scope);
 
             return View("Tokens", tokenResponse);
         }
@@ -67,5 +68,4 @@ public class PatreonController : Controller
             return BadRequest("An error occurred during authorization");
         }
     }
-
 }

@@ -1,7 +1,7 @@
 namespace Veloci.Logic.Features.Patreon.Exceptions;
 
 /// <summary>
-/// Exception thrown when no Patreon tokens are configured in database or configuration.
+///     Exception thrown when no Patreon tokens are configured in database or configuration.
 /// </summary>
 public class PatreonTokenUnavailableException : PatreonAuthenticationException
 {

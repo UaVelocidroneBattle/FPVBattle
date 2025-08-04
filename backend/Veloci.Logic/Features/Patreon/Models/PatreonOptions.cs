@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Veloci.Logic.Features.Patreon.Models;
 
 public class PatreonOptions

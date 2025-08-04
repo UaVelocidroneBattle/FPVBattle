@@ -7,13 +7,13 @@ namespace Veloci.Logic.Features.Patreon.Services;
 
 public class PatreonOAuthService : IPatreonOAuthService
 {
-    private readonly PatreonOptions _options;
-    private readonly ILogger<PatreonOAuthService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<PatreonOAuthService> _logger;
+    private readonly PatreonOptions _options;
 
     public PatreonOAuthService(
-        IOptions<PatreonOptions> options, 
-        ILogger<PatreonOAuthService> logger, 
+        IOptions<PatreonOptions> options,
+        ILogger<PatreonOAuthService> logger,
         IHttpClientFactory httpClientFactory)
     {
         _options = options.Value;
@@ -22,7 +22,7 @@ public class PatreonOAuthService : IPatreonOAuthService
     }
 
     /// <summary>
-    /// Generates Patreon OAuth authorization URL with required scopes for campaign and member access.
+    ///     Generates Patreon OAuth authorization URL with required scopes for campaign and member access.
     /// </summary>
     public string GenerateAuthorizationUrl(string state)
     {
@@ -38,17 +38,17 @@ public class PatreonOAuthService : IPatreonOAuthService
         var scopes = "identity campaigns campaigns.members campaigns.members[email]";
 
         var authUrl = $"https://www.patreon.com/oauth2/authorize" +
-                     $"?response_type=code" +
-                     $"&client_id={clientId}" +
-                     $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-                     $"&scope={Uri.EscapeDataString(scopes)}" +
-                     $"&state={state}";
+                      $"?response_type=code" +
+                      $"&client_id={clientId}" +
+                      $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+                      $"&scope={Uri.EscapeDataString(scopes)}" +
+                      $"&state={state}";
 
         return authUrl;
     }
 
     /// <summary>
-    /// Exchanges authorization code for access and refresh tokens using Patreon OAuth token endpoint.
+    ///     Exchanges authorization code for access and refresh tokens using Patreon OAuth token endpoint.
     /// </summary>
     public async Task<PatreonTokenResponse?> ExchangeCodeForTokensAsync(string code)
     {
@@ -58,7 +58,8 @@ public class PatreonOAuthService : IPatreonOAuthService
             var clientSecret = _options.ClientSecret;
             var redirectUri = _options.RedirectUri;
 
-            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(redirectUri))
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret) ||
+                string.IsNullOrEmpty(redirectUri))
             {
                 _logger.LogError("Patreon OAuth configuration is incomplete");
                 return null;
@@ -85,10 +86,8 @@ public class PatreonOAuthService : IPatreonOAuthService
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            var tokenData = JsonSerializer.Deserialize<PatreonTokenResponse>(json, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            });
+            var tokenData = JsonSerializer.Deserialize<PatreonTokenResponse>(json,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
 
             return tokenData;
         }

@@ -130,9 +130,7 @@ public class PatreonTokenManager : IPatreonTokenManager
             {
                 throw new PatreonTokenRefreshException("Invalid token response from Patreon API")
                 {
-                    Endpoint = "token",
-                    ResponseContent = json,
-                    RefreshToken = refreshToken
+                    Endpoint = "token", ResponseContent = json, RefreshToken = refreshToken
                 };
             }
 
@@ -158,8 +156,8 @@ public class PatreonTokenManager : IPatreonTokenManager
     public async Task UpdateStoredTokensAsync(string accessToken, string refreshToken, int expiresIn,
         string? scope = null, CancellationToken ct = default)
     {
-        bool isUpdate = false;
-        
+        var isUpdate = false;
+
         try
         {
             var existingTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync(ct);
@@ -191,10 +189,8 @@ public class PatreonTokenManager : IPatreonTokenManager
         }
         catch (Exception ex)
         {
-            throw new PatreonTokenStorageException($"Failed to {(isUpdate ? "update" : "store")} Patreon tokens in database", ex)
-            {
-                IsUpdate = isUpdate
-            };
+            throw new PatreonTokenStorageException(
+                $"Failed to {(isUpdate ? "update" : "store")} Patreon tokens in database", ex) { IsUpdate = isUpdate };
         }
     }
 }

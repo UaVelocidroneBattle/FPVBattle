@@ -17,7 +17,7 @@ public class PatreonService : IPatreonService
     }
 
     /// <summary>
-    /// Retrieves all campaigns for the authenticated user from Patreon API.
+    ///     Retrieves all campaigns for the authenticated user from Patreon API.
     /// </summary>
     public async Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct)
     {
@@ -26,8 +26,8 @@ public class PatreonService : IPatreonService
     }
 
     /// <summary>
-    /// Retrieves campaign members from Patreon API and processes them into supporter objects.
-    /// Combines member data with user profiles and tier information from API includes.
+    ///     Retrieves campaign members from Patreon API and processes them into supporter objects.
+    ///     Combines member data with user profiles and tier information from API includes.
     /// </summary>
     public async Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId, CancellationToken ct)
     {
@@ -35,15 +35,17 @@ public class PatreonService : IPatreonService
 
         var membersResponse = await _apiClient.GetCampaignMembersAsync(campaignId, ct);
 
-        var supporters = membersResponse.Data.Select(member => CreatePatreonSupporter(member, membersResponse)).ToArray();
+        var supporters = membersResponse.Data.Select(member => CreatePatreonSupporter(member, membersResponse))
+            .ToArray();
 
-        _logger.LogDebug("Successfully processed {SupporterCount} supporters for campaign {CampaignId}", supporters.Length, campaignId);
+        _logger.LogDebug("Successfully processed {SupporterCount} supporters for campaign {CampaignId}",
+            supporters.Length, campaignId);
 
         return supporters;
     }
 
     /// <summary>
-    /// Creates a PatreonSupporter from raw API member data by combining member, user, and tier information.
+    ///     Creates a PatreonSupporter from raw API member data by combining member, user, and tier information.
     /// </summary>
     private PatreonSupporter CreatePatreonSupporter(PatreonMember member, PatreonMembersResponse response)
     {
@@ -77,7 +79,7 @@ public class PatreonService : IPatreonService
     }
 
     /// <summary>
-    /// Extracts the member's current tier from the API response by matching tier IDs.
+    ///     Extracts the member's current tier from the API response by matching tier IDs.
     /// </summary>
     private static PatreonTier? GetMemberTier(PatreonMember member, PatreonMembersResponse response)
     {

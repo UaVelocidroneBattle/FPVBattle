@@ -23,7 +23,7 @@ public static class PatreonServiceExtensions
 
         // Register MediatR command handler
         services.AddScoped<PatreonSyncJob>();
-        
+
         // Register job registrar
         services.AddScoped<IJobRegistrar, PatreonJobRegistrar>();
 
