@@ -41,7 +41,7 @@ public class PatreonSyncJob
         }
 
             // Get campaigns first
-            var campaigns = await _patreonService.GetCampaignsAsync();
+            var campaigns = await _patreonService.GetCampaignsAsync(ct);
             if (!campaigns.Any())
             {
                 _log.Information("No campaigns found in Patreon API");
@@ -49,7 +49,7 @@ public class PatreonSyncJob
             }
 
             var campaignId = campaigns.First().Id;
-            var supportersFromApi = await _patreonService.GetCampaignMembersAsync(campaignId);
+            var supportersFromApi = await _patreonService.GetCampaignMembersAsync(campaignId, ct);
 
             if (!supportersFromApi.Any())
             {

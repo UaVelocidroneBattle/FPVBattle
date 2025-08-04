@@ -5,6 +5,6 @@ namespace Veloci.Logic.Features.Patreon.Services;
 
 public interface IPatreonService
 {
-    Task<PatreonCampaign[]> GetCampaignsAsync();
-    Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId);
+    Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct);
+    Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId, CancellationToken ct);
 }

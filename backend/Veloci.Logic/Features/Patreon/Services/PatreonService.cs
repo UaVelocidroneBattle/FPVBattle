@@ -15,11 +15,11 @@ public class PatreonService : IPatreonService
         _logger = logger;
     }
 
-    public async Task<PatreonCampaign[]> GetCampaignsAsync()
+    public async Task<PatreonCampaign[]> GetCampaignsAsync(CancellationToken ct)
     {
         try
         {
-            return await _apiClient.GetCampaignsAsync();
+            return await _apiClient.GetCampaignsAsync(ct);
         }
         catch (Exception ex)
         {
@@ -28,11 +28,11 @@ public class PatreonService : IPatreonService
         }
     }
 
-    public async Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId)
+    public async Task<PatreonSupporter[]> GetCampaignMembersAsync(string campaignId, CancellationToken ct)
     {
         try
         {
-            var membersResponse = await _apiClient.GetCampaignMembersAsync(campaignId);
+            var membersResponse = await _apiClient.GetCampaignMembersAsync(campaignId, ct);
 
             var supporters = new List<PatreonSupporter>();
             foreach (var member in membersResponse.Data)
