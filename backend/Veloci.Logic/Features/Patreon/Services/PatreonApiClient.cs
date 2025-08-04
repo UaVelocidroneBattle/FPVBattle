@@ -72,14 +72,6 @@ public class PatreonApiClient : IPatreonApiClient
         try
         {
             var accessToken = await _tokenManager.GetValidAccessTokenAsync(ct);
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                throw new PatreonAuthenticationException("No valid Patreon access token available")
-                {
-                    Endpoint = url
-                };
-            }
-
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
@@ -110,22 +102,23 @@ public class PatreonApiClient : IPatreonApiClient
                 case HttpStatusCode.Unauthorized:
                     _logger.LogWarning("Received 401 Unauthorized for {Url}, attempting to refresh token", url);
                     
-                    var tokens = await _tokenManager.GetCurrentTokensAsync(ct);
                     var tokenRefreshAttempted = false;
                     
-                    if (tokens != null)
+                    try
                     {
-                        var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken, ct);
+                        var tokens = await _tokenManager.GetCurrentTokensAsync(ct);
+                        await _tokenManager.RefreshAccessTokenAsync(tokens.RefreshToken, ct);
                         tokenRefreshAttempted = true;
-                        
-                        if (string.IsNullOrEmpty(newAccessToken))
-                        {
-                            _logger.LogError("Failed to refresh token for {Url}", url);
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Successfully refreshed token for next request");
-                        }
+                        _logger.LogInformation("Successfully refreshed token for next request");
+                    }
+                    catch (PatreonTokenUnavailableException ex)
+                    {
+                        _logger.LogError(ex, "No tokens available for refresh for {Url}", url);
+                    }
+                    catch (PatreonTokenRefreshException ex)
+                    {
+                        tokenRefreshAttempted = true;
+                        _logger.LogError(ex, "Failed to refresh token for {Url}", url);
                     }
                     
                     throw new PatreonAuthenticationException($"Authentication failed for Patreon API request")
