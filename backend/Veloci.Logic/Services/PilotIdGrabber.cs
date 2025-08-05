@@ -32,22 +32,19 @@ public class PilotIdGrabber
     {
         Log.Debug("Starting to grab pilot IDs");
 
-        var pilotQuery = _pilots.GetAll(p => p.Id == null);
-        var count = await pilotQuery.CountAsync();
+        var pilots = await _pilots.GetAll(p => p.Id == null).ToListAsync();
 
-        Log.Information("Found {Count} pilots without IDs", count);
-
-        if (count == 0)
+        if (pilots.Count == 0)
         {
             Log.Information("All pilots already have IDs");
             return;
         }
 
-        var rnd = new Random();
-        var randomIndex = rnd.Next(count);
-        var pilot = pilotQuery.ElementAt(randomIndex);
+        Log.Information("Found {Count} pilots without IDs", pilots.Count);
 
-        Log.Information("Found pilot without ID: {PilotName}", pilot.Name);
+        var pilot = pilots.First();
+
+        Log.Information("Taking pilot without ID: {PilotName}", pilot.Name);
 
         var competition = await _competitions.GetAll()
             .OrderByDescending(c => c.StartedOn)
@@ -59,6 +56,8 @@ public class PilotIdGrabber
             return;
         }
 
+        Log.Information("Getting results for {TrackId}", competition.Track.TrackId);
+
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
         var times = _resultsConverter.ConvertTrackTimes(resultsDto);
 
@@ -66,26 +65,29 @@ public class PilotIdGrabber
 
         foreach (var time in times)
         {
-            await FindAndAssignPilotIdAsync(time);
+            await FindAndAssignPilotIdAsync(time, pilots);
         }
 
-        Log.Information("Finished processing results. Saving changes.");
+        var foundIds = pilots.Count(p => p.Id != null);
+
+        Log.Information("Finished processing results. Fixed {foundIds} pilots. Saving changes.", foundIds);
+
         await _pilots.SaveChangesAsync();
     }
 
-    private async Task FindAndAssignPilotIdAsync(TrackTime time)
+    private async Task FindAndAssignPilotIdAsync(TrackTime time, List<Pilot> pilots)
     {
-        var pilot = await _pilots.FindAsync(time.PlayerName);
+        var pilot = pilots.FirstOrDefault(p => p.Name == time.PlayerName);
 
         if (pilot is null)
         {
-            Log.Warning("Pilot {PlayerName} not found in database, skipping", time.PlayerName);
+            Log.Debug("Pilot {PlayerName} not found in database, skipping", time.PlayerName);
             return;
         }
 
         if (pilot.Id is not null)
         {
-            Log.Information("Pilot {PlayerName} already has an ID {PilotId}, skipping", pilot.Name, pilot.Id);
+            Log.Debug("Pilot {PlayerName} already has an ID {PilotId}, skipping", pilot.Name, pilot.Id);
             return;
         }
 
