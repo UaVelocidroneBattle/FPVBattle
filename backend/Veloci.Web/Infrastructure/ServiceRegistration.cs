@@ -1,6 +1,7 @@
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.Bot.Telegram;
+using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
 using Veloci.Logic.Services.Achievements;
@@ -11,7 +12,7 @@ namespace Veloci.Web.Infrastructure;
 
 public static class ServiceRegistration
 {
-    public static IServiceCollection RegisterCustomServices(this IServiceCollection services)
+    public static IServiceCollection RegisterCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<Velocidrone>();
@@ -29,6 +30,7 @@ public static class ServiceRegistration
         services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
         services.AddScoped<AchievementService>();
+        services.AddPatreonServices(configuration);
 
         return services;
     }

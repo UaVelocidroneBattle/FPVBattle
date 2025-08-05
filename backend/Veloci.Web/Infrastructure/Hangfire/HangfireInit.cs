@@ -1,6 +1,9 @@
 using Hangfire;
 using Hangfire.Storage;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Veloci.Logic.Jobs;
 using Veloci.Logic.Services;
 using Veloci.Logic.Services.YearResults;
 
@@ -8,7 +11,7 @@ namespace Veloci.Web.Infrastructure.Hangfire;
 
 public class HangfireInit
 {
-    public static void InitRecurrentJobs(IConfiguration configuration)
+    public static void InitRecurrentJobs(IConfiguration configuration, IServiceProvider serviceProvider)
     {
         Log.Information("Initializing Hangfire recurring jobs");
 
@@ -44,6 +47,16 @@ public class HangfireInit
         Log.Information("Setting up yearly recurring jobs");
 
         RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
+
+        Log.Information("Registering feature-specific jobs");
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var jobRegistrars = scope.ServiceProvider.GetServices<IJobRegistrar>();
+            foreach (var registrar in jobRegistrars)
+            {
+                registrar.RegisterJobs();
+            }
+        }
 
         Log.Information("Hangfire recurring job initialization completed");
     }

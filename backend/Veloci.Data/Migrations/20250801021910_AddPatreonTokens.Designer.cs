@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250801021910_AddPatreonTokens")]
+    partial class AddPatreonTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -285,9 +288,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("TrackTime")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CompetitionId");
@@ -437,9 +437,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("DayStreak")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("Id")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime?>("LastRaceDate")
                         .HasColumnType("TEXT");
 
@@ -572,12 +569,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<string>("TrackResultsId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TrackResultsId");
@@ -619,9 +610,6 @@ namespace Veloci.Web.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("TrackTime")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
