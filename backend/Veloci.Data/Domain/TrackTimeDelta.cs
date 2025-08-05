@@ -16,6 +16,7 @@ public class TrackTimeDelta
 
     [MaxLength(128)]
     public string PlayerName { get; set; }
+    public int UserId { get; set; }
     public int TrackTime { get; set; }
     public int? TimeChange { get; set; }
     public int Rank { get; set; }

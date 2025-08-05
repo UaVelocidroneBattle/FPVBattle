@@ -22,10 +22,14 @@ public class TrackTime
     [MaxLength(128)]
     public string PlayerName { get; set; }
 
+    public int UserId { get; set; }
+
     [MaxLength(128)]
     public string ModelName { get; set; }
 
     public int GlobalRank { get; set; }
 
     public int LocalRank { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
 }

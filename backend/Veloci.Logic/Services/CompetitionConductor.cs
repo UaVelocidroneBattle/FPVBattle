@@ -170,7 +170,12 @@ public class CompetitionConductor
 
             if (pilot is null)
             {
-                pilot = new Pilot(results.PlayerName);
+                pilot = new Pilot
+                {
+                    Id = results.UserId,
+                    Name = results.PlayerName
+                };
+
                 await _pilots.AddAsync(pilot);
                 newPilots++;
                 _log.Debug("Created new pilot record for {PilotName}", results.PlayerName);

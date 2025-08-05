@@ -18,6 +18,8 @@ public class Pilot
     [MaxLength(128)]
     public string Name { get; set; }
 
+    public int? Id { get; set; }
+
     /// <summary>
     /// The day when the pilot last raced.
     /// </summary>
