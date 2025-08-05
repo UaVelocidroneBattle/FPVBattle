@@ -42,7 +42,9 @@ public class PilotIdGrabber
 
         Log.Information("Found {Count} pilots without IDs", pilots.Count);
 
-        var pilot = pilots.First();
+        var rnd = new Random();
+        var randomIndex = rnd.Next(pilots.Count);
+        var pilot = pilots.ElementAt(randomIndex);
 
         Log.Information("Taking pilot without ID: {PilotName}", pilot.Name);
 
@@ -65,7 +67,7 @@ public class PilotIdGrabber
 
         foreach (var time in times)
         {
-            await FindAndAssignPilotIdAsync(time, pilots);
+            FindAndAssignPilotId(time, pilots);
         }
 
         var foundIds = pilots.Count(p => p.Id != null);
@@ -75,7 +77,7 @@ public class PilotIdGrabber
         await _pilots.SaveChangesAsync();
     }
 
-    private async Task FindAndAssignPilotIdAsync(TrackTime time, List<Pilot> pilots)
+    private void FindAndAssignPilotId(TrackTime time, List<Pilot> pilots)
     {
         var pilot = pilots.FirstOrDefault(p => p.Name == time.PlayerName);
 
