@@ -15,7 +15,7 @@ public class TelegramPatreonHandler :
             return;
         }
 
-        var message = $"📊 *Щомісячні підтримувачі Patreon* ({notification.Supporters.Count}):\n\n";
+        var message = $"📊 *Щомісячні патрони FPV Battle на Patreon* ({notification.Supporters.Count}):\n\n";
 
         var groupedByTier = notification.Supporters
             .GroupBy(s => s.TierName ?? "Невідомий рівень")
@@ -32,14 +32,15 @@ public class TelegramPatreonHandler :
             message += "\n";
         }
 
-        message += "Дякуємо всім за постійну підтримку! 🙏";
+        message += "Дякуємо всім за підтримку! 🙏\n\n" +
+                   "Наш Patreon: *https://patreon.com/FPVBattle*";
 
         await TelegramBot.SendMessageAsync(message);
     }
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
-        var message = $"🎉 Вітаємо нового підтримувача Patreon: *{notification.Supporter.Name}*";
+        var message = $"🎉 Вітаємо нового підписника Patreon: *{notification.Supporter.Name}*";
         if (!string.IsNullOrEmpty(notification.Supporter.TierName))
         {
             message += $" ({notification.Supporter.TierName})";
