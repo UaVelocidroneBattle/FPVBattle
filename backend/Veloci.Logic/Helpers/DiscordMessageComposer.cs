@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using Veloci.Data.Domain;
 using Veloci.Logic.Bot;
-using Veloci.Logic.Services.Achievements;
+using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Services.YearResults;
 
 namespace Veloci.Logic.Helpers;

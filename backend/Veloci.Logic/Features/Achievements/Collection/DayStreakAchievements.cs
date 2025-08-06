@@ -1,7 +1,7 @@
 using Veloci.Data.Domain;
-using Veloci.Logic.Achievements.Base;
+using Veloci.Logic.Features.Achievements.Base;
 
-namespace Veloci.Logic.Achievements.Collection;
+namespace Veloci.Logic.Features.Achievements.Collection;
 
 public abstract class DayStreakAchievementBase : IAchievementAfterCompetition
 {
@@ -12,7 +12,9 @@ public abstract class DayStreakAchievementBase : IAchievementAfterCompetition
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
     {
         if (pilot.HasAchievement(Name))
+        {
             return false;
+        }
 
         return pilot.MaxDayStreak >= Days;
     }

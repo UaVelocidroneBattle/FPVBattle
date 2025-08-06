@@ -1,7 +1,8 @@
 using MediatR;
 using Veloci.Logic.Notifications;
+using Veloci.Logic.Features.Achievements.Services;
 
-namespace Veloci.Logic.Services.Achievements;
+namespace Veloci.Logic.Features.Achievements.NotificationHandlers;
 
 public class AchievementsEventHandler :
     INotificationHandler<CurrentResultUpdateMessage>,

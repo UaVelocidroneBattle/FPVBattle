@@ -1,7 +1,7 @@
 using Veloci.Data.Domain;
-using Veloci.Logic.Achievements.Base;
+using Veloci.Logic.Features.Achievements.Base;
 
-namespace Veloci.Logic.Achievements.Collection;
+namespace Veloci.Logic.Features.Achievements.Collection;
 
 public class FirstInSeasonAchievement : IAchievementAfterSeason
 {
@@ -12,7 +12,9 @@ public class FirstInSeasonAchievement : IAchievementAfterSeason
     public async Task<bool> CheckAsync(Pilot pilot, List<SeasonResult> seasonResults)
     {
         if (pilot.HasAchievement(Name))
+        {
             return false;
+        }
 
         return seasonResults.GetByPlace(1)?.PlayerName == pilot.Name;
     }

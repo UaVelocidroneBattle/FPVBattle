@@ -2,6 +2,7 @@
 using MediatR;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
+using Veloci.Logic.Features.Achievements.Notifications;
 using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Bot.Telegram;

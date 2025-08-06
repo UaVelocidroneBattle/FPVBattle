@@ -8,6 +8,7 @@ using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Notifications;
+using Veloci.Logic.Features.Achievements.Notifications;
 
 namespace Veloci.Logic.Services;
 

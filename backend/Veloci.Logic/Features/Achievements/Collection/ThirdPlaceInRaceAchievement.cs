@@ -1,8 +1,8 @@
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.Achievements.Base;
+using Veloci.Logic.Features.Achievements.Base;
 
-namespace Veloci.Logic.Achievements.Collection;
+namespace Veloci.Logic.Features.Achievements.Collection;
 
 public class ThirdPlaceInRaceAchievement : IAchievementAfterCompetition
 {
@@ -16,10 +16,13 @@ public class ThirdPlaceInRaceAchievement : IAchievementAfterCompetition
     public string Name => "ThirdPlaceInRace";
     public string Title => "Серед топів";
     public string Description => "Третє місце в гонці";
+
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
     {
         if (pilot.HasAchievement(Name))
+        {
             return false;
+        }
 
         return competition.IsPilotAtLocalRank(pilot, 3);
     }

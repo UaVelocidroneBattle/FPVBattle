@@ -1,13 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
-using Veloci.Logic.Achievements.Collection;
+using Veloci.Logic.Features.Achievements.Base;
+using Veloci.Logic.Features.Achievements.Collection;
+using Veloci.Logic.Features.Achievements.Services;
+using Veloci.Logic.Features.Achievements.NotificationHandlers;
 
-namespace Veloci.Logic.Achievements.Base;
+namespace Veloci.Logic.Features.Achievements;
 
-public static class AchievementPackage
+public static class AchievementsServiceExtensions
 {
-    public static IServiceCollection RegisterAchievements(this IServiceCollection services)
+    public static IServiceCollection AddAchievementsServices(this IServiceCollection services)
     {
+        // Register core services
+        services.AddScoped<AchievementService>();
+        services.AddScoped<AchievementsEventHandler>();
 
+        // Register all achievements
         services
             .AddAchievement<DayStreak10Achievement>()
             .AddAchievement<DayStreak20Achievement>()
@@ -21,25 +28,18 @@ public static class AchievementPackage
             .AddAchievement<DayStreak365Achievement>()
             .AddAchievement<DayStreak500Achievement>()
             .AddAchievement<DayStreak1000Achievement>()
-
             .AddAchievement<ThirdPlaceInRaceAchievement>()
             .AddAchievement<SecondPlaceInRaceAchievement>()
             .AddAchievement<FirstPlaceInRaceAchievement>()
             .AddAchievement<LastInRaceAchievement>()
-
             .AddAchievement<ThirdInSeasonAchievement>()
             .AddAchievement<SecondInSeasonAchievement>()
             .AddAchievement<FirstInSeasonAchievement>()
-
             .AddAchievement<BiggestDayStreakAchievement>()
-
             .AddAchievement<GlobalFirstPlaceAchievement>()
-
             .AddAchievement<EarlyBirdAchievement>()
             .AddAchievement<LateBirdAchievement>()
-
             .AddAchievement<FirstResultAchievement>()
-
             .AddAchievement<OvertakeTheDuckAchievement>()
             ;
 

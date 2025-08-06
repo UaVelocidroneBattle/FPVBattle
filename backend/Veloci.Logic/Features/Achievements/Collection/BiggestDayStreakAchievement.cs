@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.Achievements.Base;
-using Veloci.Logic.Services.Achievements;
+using Veloci.Logic.Features.Achievements.Base;
+using Veloci.Logic.Features.Achievements.Services;
 
-namespace Veloci.Logic.Achievements.Collection;
+namespace Veloci.Logic.Features.Achievements.Collection;
 
 public class BiggestDayStreakAchievement : IGlobalAchievement
 {
@@ -31,7 +31,9 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
             .FirstOrDefaultAsync();
 
         if (pilotWithBiggestDayStreak is null)
+        {
             return;
+        }
 
         var currentAchievement = await _pilotAchievements
             .GetAll()
@@ -45,7 +47,9 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
         }
 
         if (currentAchievement.Pilot.Name == pilotWithBiggestDayStreak.Name)
+        {
             return;
+        }
 
         currentAchievement.Pilot = pilotWithBiggestDayStreak;
         currentAchievement.Date = DateTime.Now;
