@@ -6,7 +6,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Patreon.Notifications;
 
-namespace Veloci.Logic.Features.Patreon.Commands;
+namespace Veloci.Logic.Features.Patreon.Jobs;
 
 public class MonthlyPatreonSupportersJob
 {

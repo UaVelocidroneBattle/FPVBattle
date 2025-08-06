@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Veloci.Logic.Features.Patreon.Commands;
 using Veloci.Logic.Features.Patreon.Jobs;
 using Veloci.Logic.Features.Patreon.Models;
 using Veloci.Logic.Features.Patreon.Services;

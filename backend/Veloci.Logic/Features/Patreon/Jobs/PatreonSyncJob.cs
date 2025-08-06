@@ -9,7 +9,7 @@ using Veloci.Logic.Features.Patreon.Models;
 using Veloci.Logic.Features.Patreon.Notifications;
 using Veloci.Logic.Features.Patreon.Services;
 
-namespace Veloci.Logic.Features.Patreon.Commands;
+namespace Veloci.Logic.Features.Patreon.Jobs;
 
 public class PatreonSyncJob
 {

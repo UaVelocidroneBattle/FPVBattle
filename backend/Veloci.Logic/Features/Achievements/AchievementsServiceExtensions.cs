@@ -3,6 +3,8 @@ using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Collection;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Achievements.NotificationHandlers;
+using Veloci.Logic.Features.Achievements.Jobs;
+using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Achievements;
 
@@ -13,6 +15,10 @@ public static class AchievementsServiceExtensions
         // Register core services
         services.AddScoped<AchievementService>();
         services.AddScoped<AchievementsEventHandler>();
+
+        // Register jobs
+        services.AddScoped<DayStreakMilestoneJob>();
+        services.AddScoped<IJobRegistrar, AchievementsJobRegistrar>();
 
         // Register all achievements
         services

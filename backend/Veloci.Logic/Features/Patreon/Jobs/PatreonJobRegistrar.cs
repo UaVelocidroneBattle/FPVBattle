@@ -1,5 +1,4 @@
 using Hangfire;
-using Veloci.Logic.Features.Patreon.Commands;
 using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Patreon.Jobs;
