@@ -133,21 +133,19 @@ public class Startup
             app.UseMigrationsEndPoint();
             app.MapOpenApi();
         }
-        else if (app.Environment.IsProduction())
+        if (Configuration.GetValue("RunMigrations", false))
         {
-            using (var scope = app.Services.CreateScope())
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            if (context.Database.GetPendingMigrations().Any())
             {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                if (context.Database.GetPendingMigrations().Any())
-                {
-                    context.Database.Migrate();
-                }
+                context.Database.Migrate();
             }
-
-            app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
         }
+
+        app.UseExceptionHandler("/Home/Error");
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
 
         app.UseCors("AllowAnyOrigin");
 
