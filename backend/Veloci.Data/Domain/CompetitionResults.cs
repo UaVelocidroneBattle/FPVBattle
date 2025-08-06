@@ -13,7 +13,7 @@ public class CompetitionResults
     [MaxLength(128)]
     public string PlayerName { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
 
     public int TrackTime { get; set; }
 
