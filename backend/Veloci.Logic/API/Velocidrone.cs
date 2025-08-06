@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Veloci.Logic.API.Dto;
+using Veloci.Logic.API.Exceptions;
 using Veloci.Logic.API.Options;
 using Veloci.Logic.Services;
 
@@ -67,6 +68,14 @@ public class Velocidrone
             {
                 var content = await response.Content.ReadAsStringAsync();
                 _log.Debug("Received {ContentLength} characters in response body", content.Length);
+                
+                // Check if response is HTML (login page) indicating authentication failure
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                if (contentType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    _log.Error("Velocidrone API returned HTML login page for endpoint {Uri}, indicating invalid credentials", uri);
+                    throw new VelocidroneAuthenticationException(uri, response.StatusCode, content);
+                }
                 
                 var data = JsonSerializer.Deserialize<T>(content);
 
