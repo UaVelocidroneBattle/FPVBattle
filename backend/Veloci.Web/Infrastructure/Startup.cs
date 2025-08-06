@@ -41,6 +41,8 @@ public class Startup
         // Add services to the container.
         var connectionString = Configuration.GetConnectionString("DefaultConnection") ??
                                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var hangfireConnectionString = Configuration.GetConnectionString("HangfireConnection") ??
+                                      throw new InvalidOperationException("Connection string 'HangfireConnection' not found.");
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options
@@ -98,7 +100,7 @@ public class Startup
         });
 
         services.AddHangfire(config => config
-            .UseSQLiteStorage(new SqliteConnectionStringBuilder(connectionString).DataSource)
+            .UseSQLiteStorage(new SqliteConnectionStringBuilder(hangfireConnectionString).DataSource)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
         );
