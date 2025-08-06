@@ -16,6 +16,14 @@ public static class AchievementsServiceExtensions
         services.AddScoped<AchievementService>();
         services.AddScoped<AchievementsEventHandler>();
 
+        // Register message composers
+        services.AddScoped<DiscordAchievementMessageComposer>();
+        services.AddScoped<TelegramAchievementMessageComposer>();
+
+        // Register notification handlers
+        services.AddScoped<DiscordAchievementsHandler>();
+        services.AddScoped<TelegramAchievementsHandler>();
+
         // Register jobs
         services.AddScoped<DayStreakMilestoneJob>();
         services.AddScoped<IJobRegistrar, AchievementsJobRegistrar>();
