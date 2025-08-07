@@ -19,9 +19,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<BadTrack>,
     INotificationHandler<CheerUp>,
     INotificationHandler<YearResults>,
-    INotificationHandler<DayStreakAchievements>,
-    INotificationHandler<DayStreakPotentialLose>,
-    INotificationHandler<GotAchievements>
+    INotificationHandler<DayStreakPotentialLose>
 {
     private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
 
@@ -146,17 +144,6 @@ public class DiscordMessageEventHandler :
         }
     }
 
-    public async Task Handle(DayStreakAchievements notification, CancellationToken cancellationToken)
-    {
-        const int delaySec = 3;
-
-        foreach (var pilot in notification.Pilots)
-        {
-            var message = _messageComposer.DayStreakAchievement(pilot);
-            await _discordBot.SendMessageAsync(message);
-            await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
-        }
-    }
 
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
@@ -177,9 +164,4 @@ public class DiscordMessageEventHandler :
         return null;
     }
 
-    public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
-    {
-        var message = _messageComposer.AchievementList(notification.Results);
-        await _discordBot.SendMessageAsync(message);
-    }
 }

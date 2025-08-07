@@ -4,7 +4,7 @@ using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
-using Veloci.Logic.Services.Achievements;
+using Veloci.Logic.Features.Achievements;
 using Veloci.Logic.Services.Tracks;
 using Veloci.Web.Controllers.Heatmap;
 
@@ -29,7 +29,7 @@ public static class ServiceRegistration
         services.AddScoped<ITrackFetcher, ApiTrackFetcher>();
         services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
-        services.AddScoped<AchievementService>();
+        services.AddAchievementsServices();
         services.AddPatreonServices(configuration);
 
         return services;

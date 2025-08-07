@@ -16,9 +16,7 @@ public class TelegramMessageEventHandler :
     INotificationHandler<BadTrack>,
     INotificationHandler<CheerUp>,
     INotificationHandler<YearResults>,
-    INotificationHandler<DayStreakAchievements>,
-    INotificationHandler<DayStreakPotentialLose>,
-    INotificationHandler<GotAchievements>
+    INotificationHandler<DayStreakPotentialLose>
 {
     private readonly TelegramMessageComposer _messageComposer;
 
@@ -107,17 +105,6 @@ public class TelegramMessageEventHandler :
         }
     }
 
-    public async Task Handle(DayStreakAchievements notification, CancellationToken cancellationToken)
-    {
-        const int delaySec = 3;
-
-        foreach (var pilot in notification.Pilots)
-        {
-            var message = _messageComposer.DayStreakAchievement(pilot);
-            await TelegramBot.SendMessageAsync(message);
-            await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
-        }
-    }
 
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
@@ -125,9 +112,4 @@ public class TelegramMessageEventHandler :
         await TelegramBot.SendMessageAsync(message);
     }
 
-    public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
-    {
-        var message = _messageComposer.AchievementList(notification.Results);
-        await TelegramBot.SendMessageAsync(message);
-    }
 }

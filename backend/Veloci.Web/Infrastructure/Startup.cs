@@ -12,7 +12,6 @@ using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
-using Veloci.Logic.Achievements.Base;
 using Veloci.Logic.API.Options;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
@@ -115,7 +114,6 @@ public class Startup
 
         services
             .RegisterCustomServices(Configuration)
-            .RegisterAchievements()
             .RegisterTelegramCommands()
             .UseTelegramBotService()
             .UseDiscordBotService();
