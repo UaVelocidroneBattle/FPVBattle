@@ -53,7 +53,7 @@ public class DiscordPatreonHandler :
             message += $" ({notification.Supporter.TierName})";
         }
 
-        message += "! Дякуємо за підтримку! ❤️";
+        message += Environment.NewLine +  "Дякуємо за підтримку! ❤️";
 
         await _discordBot.SendMessageAsync(message);
     }
