@@ -102,7 +102,7 @@ public class CompetitionConductor
 
         foreach (var time in trackResults.Times)
         {
-            var pilot = await _pilots.FindAsync(time.PlayerName);
+            var pilot = await _pilots.FindAsync(time.UserId);
 
             if (pilot is not null)
                 result.Add(pilot.Name);
@@ -166,13 +166,13 @@ public class CompetitionConductor
         var newPilots = 0;
         foreach (var results in competitionResults)
         {
-            var pilot = await _pilots.FindAsync(results.PlayerName);
+            var pilot = await _pilots.FindAsync(results.UserId);
 
             if (pilot is null)
             {
                 pilot = new Pilot
                 {
-                    Id = results.UserId,
+                    Id = results.UserId.Value,
                     Name = results.PlayerName
                 };
 

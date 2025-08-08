@@ -1,16 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Veloci.Data.Domain;
 
 public class PatreonTokens
 {
-    [Key]
     public int Id { get; set; }
 
-    [MaxLength(2048)]
     public string AccessToken { get; set; } = null!;
 
-    [MaxLength(2048)]
     public string RefreshToken { get; set; } = null!;
 
     public int ExpiresIn { get; set; }
@@ -21,7 +16,6 @@ public class PatreonTokens
 
     public DateTime LastUpdated { get; set; }
 
-    [MaxLength(256)]
     public string? Scope { get; set; }
 
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;

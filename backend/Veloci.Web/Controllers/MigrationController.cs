@@ -46,12 +46,13 @@ public class MigrationController
     {
         var today = comp.StartedOn.AddDays(1);
 
-        var pilotNames = comp.CompetitionResults
-            .Select(x => x.PlayerName)
+        var pilotIds = comp.CompetitionResults
+            .Where(p => p.UserId != null)
+            .Select(x => x.UserId.Value)
             .ToList();
 
         var pilotsSkippedDay = pilotList
-            .Where(p => !pilotNames.Contains(p.Name))
+            .Where(p => !pilotIds.Contains(p.Id))
             .ToList();
 
         foreach (var pilot in pilotsSkippedDay)
@@ -59,15 +60,15 @@ public class MigrationController
             pilot.ResetDayStreak(today);
         }
 
-        foreach (var pilotName in pilotNames)
+        foreach (var pilotId in pilotIds)
         {
-            var listed = pilotList.FirstOrDefault(x => x.Name == pilotName);
+            var listed = pilotList.FirstOrDefault(x => x.Id == pilotId);
 
             if (listed is null)
             {
                 pilotList.Add(new Pilot
                 {
-                    Name = pilotName,
+                    Id = pilotId,
                     DayStreak = 1,
                     DayStreakFreezes = new List<DayStreakFreeze>()
                 });
@@ -81,7 +82,7 @@ public class MigrationController
 
     private async Task UpdatePilotAsync(Pilot pilotToUpdate)
     {
-        var pilot = await _pilots.FindAsync(pilotToUpdate.Name);
+        var pilot = await _pilots.FindAsync(pilotToUpdate.Id);
         pilot.DayStreak = pilotToUpdate.DayStreak;
         pilot.MaxDayStreak = pilotToUpdate.MaxDayStreak;
         pilot.DayStreakFreezes.Clear();

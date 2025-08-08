@@ -14,6 +14,7 @@ public class DayStreakFreeze
 
     public Guid Id { get; set; } = Guid.Empty;
     public virtual Pilot Pilot { get; set; }
+    public int? PilotId { get; set; }
     public DateTime CreatedOn { get; set; }
     public DateTime? SpentOn { get; set; }
 }
