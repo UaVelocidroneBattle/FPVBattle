@@ -11,21 +11,21 @@ public class RaceResultDeltaAnalyzerTests
     {
         var a = new TrackResults()
         {
-            Times = new List<TrackTime>
-            {
-                new(2, "PlayerOne", 50),
-                new(3, "PlayerTwo", 60),
-                new(1, "PlayerThree", 40)
-            }
+            Times =
+            [
+                new(2, "PlayerOne", 1, 50),
+                new(3, "PlayerTwo", 2, 60),
+                new(1, "PlayerThree", 3, 40)
+            ]
         };
-        
+
         var b = new TrackResults()
         {
             Times = new List<TrackTime>
             {
-                new(1, "PlayerOne", 35),
-                new(3, "PlayerTwo", 60),
-                new(2, "PlayerThree", 40)
+                new(1, "PlayerOne", 1, 35),
+                new(3, "PlayerTwo", 2, 60),
+                new(2, "PlayerThree", 3, 40)
             }
         };
 

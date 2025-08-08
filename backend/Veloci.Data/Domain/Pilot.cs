@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Veloci.Data.Domain;
@@ -14,11 +13,9 @@ public class Pilot
         Name = name;
     }
 
-    [Key]
-    [MaxLength(128)]
-    public string Name { get; set; }
+    public int Id { get; set; }
 
-    public int? Id { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
     /// The day when the pilot last raced.
@@ -117,5 +114,10 @@ public static class PilotExtensions
         await allPilots
             .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
             .ForEachAsync(pilot => pilot.ResetDayStreak(today));
+    }
+
+    public static IQueryable<Pilot> ByName(this IQueryable<Pilot> query, string name)
+    {
+        return query.Where(p => p.Name == name);
     }
 }

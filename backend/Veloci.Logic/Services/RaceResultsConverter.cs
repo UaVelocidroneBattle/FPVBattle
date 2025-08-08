@@ -14,7 +14,7 @@ public class RaceResultsConverter
         return timesDtos
             .Select(MapDtoToTrackTime)
             .Where(x => x != null)
-            .GroupBy(x => x.PlayerName)
+            .GroupBy(x => x.UserId)
             .Select(j => j.MinBy(x => x.Time))
             .Select((x, i) =>
             {

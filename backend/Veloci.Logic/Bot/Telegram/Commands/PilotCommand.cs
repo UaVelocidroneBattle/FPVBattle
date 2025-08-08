@@ -31,7 +31,7 @@ public class PilotCommand : ITelegramCommand
             return "все добре, але не вистачає імені пілота";
 
         var pilotName = string.Join(' ', parameters);
-        var pilot = await _pilots.FindAsync(pilotName);
+        var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)
             return $"Не знаю такого пілота 😕";

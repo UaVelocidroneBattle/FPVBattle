@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Veloci.Data.Domain;
 
 public class CompetitionResults
@@ -10,7 +8,6 @@ public class CompetitionResults
 
     public string CompetitionId { get; set; }
 
-    [MaxLength(128)]
     public string PlayerName { get; set; }
 
     public int? UserId { get; set; }
@@ -23,6 +20,5 @@ public class CompetitionResults
 
     public int Points { get; set; }
 
-    [MaxLength(128)]
     public string? ModelName { get; set; }
 }

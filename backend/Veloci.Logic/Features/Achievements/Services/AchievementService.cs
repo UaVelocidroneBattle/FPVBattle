@@ -1,11 +1,11 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Notifications;
-using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Features.Achievements.Services;
 
@@ -47,7 +47,7 @@ public class AchievementService
 
         foreach (var result in competition.CompetitionResults)
         {
-            var pilot = await _pilots.FindAsync(result.PlayerName);
+            var pilot = await _pilots.FindAsync(result.UserId);
 
             if (pilot is null)
             {
@@ -90,7 +90,7 @@ public class AchievementService
 
         foreach (var result in results)
         {
-            var pilot = await _pilots.FindAsync(result.PlayerName);
+            var pilot = await _pilots.GetAll().ByName(result.PlayerName).FirstOrDefaultAsync();
 
             if (pilot is null)
             {
@@ -134,7 +134,7 @@ public class AchievementService
 
         foreach (var delta in deltas)
         {
-            var pilot = await _pilots.FindAsync(delta.PlayerName);
+            var pilot = await _pilots.FindAsync(delta.UserId);
 
             if (pilot is null) // Maybe a new pilot who is not in the DB yet
             {

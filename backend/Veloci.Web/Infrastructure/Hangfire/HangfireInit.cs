@@ -26,9 +26,6 @@ public class HangfireInit
             }
         }
 
-        // Temporary job
-        RecurringJob.AddOrUpdate<PilotIdGrabber>("Grab pilot ID's", x => x.GrabPilotIds(), "*/4 * * * *");
-
         Log.Information("Setting up daily competition schedule recurring jobs");
 
         RecurringJob.AddOrUpdate<CompetitionService>("Day streak potential lose", x => x.DayStreakPotentialLoseNotification(), "5 14 * * *");

@@ -10,7 +10,7 @@ public class RaceResultDeltaAnalyzer
 
         foreach (var trackTime in b.Times)
         {
-            var existingTime = a.Times.FirstOrDefault(t => t.PlayerName == trackTime.PlayerName);
+            var existingTime = a.Times.FirstOrDefault(t => t.UserId == trackTime.UserId);
 
             if (existingTime is null)
             {
