@@ -88,7 +88,7 @@ public class DiscordMessageComposer
     {
         var rows = results.Select(TempSeasonResultsRow);
         var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-        return $"## 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
+        return $"### 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
                $"{string.Join($"{divider}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
@@ -96,7 +96,7 @@ public class DiscordMessageComposer
     public string SeasonResults(IEnumerable<SeasonResult> results)
     {
         var rows = results.Select(SeasonResultsRow);
-        return $"# 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
+        return $"### 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
                $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }

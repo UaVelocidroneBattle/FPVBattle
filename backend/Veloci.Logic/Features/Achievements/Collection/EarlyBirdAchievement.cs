@@ -8,7 +8,7 @@ public class EarlyBirdAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "EarlyBird";
     public string Title => "Ранній птах";
-    public string Description => "Оновивити час на треку з 4:00 до 8:00 ранку за київським часом";
+    public string Description => "Оновити час з 4 до 8 ранку за київським часом";
 
     public async Task<bool> CheckAsync(Pilot pilot, List<TrackTimeDelta> deltas)
     {
