@@ -1,6 +1,7 @@
 using MediatR;
 using Veloci.Logic.Bot.Discord;
 using Veloci.Logic.Features.Patreon.Notifications;
+using Veloci.Logic.Features.Patreon.Services;
 
 namespace Veloci.Logic.Features.Patreon.NotificationHandlers;
 
@@ -47,13 +48,10 @@ public class DiscordPatreonHandler :
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
-        var message = $"🎉 Вітаємо нового підписника Patreon: **{notification.Supporter.Name}**";
-        if (!string.IsNullOrEmpty(notification.Supporter.TierName))
-        {
-            message += $" ({notification.Supporter.TierName})";
-        }
-
-        message += Environment.NewLine +  "Дякуємо за підтримку! ❤️";
+        var message = PatreonMessageGenerator.GenerateWelcomeMessage(
+            notification.Supporter.Name, 
+            notification.Supporter.TierName, 
+            useDiscordMarkdown: true);
 
         await _discordBot.SendMessageAsync(message);
     }
