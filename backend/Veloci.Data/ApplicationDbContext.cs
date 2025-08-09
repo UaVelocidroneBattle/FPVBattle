@@ -58,5 +58,10 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<PatreonTokens>().Property(p => p.AccessToken).HasMaxLength(2048);
         builder.Entity<PatreonTokens>().Property(p => p.RefreshToken).HasMaxLength(2048);
         builder.Entity<PatreonTokens>().Property(p => p.Scope).HasMaxLength(256);
+
+        builder.Entity<PilotNameHistoryRow>().ToTable("PilotNameHistory");
+        builder.Entity<PilotNameHistoryRow>().HasKey(p => p.Id);
+        builder.Entity<PilotNameHistoryRow>().Property(p => p.OldName).HasMaxLength(128);
+        builder.Entity<PilotNameHistoryRow>().Property(p => p.NewName).HasMaxLength(128);
     }
 }
