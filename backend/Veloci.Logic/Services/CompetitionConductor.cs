@@ -163,22 +163,13 @@ public class CompetitionConductor
         var today = DateTime.Today;
         _log.Debug("Updating day streaks for {PilotCount} pilots on {Date}", competitionResults.Count, today.ToString("yyyy-MM-dd"));
 
-        var newPilots = 0;
         foreach (var results in competitionResults)
         {
             var pilot = await _pilots.FindAsync(results.UserId);
 
             if (pilot is null)
             {
-                pilot = new Pilot
-                {
-                    Id = results.UserId.Value,
-                    Name = results.PlayerName
-                };
-
-                await _pilots.AddAsync(pilot);
-                newPilots++;
-                _log.Debug("Created new pilot record for {PilotName}", results.PlayerName);
+                throw new Exception($"Pilot {results.UserId} not found in database, cannot update day streak");
             }
 
             pilot.OnRaceFlown(today);
@@ -187,7 +178,7 @@ public class CompetitionConductor
         await _pilots.SaveChangesAsync();
         await _pilots.GetAll().ResetDayStreaksAsync(today);
 
-        _log.Information("Updated day streaks for {PilotCount} pilots ({NewPilots} new pilots created)", competitionResults.Count, newPilots);
+        _log.Information("Updated day streaks for {PilotCount} pilots", competitionResults.Count);
     }
 
     private async Task CancelAsync()
