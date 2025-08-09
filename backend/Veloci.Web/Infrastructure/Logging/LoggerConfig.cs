@@ -1,4 +1,4 @@
-﻿namespace Veloci.Web.Infrastructure;
+﻿namespace Veloci.Web.Infrastructure.Logging;
 
 public class LoggerConfig
 {

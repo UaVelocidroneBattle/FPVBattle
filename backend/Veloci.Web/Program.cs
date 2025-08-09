@@ -2,13 +2,14 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Veloci.Web.Infrastructure;
+using Veloci.Web.Infrastructure.Logging;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .Enrich.FromLogContext()
     .Enrich.WithExceptionDetails()
-    .WriteTo.Console()
+    .WriteTo.Console(outputTemplate: LoggingConstants.ConsoleOutputTemplate)
     .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);

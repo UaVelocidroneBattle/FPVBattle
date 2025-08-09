@@ -18,6 +18,7 @@ using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
 using Veloci.Web.Infrastructure.Hangfire;
+using Veloci.Web.Infrastructure.Logging;
 
 namespace Veloci.Web.Infrastructure;
 
@@ -216,7 +217,7 @@ public class Startup
                     });
             }
 
-            logger.WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+            logger.WriteTo.Console(outputTemplate: LoggingConstants.ConsoleOutputTemplate);
         });
     }
 }
