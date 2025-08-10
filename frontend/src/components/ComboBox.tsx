@@ -27,9 +27,11 @@ interface ComboBoxProps<TItem> {
     getKey: (item: TItem) => string;
     onSelect: (item: TItem) => void;
     value: TItem | null;
+    leadingIcon?: React.ReactNode;
+    getSelectionIcon?: (item: TItem, isSelected: boolean) => React.ReactNode;
 }
 
-const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect }: ComboBoxProps<T>) => {
+const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect, leadingIcon, getSelectionIcon }: ComboBoxProps<T>) => {
     const [open, setOpen] = React.useState(false)
 
     const caption = value ? getLabel(value) : defaultCaption;
@@ -43,7 +45,10 @@ const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect
                     aria-expanded={open}
                     className="w-[200px] justify-between bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 hover:text-slate-200 border-slate-700"
                 >
-                    {caption}
+                    <div className="flex items-center gap-2">
+                        {leadingIcon}
+                        <span>{caption}</span>
+                    </div>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -53,24 +58,33 @@ const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect
                     <CommandList>
                         <CommandEmpty>Nothing found</CommandEmpty>
                         <CommandGroup>
-                            {items.map((item) => (
-                                <CommandItem
-                                    key={getKey(item)}
-                                    value={getLabel(item)}
-                                    onSelect={() => {
-                                        onSelect(item);
-                                        setOpen(false)
-                                    }}
-                                >
-                                    <Check
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            value === getLabel(item) ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    {getLabel(item)}
-                                </CommandItem>
-                            ))}
+                            {items.map((item) => {
+                                const isSelected = value !== null && getLabel(value) === getLabel(item);
+                                return (
+                                    <CommandItem
+                                        key={getKey(item)}
+                                        value={getLabel(item)}
+                                        onSelect={() => {
+                                            onSelect(item);
+                                            setOpen(false)
+                                        }}
+                                    >
+                                        <div className="mr-2 h-4 w-4 flex items-center justify-center">
+                                            {getSelectionIcon ? (
+                                                getSelectionIcon(item, isSelected)
+                                            ) : (
+                                                <Check
+                                                    className={cn(
+                                                        "h-4 w-4",
+                                                        isSelected ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                            )}
+                                        </div>
+                                        {getLabel(item)}
+                                    </CommandItem>
+                                );
+                            })}
                         </CommandGroup>
                     </CommandList>
                 </Command>

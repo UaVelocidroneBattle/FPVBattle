@@ -1,4 +1,5 @@
 import PilotComboBox from './PilotComboBox';
+import { PILOT_COLORS } from './chartColors';
 
 interface PilotSelectorsProps {
     selectedPilots: (string | null)[];
@@ -16,6 +17,7 @@ const PilotSelectors = ({ selectedPilots, pilots, onPilotChanged }: PilotSelecto
                         selectedPilot={sp}
                         selectedPilots={selectedPilots}
                         onPilotSelect={onPilotChanged(index)}
+                        color={PILOT_COLORS[index] || PILOT_COLORS[0]}
                     />
                 </div>
             ))}

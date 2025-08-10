@@ -1,5 +1,6 @@
 import { ResponsiveLine, Serie } from '@nivo/line'
 import PilotsChartProps from './PilotChartProps';
+import { PILOT_COLORS } from './chartColors';
 
 const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
 
@@ -37,10 +38,7 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
             data={data}
             margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
             areaOpacity={0.07}
-            colors={[
-                'rgb(97, 205, 187)',
-                'rgb(244, 117, 96)'
-            ]}
+            colors={PILOT_COLORS}
             curve="monotoneX"
             xScale={{
                 format: '%Y-%m-%d',
