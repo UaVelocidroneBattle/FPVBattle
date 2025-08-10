@@ -14,9 +14,9 @@ public class PilotResultsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<List<PilotResult>> ForPilot([FromQuery]string pilotName)
+    public async Task<List<PilotResult>> ForPilot([FromQuery]string pilotName, CancellationToken ct)
     {
-        var data = await _calculator.GetPilotResults(pilotName);
+        var data = await _calculator.GetPilotResults(pilotName, ct);
         return data;
     }
 }
