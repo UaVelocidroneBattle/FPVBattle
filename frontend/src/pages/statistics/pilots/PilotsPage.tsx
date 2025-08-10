@@ -39,8 +39,11 @@ const PagePilots = () => {
     if (pilotsState == 'Error') return <h2>Error</h2>
 
     return <>
+        <div className="mb-4 text-sm text-gray-200">
+            Compare lap times between two pilots on a track. Use the controls to choose pilots.
+        </div>
         <div className='flex'>
-            <PilotSelectors 
+            <PilotSelectors
                 selectedPilots={selectedPilots}
                 pilots={pilots}
                 onPilotChanged={pilotChanged}
@@ -71,9 +74,11 @@ const PagePilots = () => {
 
             {pilotResultsState == 'Loaded' && <>
                 <Suspense fallback={<div>Loading...</div>}>
-                    <div className='bg-slate-200 rounded-lg w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
-                        <PilotsChartRelative pilots={selectedPilots} results={pilotData}></PilotsChartRelative>
-                    </div>
+                    {selectedPilots.filter(p => p !== null).length > 1 && <>
+                        <div className='bg-slate-200 rounded-lg w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
+                            <PilotsChartRelative pilots={selectedPilots} results={pilotData}></PilotsChartRelative>
+                        </div>
+                    </>}
                     <div className='bg-slate-200 rounded-lg mt-4 w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
                         <PilotsChartAbsolute pilots={selectedPilots} results={pilotData}></PilotsChartAbsolute>
                     </div>
