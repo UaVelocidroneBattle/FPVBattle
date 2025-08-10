@@ -1,4 +1,4 @@
-import { ResponsiveLine, Serie } from '@nivo/line'
+import { ResponsiveLine, LineSeries } from '@nivo/line'
 import PilotsChartProps from './PilotChartProps';
 
 const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
@@ -9,7 +9,7 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
     fromDate.setMonth(fromDate.getMonth() - 2); // Get date from 2 months ago
 
 
-    const chartData: Serie[] = pilots.map((pilot, index) => ({
+    const chartData: LineSeries[] = pilots.map((pilot, index) => ({
         id: pilot!,
         data: results[index].map(r => ({ x: new Date(r.date), y: r.trackTime / 1000 })).filter(i => i.x >= fromDate)
     }));
