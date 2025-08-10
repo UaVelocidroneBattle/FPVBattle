@@ -7,8 +7,8 @@ import { addPilot, selectSelectedPilots, selectIsMaxPilotsReached, selectPilot }
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
-const PilotsChartAbsolute = lazy(() => import('@/pages/Pilots/PilotsChartAbsolute'))
-const PilotsChartRelative = lazy(() => import('@/pages/Pilots/PilotsChartRelative'))
+const PilotsChartAbsolute = lazy(() => import('./PilotsChartAbsolute'))
+const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
 
 const pilotKey = (pilot: string) => pilot;
 const pilotLabel = (pilot: string) => pilot;

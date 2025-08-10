@@ -2,16 +2,16 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
-import LayoutMain from './pages/LayoutMain.tsx'
-import PageRules from './pages/PageRules.tsx'
-import PageStatistics from './pages/Statistics/PageStatistics.tsx'
-import PageDashboard from './pages/Dashboard/PageDashboard.tsx'
+import MainLayout from './pages/layouts/MainLayout.tsx'
+import RulesPage from './pages/RulesPage.tsx'
+import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
+import DashboardPage from './pages/dashboard/DashboardPage.tsx'
 import { Provider } from 'react-redux'
 import { store } from './lib/store'
-import PageHeatmap from './pages/Heatmap/PageHeatmap.tsx'
-import PageTracks from './pages/Tracks/PageTracks.tsx'
-import PageLeaderBoard from './pages/LeaderBoard/PageLeaderBoard.tsx'
-import PagePilots from './pages/Pilots/PagePilots.tsx'
+import HeatmapPage from './pages/statistics/heatmap/HeatmapPage.tsx'
+import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
+import LeaderBoardPage from './pages/statistics/leaderboard/LeaderBoardPage.tsx'
+import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -20,15 +20,15 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path='/'>
-            <Route element={<LayoutMain />}>
-              <Route index element={<PageDashboard />} />
-              <Route path='rules' element={<PageRules />} />
-              <Route path='statistics' element={<PageStatistics />} >
+            <Route element={<MainLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path='rules' element={<RulesPage />} />
+              <Route path='statistics' element={<StatisticsPage />} >
                 <Route index element={<Navigate to="heatmap" replace />} />
-                <Route path="heatmap" element={<PageHeatmap />} />
-                <Route path="leaderboard" element={<PageLeaderBoard />} />
-                <Route path="tracks" element={<PageTracks />} />
-                <Route path="pilots" element={<PagePilots />} />
+                <Route path="heatmap" element={<HeatmapPage />} />
+                <Route path="leaderboard" element={<LeaderBoardPage />} />
+                <Route path="tracks" element={<TracksPage />} />
+                <Route path="pilots" element={<PilotsPage />} />
               </Route>
             </Route>
           </Route>
