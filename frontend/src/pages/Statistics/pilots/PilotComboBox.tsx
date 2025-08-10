@@ -27,7 +27,7 @@ const PilotComboBox = ({ pilots, selectedPilot, selectedPilots, onPilotSelect, c
             getLabel={pilotLabel}
             onSelect={onPilotSelect}
             value={selectedPilot}
-            leadingIcon={<PilotColorChip color={color} />}
+            leadingIcon={selectedPilot ? <PilotColorChip color={color} /> : null}
             getSelectionIcon={getSelectionIcon}
         />
     );
