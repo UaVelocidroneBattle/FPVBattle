@@ -1,7 +1,7 @@
 import { createAppSlice } from "@/lib/createAppSlice";
 import { PayloadAction } from "@reduxjs/toolkit";
 
-export const MAX_SELECTED_PILOTS = 4;
+export const MAX_SELECTED_PILOTS = 2;
 
 interface SelectedPilotsState {
   pilots: (string | null)[];
