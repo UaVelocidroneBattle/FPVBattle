@@ -76,10 +76,10 @@ const PagePilots = () => {
 
             {pilotResultsState == 'Loaded' && <>
                 <Suspense fallback={<div>Loading...</div>}>
-                    <div className='bg-slate-200 rounded-lg w-full overflow-hidden' style={{ height: '600px' }}>
+                    <div className='bg-slate-200 rounded-lg w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
                         <PilotsChartRelative pilots={selectedPilots} results={pilotData}></PilotsChartRelative>
                     </div>
-                    <div className='bg-slate-200 rounded-lg mt-4 w-full overflow-hidden' style={{ height: '600px' }}>
+                    <div className='bg-slate-200 rounded-lg mt-4 w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
                         <PilotsChartAbsolute pilots={selectedPilots} results={pilotData}></PilotsChartAbsolute>
                     </div>
                 </Suspense>
