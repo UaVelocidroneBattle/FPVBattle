@@ -1,4 +1,4 @@
-namespace Veloci.Logic.Services.YearResults;
+namespace Veloci.Logic.Services.Statistics.YearResults;
 
 public class YearResultsModel
 {

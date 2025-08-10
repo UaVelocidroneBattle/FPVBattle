@@ -2,7 +2,7 @@
 using Veloci.Data.Domain;
 using Veloci.Logic.API.Dto;
 
-namespace Veloci.Logic.Services;
+namespace Veloci.Logic.Mappings;
 
 [Mapper]
 public partial class DtoMapper

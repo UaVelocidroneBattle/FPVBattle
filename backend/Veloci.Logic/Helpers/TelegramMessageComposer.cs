@@ -3,7 +3,8 @@ using System.Text;
 using Veloci.Data.Domain;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Features.Achievements.Services;
-using Veloci.Logic.Services.YearResults;
+using Veloci.Logic.Services.Statistics;
+using Veloci.Logic.Services.Statistics.YearResults;
 
 namespace Veloci.Logic.Helpers;
 
@@ -170,6 +171,16 @@ public class TelegramMessageComposer
     public string PilotRenamed(string oldName, string newName)
     {
         return $"✏️ Пілот *{oldName}* перейменувався на *{newName}*";
+    }
+
+    public string EndOfSeasonStatistics(EndOfSeasonStatisticsDto statistics)
+    {
+        return $"📊 *Трохи статистики за сезон {statistics.SeasonName}*{Environment.NewLine}{Environment.NewLine}" +
+               $"▪️ Середня кількість пілотів за день: *{statistics.AveragePilotsLastMonth}*{Environment.NewLine}" +
+               $"▪️ Середня кількість пілотів за день (за останні 12 місяців): *{statistics.AveragePilotsLastYear}*{Environment.NewLine}" +
+               $"▪️ Найбільша кількість пілотів за день: *{statistics.MaxPilotsLastMonth}*{Environment.NewLine}" +
+               $"▪️ Найменша кількість пілотів за день: *{statistics.MinPilotsLastMonth}*{Environment.NewLine}{Environment.NewLine}" +
+               $"#endOfSeasonStatistics{Environment.NewLine}";
     }
 
     #region Private
