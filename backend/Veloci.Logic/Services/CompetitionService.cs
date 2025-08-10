@@ -21,6 +21,7 @@ public class CompetitionService
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
+    private readonly PilotService _pilotService;
 
     public CompetitionService(
         IRepository<Competition> competitions,
@@ -28,7 +29,8 @@ public class CompetitionService
         RaceResultDeltaAnalyzer analyzer,
         IMediator mediator,
         IRepository<Pilot> pilots,
-        Velocidrone velocidrone)
+        Velocidrone velocidrone,
+        PilotService pilotService)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -36,6 +38,7 @@ public class CompetitionService
         _mediator = mediator;
         _pilots = pilots;
         _velocidrone = velocidrone;
+        _pilotService = pilotService;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
@@ -79,6 +82,8 @@ public class CompetitionService
         {
             return;
         }
+
+        await _pilotService.UpdatePilotsAsync(deltas);
 
         competition.CurrentResults = results;
         competition.TimeDeltas.AddRange(deltas);
@@ -288,6 +293,5 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakPotentialLose(pilots));
-
     }
 }

@@ -162,6 +162,15 @@ public class TelegramMessageComposer
         return message;
     }
 
+    public string NewPilot(string name)
+    {
+        return $"🎉 Вітаємо нового пілота *{name}*";
+    }
+
+    public string PilotRenamed(string oldName, string newName)
+    {
+        return $"✏️ Пілот *{oldName}* перейменувався на *{newName}*";
+    }
 
     #region Private
 

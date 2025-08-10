@@ -29,6 +29,7 @@ public static class ServiceRegistration
         services.AddScoped<ITrackFetcher, ApiTrackFetcher>();
         services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
+        services.AddScoped<PilotService>();
         services.AddAchievementsServices();
         services.AddPatreonServices(configuration);
 

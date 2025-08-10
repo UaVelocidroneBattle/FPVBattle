@@ -26,6 +26,7 @@ public class Pilot
     public virtual ICollection<PilotAchievement> Achievements { get; set; }
     public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
     public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
+    public virtual ICollection<PilotNameHistoryRow> NameHistory { get; set; }
 
     /// <summary>
     /// Called when competition is finished and pilot took place in it.
@@ -104,6 +105,24 @@ public class Pilot
     {
         Achievements ??= new List<PilotAchievement>();
         return Achievements.Any(achievement => achievement.Name == achievementName);
+    }
+
+    public void ChangeName(string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+            throw new ArgumentException("Pilot name cannot be null or empty.", nameof(newName));
+
+        if (Name == newName) return;
+
+        NameHistory ??= new List<PilotNameHistoryRow>();
+        NameHistory.Add(new PilotNameHistoryRow
+        {
+            OldName = Name,
+            NewName = newName,
+            ChangedOn = DateTime.Now
+        });
+
+        Name = newName;
     }
 }
 
