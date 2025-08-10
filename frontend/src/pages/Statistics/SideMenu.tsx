@@ -1,5 +1,5 @@
 import { Calendar, Users } from "lucide-react";
-import SideMenuItem from "./SideMenuItem";
+import SideMenuItem from "../../components/ui/SideMenuItem";
 
 const SideMenu = () => {
     return (
