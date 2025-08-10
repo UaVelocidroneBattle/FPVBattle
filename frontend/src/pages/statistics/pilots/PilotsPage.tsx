@@ -2,22 +2,20 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { Spinner } from '@/components/ui/spinner';
 import { fetchPilots, selectPilots, selectPilotsState, fetchPilotResults, selectPilotsResults, selectPilotResultsLoadingState } from '@/lib/features/pilots/pilotsSlice';
 import { useEffect, Suspense, lazy } from 'react';
-import ComboBox from '@/components/ComboBox';
 import { addPilot, selectSelectedPilots, selectIsMaxPilotsReached, selectPilot } from '@/lib/features/selectedPilots/selectedPilotsSlice';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import PilotSelectors from './PilotSelectors';
 
 const PilotsChartAbsolute = lazy(() => import('./PilotsChartAbsolute'))
 const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
 
-const pilotKey = (pilot: string) => pilot;
-const pilotLabel = (pilot: string) => pilot;
 
 const PagePilots = () => {
     const dispatch = useAppDispatch();
     const pilotsState = useAppSelector(selectPilotsState);
-    const pilots = useAppSelector(selectPilots);
-    const selectedPilots = useAppSelector(selectSelectedPilots);
+    const pilots = useAppSelector(selectPilots); // list of all pilots
+    const selectedPilots = useAppSelector(selectSelectedPilots); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
     const maxPilotsReached = useAppSelector(selectIsMaxPilotsReached);
     const pilotData = useAppSelector(state => selectPilotsResults(state, selectedPilots));
     const pilotResultsState = useAppSelector(state => selectPilotResultsLoadingState(state, selectedPilots));
@@ -42,14 +40,11 @@ const PagePilots = () => {
 
     return <>
         <div className='flex'>
-            {selectedPilots.map((sp, index) => <div key={index} className='flex-row'>
-                <ComboBox defaultCaption='Select a pilot'
-                    items={pilots}
-                    getKey={pilotKey}
-                    getLabel={pilotLabel}
-                    onSelect={pilotChanged(index)}
-                    value={sp}></ComboBox>
-            </div>)}
+            <PilotSelectors 
+                selectedPilots={selectedPilots}
+                pilots={pilots}
+                onPilotChanged={pilotChanged}
+            />
             {!maxPilotsReached &&
                 <div className='flex-row'>
                     <Button
