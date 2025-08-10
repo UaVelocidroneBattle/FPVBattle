@@ -169,7 +169,8 @@ public class CompetitionConductor
 
             if (pilot is null)
             {
-                throw new Exception($"Pilot {results.UserId} not found in database, cannot update day streak");
+                _log.Error($"Pilot {results.UserId} not found in database, cannot update day streak");
+                continue;
             }
 
             pilot.OnRaceFlown(today);
