@@ -1,19 +1,24 @@
 import { useEffect } from 'react'
 import LeaderBoard from '../../components/LeaderBoard';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { useShallow } from 'zustand/shallow';
 import CurrentCompetition from './CurrentCompetition';
 
 const PageDashboard: React.FC = () => {
 
-    const state = useDashboardStore(state => state.state);
-    const dashboard = useDashboardStore(state => state.data);
-    const fetchData = useDashboardStore(state => state.fetch);
+    const { state, data: dashboard, fetch: fetchData } = useDashboardStore(
+        useShallow((state) => ({
+            state: state.state,
+            data: state.data,
+            fetch: state.fetch
+        }))
+    );
 
     useEffect(() => {
         if (state === 'Idle' || state === 'Error') {
             fetchData();
         }
-    }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [state, fetchData]);
 
     if (state == 'Loading') {
         return <>

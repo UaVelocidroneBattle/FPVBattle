@@ -2,6 +2,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { usePilotsStore, usePilotsResults, usePilotResultsLoadingState } from '@/store/pilotsStore';
 import { useSelectedPilotsStore, useIsMaxPilotsReached } from '@/store/selectedPilotsStore';
 import { useEffect, Suspense, lazy } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
@@ -11,11 +12,21 @@ const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
 
 
 const PagePilots = () => {
-    const pilotsState = usePilotsStore(state => state.state);
-    const pilots = usePilotsStore(state => state.pilots);
-    const fetchPilots = usePilotsStore(state => state.fetchPilots);
-    const fetchPilotResults = usePilotsStore(state => state.fetchPilotResults);
-    const { pilots: selectedPilots, selectPilot, addPilot } = useSelectedPilotsStore(); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
+    const { state: pilotsState, pilots, fetchPilots, fetchPilotResults } = usePilotsStore(
+        useShallow((state) => ({
+            state: state.state,
+            pilots: state.pilots,
+            fetchPilots: state.fetchPilots,
+            fetchPilotResults: state.fetchPilotResults
+        }))
+    );
+    const { pilots: selectedPilots, selectPilot, addPilot } = useSelectedPilotsStore(
+        useShallow((state) => ({
+            pilots: state.pilots,
+            selectPilot: state.selectPilot,
+            addPilot: state.addPilot
+        }))
+    ); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
     const maxPilotsReached = useIsMaxPilotsReached();
     const pilotData = usePilotsResults(selectedPilots);
     const pilotResultsState = usePilotResultsLoadingState(selectedPilots);
@@ -24,7 +35,7 @@ const PagePilots = () => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
             fetchPilots();
         }
-    }, [pilotsState]);
+    }, [pilotsState, fetchPilots]);
 
     const pilotChanged = (index: number) => (pilot: string) => {
         selectPilot(pilot, index);

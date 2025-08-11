@@ -2,6 +2,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { usePilotsStore, usePilotResults, usePilotResultLoadingState } from '@/store/pilotsStore';
 import { useHeatmapStore } from '@/store/heatmapStore';
 import { useEffect, Suspense, lazy } from 'react';
+import { useShallow } from 'zustand/shallow';
 import ComboBox from '@/components/ComboBox';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'))
@@ -11,11 +12,20 @@ const pilotLabel = (pilot: string) => pilot;
 
 const PageHeatmap = () => {
 
-    const pilotsState = usePilotsStore(state => state.state);
-    const pilots = usePilotsStore(state => state.pilots);
-    const fetchPilots = usePilotsStore(state => state.fetchPilots);
-    const fetchPilotResults = usePilotsStore(state => state.fetchPilotResults);
-    const { currentPilot, choosePilot } = useHeatmapStore();
+    const { state: pilotsState, pilots, fetchPilots, fetchPilotResults } = usePilotsStore(
+        useShallow((state) => ({
+            state: state.state,
+            pilots: state.pilots,
+            fetchPilots: state.fetchPilots,
+            fetchPilotResults: state.fetchPilotResults
+        }))
+    );
+    const { currentPilot, choosePilot } = useHeatmapStore(
+        useShallow((state) => ({
+            currentPilot: state.currentPilot,
+            choosePilot: state.choosePilot
+        }))
+    );
     const heatMap = usePilotResults(currentPilot);
     const pilotResultsState = usePilotResultLoadingState(currentPilot);
 
@@ -23,7 +33,7 @@ const PageHeatmap = () => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
             fetchPilots();
         }
-    }, [pilotsState]);
+    }, [pilotsState, fetchPilots]);
 
     const selectPilot = (pilot: string) => {
         choosePilot(pilot);
