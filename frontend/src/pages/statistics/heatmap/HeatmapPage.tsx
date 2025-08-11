@@ -1,9 +1,8 @@
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { Spinner } from '@/components/ui/spinner';
-import { fetchPilots, selectPilots, selectPilotsState, selectPilotResultLoadingState, fetchPilotResults, selectPilotResults } from '@/lib/features/pilots/pilotsSlice';
+import { usePilotsStore, usePilotResults, usePilotResultLoadingState } from '@/store/pilotsStore';
+import { useHeatmapStore } from '@/store/heatmapStore';
 import { useEffect, Suspense, lazy } from 'react';
 import ComboBox from '@/components/ComboBox';
-import { choosePilot, selectCurrentPilot } from '@/lib/features/heatmap/heatmapSlice';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'))
 
@@ -12,23 +11,23 @@ const pilotLabel = (pilot: string) => pilot;
 
 const PageHeatmap = () => {
 
-    const dispatch = useAppDispatch();
-    const pilotsState = useAppSelector(selectPilotsState);
-    const pilots = useAppSelector(selectPilots);
-    const currentPilot = useAppSelector(selectCurrentPilot);
-    const heatMap = useAppSelector(state => selectPilotResults(state, currentPilot));
-    const pilotResultsState = useAppSelector(state => selectPilotResultLoadingState(state, currentPilot));
-
+    const pilotsState = usePilotsStore(state => state.state);
+    const pilots = usePilotsStore(state => state.pilots);
+    const fetchPilots = usePilotsStore(state => state.fetchPilots);
+    const fetchPilotResults = usePilotsStore(state => state.fetchPilotResults);
+    const { currentPilot, choosePilot } = useHeatmapStore();
+    const heatMap = usePilotResults(currentPilot);
+    const pilotResultsState = usePilotResultLoadingState(currentPilot);
 
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
-            dispatch(fetchPilots());
+            fetchPilots();
         }
-    }, [pilotsState, dispatch]);
+    }, [pilotsState]);
 
     const selectPilot = (pilot: string) => {
-        dispatch(choosePilot(pilot));
-        dispatch(fetchPilotResults(pilot));
+        choosePilot(pilot);
+        fetchPilotResults(pilot);
     }
 
     if (pilotsState == 'Idle') return <></>;

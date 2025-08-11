@@ -1,8 +1,7 @@
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { Spinner } from '@/components/ui/spinner';
-import { fetchPilots, selectPilots, selectPilotsState, fetchPilotResults, selectPilotsResults, selectPilotResultsLoadingState } from '@/lib/features/pilots/pilotsSlice';
+import { usePilotsStore, usePilotsResults, usePilotResultsLoadingState } from '@/store/pilotsStore';
+import { useSelectedPilotsStore, useIsMaxPilotsReached } from '@/store/selectedPilotsStore';
 import { useEffect, Suspense, lazy } from 'react';
-import { addPilot, selectSelectedPilots, selectIsMaxPilotsReached, selectPilot } from '@/lib/features/selectedPilots/selectedPilotsSlice';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
@@ -12,24 +11,24 @@ const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
 
 
 const PagePilots = () => {
-    const dispatch = useAppDispatch();
-    const pilotsState = useAppSelector(selectPilotsState);
-    const pilots = useAppSelector(selectPilots); // list of all pilots
-    const selectedPilots = useAppSelector(selectSelectedPilots); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
-    const maxPilotsReached = useAppSelector(selectIsMaxPilotsReached);
-    const pilotData = useAppSelector(state => selectPilotsResults(state, selectedPilots));
-    const pilotResultsState = useAppSelector(state => selectPilotResultsLoadingState(state, selectedPilots));
-
+    const pilotsState = usePilotsStore(state => state.state);
+    const pilots = usePilotsStore(state => state.pilots);
+    const fetchPilots = usePilotsStore(state => state.fetchPilots);
+    const fetchPilotResults = usePilotsStore(state => state.fetchPilotResults);
+    const { pilots: selectedPilots, selectPilot, addPilot } = useSelectedPilotsStore(); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
+    const maxPilotsReached = useIsMaxPilotsReached();
+    const pilotData = usePilotsResults(selectedPilots);
+    const pilotResultsState = usePilotResultsLoadingState(selectedPilots);
 
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
-            dispatch(fetchPilots());
+            fetchPilots();
         }
-    }, [pilotsState, dispatch]);
+    }, [pilotsState]);
 
     const pilotChanged = (index: number) => (pilot: string) => {
-        dispatch(selectPilot({ index: index, pilotName: pilot }));
-        dispatch(fetchPilotResults(pilot));
+        selectPilot(pilot, index);
+        fetchPilotResults(pilot);
     }
 
     if (pilotsState == 'Idle') return <></>;
@@ -54,7 +53,7 @@ const PagePilots = () => {
                         variant="outline"
                         size="icon"
                         onClick={() => {
-                            dispatch(addPilot())
+                            addPilot()
                         }}
                         className="h-10 w-10"
                     >

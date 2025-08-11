@@ -1,18 +1,19 @@
 import { useEffect } from 'react'
 import LeaderBoard from '../../components/LeaderBoard';
-import { fetch, selectState, selectData } from '../../lib/features/dashboard/dashboardSlice';
-import { useAppDispatch, useAppSelector } from '../../lib/hooks';
+import { useDashboardStore } from '../../store/dashboardStore';
 import CurrentCompetition from './CurrentCompetition';
 
 const PageDashboard: React.FC = () => {
 
-    const dispatch = useAppDispatch();
-    const state = useAppSelector(selectState);
-    const dashboard = useAppSelector(selectData);
+    const state = useDashboardStore(state => state.state);
+    const dashboard = useDashboardStore(state => state.data);
+    const fetchData = useDashboardStore(state => state.fetch);
 
     useEffect(() => {
-        dispatch(fetch());
-    }, [dispatch]);
+        if (state === 'Idle' || state === 'Error') {
+            fetchData();
+        }
+    }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (state == 'Loading') {
         return <>
