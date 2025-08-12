@@ -80,10 +80,11 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
                 legendPosition: 'middle',
                 truncateTickAt: 0
             }}
-            pointSize={10}
-            pointColor={{ theme: 'background' }}
-            pointBorderWidth={2}
-            pointBorderColor={{ from: 'serieColor' }}
+            enablePoints={true}
+            pointSize={6}
+            pointColor={{ from: 'seriesColor' }}
+            pointBorderWidth={6}
+            pointBorderColor={{ from: 'seriesColor' }}
             pointLabel="data.yFormatted"
             pointLabelYOffset={-12}
             enableTouchCrosshair={true}
