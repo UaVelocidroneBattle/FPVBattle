@@ -7,7 +7,7 @@ const SideMenu = () => {
             <nav className="p-4">
                 <ul className="space-y-2">
                     <li>
-                        <SideMenuItem to="heatmap" icon={Calendar} label="Heat map" />
+                        <SideMenuItem to="profile" icon={Calendar} label="Profile" />
                     </li>
 
                     <li>

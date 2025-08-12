@@ -55,6 +55,44 @@
         }
       }
     },
+    "/api/pilots/Profile": {
+      "get": {
+        "tags": [
+          "Pilots"
+        ],
+        "parameters": [
+          {
+            "name": "pilotName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotProfileModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotProfileModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotProfileModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/results/ForPilot": {
       "get": {
         "tags": [
@@ -273,6 +311,78 @@
             "items": {
               "$ref": "#/components/schemas/SeasonResultModel"
             }
+          }
+        }
+      },
+      "PilotAchievementModel": {
+        "required": [
+          "name",
+          "earnedOn",
+          "title",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "earnedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "PilotProfileModel": {
+        "required": [
+          "name",
+          "currentDayStreak",
+          "maxDayStreak",
+          "achievements",
+          "totalRaceDays",
+          "availableFreezes"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "currentDayStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxDayStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "achievements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PilotAchievementModel"
+            }
+          },
+          "totalRaceDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastRaceDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "firstRaceDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "availableFreezes": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

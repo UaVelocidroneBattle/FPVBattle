@@ -6,10 +6,10 @@ import MainLayout from './pages/layouts/MainLayout.tsx'
 import RulesPage from './pages/RulesPage.tsx'
 import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
 import DashboardPage from './pages/dashboard/DashboardPage.tsx'
-import HeatmapPage from './pages/statistics/heatmap/HeatmapPage.tsx'
 import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
 import LeaderBoardPage from './pages/statistics/leaderboard/LeaderBoardPage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
+import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -21,8 +21,8 @@ createRoot(document.getElementById('root')!).render(
             <Route index element={<DashboardPage />} />
             <Route path='rules' element={<RulesPage />} />
             <Route path='statistics' element={<StatisticsPage />} >
-              <Route index element={<Navigate to="heatmap" replace />} />
-              <Route path="heatmap" element={<HeatmapPage />} />
+              <Route index element={<Navigate to="profile" replace />} />
+              <Route path="profile" element={<PilotProfilePage />} />
               <Route path="leaderboard" element={<LeaderBoardPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />

@@ -215,6 +215,11 @@ public class AchievementService
             _log.Debug("No achievements were triggered in this check");
         }
     }
+
+    public IAchievement GetAchievementByName(string name)
+    {
+        return _achievements.First(a => a.Name == name);
+    }
 }
 
 public class AchievementCheckResults : List<AchievementCheckResult>
