@@ -1,12 +1,11 @@
 import { PilotResult } from '@/api/client';
 import { CalendarDatum, ResponsiveCalendarCanvas } from '@nivo/calendar'
-import { Theme } from '@nivo/core';
 
 interface HeatmapChartProps {
     data: PilotResult[]
 }
 
-const theme: Theme = {
+const theme = {
     text: {
         fill: "#94a3b8"
     }
@@ -20,18 +19,21 @@ const HeatmapChart = ({ data }: HeatmapChartProps) => {
 
     if (data.length == 0) return <></>;
 
+    const from = new Date(data[0].date);
+    const to = new Date(data[data.length - 1].date);
+
     return <>
         <ResponsiveCalendarCanvas
             data={d}
-            from={d[0].day}
-            to={d[d.length - 1].day}
+            from={from}
+            to={to}
             emptyColor="#0000"
             colors={['#125348', '#156154', '#1d8775', '#22a18b', '#2ed3b8']}
             margin={{ top: 0, right: 20, bottom: 40, left: 20 }}
             yearSpacing={70}
             dayBorderWidth={1}
             dayBorderColor="#516585"
-            
+
             theme={
                 theme
             }

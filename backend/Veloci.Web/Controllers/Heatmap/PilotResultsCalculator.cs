@@ -13,18 +13,18 @@ public class PilotResultsCalculator
         _competitionResults = competitionResults;
     }
 
-    public Task<List<PilotResult>> GetPilotResults(string pilotName)
+    public async Task<List<PilotResult>> GetPilotResults(string pilotName, CancellationToken ct)
     {
-        var now = DateTime.Today;
-        var start = now.AddYears(-1);
+        var start = new DateTime(2024, 1, 1);
 
-        var data = _competitionResults
+        var data = await _competitionResults
             .GetAll()
             .Where(c => c.Competition.StartedOn >= start)
             .Where(c => c.PlayerName == pilotName && c.Competition.State == CompetitionState.Closed)
             .OrderBy(x => x.Competition.StartedOn)
             .ProjectToModel()
-            .ToListAsync();
+            .ToListAsync(ct);
+
         return data;
     }
 }

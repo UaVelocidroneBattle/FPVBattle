@@ -11,3 +11,9 @@ To run local dev server:
 ```bash
 npm run dev
 ```
+
+To build the project for production:
+
+```bash
+npm run build
+```

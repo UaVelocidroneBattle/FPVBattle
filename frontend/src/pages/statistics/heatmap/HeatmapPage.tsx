@@ -1,9 +1,9 @@
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { Spinner } from '@/components/ui/spinner';
-import { fetchPilots, selectPilots, selectPilotsState, selectPilotResultLoadingState, fetchPilotResults, selectPilotResults } from '@/lib/features/pilots/pilotsSlice';
+import { usePilotsStore, usePilotResults, usePilotResultLoadingState } from '@/store/pilotsStore';
+import { useHeatmapStore } from '@/store/heatmapStore';
 import { useEffect, Suspense, lazy } from 'react';
+import { useShallow } from 'zustand/shallow';
 import ComboBox from '@/components/ComboBox';
-import { choosePilot, selectCurrentPilot } from '@/lib/features/heatmap/heatmapSlice';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'))
 
@@ -12,23 +12,32 @@ const pilotLabel = (pilot: string) => pilot;
 
 const PageHeatmap = () => {
 
-    const dispatch = useAppDispatch();
-    const pilotsState = useAppSelector(selectPilotsState);
-    const pilots = useAppSelector(selectPilots);
-    const currentPilot = useAppSelector(selectCurrentPilot);
-    const heatMap = useAppSelector(state => selectPilotResults(state, currentPilot));
-    const pilotResultsState = useAppSelector(state => selectPilotResultLoadingState(state, currentPilot));
-
+    const { state: pilotsState, pilots, fetchPilots, fetchPilotResults } = usePilotsStore(
+        useShallow((state) => ({
+            state: state.state,
+            pilots: state.pilots,
+            fetchPilots: state.fetchPilots,
+            fetchPilotResults: state.fetchPilotResults
+        }))
+    );
+    const { currentPilot, choosePilot } = useHeatmapStore(
+        useShallow((state) => ({
+            currentPilot: state.currentPilot,
+            choosePilot: state.choosePilot
+        }))
+    );
+    const heatMap = usePilotResults(currentPilot);
+    const pilotResultsState = usePilotResultLoadingState(currentPilot);
 
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
-            dispatch(fetchPilots());
+            fetchPilots();
         }
-    }, [pilotsState, dispatch]);
+    }, [pilotsState, fetchPilots]);
 
     const selectPilot = (pilot: string) => {
-        dispatch(choosePilot(pilot));
-        dispatch(fetchPilotResults(pilot));
+        choosePilot(pilot);
+        fetchPilotResults(pilot);
     }
 
     if (pilotsState == 'Idle') return <></>;

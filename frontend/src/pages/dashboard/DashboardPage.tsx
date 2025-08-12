@@ -1,18 +1,24 @@
 import { useEffect } from 'react'
 import LeaderBoard from '../../components/LeaderBoard';
-import { fetch, selectState, selectData } from '../../lib/features/dashboard/dashboardSlice';
-import { useAppDispatch, useAppSelector } from '../../lib/hooks';
+import { useDashboardStore } from '../../store/dashboardStore';
+import { useShallow } from 'zustand/shallow';
 import CurrentCompetition from './CurrentCompetition';
 
 const PageDashboard: React.FC = () => {
 
-    const dispatch = useAppDispatch();
-    const state = useAppSelector(selectState);
-    const dashboard = useAppSelector(selectData);
+    const { state, data: dashboard, fetch: fetchData } = useDashboardStore(
+        useShallow((state) => ({
+            state: state.state,
+            data: state.data,
+            fetch: state.fetch
+        }))
+    );
 
     useEffect(() => {
-        dispatch(fetch());
-    }, [dispatch]);
+        if (state === 'Idle' || state === 'Error') {
+            fetchData();
+        }
+    }, [state, fetchData]);
 
     if (state == 'Loading') {
         return <>
