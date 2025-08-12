@@ -21,7 +21,8 @@ public class DiscordMessageEventHandler :
     INotificationHandler<YearResults>,
     INotificationHandler<DayStreakPotentialLose>,
     INotificationHandler<NewPilot>,
-    INotificationHandler<PilotRenamed>
+    INotificationHandler<PilotRenamed>,
+    INotificationHandler<EndOfSeasonStatisticsNotification>
 {
     private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
 
@@ -175,6 +176,12 @@ public class DiscordMessageEventHandler :
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
         await _discordBot.SendMessageAsync(message);
     }
 }

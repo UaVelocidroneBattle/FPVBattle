@@ -18,7 +18,8 @@ public class TelegramMessageEventHandler :
     INotificationHandler<YearResults>,
     INotificationHandler<DayStreakPotentialLose>,
     INotificationHandler<NewPilot>,
-    INotificationHandler<PilotRenamed>
+    INotificationHandler<PilotRenamed>,
+    INotificationHandler<EndOfSeasonStatisticsNotification>
 {
     private readonly TelegramMessageComposer _messageComposer;
 
@@ -123,6 +124,12 @@ public class TelegramMessageEventHandler :
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
         await TelegramBot.SendMessageAsync(message);
     }
 }

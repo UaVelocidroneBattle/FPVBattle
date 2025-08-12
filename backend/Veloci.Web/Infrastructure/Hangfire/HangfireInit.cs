@@ -5,7 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Veloci.Logic.Jobs;
 using Veloci.Logic.Services;
-using Veloci.Logic.Services.YearResults;
+using Veloci.Logic.Services.Statistics;
+using Veloci.Logic.Services.Statistics.YearResults;
 
 namespace Veloci.Web.Infrastructure.Hangfire;
 
@@ -34,6 +35,7 @@ public class HangfireInit
         RecurringJob.AddOrUpdate<CompetitionConductor>("Stop competition", x => x.StopAsync(), "1 15 * * *");
         RecurringJob.AddOrUpdate<CompetitionConductor>("Season results", x => x.SeasonResultsAsync(), "2 15 * * *");
         RecurringJob.AddOrUpdate<CompetitionConductor>("Start new competition", x => x.StartNewAsync(), "3 15 * * *");
+        RecurringJob.AddOrUpdate<StatisticsService>("End of season statistics", x => x.PublishEndOfSeasonStatisticsAsync(), "15 15 1 * *");
 
         Log.Information("Setting up continuous monitoring recurring jobs");
 

@@ -1,5 +1,5 @@
 using MediatR;
-using Veloci.Logic.Services.YearResults;
+using Veloci.Logic.Services.Statistics.YearResults;
 
 namespace Veloci.Logic.Notifications;
 

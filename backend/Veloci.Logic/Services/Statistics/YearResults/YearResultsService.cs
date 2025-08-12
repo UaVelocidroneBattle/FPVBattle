@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 
-namespace Veloci.Logic.Services.YearResults;
+namespace Veloci.Logic.Services.Statistics.YearResults;
 
 public class YearResultsService
 {
