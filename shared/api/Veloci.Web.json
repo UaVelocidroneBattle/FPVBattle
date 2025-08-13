@@ -17,6 +17,18 @@
         }
       }
     },
+    "/api/migration/pilot-ids": {
+      "get": {
+        "tags": [
+          "Migration"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/pilots/All": {
       "get": {
         "tags": [

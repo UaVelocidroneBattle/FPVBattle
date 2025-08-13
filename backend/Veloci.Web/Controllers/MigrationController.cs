@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 
@@ -11,11 +12,19 @@ public class MigrationController
 {
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<TrackTimeDelta> _trackTimeDeltas;
+    private readonly IRepository<CompetitionResults> _competitionResults;
 
-    public MigrationController(IRepository<Competition> competitions, IRepository<Pilot> pilots)
+    public MigrationController(
+        IRepository<Competition> competitions,
+        IRepository<Pilot> pilots,
+        IRepository<TrackTimeDelta> trackTimeDeltas,
+        IRepository<CompetitionResults> competitionResults)
     {
         _competitions = competitions;
         _pilots = pilots;
+        _trackTimeDeltas = trackTimeDeltas;
+        _competitionResults = competitionResults;
     }
 
     [HttpGet("/api/migration/streaks")]
@@ -93,6 +102,62 @@ public class MigrationController
             {
                 SpentOn = freezie.SpentOn
             });
+        }
+    }
+
+    [HttpGet("/api/migration/pilot-ids")]
+    public async Task SetPilotIdsToEntities()
+    {
+        var pilots = await _pilots.GetAll().ToListAsync();
+
+        foreach (var pilot in pilots)
+        {
+            await SetPilotIdToEntitiesAsync(pilot);
+        }
+
+        await _trackTimeDeltas.SaveChangesAsync();
+        Log.Debug("Finished setting pilot IDs to entities");
+    }
+
+    private string[] ExtractPilotNames(Pilot pilot)
+    {
+        var names = new List<string> { pilot.Name };
+
+        var oldNames = pilot.NameHistory?
+            .Select(n => n.OldName)
+            .ToList();
+
+        if (oldNames != null && oldNames.Count != 0)
+            names.AddRange(oldNames);
+
+        return names.ToArray();
+    }
+
+
+    private async Task SetPilotIdToEntitiesAsync(Pilot pilot)
+    {
+        Log.Debug("Setting pilot ID {PilotId} to entities for pilot {PilotName}", pilot.Id, pilot.Name);
+
+        var pilotNames = ExtractPilotNames(pilot);
+
+        var deltas = await _trackTimeDeltas
+            .GetAll()
+            .Where(d => pilotNames.Contains(d.PlayerName))
+            .ToListAsync();
+
+        foreach (var delta in deltas)
+        {
+            delta.UserId = pilot.Id;
+        }
+
+        var compResults = await _competitionResults
+            .GetAll()
+            .Where(r => pilotNames.Contains(r.PlayerName))
+            .ToListAsync();
+
+        foreach (var result in compResults)
+        {
+            result.UserId = pilot.Id;
         }
     }
 }
