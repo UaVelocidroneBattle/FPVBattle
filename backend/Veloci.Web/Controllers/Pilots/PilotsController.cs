@@ -22,7 +22,7 @@ public class PilotsController : ControllerBase
         var allPilots = await _competitions.GetAll()
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
-            .Select(res => res.PlayerName)
+            .Select(res => res.Pilot.Name)
             .Distinct()
             .ToListAsync();
 

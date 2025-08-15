@@ -8,9 +8,9 @@ public class CompetitionResults
 
     public string CompetitionId { get; set; }
 
-    public string PlayerName { get; set; }
+    public virtual Pilot Pilot { get; set; }
 
-    public int? UserId { get; set; }
+    public int PilotId { get; set; }
 
     public int TrackTime { get; set; }
 

@@ -20,7 +20,7 @@ public class PilotResultsCalculator
         var data = await _competitionResults
             .GetAll()
             .Where(c => c.Competition.StartedOn >= start)
-            .Where(c => c.PlayerName == pilotName && c.Competition.State == CompetitionState.Closed)
+            .Where(c => c.Pilot.Name == pilotName && c.Competition.State == CompetitionState.Closed)
             .OrderBy(x => x.Competition.StartedOn)
             .ProjectToModel()
             .ToListAsync(ct);
