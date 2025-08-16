@@ -39,7 +39,7 @@ public class PilotCommand : ITelegramCommand
         var totalFlightDays = await _competitions
             .GetAll()
             .NotCancelled()
-            .Where(comp => comp.CompetitionResults.Any(res => res.PlayerName == pilotName))
+            .Where(comp => comp.CompetitionResults.Any(res => res.Pilot.Name == pilotName))
             .CountAsync();
 
         var lastRaceDateText = pilot.LastRaceDate.HasValue

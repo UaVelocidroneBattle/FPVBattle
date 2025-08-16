@@ -195,20 +195,20 @@ public class DiscordMessageComposer
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
         var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
 
-        return $"✈️  **{delta.PlayerName}**{modelPart}{Environment.NewLine}" +
+        return $"✈️  **{delta.Pilot.Name}**{modelPart}{Environment.NewLine}" +
                $"⏱️  {MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 
     private List<string> TempLeaderboardRows(List<CompetitionResults> results)
     {
         var positionLength = results.Count().ToString().Length + 2;
-        var pilotNameLength = results.Max(r => r.PlayerName.Length) + 2;
+        var pilotNameLength = results.Max(r => r.Pilot.Name.Length) + 2;
         var timeLength = results.Max(r => MsToSec(r.TrackTime).ToString().Length) + 3;
         var rows = new List<string>();
 
         foreach (var result in results)
         {
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.PlayerName, pilotNameLength)}{FillWithSpaces(MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.Pilot.Name, pilotNameLength)}{FillWithSpaces(MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
         }
 
         return rows;
@@ -231,7 +231,7 @@ public class DiscordMessageComposer
             _ => $"#{time.LocalRank}"
         };
 
-        return $"{icon} - **{time.PlayerName}** ({MsToSec(time.TrackTime)}s) / Балів: **{time.Points}**";
+        return $"{icon} - **{time.Pilot.Name}** ({MsToSec(time.TrackTime)}s) / Балів: **{time.Points}**";
     }
 
     private string TempSeasonResultsRow(SeasonResult result)

@@ -55,7 +55,7 @@ public class Competition
 
     public bool IsPilotAtLocalRank(Pilot pilot, int rank)
     {
-        return CompetitionResults.GetByLocalRank(rank)?.PlayerName == pilot.Name;
+        return CompetitionResults.GetByLocalRank(rank)?.Pilot.Name == pilot.Name;
     }
 
     public CompetitionResults? GetSlowest()

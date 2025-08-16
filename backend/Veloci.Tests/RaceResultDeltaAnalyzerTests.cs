@@ -34,7 +34,7 @@ public class RaceResultDeltaAnalyzerTests
 
         deltas.Should().HaveCount(1);
         var delta = deltas[0];
-        delta.PlayerName.Should().Be("PlayerOne");
+        delta.PilotId.Should().Be(1);
         delta.TrackTime.Should().Be(35);
         delta.Rank.Should().Be(1);
         delta.RankOld.Should().Be(2);

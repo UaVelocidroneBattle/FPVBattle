@@ -16,8 +16,7 @@ public class RaceResultDeltaAnalyzer
             {
                 deltas.Add(new TrackTimeDelta
                 {
-                    PlayerName = trackTime.PlayerName,
-                    UserId = trackTime.UserId,
+                    PilotId = trackTime.UserId.Value,
                     LocalRank = trackTime.LocalRank,
                     Rank = trackTime.GlobalRank,
                     TrackTime = trackTime.Time,
@@ -32,8 +31,7 @@ public class RaceResultDeltaAnalyzer
 
             deltas.Add(new TrackTimeDelta
             {
-                PlayerName = trackTime.PlayerName,
-                UserId = trackTime.UserId,
+                PilotId = trackTime.UserId.Value,
                 LocalRank = trackTime.LocalRank,
                 LocalRankOld = existingTime.LocalRank,
                 Rank = trackTime.GlobalRank,

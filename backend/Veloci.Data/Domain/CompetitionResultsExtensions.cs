@@ -9,6 +9,6 @@ public static class CompetitionResultsExtensions
 
     public static CompetitionResults? GetByPilotName(this IEnumerable<CompetitionResults> competitionResults, string name)
     {
-        return competitionResults.FirstOrDefault(res => res.PlayerName == name);
+        return competitionResults.FirstOrDefault(res => res.Pilot.Name == name);
     }
 }
