@@ -18,6 +18,8 @@ public class CompetitionService
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<TrackTime> _trackTimes;
+    private readonly IRepository<TrackResults> _trackResults;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
@@ -30,7 +32,9 @@ public class CompetitionService
         IMediator mediator,
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
-        PilotService pilotService)
+        PilotService pilotService,
+        IRepository<TrackTime> trackTimes,
+        IRepository<TrackResults> trackResults)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -39,12 +43,13 @@ public class CompetitionService
         _pilots = pilots;
         _velocidrone = velocidrone;
         _pilotService = pilotService;
+        _trackTimes = trackTimes;
+        _trackResults = trackResults;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
     public async Task UpdateResultsAsync()
     {
-
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -59,7 +64,6 @@ public class CompetitionService
         {
             await UpdateResultsAsync(competition);
         }
-
     }
 
     private async Task UpdateResultsAsync(Competition competition)
@@ -259,7 +263,6 @@ public class CompetitionService
             .OrderByDescending(x => x.StartedOn);
     }
 
-
     public async Task DayStreakPotentialLoseNotification()
     {
 
@@ -293,5 +296,14 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakPotentialLose(pilots));
+    }
+
+    public async Task ClearTrackTimesAsync()
+    {
+        var allTrackTimes = _trackTimes.GetAll();
+        await _trackTimes.RemoveRangeAsync(allTrackTimes);
+
+        var allTrackResults = _trackResults.GetAll();
+        await _trackResults.RemoveRangeAsync(allTrackResults);
     }
 }
