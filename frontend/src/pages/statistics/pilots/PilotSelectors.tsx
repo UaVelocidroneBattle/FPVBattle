@@ -10,7 +10,7 @@ const PilotSelectors = ({ selectedPilots, pilots, onPilotChanged }: PilotSelecto
     return (
         <>
             {selectedPilots.map((sp, index) => (
-                <div key={index} className='flex-row'>
+                <div key={index} className='flex-row mr-3'>
                     <PilotComboBox 
                         pilots={pilots}
                         selectedPilot={sp}

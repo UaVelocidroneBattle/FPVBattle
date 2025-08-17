@@ -67,7 +67,7 @@ const PagePilots = () => {
                         onClick={() => {
                             addPilot()
                         }}
-                        className="h-10 w-10"
+                        className="w-10 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 hover:text-slate-200 border-slate-700 "
                     >
                         <Plus className="h-4 w-4" />
                     </Button>

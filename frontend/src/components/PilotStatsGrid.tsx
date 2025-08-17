@@ -11,44 +11,32 @@ export function PilotStatsGrid({ profile }: PilotStatsGridProps) {
         <div className="grid grid-cols-7 gap-4">
             <StatCard
                 value={profile.currentDayStreak}
-                label="Current Streak"
-                valueColor="text-green-400"
+                label="Current streak"
+                valueColor="text-emerald-400"
             />
 
             <StatCard
                 value={profile.maxDayStreak}
-                label="Max Streak"
-                valueColor="text-yellow-400"
+                label="Max streak"
+                valueColor="text-emerald-400"
             />
 
             <StatCard
                 value={profile.totalRaceDays}
-                label="Total Race Days"
-                valueColor="text-blue-400"
+                label="Total race days"
+                valueColor="text-emerald-400"
             />
 
             <StatCard
                 value={profile.achievements.length}
                 label="Achievements"
-                valueColor="text-purple-400"
+                valueColor="text-emerald-400"
             />
 
             <StatCard
                 value={profile.availableFreezes}
                 label="Freezes"
-                valueColor="text-cyan-400"
-            />
-
-            <StatCard
-                value={formatDate(profile.lastRaceDate)}
-                label="Last Race"
-                valueColor="text-gray-300"
-            />
-
-            <StatCard
-                value={formatDate(profile.firstRaceDate)}
-                label="First Race"
-                valueColor="text-orange-400"
+                valueColor="text-emerald-400"
             />
         </div>
     );
