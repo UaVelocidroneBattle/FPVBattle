@@ -10,7 +10,7 @@ const LayoutMain: React.FC = () => {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
       <div className="max-w-[1800px] mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex flex-col items-center p-4 shadow-md mb-8">
+        <header className="flex flex-col items-center p-4 mb-8">
           <h1 className="mb-4">
             <Link to="/" className="flex items-center">
               <img
