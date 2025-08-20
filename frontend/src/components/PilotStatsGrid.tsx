@@ -1,6 +1,5 @@
 import { PilotProfileModel } from '@/api/client';
 import StatCard from '@/components/ui/StatCard';
-import { formatDate } from '@/lib/utils';
 
 interface PilotStatsGridProps {
     profile: PilotProfileModel;
