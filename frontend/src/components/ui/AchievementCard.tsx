@@ -32,7 +32,7 @@ const AchievementCard = ({ achievement }: AchievementCardProps) => {
                         {achievement.title}
                     </div>
                     <div className="text-xs text-gray-400">
-                        {formatDate(achievement.earnedOn)}
+                        {achievement.description}
                     </div>
                 </div>
 
@@ -45,7 +45,8 @@ const AchievementCard = ({ achievement }: AchievementCardProps) => {
                     }}
                 >
                     <div className="text-xs text-white text-center leading-relaxed">
-                        {achievement.description}
+                        <div className='text-gray-400'>Отримано:</div>
+                        {formatDate(achievement.earnedOn)}
                     </div>
                 </div>
             </div>

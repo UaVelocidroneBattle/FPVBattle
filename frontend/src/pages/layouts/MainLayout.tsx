@@ -43,7 +43,7 @@ const LayoutMain: React.FC = () => {
                         <NavLink
                             to="/statistics"
                             className={({isActive}) =>
-                                `transition-colors hidden sm:block ${isActive ? "text-emerald-400" : "text-slate-300 hover:text-emerald-400"}`
+                                `transition-colors ${isActive ? "text-emerald-400" : "text-slate-300 hover:text-emerald-400"}`
                             }
                         >
                             Statistics

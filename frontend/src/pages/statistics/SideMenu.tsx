@@ -10,7 +10,7 @@ const SideMenu = () => {
                         <SideMenuItem to="profile" icon={UserRound} label="Profile" />
                     </li>
 
-                    <li>
+                    <li className="hidden sm:block">
                         <SideMenuItem to="pilots" icon={ChartNoAxesCombined} label="Pilot stats" />
                     </li>
                 </ul>
