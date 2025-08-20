@@ -48,15 +48,17 @@ const LayoutMain: React.FC = () => {
                         >
                             Statistics
                         </NavLink>
-                        <a href="https://t.me/fpv_velocidrone_ua" target="_blank" rel="noopener noreferrer">
-                            <FaTelegramPlane className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
-                        </a>
-                        <a href="https://discord.gg/FrpC2WV8Cw" target="_blank" rel="noopener noreferrer">
-                            <SiDiscord className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
-                        </a>
-                        <a href="https://patreon.com/FPVBattle" target="_blank" rel="noopener noreferrer">
-                            <TbBrandPatreonFilled className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
-                        </a>
+                        <div className="flex gap-8">
+                            <a href="https://t.me/fpv_velocidrone_ua" title="Telegram" target="_blank" rel="noopener noreferrer">
+                                <FaTelegramPlane className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
+                            </a>
+                            <a href="https://discord.gg/FrpC2WV8Cw" title="Discord" target="_blank" rel="noopener noreferrer">
+                                <SiDiscord className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
+                            </a>
+                            <a href="https://patreon.com/FPVBattle" title="Patreon" target="_blank" rel="noopener noreferrer">
+                                <TbBrandPatreonFilled className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
+                            </a>
+                        </div>
                     </nav>
                 </header>
                 <div className="flex-1 flex flex-col">
