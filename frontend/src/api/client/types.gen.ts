@@ -28,6 +28,24 @@ export type DashboardModel = {
     leaderboard: Array<SeasonResultModel>;
 };
 
+export type PilotAchievementModel = {
+    name: string;
+    earnedOn: string;
+    title: string;
+    description: string;
+};
+
+export type PilotProfileModel = {
+    name: string;
+    currentDayStreak: number;
+    maxDayStreak: number;
+    achievements: Array<PilotAchievementModel>;
+    totalRaceDays: number;
+    lastRaceDate?: string | null;
+    firstRaceDate?: string | null;
+    availableFreezes: number;
+};
+
 export type PilotResult = {
     date: string;
     points: number;
@@ -46,14 +64,14 @@ export type TrackTimeModel = {
     localRank: number;
 };
 
-export type GetApiMigrationPilotsData = {
+export type GetApiMigrationStreaksData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/migration/pilots';
+    url: '/api/migration/streaks';
 };
 
-export type GetApiMigrationPilotsResponses = {
+export type GetApiMigrationStreaksResponses = {
     /**
      * OK
      */
@@ -75,6 +93,24 @@ export type GetApiPilotsAllResponses = {
 };
 
 export type GetApiPilotsAllResponse = GetApiPilotsAllResponses[keyof GetApiPilotsAllResponses];
+
+export type GetApiPilotsProfileData = {
+    body?: never;
+    path?: never;
+    query?: {
+        pilotName?: string;
+    };
+    url: '/api/pilots/Profile';
+};
+
+export type GetApiPilotsProfileResponses = {
+    /**
+     * OK
+     */
+    200: PilotProfileModel;
+};
+
+export type GetApiPilotsProfileResponse = GetApiPilotsProfileResponses[keyof GetApiPilotsProfileResponses];
 
 export type GetApiResultsForPilotData = {
     body?: never;

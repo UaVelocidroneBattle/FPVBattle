@@ -1,0 +1,71 @@
+import { useEffect } from 'react';
+import {
+    usePilotProfileStore,
+    usePilotProfile,
+    usePilotHeatmapData,
+    usePilotProfilePageLoadingState,
+} from '@/store/pilotProfileStore';
+import { usePilotsStore } from '@/store/pilotsStore';
+import { useShallow } from 'zustand/shallow';
+import ComboBox from '@/components/ComboBox';
+import PilotProfileView from './pilotProfileView';
+
+
+
+const PilotProfilePage = () => {
+
+    //heatmap store should be combinded with profile store
+    const { currentPilot, choosePilot } = usePilotProfileStore(
+        useShallow((state) => ({
+            currentPilot: state.currentPilot,
+            choosePilot: state.choosePilot
+        }))
+    );
+
+    const profile = usePilotProfile(currentPilot || null);
+    const heatmapData = usePilotHeatmapData(currentPilot || null);
+    const loadingState = usePilotProfilePageLoadingState(currentPilot || null);
+
+    const pilotKey = (pilot: string) => pilot;
+    const pilotLabel = (pilot: string) => pilot;
+
+    const { state: pilotsState, pilots } = usePilotsStore(
+        useShallow((state) => ({
+            state: state.state,
+            pilots: state.pilots
+        }))
+    );
+
+    useEffect(() => {
+        if (pilotsState == 'Idle' || pilotsState == 'Error') {
+            const { fetchPilots } = usePilotsStore.getState();
+            fetchPilots();
+        }
+    }, [pilotsState]);
+
+
+    if (pilotsState == 'Idle') return <></>;
+
+    if (pilotsState == 'Loading') return <h2 className='text-center text-2xl text-green-500'>🚁 Loading</h2>
+
+    if (pilotsState == 'Error') return <h2>Error</h2>
+
+    return (
+        <>
+            <div className="flex items-center gap-4 mb-4">
+                <ComboBox defaultCaption='Select a pilot'
+                    items={pilots}
+                    getKey={pilotKey}
+                    getLabel={pilotLabel}
+                    onSelect={choosePilot}
+                    value={currentPilot}></ComboBox>
+            </div>
+
+            <div className="space-y-6">
+                <PilotProfileView profile={profile} heatmapData={heatmapData} loadingState={loadingState} />
+            </div>
+        </>
+    );
+};
+
+export default PilotProfilePage;

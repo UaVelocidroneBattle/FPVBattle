@@ -1,11 +1,12 @@
-import { Spinner } from '@/components/ui/spinner';
 import { usePilotsStore, usePilotsResults, usePilotResultsLoadingState } from '@/store/pilotsStore';
 import { useSelectedPilotsStore, useIsMaxPilotsReached } from '@/store/selectedPilotsStore';
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, lazy } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
+import { ChartContainer } from '@/components/ChartContainer';
+import { Spinner } from '@/components/ui/spinner';
 
 const PilotsChartAbsolute = lazy(() => import('./PilotsChartAbsolute'))
 const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
@@ -66,7 +67,7 @@ const PagePilots = () => {
                         onClick={() => {
                             addPilot()
                         }}
-                        className="h-10 w-10"
+                        className="w-10 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 hover:text-slate-200 border-slate-700 "
                     >
                         <Plus className="h-4 w-4" />
                     </Button>
@@ -76,23 +77,17 @@ const PagePilots = () => {
 
 
         <div className='py-6'>
-
             {pilotResultsState == 'Loading' && (
                 <Spinner></Spinner>
             )}
-
-            {pilotResultsState == 'Loaded' && (
-                <Suspense fallback={<div>Loading...</div>}>
-                    {selectedPilots.filter(p => p !== null).length > 1 && (
-                        <div className='bg-slate-200 rounded-lg w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
-                            <PilotsChartRelative pilots={selectedPilots} results={pilotData}></PilotsChartRelative>
-                        </div>
-                    )}
-                    <div className='bg-slate-200 rounded-lg mt-4 w-full overflow-hidden min-w-0' style={{ height: '600px' }}>
-                        <PilotsChartAbsolute pilots={selectedPilots} results={pilotData}></PilotsChartAbsolute>
-                    </div>
-                </Suspense>
+            {selectedPilots.filter(p => p !== null).length > 1 && (
+                <ChartContainer>
+                    <PilotsChartRelative pilots={selectedPilots} results={pilotData}></PilotsChartRelative>
+                </ChartContainer>
             )}
+            <ChartContainer className="bg-slate-200 rounded-lg mt-4">
+                <PilotsChartAbsolute pilots={selectedPilots} results={pilotData}></PilotsChartAbsolute>
+            </ChartContainer>
         </div >
     </>
 }
