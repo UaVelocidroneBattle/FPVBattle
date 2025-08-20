@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Spinner } from "@/components/ui/spinner.tsx";
 
 interface ChartContainerProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ export function ChartContainer({
       className={`${className} w-full overflow-hidden min-w-0`}
       style={{ height }}
     >
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<Spinner/>}>
         {children}
       </Suspense>
     </div>

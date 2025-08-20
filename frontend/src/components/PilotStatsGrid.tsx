@@ -7,7 +7,7 @@ interface PilotStatsGridProps {
 
 export function PilotStatsGrid({ profile }: PilotStatsGridProps) {
     return (
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
             <StatCard
                 value={profile.currentDayStreak}
                 label="Current streak"

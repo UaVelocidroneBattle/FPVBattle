@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
 import { ChartContainer } from '@/components/ChartContainer';
 import { Spinner } from '@/components/ui/spinner';
+import {Error} from "@/components/ui/error.tsx";
 
 const PilotsChartAbsolute = lazy(() => import('./PilotsChartAbsolute'))
 const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
@@ -45,9 +46,9 @@ const PagePilots = () => {
 
     if (pilotsState == 'Idle') return <></>;
 
-    if (pilotsState == 'Loading') return <h2 className='text-center text-2xl text-green-500'>🚁 Loading</h2>
+    if (pilotsState == 'Loading') return <Spinner></Spinner>
 
-    if (pilotsState == 'Error') return <h2>Error</h2>
+    if (pilotsState == 'Error') return <Error></Error>
 
     return <>
         <div className="mb-4 text-sm text-gray-200">
@@ -81,11 +82,11 @@ const PagePilots = () => {
                 <Spinner></Spinner>
             )}
             {selectedPilots.filter(p => p !== null).length > 1 && (
-                <ChartContainer>
+                <ChartContainer className="bg-none">
                     <PilotsChartRelative pilots={selectedPilots} results={pilotData}></PilotsChartRelative>
                 </ChartContainer>
             )}
-            <ChartContainer className="bg-slate-200 rounded-lg mt-4">
+            <ChartContainer className="bg-none mt-4">
                 <PilotsChartAbsolute pilots={selectedPilots} results={pilotData}></PilotsChartAbsolute>
             </ChartContainer>
         </div >
