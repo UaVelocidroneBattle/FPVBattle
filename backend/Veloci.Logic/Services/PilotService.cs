@@ -18,33 +18,31 @@ public class PilotService
         _mediator = mediator;
     }
 
-    public async Task UpdatePilotsAsync(List<TrackTimeDelta> deltas)
+    public async Task UpdatePilotsAsync(List<TrackTimeDelta> deltas, Dictionary<int, string> pilotNames)
     {
         _log.Debug("Updating pilots from {DeltaCount} deltas", deltas.Count);
 
         foreach (var delta in deltas)
         {
-            await UpdatePilotAsync(delta);
+            await UpdatePilotAsync(delta, pilotNames);
         }
     }
 
-    private async Task UpdatePilotAsync(TrackTimeDelta delta)
+    private async Task UpdatePilotAsync(TrackTimeDelta delta, Dictionary<int, string> pilotNames)
     {
         _log.Debug("Updating pilot for delta: {Delta}", delta);
 
-        if (delta.UserId is null)
-            throw new Exception("Delta must have a UserId");
-
-        var pilot = await _pilots.FindAsync(delta.UserId);
+        var pilotName = pilotNames[delta.PilotId];
+        var pilot = await _pilots.FindAsync(delta.PilotId);
 
         if (pilot is null)
         {
-            _log.Debug("Pilot not found for UserId {UserId}, creating new pilot {PilotName}", delta.UserId, delta.PlayerName);
+            _log.Debug("Pilot not found for UserId {UserId}, creating new pilot {PilotName}", delta.PilotId, pilotName);
 
             var newPilot = new Pilot
             {
-                Id = delta.UserId.Value,
-                Name = delta.PlayerName,
+                Id = delta.PilotId,
+                Name = pilotName,
             };
 
             await _pilots.AddAsync(newPilot);
@@ -52,14 +50,14 @@ public class PilotService
             return;
         }
 
-        if (pilot.Name != delta.PlayerName)
+        if (pilot.Name != pilotName)
         {
-            _log.Debug("Pilot name changed from {OldName} to {NewName} for UserId {UserId}", pilot.Name, delta.PlayerName, delta.UserId);
+            _log.Debug("Pilot name changed from {OldName} to {NewName} for UserId {UserId}", pilot.Name, pilotName, delta.PilotId);
 
             var oldName = pilot.Name;
-            pilot.ChangeName(delta.PlayerName);
+            pilot.ChangeName(pilotName);
             await _pilots.SaveChangesAsync();
-            await _mediator.Publish(new PilotRenamed(oldName, delta.PlayerName));
+            await _mediator.Publish(new PilotRenamed(oldName, pilotName));
         }
     }
 }

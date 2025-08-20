@@ -165,15 +165,7 @@ public class CompetitionConductor
 
         foreach (var results in competitionResults)
         {
-            var pilot = await _pilots.FindAsync(results.UserId);
-
-            if (pilot is null)
-            {
-                _log.Error($"Pilot {results.UserId} not found in database, cannot update day streak");
-                continue;
-            }
-
-            pilot.OnRaceFlown(today);
+            results.Pilot.OnRaceFlown(today);
         }
 
         await _pilots.SaveChangesAsync();

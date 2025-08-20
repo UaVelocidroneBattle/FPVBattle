@@ -56,8 +56,7 @@ public class MigrationController
         var today = comp.StartedOn.AddDays(1);
 
         var pilotIds = comp.CompetitionResults
-            .Where(p => p.UserId != null)
-            .Select(x => x.UserId.Value)
+            .Select(x => x.PilotId)
             .ToList();
 
         var pilotsSkippedDay = pilotList
@@ -102,62 +101,6 @@ public class MigrationController
             {
                 SpentOn = freezie.SpentOn
             });
-        }
-    }
-
-    [HttpGet("/api/migration/pilot-ids")]
-    public async Task SetPilotIdsToEntities()
-    {
-        var pilots = await _pilots.GetAll().ToListAsync();
-
-        foreach (var pilot in pilots)
-        {
-            await SetPilotIdToEntitiesAsync(pilot);
-        }
-
-        await _trackTimeDeltas.SaveChangesAsync();
-        Log.Debug("Finished setting pilot IDs to entities");
-    }
-
-    private string[] ExtractPilotNames(Pilot pilot)
-    {
-        var names = new List<string> { pilot.Name };
-
-        var oldNames = pilot.NameHistory?
-            .Select(n => n.OldName)
-            .ToList();
-
-        if (oldNames != null && oldNames.Count != 0)
-            names.AddRange(oldNames);
-
-        return names.ToArray();
-    }
-
-
-    private async Task SetPilotIdToEntitiesAsync(Pilot pilot)
-    {
-        Log.Debug("Setting pilot ID {PilotId} to entities for pilot {PilotName}", pilot.Id, pilot.Name);
-
-        var pilotNames = ExtractPilotNames(pilot);
-
-        var deltas = await _trackTimeDeltas
-            .GetAll()
-            .Where(d => pilotNames.Contains(d.PlayerName))
-            .ToListAsync();
-
-        foreach (var delta in deltas)
-        {
-            delta.UserId = pilot.Id;
-        }
-
-        var compResults = await _competitionResults
-            .GetAll()
-            .Where(r => pilotNames.Contains(r.PlayerName))
-            .ToListAsync();
-
-        foreach (var result in compResults)
-        {
-            result.UserId = pilot.Id;
         }
     }
 }

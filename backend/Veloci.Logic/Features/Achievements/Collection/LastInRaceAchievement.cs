@@ -16,6 +16,6 @@ public class LastInRaceAchievement : IAchievementAfterCompetition
             return false;
         }
 
-        return competition.GetSlowest()?.PlayerName == pilot.Name;
+        return competition.GetSlowest()?.PilotId == pilot.Id;
     }
 }
