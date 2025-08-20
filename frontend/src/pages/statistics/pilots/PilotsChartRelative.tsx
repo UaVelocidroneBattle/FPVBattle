@@ -77,11 +77,32 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
 
     chartData = t;
 
+    const theme = {
+        text: { fill: 'rgba(203, 213, 225, 0.5)' },
+        grid: {
+            line: {
+                stroke: '#94a3b8',
+                strokeWidth: 1,
+                strokeOpacity: 0.2
+            }
+        },
+        axis: {
+            domain: { line: { stroke: 'rgba(203, 213, 225, 0.5)' } },
+            ticks: {
+                line: { stroke: 'rgba(203, 213, 225, 0.5)' },
+                text: { fill: 'rgba(203, 213, 225, 0.5)' },
+            },
+            legend: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
+        },
+        legends: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
+    };
+
     return (
         <ResponsiveLine
             data={chartData}
-            margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-            areaOpacity={0.07}
+            margin={{ top: 20, right: 20, bottom: 100, left: 50 }}
+            theme={theme}
+            areaOpacity={0.3}
             colors={[
                 'rgb(97, 205, 187)',
                 'rgb(244, 117, 96)'
@@ -110,7 +131,6 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
                 tickPadding: 5,
                 tickRotation: -45,
                 legend: 'Date',
-                //legendOffset: 36,
                 legendPosition: 'middle',
                 truncateTickAt: 0,
                 format: '%b %d',
@@ -137,11 +157,11 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
             useMesh={true}
             legends={[
                 {
-                    anchor: 'bottom-right',
-                    direction: 'column',
+                    anchor: 'bottom',
+                    direction: 'row',
                     justify: false,
-                    translateX: 100,
-                    translateY: 0,
+                    translateX: 0,
+                    translateY: 70,
                     itemsSpacing: 0,
                     itemDirection: 'left-to-right',
                     itemWidth: 80,

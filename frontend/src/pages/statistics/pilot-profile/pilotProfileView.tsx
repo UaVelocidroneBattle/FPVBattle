@@ -54,7 +54,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             <div className="bg-slate-800 rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Racing Activity</h2>
                 {heatmapData.length > 0 ? (
-                    <ChartContainer className="bg-none rounded-lg">
+                    <ChartContainer className="bg-none rounded-lg min-h-[200px] md:min-h-[300px]" height={'0'}>
                         <HeatmapChart data={heatmapData} />
                     </ChartContainer>
 

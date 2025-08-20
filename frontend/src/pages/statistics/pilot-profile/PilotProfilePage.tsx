@@ -9,6 +9,8 @@ import { usePilotsStore } from '@/store/pilotsStore';
 import { useShallow } from 'zustand/shallow';
 import ComboBox from '@/components/ComboBox';
 import PilotProfileView from './pilotProfileView';
+import { Spinner } from '@/components/ui/spinner';
+import { Error } from '@/components/ui/error';
 
 
 
@@ -46,9 +48,9 @@ const PilotProfilePage = () => {
 
     if (pilotsState == 'Idle') return <></>;
 
-    if (pilotsState == 'Loading') return <h2 className='text-center text-2xl text-green-500'>🚁 Loading</h2>
+    if (pilotsState == 'Loading') return <Spinner/>;
 
-    if (pilotsState == 'Error') return <h2>Error</h2>
+    if (pilotsState == 'Error') return <Error/>;
 
     return (
         <>

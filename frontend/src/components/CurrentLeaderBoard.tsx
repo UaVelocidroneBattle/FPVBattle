@@ -17,7 +17,7 @@ const CurrentLeaderboard: React.FC<CurrentLeaderboardProps> = ({ trackResults }:
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
                                 <span className="font-bold text-slate-400 mr-4 w-8 text-right text-2xl tabular-nums">
-                                    {index + 1}
+                                    {String(index + 1).padStart(2, '0')}
                                 </span>
                                 <p className="text-sm font-medium text-slate-200">
                                     {pilot.playerName}
