@@ -11,26 +11,32 @@ public class PilotsController : ControllerBase
 {
     private readonly IRepository<Competition> _competitions;
     private readonly IPilotProfileService _pilotProfileService;
+    private readonly IRepository<Pilot> _pilots;
 
     public PilotsController(
         IRepository<Competition> competitions,
-        IPilotProfileService pilotProfileService)
+        IPilotProfileService pilotProfileService,
+        IRepository<Pilot> pilots)
     {
         _competitions = competitions;
         _pilotProfileService = pilotProfileService;
+        _pilots = pilots;
     }
 
     [HttpGet]
     public async Task<List<string>> All()
     {
-        var allPilots = await _competitions.GetAll()
-            .NotCancelled()
-            .SelectMany(comp => comp.CompetitionResults)
-            .Select(res => res.PlayerName)
-            .Distinct()
-            .ToListAsync();
+        var competitionResults = from comp in _competitions.GetAll().NotCancelled()
+            from res in comp.CompetitionResults
+            where res.UserId.HasValue
+            select res;
 
-        return allPilots;
+        var allPilotNames =
+            from pilot in _pilots.GetAll()
+            join result in competitionResults on pilot.Id equals result.UserId.Value
+            select pilot.Name;
+
+        return await allPilotNames.Distinct().ToListAsync();
     }
 
     [HttpGet]

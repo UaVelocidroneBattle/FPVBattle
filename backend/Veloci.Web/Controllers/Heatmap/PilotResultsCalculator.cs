@@ -13,14 +13,14 @@ public class PilotResultsCalculator
         _competitionResults = competitionResults;
     }
 
-    public async Task<List<PilotResult>> GetPilotResults(string pilotName, CancellationToken ct)
+    public async Task<List<PilotResult>> GetPilotResults(Pilot pilot, CancellationToken ct)
     {
         var start = new DateTime(2024, 1, 1);
 
         var data = await _competitionResults
             .GetAll()
             .Where(c => c.Competition.StartedOn >= start)
-            .Where(c => c.PlayerName == pilotName && c.Competition.State == CompetitionState.Closed)
+            .Where(c => c.UserId == pilot.Id && c.Competition.State == CompetitionState.Closed)
             .OrderBy(x => x.Competition.StartedOn)
             .ProjectToModel()
             .ToListAsync(ct);

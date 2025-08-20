@@ -137,6 +137,6 @@ public static class PilotExtensions
 
     public static IQueryable<Pilot> ByName(this IQueryable<Pilot> query, string name)
     {
-        return query.Where(p => p.Name == name);
+        return query.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
     }
 }
