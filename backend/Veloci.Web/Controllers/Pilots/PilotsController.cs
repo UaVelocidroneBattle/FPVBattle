@@ -26,17 +26,11 @@ public class PilotsController : ControllerBase
     [HttpGet]
     public async Task<List<string>> All()
     {
-        var competitionResults = from comp in _competitions.GetAll().NotCancelled()
-            from res in comp.CompetitionResults
-            where res.UserId.HasValue
-            select res;
-
-        var allPilotNames =
-            from pilot in _pilots.GetAll()
-            join result in competitionResults on pilot.Id equals result.UserId.Value
-            select pilot.Name;
-
-        return await allPilotNames.Distinct().ToListAsync();
+        return await _pilots
+            .GetAll()
+            .OrderBy(p => p.Name)
+            .Select(p => p.Name)
+            .ToListAsync();
     }
 
     [HttpGet]
