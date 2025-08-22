@@ -1,8 +1,8 @@
 import { usePilotsStore, usePilotsResults, usePilotResultsLoadingState } from '@/store/pilotsStore';
 import { useSelectedPilotsStore, useIsMaxPilotsReached } from '@/store/selectedPilotsStore';
-import { useEffect, lazy, useCallback } from 'react';
-import { useSearchParams } from 'react-router';
+import { useEffect, lazy } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useUrlPilotSync } from '@/hooks/useUrlPilotSync';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
@@ -15,79 +15,25 @@ const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
 
 
 const PagePilots = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
+    useUrlPilotSync();
 
-    const { state: pilotsState, pilots, fetchPilots, fetchPilotResults } = usePilotsStore(
+    const { state: pilotsState, pilots, fetchPilots } = usePilotsStore(
         useShallow((state) => ({
             state: state.state,
             pilots: state.pilots,
-            fetchPilots: state.fetchPilots,
-            fetchPilotResults: state.fetchPilotResults
+            fetchPilots: state.fetchPilots
         }))
     );
-    const { pilots: selectedPilots, selectPilot, addPilot, clearPilots } = useSelectedPilotsStore(
+    const { pilots: selectedPilots, selectPilot, addPilot } = useSelectedPilotsStore(
         useShallow((state) => ({
             pilots: state.pilots,
             selectPilot: state.selectPilot,
-            addPilot: state.addPilot,
-            clearPilots: state.clearPilots
+            addPilot: state.addPilot
         }))
-    ); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
+    );
     const maxPilotsReached = useIsMaxPilotsReached();
     const pilotData = usePilotsResults(selectedPilots);
     const pilotResultsState = usePilotResultsLoadingState(selectedPilots);
-
-    // Update URL when store changes
-    const updateUrlFromStore = useCallback(() => {
-        const params = new URLSearchParams();
-        const validPilots = selectedPilots.filter(p => p !== null);
-
-        if (validPilots.length > 0) {
-            params.set('pilot1', validPilots[0]);
-        }
-        if (validPilots.length > 1) {
-            params.set('pilot2', validPilots[1]);
-        }
-
-        setSearchParams(params);
-    }, [selectedPilots, setSearchParams]);
-
-    // Sync URL parameters with store
-    useEffect(() => {
-        if (pilotsState === 'Loaded' && pilots.length > 0) {
-            const urlPilot1 = searchParams.get('pilot1');
-            const urlPilot2 = searchParams.get('pilot2');
-            const urlPilots = [urlPilot1, urlPilot2].filter((p): p is string => p !== null && pilots.includes(p));
-
-            const hasUrlPilots = urlPilots.length > 0;
-            const hasStorePilots = selectedPilots.some(p => p !== null);
-
-            if (hasUrlPilots) {
-                // URL has valid pilots - only sync if they're different from store
-                const storePilots = selectedPilots.filter(p => p !== null);
-                const urlPilotsMatch = urlPilots.length === storePilots.length &&
-                    urlPilots.every((pilot, index) => pilot === storePilots[index]);
-
-                if (!urlPilotsMatch) {
-                    // URL pilots are different - sync to store
-                    clearPilots();
-                    urlPilots.forEach((pilot, index) => {
-                        if (index === 0) {
-                            selectPilot(pilot, 0);
-                            fetchPilotResults(pilot);
-                        } else {
-                            addPilot();
-                            selectPilot(pilot, 1);
-                            fetchPilotResults(pilot);
-                        }
-                    });
-                }
-            } else if (hasStorePilots && !hasUrlPilots) {
-                // Store has pilots but URL doesn't - sync store to URL
-                updateUrlFromStore();
-            }
-        }
-    }, [pilotsState, pilots, searchParams]);
 
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
@@ -97,10 +43,10 @@ const PagePilots = () => {
 
     const pilotChanged = (index: number) => (pilot: string) => {
         selectPilot(pilot, index);
-        fetchPilotResults(pilot);
     };
 
     const handleAddPilot = () => {
+        // Add pilot slot - URL will be updated automatically
         addPilot();
     };
 
