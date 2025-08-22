@@ -2,7 +2,7 @@ import { usePilotsStore, usePilotsResults, usePilotResultsLoadingState } from '@
 import { useSelectedPilotsStore, useIsMaxPilotsReached } from '@/store/selectedPilotsStore';
 import { useEffect, lazy } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useUrlPilotSync } from '@/hooks/useUrlPilotSync';
+import { useUrlPilotSync } from './useUrlPilotSync';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
