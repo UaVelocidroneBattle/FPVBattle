@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import {
     usePilotProfileStore,
     usePilotProfile,
@@ -15,6 +16,7 @@ import { Error } from '@/components/ui/error';
 
 
 const PilotProfilePage = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
 
     //heatmap store should be combinded with profile store
     const { currentPilot, choosePilot } = usePilotProfileStore(
@@ -38,12 +40,35 @@ const PilotProfilePage = () => {
         }))
     );
 
+    // Sync URL parameter with store on mount and when pilots list changes
+    useEffect(() => {
+        if (pilotsState === 'Loaded' && pilots.length > 0) {
+            const urlPilot = searchParams.get('pilot');
+            
+            if (urlPilot && pilots.includes(urlPilot)) {
+                // URL has valid pilot - sync to store if different
+                if (currentPilot !== urlPilot) {
+                    choosePilot(urlPilot);
+                }
+            } else if (currentPilot && !urlPilot) {
+                // Store has pilot but URL doesn't - sync to URL
+                setSearchParams({ pilot: currentPilot });
+            }
+        }
+    }, [pilotsState, pilots, searchParams, currentPilot, choosePilot, setSearchParams]);
+
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
             const { fetchPilots } = usePilotsStore.getState();
             fetchPilots();
         }
     }, [pilotsState]);
+
+    // Handle pilot selection - update both store and URL
+    const handlePilotSelect = (pilot: string) => {
+        choosePilot(pilot);
+        setSearchParams({ pilot });
+    };
 
 
     if (pilotsState == 'Idle') return <></>;
@@ -59,7 +84,7 @@ const PilotProfilePage = () => {
                     items={pilots}
                     getKey={pilotKey}
                     getLabel={pilotLabel}
-                    onSelect={choosePilot}
+                    onSelect={handlePilotSelect}
                     value={currentPilot}></ComboBox>
             </div>
 
