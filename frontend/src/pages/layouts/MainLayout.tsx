@@ -2,7 +2,7 @@ import {Link, NavLink, Outlet} from "react-router-dom"
 import {FaTelegramPlane} from "react-icons/fa";
 import {SiDiscord} from "react-icons/si";
 import {TbBrandPatreonFilled} from "react-icons/tb";
-import logo from "@/assets/logo.svg";
+import logo from "/logo.svg";
 
 /**
  * Defines main layout that is applied to all top level pages

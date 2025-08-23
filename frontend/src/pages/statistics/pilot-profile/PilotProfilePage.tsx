@@ -11,10 +11,12 @@ import ComboBox from '@/components/ComboBox';
 import PilotProfileView from './pilotProfileView';
 import { Spinner } from '@/components/ui/spinner';
 import { Error } from '@/components/ui/error';
+import { useUrlPilotProfileSync } from './useUrlPilotProfileSync';
 
 
 
 const PilotProfilePage = () => {
+    useUrlPilotProfileSync();
 
     //heatmap store should be combinded with profile store
     const { currentPilot, choosePilot } = usePilotProfileStore(
@@ -38,6 +40,7 @@ const PilotProfilePage = () => {
         }))
     );
 
+
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
             const { fetchPilots } = usePilotsStore.getState();
@@ -45,12 +48,16 @@ const PilotProfilePage = () => {
         }
     }, [pilotsState]);
 
+    const handlePilotSelect = (pilot: string) => {
+        choosePilot(pilot);
+    };
+
 
     if (pilotsState == 'Idle') return <></>;
 
-    if (pilotsState == 'Loading') return <Spinner/>;
+    if (pilotsState == 'Loading') return <Spinner />;
 
-    if (pilotsState == 'Error') return <Error/>;
+    if (pilotsState == 'Error') return <Error />;
 
     return (
         <>
@@ -59,7 +66,7 @@ const PilotProfilePage = () => {
                     items={pilots}
                     getKey={pilotKey}
                     getLabel={pilotLabel}
-                    onSelect={choosePilot}
+                    onSelect={handlePilotSelect}
                     value={currentPilot}></ComboBox>
             </div>
 

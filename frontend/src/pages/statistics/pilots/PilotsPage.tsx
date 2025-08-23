@@ -2,24 +2,26 @@ import { usePilotsStore, usePilotsResults, usePilotResultsLoadingState } from '@
 import { useSelectedPilotsStore, useIsMaxPilotsReached } from '@/store/selectedPilotsStore';
 import { useEffect, lazy } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useUrlPilotSync } from './useUrlPilotSync';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import PilotSelectors from './PilotSelectors';
 import { ChartContainer } from '@/components/ChartContainer';
 import { Spinner } from '@/components/ui/spinner';
-import {Error} from "@/components/ui/error.tsx";
+import { Error } from "@/components/ui/error.tsx";
 
 const PilotsChartAbsolute = lazy(() => import('./PilotsChartAbsolute'))
 const PilotsChartRelative = lazy(() => import('./PilotsChartRelative'))
 
 
 const PagePilots = () => {
-    const { state: pilotsState, pilots, fetchPilots, fetchPilotResults } = usePilotsStore(
+    useUrlPilotSync();
+
+    const { state: pilotsState, pilots, fetchPilots } = usePilotsStore(
         useShallow((state) => ({
             state: state.state,
             pilots: state.pilots,
-            fetchPilots: state.fetchPilots,
-            fetchPilotResults: state.fetchPilotResults
+            fetchPilots: state.fetchPilots
         }))
     );
     const { pilots: selectedPilots, selectPilot, addPilot } = useSelectedPilotsStore(
@@ -28,7 +30,7 @@ const PagePilots = () => {
             selectPilot: state.selectPilot,
             addPilot: state.addPilot
         }))
-    ); //Array of selected pilots. If pilot is not selected for particular combobox, there is a null in array
+    );
     const maxPilotsReached = useIsMaxPilotsReached();
     const pilotData = usePilotsResults(selectedPilots);
     const pilotResultsState = usePilotResultsLoadingState(selectedPilots);
@@ -41,8 +43,12 @@ const PagePilots = () => {
 
     const pilotChanged = (index: number) => (pilot: string) => {
         selectPilot(pilot, index);
-        fetchPilotResults(pilot);
-    }
+    };
+
+    const handleAddPilot = () => {
+        // Add pilot slot - URL will be updated automatically
+        addPilot();
+    };
 
     if (pilotsState == 'Idle') return <></>;
 
@@ -65,9 +71,7 @@ const PagePilots = () => {
                     <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => {
-                            addPilot()
-                        }}
+                        onClick={handleAddPilot}
                         className="w-10 bg-slate-800/50 hover:bg-slate-700/50 text-slate-200 hover:text-slate-200 border-slate-700 "
                     >
                         <Plus className="h-4 w-4" />
