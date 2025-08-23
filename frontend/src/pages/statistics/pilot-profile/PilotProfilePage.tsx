@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useSearchParams } from 'react-router';
 import {
     usePilotProfileStore,
     usePilotProfile,
@@ -12,11 +11,12 @@ import ComboBox from '@/components/ComboBox';
 import PilotProfileView from './pilotProfileView';
 import { Spinner } from '@/components/ui/spinner';
 import { Error } from '@/components/ui/error';
+import { useUrlPilotProfileSync } from './useUrlPilotProfileSync';
 
 
 
 const PilotProfilePage = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
+    useUrlPilotProfileSync();
 
     //heatmap store should be combinded with profile store
     const { currentPilot, choosePilot } = usePilotProfileStore(
@@ -40,22 +40,6 @@ const PilotProfilePage = () => {
         }))
     );
 
-    // Sync URL parameter with store on mount and when pilots list changes
-    useEffect(() => {
-        if (pilotsState === 'Loaded' && pilots.length > 0) {
-            const urlPilot = searchParams.get('pilot');
-            
-            if (urlPilot && pilots.includes(urlPilot)) {
-                // URL has valid pilot - sync to store if different
-                if (currentPilot !== urlPilot) {
-                    choosePilot(urlPilot);
-                }
-            } else if (currentPilot && !urlPilot) {
-                // Store has pilot but URL doesn't - sync to URL
-                setSearchParams({ pilot: currentPilot });
-            }
-        }
-    }, [pilotsState, pilots, searchParams, currentPilot, choosePilot, setSearchParams]);
 
     useEffect(() => {
         if (pilotsState == 'Idle' || pilotsState == 'Error') {
@@ -64,18 +48,16 @@ const PilotProfilePage = () => {
         }
     }, [pilotsState]);
 
-    // Handle pilot selection - update both store and URL
     const handlePilotSelect = (pilot: string) => {
         choosePilot(pilot);
-        setSearchParams({ pilot });
     };
 
 
     if (pilotsState == 'Idle') return <></>;
 
-    if (pilotsState == 'Loading') return <Spinner/>;
+    if (pilotsState == 'Loading') return <Spinner />;
 
-    if (pilotsState == 'Error') return <Error/>;
+    if (pilotsState == 'Error') return <Error />;
 
     return (
         <>
