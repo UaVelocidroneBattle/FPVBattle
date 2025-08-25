@@ -29,11 +29,9 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<TrackTime>().Property(t => t.ModelName).HasMaxLength(128);
 
         builder.Entity<TrackTimeDelta>().ToTable("TrackTimeDeltas");
-        builder.Entity<TrackTimeDelta>().Property(t => t.PlayerName).HasMaxLength(128);
         builder.Entity<TrackTimeDelta>().Property(t => t.ModelName).HasMaxLength(128);
 
         builder.Entity<CompetitionResults>().ToTable("CompetitionResults");
-        builder.Entity<CompetitionResults>().Property(c => c.PlayerName).HasMaxLength(128);
         builder.Entity<CompetitionResults>().Property(c => c.ModelName).HasMaxLength(128);
 
         builder.Entity<Pilot>().ToTable("Pilots");

@@ -17,18 +17,6 @@
         }
       }
     },
-    "/api/migration/pilot-ids": {
-      "get": {
-        "tags": [
-          "Migration"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/pilots/All": {
       "get": {
         "tags": [
@@ -441,7 +429,8 @@
           "playerName",
           "time",
           "globalRank",
-          "localRank"
+          "localRank",
+          "modelName"
         ],
         "type": "object",
         "properties": {
@@ -459,6 +448,9 @@
           "localRank": {
             "type": "integer",
             "format": "int32"
+          },
+          "modelName": {
+            "type": "string"
           }
         }
       }

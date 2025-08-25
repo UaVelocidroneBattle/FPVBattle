@@ -62,6 +62,7 @@ export type TrackTimeModel = {
     time: number;
     globalRank: number;
     localRank: number;
+    modelName: string;
 };
 
 export type GetApiMigrationStreaksData = {

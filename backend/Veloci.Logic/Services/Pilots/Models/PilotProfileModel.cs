@@ -1,6 +1,4 @@
-using Veloci.Data.Domain;
-
-namespace Veloci.Web.Controllers.Pilots;
+namespace Veloci.Logic.Services.Pilots.Models;
 
 public class PilotProfileModel
 {

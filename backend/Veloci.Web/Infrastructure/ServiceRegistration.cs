@@ -5,9 +5,9 @@ using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
 using Veloci.Logic.Features.Achievements;
+using Veloci.Logic.Services.Pilots;
 using Veloci.Logic.Services.Tracks;
 using Veloci.Web.Controllers.Heatmap;
-using Veloci.Web.Controllers.Pilots;
 
 namespace Veloci.Web.Infrastructure;
 

@@ -21,13 +21,13 @@ const ClickableTrackName: React.FC<ClickableTrackNameProps> = ({ mapName, trackN
 
     return (
         <div>
-            <div className="text-slate-400">{mapName}</div>
+            <div className="text-slate-400 mb-2">{mapName}</div>
             <button
                 onClick={copyToClipboard}
                 className="text-xl font-semibold text-white flex items-center gap-2 hover:text-emerald-400 transition-colors duration-200 group w-full max-w-[500px]"
                 title={trackName}
             >
-                <span className="flex-1 truncate">{trackName}</span>
+                <span className="truncate">{trackName}</span>
                 {copied ? (
                     <Check className="h-5 w-5 text-emerald-400 shrink-0" />
                 ) : (

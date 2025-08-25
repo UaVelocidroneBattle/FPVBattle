@@ -1,4 +1,4 @@
-namespace Veloci.Web.Controllers.Pilots;
+namespace Veloci.Logic.Services.Pilots.Models;
 
 public class PilotAchievementModel
 {

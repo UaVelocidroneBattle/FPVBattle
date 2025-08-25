@@ -16,7 +16,7 @@ public class GlobalFirstPlaceAchievement : IAchievementAfterCompetition
             return false;
         }
 
-        var result = competition.CompetitionResults.GetByPilotName(pilot.Name);
+        var result = competition.CompetitionResults.GetByPilotId(pilot.Id);
 
         if (result is null)
         {

@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Services.Pilots;
+using Veloci.Logic.Services.Pilots.Models;
 
 namespace Veloci.Web.Controllers.Pilots;
 

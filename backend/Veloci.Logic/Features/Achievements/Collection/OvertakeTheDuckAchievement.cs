@@ -11,19 +11,19 @@ public class OvertakeTheDuckAchievement : IAchievementAfterCompetition
 
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
     {
-        const string duckName = "StDuck";
+        const int duckId = 70911;
 
         if (pilot.HasAchievement(Name))
         {
             return false;
         }
 
-        if (pilot.Name == duckName)
+        if (pilot.Id == duckId)
         {
             return false;
         }
 
-        var duckResult = competition.CompetitionResults.GetByPilotName(duckName);
+        var duckResult = competition.CompetitionResults.GetByPilotId(duckId);
         var leaderboardMiddle = competition.GetSlowest()?.LocalRank / 2;
 
         if (duckResult is null || duckResult.LocalRank == 1 || duckResult.LocalRank > leaderboardMiddle)
@@ -31,7 +31,7 @@ public class OvertakeTheDuckAchievement : IAchievementAfterCompetition
             return false;
         }
 
-        var pilotResult = competition.CompetitionResults.GetByPilotName(pilot.Name);
+        var pilotResult = competition.CompetitionResults.GetByPilotId(pilot.Id);
 
         if (pilotResult is null)
         {

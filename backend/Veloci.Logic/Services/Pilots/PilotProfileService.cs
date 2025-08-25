@@ -2,8 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Achievements.Services;
+using Veloci.Logic.Services.Pilots.Models;
 
-namespace Veloci.Web.Controllers.Pilots;
+namespace Veloci.Logic.Services.Pilots;
 
 public interface IPilotProfileService
 {
@@ -38,7 +39,7 @@ public class PilotProfileService : IPilotProfileService
 
         // Calculate race statistics
         var raceDates = _competitionResults.GetAll()
-            .Where(cr => cr.PlayerName == pilotName && cr.Competition.State == CompetitionState.Closed)
+            .Where(cr => cr.PilotId == pilot.Id && cr.Competition.State == CompetitionState.Closed)
             .Select(cr => cr.Competition.StartedOn.Date)
             .Distinct();
 
