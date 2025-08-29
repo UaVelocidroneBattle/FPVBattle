@@ -10,6 +10,14 @@ namespace Veloci.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql( /*lang=sql*/@"
+                DELETE FROM TrackTimeDeltas
+                WHERE UserId = 0 OR UserId IS NULL;
+
+                DELETE FROM CompetitionResults
+                WHERE UserId = 0 OR UserId IS NULL;
+            ");
+
             // Drop PlayerName columns
             migrationBuilder.DropColumn(
                 name: "PlayerName",
