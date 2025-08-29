@@ -1,4 +1,5 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
+import { PartialTheme } from '@nivo/theming';
 import PilotsChartProps from './PilotChartProps';
 
 
@@ -77,8 +78,20 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
 
     chartData = t;
 
-    const theme = {
+    const theme: PartialTheme = {
         text: { fill: 'rgba(203, 213, 225, 0.5)' },
+        tooltip: {
+            container: {
+                background: '#ffffff',
+                color: '#333333'
+            }
+        },
+        crosshair: {
+            line: {
+                stroke: 'rgba(203, 213, 225, 0.5)',
+                strokeWidth: 1
+            }
+        },
         grid: {
             line: {
                 stroke: '#94a3b8',

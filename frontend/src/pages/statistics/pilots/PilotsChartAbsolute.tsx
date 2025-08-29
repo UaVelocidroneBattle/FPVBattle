@@ -1,4 +1,5 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
+import { PartialTheme } from '@nivo/theming';
 import PilotsChartProps from './PilotChartProps';
 
 const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
@@ -31,8 +32,20 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
         <h2>No data</h2>
     </>
 
-    const theme = {
+    const theme: PartialTheme = {
         text: { fill: 'rgba(203, 213, 225, 0.5)' },
+        crosshair: {
+            line: {
+                stroke: 'rgba(203, 213, 225, 0.5)',
+                strokeWidth: 1
+            }
+        },
+        tooltip: {
+            container: {
+                background: '#ffffff',
+                color: '#333333'
+            }
+        },
         grid: {
             line: {
                 stroke: '#94a3b8',
