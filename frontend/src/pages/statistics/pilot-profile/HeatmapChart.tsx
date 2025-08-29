@@ -1,14 +1,21 @@
 import { PilotResult } from '@/api/client';
+import { PartialTheme } from '@nivo/theming';
 import { CalendarDatum, ResponsiveCalendarCanvas } from '@nivo/calendar'
 
 interface HeatmapChartProps {
     data: PilotResult[]
 }
 
-const theme = {
+const theme: PartialTheme = {
     text: {
         fill: "#94a3b8"
-    }
+    },
+    tooltip: {
+        container: {
+            background: '#ffffff',
+            color: '#333333'
+        }
+    },
 };
 
 const HeatmapChart = ({ data }: HeatmapChartProps) => {
@@ -39,9 +46,9 @@ const HeatmapChart = ({ data }: HeatmapChartProps) => {
             }
             legends={[
                 {
-                    anchor: 'bottom-right',
+                    anchor: 'bottom',
                     direction: 'row',
-                    translateY: 0,
+                    translateY: 50,
                     itemCount: 4,
                     itemWidth: 42,
                     itemHeight: 36,
