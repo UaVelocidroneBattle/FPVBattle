@@ -108,7 +108,7 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.SeasonResults(notification.Results);
         await _discordBot.SendMessageAsync(message);
 
-        await _discordBot.SendImageAsync(notification.Image);
+        await _discordBot.SendImageAsync(notification.Image, notification.ImageName);
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
         BackgroundJob.Schedule(() => _discordBot.SendMessageAsync(medalCountMessage), TimeSpan.FromSeconds(6));

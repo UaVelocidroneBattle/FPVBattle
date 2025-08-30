@@ -311,7 +311,7 @@ public class CompetitionConductor
         var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
         _log.Debug("Generated winner image for season {SeasonName}", seasonName);
 
-        await _mediator.Publish(new SeasonFinished(results, seasonName, winners, image));
+        await _mediator.Publish(new SeasonFinished(results, seasonName, winners, image, "winners.png"));
         _log.Information("Season {SeasonName} finalization completed", seasonName);
     }
 
