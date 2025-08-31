@@ -11,6 +11,9 @@ const AbsoluteChartTooltip = ({ point, filteredData, pilots }: AbsoluteChartTool
     const pilot1Time = filteredData[0]?.data.find(d => (d.x as Date).valueOf() === currentDate.valueOf())?.y as number;
     const pilot2Time = filteredData[1]?.data.find(d => (d.x as Date).valueOf() === currentDate.valueOf())?.y as number;
 
+    // Check if second pilot exists and has data
+    const hasSecondPilot = pilots[1] && filteredData[1] && pilot2Time !== undefined;
+
     return (
         <div style={{
             background: '#ffffff',
@@ -21,12 +24,14 @@ const AbsoluteChartTooltip = ({ point, filteredData, pilots }: AbsoluteChartTool
             color: '#333333',
             fontSize: '12px'
         }}>
-            <div style={{ whiteSpace: 'nowrap', marginBottom: '2px' }}>
+            <div style={{ whiteSpace: 'nowrap', marginBottom: hasSecondPilot ? '2px' : '0' }}>
                 <strong>{pilots[0] || 'Unknown'} </strong>{pilot1Time?.toFixed(2)}s
             </div>
-            <div style={{ whiteSpace: 'nowrap' }}>
-                <strong>{pilots[1] || 'Unknown'} </strong>{pilot2Time?.toFixed(2)}s
-            </div>
+            {hasSecondPilot && (
+                <div style={{ whiteSpace: 'nowrap' }}>
+                    <strong>{pilots[1]} </strong>{pilot2Time.toFixed(2)}s
+                </div>
+            )}
         </div>
     );
 };
