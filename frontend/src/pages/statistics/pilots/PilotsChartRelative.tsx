@@ -1,6 +1,13 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
 import { PartialTheme } from '@nivo/theming';
 import PilotsChartProps from './PilotChartProps';
+import RelativeChartTooltip from './RelativeChartTooltip';
+
+export interface RelativeChartDataPoint {
+    x: Date;
+    y: number | null;
+    absoluteDifference?: number;
+}
 
 
 const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
@@ -9,7 +16,7 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
         <h2>No data</h2>
     </>;
 
-    const referencePilot = 0;
+    // pilots[0] is always the reference pilot
 
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - 2); // Get date from 2 months ago
@@ -37,55 +44,52 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
     const t = [];
 
     for (let pilotIndex = 0; pilotIndex < chartData.length; pilotIndex++) {
-        if (pilotIndex == referencePilot) continue;
+        if (pilotIndex == 0) continue; // Skip reference pilot (pilots[0])
         const pilotData = chartData[pilotIndex];
 
         const pilotDataPositive = {
             id: `Faster`,
-            data: [] as { x: Date, y: number | null }[]
+            data: [] as RelativeChartDataPoint[]
         };
 
         const pilotDataNegative = {
             id: `Slower`,
-            data: [] as { x: Date, y: number | null }[]
+            data: [] as RelativeChartDataPoint[]
         };
 
         let lastValue: { x: Date, y: number } | null = null;
 
         for (let i = 0; i < pilotData.data.length; i++) {
             const v = pilotData.data[i];
-            const y = ((v.y as number) - (chartData[referencePilot].data[i].y as number)) / (chartData[referencePilot].data[i].y as number) * 100;
+            const absoluteDifference = Math.abs((v.y as number) - (chartData[0].data[i].y as number));
+            const y = ((v.y as number) - (chartData[0].data[i].y as number)) / (chartData[0].data[i].y as number) * 100;
             v.y = y;
 
             if (lastValue && (lastValue.y < 0 && y > 0 || lastValue.y > 0 && y < 0)) {
                 //add intermediate point        
                 const md = new Date(((v.x as Date).valueOf() + lastValue.x.valueOf()) / 2);
-                pilotDataPositive.data.push({ x: md, y: 0 });
-                pilotDataNegative.data.push({ x: md, y: 0 });
+                pilotDataPositive.data.push({ x: md, y: 0, absoluteDifference });
+                pilotDataNegative.data.push({ x: md, y: 0, absoluteDifference });
             }
 
-            pilotDataPositive.data.push({ x: v.x as Date, y: y >= 0 ? y : null });
-            pilotDataNegative.data.push({ x: v.x as Date, y: y <= 0 ? y : null });
+            // Calculate absolute time difference using original times
+
+            pilotDataPositive.data.push({ x: v.x as Date, y: y >= 0 ? y : null, absoluteDifference });
+            pilotDataNegative.data.push({ x: v.x as Date, y: y <= 0 ? y : null, absoluteDifference });
 
             lastValue = v as { x: Date, y: number };
         }
 
-
         t.push(pilotDataPositive);
         t.push(pilotDataNegative);
-
     }
 
     chartData = t;
 
+    // pilots[0] is reference, pilots[1] is compared pilot
+
     const theme: PartialTheme = {
         text: { fill: 'rgba(203, 213, 225, 0.5)' },
-        tooltip: {
-            container: {
-                background: '#ffffff',
-                color: '#333333'
-            }
-        },
         crosshair: {
             line: {
                 stroke: 'rgba(203, 213, 225, 0.5)',
@@ -122,6 +126,9 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
             ]}
             enableArea
             curve="monotoneX"
+            tooltip={({ point }) => (
+                <RelativeChartTooltip point={{ data: point.data as RelativeChartDataPoint }} pilots={pilots!} />
+            )}
             xScale={{
                 format: '%Y-%m-%d',
                 precision: 'day',

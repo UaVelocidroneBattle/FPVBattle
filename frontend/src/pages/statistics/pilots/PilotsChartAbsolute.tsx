@@ -1,6 +1,7 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
 import { PartialTheme } from '@nivo/theming';
 import PilotsChartProps from './PilotChartProps';
+import AbsoluteChartTooltip from './AbsoluteChartTooltip';
 
 const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
 
@@ -26,9 +27,9 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
         pilotData.data = pilotData.data.filter(i => dates[(i.x as Date).valueOf()] == chartData.length);
     }
 
-    const data = chartData.filter(d => d.data.length > 0);
+    const filteredData = chartData.filter(d => d.data.length > 0);
 
-    if (data.length == 0) return <>
+    if (filteredData.length == 0) return <>
         <h2>No data</h2>
     </>
 
@@ -38,12 +39,6 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
             line: {
                 stroke: 'rgba(203, 213, 225, 0.5)',
                 strokeWidth: 1
-            }
-        },
-        tooltip: {
-            container: {
-                background: '#ffffff',
-                color: '#333333'
             }
         },
         grid: {
@@ -67,7 +62,7 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
 
     return (
         <ResponsiveLine
-            data={data}
+            data={filteredData}
             theme={theme}
             margin={{ top: 20, right: 20, bottom: 100, left: 50 }}
             areaOpacity={0.3}
@@ -76,6 +71,13 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
                 'rgb(244, 117, 96)'
             ]}
             curve="monotoneX"
+            tooltip={({ point }) => (
+                <AbsoluteChartTooltip
+                    point={point}
+                    filteredData={filteredData}
+                    pilots={pilots}
+                />
+            )}
             xScale={{
                 format: '%Y-%m-%d',
                 precision: 'day',
@@ -98,7 +100,6 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
                 tickPadding: 5,
                 tickRotation: -45,
                 legend: 'Date',
-                //legendOffset: 36,
                 legendPosition: 'middle',
                 truncateTickAt: 0,
                 format: '%b %d',
