@@ -1,5 +1,6 @@
 import { TrackTimeModel } from "../api/client";
 import { convertMsToSec } from "../utils/utils";
+import PilotName from "@/components/PilotName";
 
 interface CurrentLeaderboardProps {
     trackResults: TrackTimeModel[];
@@ -21,9 +22,10 @@ const CurrentLeaderboard: React.FC<CurrentLeaderboardProps> = ({ trackResults }:
                             </span>
 
                             {/* Player name */}
-                            <p className="truncate text-sm font-medium text-slate-200">
-                                {pilot.playerName}
-                            </p>
+                            <PilotName 
+                                name={pilot.playerName}
+                                className="truncate text-sm font-medium text-slate-200"
+                            />
 
                             {/* Model */}
                             <p className="hidden md:block text-sm font-medium text-slate-200">

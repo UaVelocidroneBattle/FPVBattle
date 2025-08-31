@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SeasonResultModel } from "../api/client";
 import { ChevronDown } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner.tsx";
+import PilotName from "@/components/PilotName";
 
 interface LeaderBoardProps {
     leaderBoard: SeasonResultModel[];
@@ -38,7 +39,10 @@ const LeaderRow: React.FC<LeaderRowProps> = ({ res, index }) => {
                     <span className={spanClasses}>
                         {isTopTen ? String(index + 1).padStart(2, "0") : index + 1}
                     </span>
-                    <p className={nameClasses}>{res.playerName}</p>
+                    <PilotName 
+                        name={res.playerName}
+                        className={nameClasses}
+                    />
                 </div>
                 <div className={pointsClasses}>{res.points}</div>
             </div>
