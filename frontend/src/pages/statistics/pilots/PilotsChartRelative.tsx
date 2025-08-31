@@ -54,7 +54,7 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
 
         for (let i = 0; i < pilotData.data.length; i++) {
             const v = pilotData.data[i];
-            const y = ((chartData[referencePilot].data[i].y as number) - (v.y as number)) / (chartData[referencePilot].data[i].y as number) * 100;
+            const y = ((v.y as number) - (chartData[referencePilot].data[i].y as number)) / (chartData[referencePilot].data[i].y as number) * 100;
             v.y = y;
 
             if (lastValue && (lastValue.y < 0 && y > 0 || lastValue.y > 0 && y < 0)) {
