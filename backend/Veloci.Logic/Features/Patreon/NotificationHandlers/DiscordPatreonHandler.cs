@@ -7,7 +7,8 @@ namespace Veloci.Logic.Features.Patreon.NotificationHandlers;
 
 public class DiscordPatreonHandler :
     INotificationHandler<NewPatreonSupporterNotification>,
-    INotificationHandler<MonthlyPatreonSupportersNotification>
+    INotificationHandler<MonthlyPatreonSupportersNotification>,
+    INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
     private readonly IDiscordBot _discordBot;
 
@@ -49,10 +50,16 @@ public class DiscordPatreonHandler :
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
         var message = PatreonMessageGenerator.GenerateWelcomeMessage(
-            notification.Supporter.Name, 
-            notification.Supporter.TierName, 
+            notification.Supporter.Name,
+            notification.Supporter.TierName,
             useDiscordMarkdown: true);
 
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
+    {
+        var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: true);
         await _discordBot.SendMessageAsync(message);
     }
 }

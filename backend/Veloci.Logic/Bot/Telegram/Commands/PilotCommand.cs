@@ -53,4 +53,5 @@ public class PilotCommand : ITelegramCommand
     }
 
     public bool RemoveMessageAfterDelay => false;
+    public bool Public => true;
 }

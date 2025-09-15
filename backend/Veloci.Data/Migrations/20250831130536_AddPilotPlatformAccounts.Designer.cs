@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250831130536_AddPilotPlatformAccounts")]
+    partial class AddPilotPlatformAccounts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -374,9 +377,6 @@ namespace Veloci.Web.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PilotId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -387,8 +387,6 @@ namespace Veloci.Web.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("PatreonId");
-
-                    b.HasIndex("PilotId");
 
                     b.ToTable("PatreonSupporters", (string)null);
                 });
@@ -792,15 +790,6 @@ namespace Veloci.Web.Data.Migrations
                 {
                     b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
                         .WithMany("DayStreakFreezes")
-                        .HasForeignKey("PilotId");
-
-                    b.Navigation("Pilot");
-                });
-
-            modelBuilder.Entity("Veloci.Data.Domain.PatreonSupporter", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
-                        .WithMany()
                         .HasForeignKey("PilotId");
 
                     b.Navigation("Pilot");

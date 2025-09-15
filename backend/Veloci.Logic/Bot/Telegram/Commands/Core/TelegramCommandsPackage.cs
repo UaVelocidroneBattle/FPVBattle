@@ -11,6 +11,10 @@ public static class TelegramCommandsPackage
             .AddScoped<ITelegramCommand, HelpCommand>()
             .AddScoped<ITelegramCommand, PilotCommand>()
             .AddScoped<ITelegramCommand, AchievementsCommand>()
+            .AddScoped<ITelegramCommand, ConnectPilotToPlatformCommand>()
+            .AddScoped<ITelegramCommand, ConnectPilotToPatreonCommand>()
+            .AddScoped<ITelegramCommand, ListPatreonSupportersCommand>()
+            .AddScoped<ITelegramCommand, ListPilotPlatformsCommand>()
             ;
 
         return services;

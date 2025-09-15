@@ -20,4 +20,7 @@ public class PatreonSupporter
     public DateTime FirstSupportedAt { get; set; }
 
     public DateTime LastUpdated { get; set; }
+
+    public virtual Pilot Pilot { get; set;  }
+    public int? PilotId { get; set; }
 }

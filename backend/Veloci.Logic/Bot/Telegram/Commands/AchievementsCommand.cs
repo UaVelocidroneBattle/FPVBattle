@@ -45,4 +45,5 @@ public class AchievementsCommand : ITelegramCommand
     }
 
     public bool RemoveMessageAfterDelay => false;
+    public bool Public => true;
 }

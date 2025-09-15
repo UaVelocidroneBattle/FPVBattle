@@ -7,7 +7,8 @@ namespace Veloci.Logic.Features.Patreon.NotificationHandlers;
 
 public class TelegramPatreonHandler :
     INotificationHandler<NewPatreonSupporterNotification>,
-    INotificationHandler<MonthlyPatreonSupportersNotification>
+    INotificationHandler<MonthlyPatreonSupportersNotification>,
+    INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
     public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
     {
@@ -42,10 +43,16 @@ public class TelegramPatreonHandler :
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
         var message = PatreonMessageGenerator.GenerateWelcomeMessage(
-            notification.Supporter.Name, 
-            notification.Supporter.TierName, 
+            notification.Supporter.Name,
+            notification.Supporter.TierName,
             useDiscordMarkdown: false);
 
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
+    {
+        var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: false);
         await TelegramBot.SendMessageAsync(message);
     }
 }
