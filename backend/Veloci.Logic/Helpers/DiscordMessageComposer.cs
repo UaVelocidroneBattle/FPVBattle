@@ -34,7 +34,8 @@ public class DiscordMessageComposer
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
-               $"{flownPilotsText}⠀";
+               $"{flownPilotsText}{Environment.NewLine}" +
+               $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}⠀";
     }
 
     public BotPoll Poll(string trackName)
@@ -81,7 +82,7 @@ public class DiscordMessageComposer
     {
         var rows = results.Select(LeaderboardRow);
         var divider = Environment.NewLine;
-        return $"### 🏆 Leaderboard{Environment.NewLine}{Environment.NewLine}⠀" +
+        return $"### 🏆 Leaderboard{Environment.NewLine}{Environment.NewLine}" +
                $"{string.Join($"{divider}", rows)}";
     }
 
@@ -89,7 +90,7 @@ public class DiscordMessageComposer
     {
         var rows = results.Select(TempSeasonResultsRow);
         var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-        return $"### 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
+        return $"### 🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}" +
                $"{string.Join($"{divider}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
@@ -97,7 +98,7 @@ public class DiscordMessageComposer
     public string SeasonResults(IEnumerable<SeasonResult> results)
     {
         var rows = results.Select(SeasonResultsRow);
-        return $"### 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}⠀" +
+        return $"### 🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}" +
                $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }

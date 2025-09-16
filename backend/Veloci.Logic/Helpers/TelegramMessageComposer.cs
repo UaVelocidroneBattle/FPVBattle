@@ -36,7 +36,7 @@ public class TelegramMessageComposer
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
                $"{flownPilotsText}{Environment.NewLine}" +
-               $"👾 Також не забувайте додаватись в наш Discord:{Environment.NewLine}*https://discord.gg/FrpC2WV8Cw*{Environment.NewLine}";
+               $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
     }
 
     public BotPoll Poll(string trackName)
