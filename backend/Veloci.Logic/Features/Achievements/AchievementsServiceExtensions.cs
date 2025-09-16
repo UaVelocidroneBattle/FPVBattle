@@ -54,6 +54,7 @@ public static class AchievementsServiceExtensions
             .AddAchievement<EarlyBirdAchievement>()
             .AddAchievement<LateBirdAchievement>()
             .AddAchievement<FirstResultAchievement>()
+            .AddAchievement<MedalistAchievement>()
             .AddAchievement<OvertakeTheDuckAchievement>()
             ;
 
