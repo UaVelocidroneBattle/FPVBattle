@@ -28,4 +28,5 @@ public class CurrentTrackCommand : ITelegramCommand
     }
 
     public bool RemoveMessageAfterDelay => false;
+    public bool Public => true;
 }
