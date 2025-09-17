@@ -1,4 +1,5 @@
-using System;
+using System.Text;
+using Veloci.Logic.Features.Patreon.Models;
 
 namespace Veloci.Logic.Features.Patreon.Services;
 
@@ -21,5 +22,20 @@ public static class PatreonMessageGenerator
         var formattedTier = string.IsNullOrEmpty(tierName) ? "Patreon" : tierName;
 
         return string.Format(template, formattedName, formattedTier);
+    }
+
+    public static string AccruedFreeziesMessage(List<AccruedPatronFreezies> accrued, bool useDiscordMarkdown = false)
+    {
+        var boldChar = useDiscordMarkdown ? "**" : "*";
+        var message = new StringBuilder("❄️ Свої щомісячні заморозки за підтримку на Patreon отримали:\n\n");
+
+        foreach (var entry in accrued.OrderByDescending(x => x.FreeziesAccrued))
+        {
+            message.Append($"{boldChar}{entry.PilotName}{boldChar}: {entry.FreeziesAccrued} заморозок\n");
+        }
+
+        message.Append("\nВикористовуйте з розумом!\n");
+
+        return message.ToString();
     }
 }

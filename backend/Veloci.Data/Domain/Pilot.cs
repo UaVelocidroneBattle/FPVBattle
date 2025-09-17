@@ -27,6 +27,7 @@ public class Pilot
     public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
     public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
     public virtual ICollection<PilotNameHistoryRow> NameHistory { get; set; }
+    public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
 
     /// <summary>
     /// Called when competition is finished and pilot took place in it.
