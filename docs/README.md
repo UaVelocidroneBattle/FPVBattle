@@ -1,6 +1,6 @@
 # VelocidroneBot Documentation
 
-This directory contains all project documentation including architectural decision records, deployment guides, and development documentation.
+This directory contains all project documentation including architectural decision records.
 
 ## Documentation Structure
 
@@ -11,21 +11,6 @@ docs/
 │   ├── 0001-vertical-slices-architecture.md
 │   ├── 0002-zustand-for-state-management.md
 │   └── template.md           # ADR template
-├── deployment/               # Deployment and infrastructure docs
-│   ├── local-development.md
-│   ├── production-deployment.md
-│   └── docker-setup.md
-├── api/                      # API documentation
-│   ├── endpoints.md
-│   └── authentication.md
-├── bot/                      # Bot-specific documentation
-│   ├── discord-setup.md
-│   ├── telegram-setup.md
-│   └── commands.md
-└── architecture/            # High-level architecture docs
-    ├── overview.md
-    ├── database-schema.md
-    └── event-flow.md
 ```
 
 ## Quick Links
@@ -34,14 +19,6 @@ docs/
 - [Local Development Setup](deployment/local-development.md)
 - [Architectural Decision Records](adr/)
 - [API Documentation](api/endpoints.md)
-
-### For DevOps
-- [Production Deployment](deployment/production-deployment.md)
-- [Docker Setup](deployment/docker-setup.md)
-
-### For Product/Business
-- [Bot Commands](bot/commands.md)
-- [System Overview](architecture/overview.md)
 
 ## Contributing to Documentation
 
