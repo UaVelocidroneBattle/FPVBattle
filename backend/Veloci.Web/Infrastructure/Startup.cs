@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
@@ -34,6 +37,27 @@ public class Startup
     public void ConfigureBuilder(WebApplicationBuilder builder)
     {
         ConfigureLogging(builder);
+
+        var otel = builder.Services.AddOpenTelemetry();
+        otel.ConfigureResource(resource => resource
+            .AddService(serviceName: builder.Environment.ApplicationName));
+
+        otel.WithMetrics(metrics => metrics
+            // Metrics provider from OpenTelemetry
+            .AddAspNetCoreInstrumentation()
+            // Metrics provides by ASP.NET Core in .NET 8
+            .AddMeter("Microsoft.AspNetCore.Hosting")
+            .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+            // Metrics provided by System.Net libraries
+            .AddMeter("System.Net.Http")
+            .AddMeter("System.Net.NameResolution")
+            .AddPrometheusExporter());
+
+        var OtlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+        if (OtlpEndpoint != null)
+        {
+            otel.UseOtlpExporter();
+        }
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -156,6 +180,14 @@ public class Startup
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 
+        var user = app.Configuration["PrometheusAuth:Username"];
+        var pass = app.Configuration["PrometheusAuth:Password"];
+
+        if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
+        {
+            app.ProtectUrl("/metrics", "Prometheus", user, pass);
+        }
+
         app.UseRouting();
 
         app.UseAuthorization();
@@ -169,6 +201,8 @@ public class Startup
         {
             Authorization = new[] { new HangfireAuthorizationFilter() },
         });
+
+        app.MapPrometheusScrapingEndpoint();
     }
 
     private static void ConfigureLogging(WebApplicationBuilder builder)
