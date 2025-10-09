@@ -1,3 +1,4 @@
+using System.Net;
 using Hangfire;
 using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -23,6 +24,7 @@ using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
 using Veloci.Web.Infrastructure.Hangfire;
 using Veloci.Web.Infrastructure.Logging;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Veloci.Web.Infrastructure;
 
@@ -176,7 +178,8 @@ public class Startup
 
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            KnownNetworks = { new IPNetwork(IPAddress.Parse("172.17.0.0"), 16) }
         });
 
         app.UseHttpsRedirection();
