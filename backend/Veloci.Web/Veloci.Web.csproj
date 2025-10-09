@@ -40,6 +40,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Veloci.Data\Veloci.Data.csproj" />
       <ProjectReference Include="..\Veloci.Logic\Veloci.Logic.csproj" />
+      <ProjectReference Include="..\Veloci.Hangfire.Metrics\Veloci.Hangfire.Metrics.csproj" />
     </ItemGroup>
 
     <ItemGroup>
