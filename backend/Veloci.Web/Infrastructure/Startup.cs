@@ -1,10 +1,8 @@
 using System.Net;
 using Hangfire;
-using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -72,8 +70,6 @@ public class Startup
         // Add services to the container.
         var connectionString = Configuration.GetConnectionString("DefaultConnection") ??
                                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        var hangfireConnectionString = Configuration.GetConnectionString("HangfireConnection") ??
-                                      throw new InvalidOperationException("Connection string 'HangfireConnection' not found.");
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options
@@ -130,21 +126,8 @@ public class Startup
             });
         });
 
-        services.AddHangfire(config => config
-            .UseSQLiteStorage(new SqliteConnectionStringBuilder(hangfireConnectionString).DataSource)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-        );
-
-        // Add global job execution logging filter
-        GlobalJobFilters.Filters.Add(new JobExecutionLoggingAttribute());
-
-        services.AddHangfireServer(o =>
-        {
-            o.WorkerCount = 1;
-        });
-
         services
+            .AddHangfireConfiguration(Configuration)
             .RegisterCustomServices(Configuration)
             .RegisterTelegramCommands()
             .UseTelegramBotService()
@@ -207,7 +190,7 @@ public class Startup
         app.MapRazorPages();
         app.MapHangfireDashboard(new DashboardOptions
         {
-            Authorization = new[] { new HangfireAuthorizationFilter() },
+            Authorization = [new HangfireAuthorizationFilter()],
         });
 
         app.MapPrometheusScrapingEndpoint();
