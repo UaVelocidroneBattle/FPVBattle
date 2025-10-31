@@ -29,7 +29,7 @@ public class DiscordBot : IDiscordBot
         _token = configuration.GetSection("Discord:BotToken").Value;
         _channelName = configuration.GetSection("Discord:Channel").Value;
 
-        _log.Debug("Discord channel: {@channel}", _channel);
+        _log.Debug("Discord channel: {@channel}", _channelName);
     }
 
     #region Configuration section
