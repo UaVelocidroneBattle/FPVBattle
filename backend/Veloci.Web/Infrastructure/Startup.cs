@@ -48,6 +48,9 @@ public class Startup
         otel.WithMetrics(metrics => metrics
             // Metrics provider from OpenTelemetry
             .AddAspNetCoreInstrumentation()
+            .AddProcessInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddSqlClientInstrumentation()
             .AddHangfireInstrumentation()
             // Metrics provides by ASP.NET Core in .NET 8
             .AddMeter("Microsoft.AspNetCore.Hosting")
