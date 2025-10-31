@@ -242,6 +242,12 @@ public class Startup
                     });
             }
 
+            if (!string.IsNullOrEmpty(logconfig?.Value.SeqToken))
+            {
+                var token = logconfig?.Value.SeqToken;
+                logger.WriteTo.Seq(logconfig.Value.SeqUrl, LogEventLevel.Verbose, 1000, null, apiKey:token);
+            }
+
             logger.WriteTo.Console(outputTemplate: LoggingConstants.ConsoleOutputTemplate);
         });
     }
