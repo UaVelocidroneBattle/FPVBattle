@@ -192,24 +192,24 @@ public class DiscordMessageComposer
 
     private string TimeUpdate(TrackTimeDelta delta)
     {
-        var timeChangePart = delta.TimeChange.HasValue ? $" ({MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
+        var timeChangePart = delta.TimeChange.HasValue ? $" ({TrackTimeConverter.MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
         var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
 
         return $"✈️  **{delta.Pilot.Name}**{modelPart}{Environment.NewLine}" +
-               $"⏱️  {MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
+               $"⏱️  {TrackTimeConverter.MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 
     private List<string> TempLeaderboardRows(List<CompetitionResults> results)
     {
         var positionLength = results.Count().ToString().Length + 2;
         var pilotNameLength = results.Max(r => r.Pilot.Name.Length) + 2;
-        var timeLength = results.Max(r => MsToSec(r.TrackTime).ToString().Length) + 3;
+        var timeLength = results.Max(r => TrackTimeConverter.MsToSec(r.TrackTime).ToString().Length) + 3;
         var rows = new List<string>();
 
         foreach (var result in results)
         {
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.Pilot.Name, pilotNameLength)}{FillWithSpaces(MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.Pilot.Name, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
         }
 
         return rows;
@@ -232,7 +232,7 @@ public class DiscordMessageComposer
             _ => $"#{time.LocalRank}"
         };
 
-        return $"{icon} - **{time.Pilot.Name}** ({MsToSec(time.TrackTime)}s) / Балів: **{time.Points}**";
+        return $"{icon} - **{time.Pilot.Name}** ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / Балів: **{time.Points}**";
     }
 
     private string TempSeasonResultsRow(SeasonResult result)
@@ -273,8 +273,6 @@ public class DiscordMessageComposer
 
         return result.ToString();
     }
-
-    private static string MsToSec(int ms) => (ms / 1000.0).ToString(CultureInfo.InvariantCulture);
 
     private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
 
