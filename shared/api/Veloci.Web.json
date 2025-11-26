@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.1",
   "info": {
     "title": "Veloci.Web | v1",
     "version": "1.0.0"
@@ -239,53 +239,22 @@
             "type": "string"
           },
           "trackId": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "mapId": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           }
         }
-      },
-      "CompetitionModel2": {
-        "required": [
-          "id",
-          "startedOn",
-          "state",
-          "mapName",
-          "trackName",
-          "trackId",
-          "mapId"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "startedOn": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "state": {
-            "$ref": "#/components/schemas/CompetitionState"
-          },
-          "mapName": {
-            "type": "string"
-          },
-          "trackName": {
-            "type": "string"
-          },
-          "trackId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "mapId": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "nullable": true
       },
       "CompetitionState": {
         "type": "integer"
@@ -298,7 +267,14 @@
         "type": "object",
         "properties": {
           "competition": {
-            "$ref": "#/components/schemas/CompetitionModel2"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CompetitionModel"
+              }
+            ]
           },
           "results": {
             "type": "array",
@@ -353,11 +329,19 @@
             "type": "string"
           },
           "currentDayStreak": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "maxDayStreak": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "achievements": {
@@ -367,21 +351,33 @@
             }
           },
           "totalRaceDays": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "lastRaceDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           },
           "firstRaceDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           },
           "availableFreezes": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           }
         }
@@ -399,11 +395,19 @@
             "format": "date-time"
           },
           "points": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "trackTime": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           }
         }
@@ -419,7 +423,11 @@
             "type": "string"
           },
           "points": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           }
         }
@@ -438,15 +446,27 @@
             "type": "string"
           },
           "time": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "globalRank": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "localRank": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "modelName": {
