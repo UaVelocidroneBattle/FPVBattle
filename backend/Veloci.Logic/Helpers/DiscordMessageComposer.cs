@@ -118,11 +118,11 @@ public class DiscordMessageComposer
 
     public IEnumerable<string> YearResults(YearResultsModel model)
     {
-        var first = $"🎉 *UA Velocidrone Battle WRAPPED 📈 {model.Year}*{Environment.NewLine}" +
+        var first = $"🎉 *FPV Battle WRAPPED 📈 {model.Year}*{Environment.NewLine}" +
                $"або трохи цифр за минулий рік{Environment.NewLine}{Environment.NewLine}" +
                $"📊 *{model.TotalTrackCount} треків!* Це стільки ми пролетіли минулого року.{Environment.NewLine}" +
                $"Із них унікальних - *{model.UniqueTrackCount}*. Так, деякі треки повторювались, але такі вже у нас алгоритми.{Environment.NewLine}" +
-               $"З іншого боку, це гарний привід покращити свій же результат і стати ще швидшим.{Environment.NewLine}{Environment.NewLine}" +
+               $"З іншого боку, це гарний привід обігнати самого себе і подивитись на свій прогрес.{Environment.NewLine}{Environment.NewLine}" +
                $"👎 *{model.TracksSkipped} треків* були настільки ганебні, що довелось їх одразу замінити.{Environment.NewLine}{Environment.NewLine}" +
                $"👍 Але ваш улюблений трек року:{Environment.NewLine}" +
                $"*{model.FavoriteTrack}*{Environment.NewLine}" +
