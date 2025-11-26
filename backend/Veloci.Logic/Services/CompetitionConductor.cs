@@ -5,6 +5,7 @@ using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
+using Veloci.Logic.API.Dto;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Helpers;
@@ -62,10 +63,23 @@ public class CompetitionConductor
             await CancelAsync();
         }
 
-        var track = await _trackService.GetRandomTrackAsync();
-        _log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for new competition", track.Name, track.TrackId);
+        Track track;
+        ICollection<TrackTimeDto> resultsDto;
+        var attempts = 0;
 
-        var resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
+        do
+        {
+            track = await _trackService.GetRandomTrackAsync();
+            attempts++;
+            _log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for new competition (attempt {Attempt})", track.Name, track.TrackId, attempts);
+            resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
+
+            if (resultsDto.Count == 0)
+            {
+                _log.Information("Track {TrackName} has no results, selecting another track", track.Name);
+            }
+        } while (resultsDto.Count == 0);
+
         var results = _resultsConverter.ConvertTrackTimes(resultsDto);
         _log.Debug("Retrieved {ResultCount} initial results from Velocidrone API for track {TrackId}", results.Count, track.TrackId);
 
