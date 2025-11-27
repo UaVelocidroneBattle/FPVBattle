@@ -24,6 +24,6 @@ public class NanoBoostAchievement : IAchievementAfterTimeUpdate
             return false;
 
         // value is in ms. So 0.01s == 10ms
-        return pilotDelta.TimeChange.Value <= 10;
+        return pilotDelta.TimeChange.Value is < 0 and >= -10;
     }
 }

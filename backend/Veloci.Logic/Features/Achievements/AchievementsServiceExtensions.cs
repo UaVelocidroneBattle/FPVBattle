@@ -57,7 +57,7 @@ public static class AchievementsServiceExtensions
             .AddAchievement<MedalistAchievement>()
             .AddAchievement<OvertakeTheDuckAchievement>()
             .AddAchievement<JackpotAchievement>()
-            //.AddAchievement<NanoBoostAchievement>()
+            .AddAchievement<NanoBoostAchievement>()
             .AddAchievement<BeastAchievement>()
             ;
 
