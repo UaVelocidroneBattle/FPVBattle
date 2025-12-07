@@ -6,11 +6,10 @@ namespace Veloci.Logic.Services.Tracks;
 
 public class ApiTrackFetcher : ITrackFetcher
 {
-    private static readonly HttpClient Client = new HttpClient();
+    private static readonly HttpClient Client = new();
 
     private readonly IDictionary<int, string> _scenes = new Dictionary<int, string>
     {
-        {3,"Hangar"},
         {7,"Industrial Wasteland"},
         {8,"Football Stadium"},
         {12,"Countryside"},
@@ -19,17 +18,33 @@ public class ApiTrackFetcher : ITrackFetcher
         {17,"Empty Scene Night"},
         {18,"NEC Birmingham"},
         {20,"Underground Carpark"},
-        {22,"Coastal"},
+        {21,"Sports Hall"},
         {23,"River2"},
-        {24,"City"},
         {26,"Large Carpark"},
+        {29,"Basketball Stadium"},
         {30,"Bando"},
         {31,"IndoorGoKart"},
         {33,"Dynamic Weather"},
-        {43,"Future Hangar Empty"},
+        {37,"Library"},
+        {38,"Night Club"},
+        {39,"House"},
+        {40,"Future Hangar"},
+        {42,"Empty PolyWorld"},
+        {44,"Dynamic Polyworld"},
+        {47,"Construction"},
+        {49,"Red Valley"},
+        {51,"Mini Warehouse"},
+        {52,"Apartment"},
+        {54,"Office Complex"},
         {55,"Night Factory 2"},
         {56,"Factory"},
+        {57,"Tech Facility"},
+        {100,"Ship Port"},
+        {101,"Apocalypse"},
+        {105,"Night Factory 3"},
     };
+
+    private readonly int[] _allowedTrackTypes = [7, 8, 9]; // whoop tracks
 
     public async Task<List<ParsedMapModel>> FetchMapsAsync()
     {
@@ -38,9 +53,10 @@ public class ApiTrackFetcher : ITrackFetcher
         var responseBody = await response.Content.ReadAsStringAsync();
         var decrypted = Encryption.Decrypt(responseBody);
         var results = JsonSerializer.Deserialize<TrackApiResponse>(decrypted);
+        var whoopTracks = results.Tracks.Where(x => _allowedTrackTypes.Contains(x.Type));
 
         var x = from s in _scenes
-            join tr in results.Tracks on s.Key equals tr.SceneId into sceneTracks
+            join tr in whoopTracks on s.Key equals tr.SceneId into sceneTracks
             select new ParsedMapModel
             {
                 Id = s.Key,

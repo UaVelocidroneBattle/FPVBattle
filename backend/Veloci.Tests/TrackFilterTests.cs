@@ -21,7 +21,7 @@ public class TrackFilterTests
     {
         var track = new ParsedTrackModel {Name = trackName};
 
-        _filter.IsTrackGoodFor5inchRacing(track).Should().BeFalse($"{track} is not good for racing quad");
+        _filter.IsTrackGood(track).Should().BeFalse($"{track} is not good for racing quad");
     }
 
     [Theory]
@@ -30,6 +30,6 @@ public class TrackFilterTests
     {
         var track = new ParsedTrackModel {Name = trackName};
 
-        _filter.IsTrackGoodFor5inchRacing(track).Should().BeTrue($"{track} is good for racing quad");
+        _filter.IsTrackGood(track).Should().BeTrue($"{track} is good for racing quad");
     }
 }
