@@ -1,8 +1,6 @@
-using System.Runtime.InteropServices;
-
 namespace Veloci.Logic.Helpers;
 
-public class UkrainianHelper
+public static class UkrainianHelper
 {
     /// <summary>
     /// Returns the correct form of the word "раз" depending on the number.
@@ -26,7 +24,7 @@ public class UkrainianHelper
         return ConvertToKyivTime(utcNow);
     }
 
-    public static DateTime ConvertToKyivTime(DateTime utcTime)
+    private static DateTime ConvertToKyivTime(DateTime utcTime)
     {
         var ukraineTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Kyiv");
         return TimeZoneInfo.ConvertTimeFromUtc(utcTime, ukraineTimeZone);
