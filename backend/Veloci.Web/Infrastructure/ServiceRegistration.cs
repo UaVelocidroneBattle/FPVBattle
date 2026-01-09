@@ -33,6 +33,7 @@ public static class ServiceRegistration
         services.AddScoped<PilotService>();
         services.AddScoped<IPilotProfileService, PilotProfileService>();
         services.AddScoped<PilotPlatformsService>();
+        services.AddScoped<PointsCalculator>();
         services.AddAchievementsServices();
         services.AddPatreonServices(configuration);
 
