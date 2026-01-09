@@ -9,4 +9,5 @@ public interface ITelegramCommand
     public string Description { get; }
     public Task<string> ExecuteAsync(string[]? parameters);
     public bool RemoveMessageAfterDelay { get; }
+    public bool Public { get; }
 }

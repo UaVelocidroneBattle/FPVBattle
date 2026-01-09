@@ -1,6 +1,6 @@
 namespace Veloci.Logic.Helpers;
 
-public class UkrainianHelper
+public static class UkrainianHelper
 {
     /// <summary>
     /// Returns the correct form of the word "раз" depending on the number.
@@ -16,5 +16,17 @@ public class UkrainianHelper
             2 or 3 or 4 => "рази",
             _ => "разів"
         };
+    }
+
+    public static DateTime GetCurrentKyivTime()
+    {
+        var utcNow = DateTime.UtcNow;
+        return ConvertToKyivTime(utcNow);
+    }
+
+    private static DateTime ConvertToKyivTime(DateTime utcTime)
+    {
+        var ukraineTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Kyiv");
+        return TimeZoneInfo.ConvertTimeFromUtc(utcTime, ukraineTimeZone);
     }
 }

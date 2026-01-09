@@ -11,21 +11,21 @@ public class RaceResultDeltaAnalyzerTests
     {
         var a = new TrackResults()
         {
-            Times = new List<TrackTime>
-            {
-                new(2, "PlayerOne", 50),
-                new(3, "PlayerTwo", 60),
-                new(1, "PlayerThree", 40)
-            }
+            Times =
+            [
+                new(2, "PlayerOne", 1, 50),
+                new(3, "PlayerTwo", 2, 60),
+                new(1, "PlayerThree", 3, 40)
+            ]
         };
-        
+
         var b = new TrackResults()
         {
             Times = new List<TrackTime>
             {
-                new(1, "PlayerOne", 35),
-                new(3, "PlayerTwo", 60),
-                new(2, "PlayerThree", 40)
+                new(1, "PlayerOne", 1, 35),
+                new(3, "PlayerTwo", 2, 60),
+                new(2, "PlayerThree", 3, 40)
             }
         };
 
@@ -34,7 +34,7 @@ public class RaceResultDeltaAnalyzerTests
 
         deltas.Should().HaveCount(1);
         var delta = deltas[0];
-        delta.PlayerName.Should().Be("PlayerOne");
+        delta.PilotId.Should().Be(1);
         delta.TrackTime.Should().Be(35);
         delta.Rank.Should().Be(1);
         delta.RankOld.Should().Be(2);

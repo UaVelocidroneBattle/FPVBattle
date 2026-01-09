@@ -1,6 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Veloci.Logic.Bot.Discord;
 
@@ -11,11 +12,13 @@ public interface IDiscordBot
     Task SendMessageInThreadAsync(ulong messageId, string threadName, string message);
     Task ArchiveThreadAsync(string threadName);
     Task ChangeChannelTopicAsync(string message);
-    Task SendImageAsync(byte[] imageBytes);
+    Task SendImageAsync(byte[] imageBytes, string imageName);
 }
 
 public class DiscordBot : IDiscordBot
 {
+    private static readonly ILogger _log = Serilog.Log.ForContext<DiscordBot>();
+
     private DiscordSocketClient? _client;
     private readonly string? _token;
     private readonly string? _channelName;
@@ -26,7 +29,7 @@ public class DiscordBot : IDiscordBot
         _token = configuration.GetSection("Discord:BotToken").Value;
         _channelName = configuration.GetSection("Discord:Channel").Value;
 
-        Serilog.Log.Debug("Discord channel: {@channel}", _channel);
+        _log.Debug("Discord channel: {@channel}", _channelName);
     }
 
     #region Configuration section
@@ -35,7 +38,7 @@ public class DiscordBot : IDiscordBot
     {
         if (string.IsNullOrEmpty(_token))
         {
-            Serilog.Log.Information("Discord is disabled, because token is empty");
+            _log.Information("Discord is disabled, because token is empty");
             return;
         }
 
@@ -57,17 +60,17 @@ public class DiscordBot : IDiscordBot
 
         if (_channel is null)
         {
-            Serilog.Log.Error("Discord channel with name {ChannelName} not found.", _channelName);
+            _log.Error("Discord channel with name {ChannelName} not found.", _channelName);
             return Task.CompletedTask;
         }
 
-        Serilog.Log.Information("Discord bot is ready.");
+        _log.Information("Discord bot is ready.");
         return Task.CompletedTask;
     }
 
     private static Task Log(LogMessage msg)
     {
-        Serilog.Log.Verbose(msg.ToString());
+        _log.Verbose(msg.ToString());
         return Task.CompletedTask;
     }
 
@@ -88,12 +91,17 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            _log.Information("💬 Sending Discord message to channel {ChannelName}: {MessagePreview}...",
+                _channel.Name, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+
             var result = await _channel.SendMessageAsync(message);
+
+            _log.Information("Sent Discord message {MessageId} to channel {ChannelName}", result.Id, _channel.Name);
             return result.Id;
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Failed to send message. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
+            _log.Error(e, "Failed to send message. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
             return null;
         }
     }
@@ -107,20 +115,25 @@ public class DiscordBot : IDiscordBot
 
         if (messageToEdit is null)
         {
-            Serilog.Log.Warning("Message with ID {MessageId} not found in channel {Channel}", messageId, _channel.Name);
+            _log.Warning("Message with ID {MessageId} not found in channel {Channel}", messageId, _channel.Name);
             return;
         }
 
         try
         {
+            _log.Information("Editing Discord message {MessageId} in channel {ChannelName}: {MessagePreview}...",
+                messageId, _channel.Name, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+
             await _channel.ModifyMessageAsync(messageId, x =>
             {
                 x.Content = message;
             });
+
+            _log.Debug("Discord message {MessageId} edited successfully", messageId);
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Failed to edit message. Guild: {Guild}, Channel: {Channel}, MessageId: {MessageId}", _channel.Guild.Name, _channel.Name, messageId);
+            _log.Error(e, "Failed to edit message. Guild: {Guild}, Channel: {Channel}, MessageId: {MessageId}", _channel.Guild.Name, _channel.Name, messageId);
         }
     }
 
@@ -137,15 +150,25 @@ public class DiscordBot : IDiscordBot
         {
             if (thread is null)
             {
+                _log.Information("🧵 Creating Discord thread {ThreadName} for message {MessageId}", threadName, messageId);
                 thread = await _channel.CreateThreadAsync(threadName, ThreadType.PublicThread, ThreadArchiveDuration.OneDay, messageToReply);
+                _log.Debug("Discord thread {ThreadName} created successfully", threadName);
+            }
+            else
+            {
+                _log.Debug("Using existing Discord thread {ThreadName}", threadName);
             }
 
+            _log.Information("Sending message to Discord thread {ThreadName}: {MessagePreview}...",
+                threadName, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+
             await thread.SendMessageAsync(message);
+            _log.Debug("Message sent successfully to Discord thread {ThreadName}", threadName);
 
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Failed to send a message in a thread. Guild: {Guild}, Channel: {Channel}, ThreadName: {ThreadName}", _channel.Guild.Name, _channel.Name, threadName);
+            _log.Error(e, "Failed to send a message in a thread. Guild: {Guild}, Channel: {Channel}, ThreadName: {ThreadName}", _channel.Guild.Name, _channel.Name, threadName);
         }
     }
 
@@ -159,17 +182,19 @@ public class DiscordBot : IDiscordBot
 
         if (thread is null)
         {
-            Serilog.Log.Warning("Thread with name {ThreadName} not found in channel {Channel}", threadName, _channel.Name);
+            _log.Warning("Thread with name {ThreadName} not found in channel {Channel}", threadName, _channel.Name);
             return;
         }
 
         try
         {
+            _log.Information("Archiving Discord thread {ThreadName}", threadName);
             await thread.ModifyAsync(x => x.Archived = true);
+            _log.Debug("Discord thread {ThreadName} archived successfully", threadName);
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Failed to archive thread. Guild: {Guild}, Channel: {Channel}, ThreadName: {ThreadName}", _channel.Guild.Name, _channel.Name, threadName);
+            _log.Error(e, "Failed to archive thread. Guild: {Guild}, Channel: {Channel}, ThreadName: {ThreadName}", _channel.Guild.Name, _channel.Name, threadName);
         }
     }
 
@@ -180,29 +205,33 @@ public class DiscordBot : IDiscordBot
 
         try
         {
+            _log.Information("Changing Discord channel {ChannelName} topic to: {Topic}", _channel.Name, message);
             await _channel.ModifyAsync(x =>
             {
                 x.Topic = message;
             });
+            _log.Debug("Discord channel topic changed successfully");
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Failed to change channel topic. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
+            _log.Error(e, "Failed to change channel topic. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
         }
     }
 
-    public async Task SendImageAsync(byte[] imageBytes)
+    public async Task SendImageAsync(byte[] imageBytes, string imageName)
     {
         if (_client is null || _channel is null)
             return;
 
         try
         {
-            var result = await _channel.SendFileAsync(new MemoryStream(imageBytes), "winners");
+            _log.Information("🖼️ Sending Discord image to channel {ChannelName} ({ImageSize} bytes)", _channel.Name, imageBytes.Length);
+            var result = await _channel.SendFileAsync(new MemoryStream(imageBytes), imageName);
+            _log.Information("Discord image sent successfully as message {MessageId}", result.Id);
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Failed to send an image. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
+            _log.Error(e, "Failed to send an image. Guild: {Guild}, Channel: {Channel}", _channel.Guild.Name, _channel.Name);
         }
     }
 }

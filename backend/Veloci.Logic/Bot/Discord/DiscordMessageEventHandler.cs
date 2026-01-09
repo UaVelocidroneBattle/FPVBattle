@@ -13,15 +13,19 @@ public class DiscordMessageEventHandler :
     INotificationHandler<CompetitionStarted>,
     INotificationHandler<CurrentResultUpdateMessage>,
     INotificationHandler<CompetitionStopped>,
+    INotificationHandler<CompetitionCancelled>,
     INotificationHandler<TempSeasonResults>,
     INotificationHandler<SeasonFinished>,
     INotificationHandler<BadTrack>,
     INotificationHandler<CheerUp>,
     INotificationHandler<YearResults>,
-    INotificationHandler<DayStreakAchievements>,
     INotificationHandler<DayStreakPotentialLose>,
-    INotificationHandler<GotAchievements>
+    INotificationHandler<NewPilot>,
+    INotificationHandler<PilotRenamed>,
+    INotificationHandler<EndOfSeasonStatisticsNotification>
 {
+    private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
+
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBot _discordBot;
     private readonly IRepository<Competition> _competitions;
@@ -70,6 +74,9 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
     {
+        await _discordBot.ArchiveThreadAsync(CompetitionVariables.DiscordTimeUpdatesThreadName);
+        await _discordBot.ChangeChannelTopicAsync(string.Empty);
+
         var competition = notification.Competition;
 
         if (competition.CompetitionResults.Count == 0)
@@ -82,6 +89,10 @@ public class DiscordMessageEventHandler :
 
         var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults);
         await _discordBot.EditMessageAsync(leaderboardMessageId.Value, resultsMessage);
+    }
+
+    public async Task Handle(CompetitionCancelled notification, CancellationToken cancellationToken)
+    {
         await _discordBot.ArchiveThreadAsync(CompetitionVariables.DiscordTimeUpdatesThreadName);
         await _discordBot.ChangeChannelTopicAsync(string.Empty);
     }
@@ -97,7 +108,7 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.SeasonResults(notification.Results);
         await _discordBot.SendMessageAsync(message);
 
-        await _discordBot.SendImageAsync(notification.Image);
+        await _discordBot.SendImageAsync(notification.Image, notification.ImageName);
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
         BackgroundJob.Schedule(() => _discordBot.SendMessageAsync(medalCountMessage), TimeSpan.FromSeconds(6));
@@ -136,17 +147,6 @@ public class DiscordMessageEventHandler :
         }
     }
 
-    public async Task Handle(DayStreakAchievements notification, CancellationToken cancellationToken)
-    {
-        const int delaySec = 3;
-
-        foreach (var pilot in notification.Pilots)
-        {
-            var message = _messageComposer.DayStreakAchievement(pilot);
-            await _discordBot.SendMessageAsync(message);
-            await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
-        }
-    }
 
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
@@ -163,13 +163,25 @@ public class DiscordMessageEventHandler :
         if (leaderboardMessageId is not null)
             return leaderboardMessageId;
 
-        Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
+        _log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
         return null;
     }
 
-    public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
+    public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.AchievementList(notification.Results);
+        var message = _messageComposer.NewPilot(notification.Pilot.Name);
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
         await _discordBot.SendMessageAsync(message);
     }
 }

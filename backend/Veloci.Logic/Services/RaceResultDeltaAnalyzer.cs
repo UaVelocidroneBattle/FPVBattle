@@ -10,13 +10,13 @@ public class RaceResultDeltaAnalyzer
 
         foreach (var trackTime in b.Times)
         {
-            var existingTime = a.Times.FirstOrDefault(t => t.PlayerName == trackTime.PlayerName);
+            var existingTime = a.Times.FirstOrDefault(t => t.UserId == trackTime.UserId);
 
             if (existingTime is null)
             {
                 deltas.Add(new TrackTimeDelta
                 {
-                    PlayerName = trackTime.PlayerName,
+                    PilotId = trackTime.UserId.Value,
                     LocalRank = trackTime.LocalRank,
                     Rank = trackTime.GlobalRank,
                     TrackTime = trackTime.Time,
@@ -31,7 +31,7 @@ public class RaceResultDeltaAnalyzer
 
             deltas.Add(new TrackTimeDelta
             {
-                PlayerName = trackTime.PlayerName,
+                PilotId = trackTime.UserId.Value,
                 LocalRank = trackTime.LocalRank,
                 LocalRankOld = existingTime.LocalRank,
                 Rank = trackTime.GlobalRank,

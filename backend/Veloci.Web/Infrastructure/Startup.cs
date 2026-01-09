@@ -1,23 +1,28 @@
+using System.Net;
 using Hangfire;
-using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
-using Veloci.Data.Achievements.Base;
+using Veloci.Hangfire.Metrics;
 using Veloci.Logic.API.Options;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
 using Veloci.Web.Infrastructure.Hangfire;
+using Veloci.Web.Infrastructure.Logging;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Veloci.Web.Infrastructure;
 
@@ -33,6 +38,31 @@ public class Startup
     public void ConfigureBuilder(WebApplicationBuilder builder)
     {
         ConfigureLogging(builder);
+
+        var otel = builder.Services.AddOpenTelemetry();
+        otel.ConfigureResource(resource => resource
+            .AddService(serviceName: builder.Environment.ApplicationName));
+
+        otel.WithMetrics(metrics => metrics
+            // Metrics provider from OpenTelemetry
+            .AddAspNetCoreInstrumentation()
+            .AddProcessInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddSqlClientInstrumentation()
+            .AddHangfireInstrumentation()
+            // Metrics provides by ASP.NET Core in .NET 8
+            .AddMeter("Microsoft.AspNetCore.Hosting")
+            .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+            // Metrics provided by System.Net libraries
+            .AddMeter("System.Net.Http")
+            .AddMeter("System.Net.NameResolution")
+            .AddPrometheusExporter());
+
+        var OtlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+        if (OtlpEndpoint != null)
+        {
+            otel.UseOtlpExporter();
+        }
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -51,7 +81,25 @@ public class Startup
         services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddControllersWithViews();
+        services
+            .AddControllersWithViews()
+            .ConfigureApplicationPartManager(apm =>
+            {
+                var assembly = typeof(Veloci.Logic.Features.Patreon.PatreonController).Assembly;
+                if (!apm.ApplicationParts.Any(part => part is AssemblyPart assemblyPart && assemblyPart.Assembly == assembly))
+                {
+                    apm.ApplicationParts.Add(new AssemblyPart(assembly));
+                }
+            });
+
+        // Configure view location formats to support Features folder structure in RCL
+        services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
+        {
+            // Add our Features folder patterns to view discovery
+            // {0} = action name, {1} = controller name
+            options.ViewLocationFormats.Add("/Features/{1}/Views/{1}/{0}.cshtml");
+            options.ViewLocationFormats.Add("/Features/{1}/Views/Shared/{0}.cshtml");
+        });
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
         services.Configure<ApiSettings>(Configuration.GetSection("API"));
@@ -78,19 +126,9 @@ public class Startup
             });
         });
 
-        services.AddHangfire(config => config
-            .UseSQLiteStorage(new SqliteConnectionStringBuilder(connectionString).DataSource)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-        );
-        services.AddHangfireServer(o =>
-        {
-            o.WorkerCount = 1;
-        });
-
         services
-            .RegisterCustomServices()
-            .RegisterAchievements()
+            .AddHangfireConfiguration(Configuration)
+            .RegisterCustomServices(Configuration)
             .RegisterTelegramCommands()
             .UseTelegramBotService()
             .UseDiscordBotService();
@@ -108,31 +146,38 @@ public class Startup
             app.UseMigrationsEndPoint();
             app.MapOpenApi();
         }
-        else
+        if (Configuration.GetValue("RunMigrations", false))
         {
-            using (var scope = app.Services.CreateScope())
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            if (context.Database.GetPendingMigrations().Any())
             {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                if (context.Database.GetPendingMigrations().Any())
-                {
-                    context.Database.Migrate();
-                }
+                context.Database.Migrate();
             }
-
-            app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
         }
+
+        app.UseExceptionHandler("/Home/Error");
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
 
         app.UseCors("AllowAnyOrigin");
 
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            KnownNetworks = { new IPNetwork(IPAddress.Parse("172.17.0.0"), 16) }
         });
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
+
+        var user = app.Configuration["PrometheusAuth:Username"];
+        var pass = app.Configuration["PrometheusAuth:Password"];
+
+        if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
+        {
+            app.ProtectUrl("/metrics", "Prometheus", user, pass);
+        }
 
         app.UseRouting();
 
@@ -145,8 +190,10 @@ public class Startup
         app.MapRazorPages();
         app.MapHangfireDashboard(new DashboardOptions
         {
-            Authorization = new[] { new HangfireAuthorizationFilter() },
+            Authorization = [new HangfireAuthorizationFilter()],
         });
+
+        app.MapPrometheusScrapingEndpoint();
     }
 
     private static void ConfigureLogging(WebApplicationBuilder builder)
@@ -158,10 +205,11 @@ public class Startup
             var logger = configuration
                 .MinimumLevel.Debug()
 
-                // .MinimumLevel.Override("Hangfire.Processing.BackgroundExecution", LogEventLevel.Warning)
-                // .MinimumLevel.Override("Hangfire.Storage.SQLite.ExpirationManager", LogEventLevel.Warning)
-                // .MinimumLevel.Override("Hangfire.Storage.SQLite.CountersAggregator", LogEventLevel.Warning)
-                // .MinimumLevel.Override("Hangfire.Server.ServerHeartbeatProcess", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Processing.BackgroundExecution", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Storage.SQLite.ExpirationManager", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Storage.SQLite.CountersAggregator", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Server.ServerHeartbeatProcess", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire.Server.RecurringJobScheduler", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
@@ -175,13 +223,17 @@ public class Startup
 
             if (logconfig?.Value?.Path != null)
             {
-                configuration.WriteTo.File(Path.Join(logconfig.Value.Path, "log.log"), rollingInterval: RollingInterval.Day, buffered: true);
+                logger.WriteTo.File(
+                    Path.Join(logconfig.Value.Path, "log.log"),
+                    rollingInterval: RollingInterval.Day,
+                    buffered: true,
+                    flushToDiskInterval: TimeSpan.FromSeconds(10));
             }
 
             if (!string.IsNullOrEmpty(logconfig?.Value.SematextToken))
             {
                 var token = logconfig?.Value.SematextToken;
-                configuration.WriteTo.Elasticsearch(
+                logger.WriteTo.Elasticsearch(
                     new ElasticsearchSinkOptions(new Uri($@"https://logsene-receiver.eu.sematext.com/{token}/_doc/"))
                     {
                         AutoRegisterTemplate = true,
@@ -190,9 +242,13 @@ public class Startup
                     });
             }
 
-            logger.WriteTo.Console();
-            //Use following line to get correct source if we need them. Could be usefull to create new ignore settings.
-            //logger.WriteTo.Console(LogEventLevel.Debug, "[{Timestamp:HH:mm:ss} {Level:u3}] ({SourceContext}.{Method}) {Message:lj}{NewLine}{Exception}");
+            if (!string.IsNullOrEmpty(logconfig?.Value.SeqToken))
+            {
+                var token = logconfig?.Value.SeqToken;
+                logger.WriteTo.Seq(logconfig.Value.SeqUrl, LogEventLevel.Verbose, 1000, null, apiKey:token);
+            }
+
+            logger.WriteTo.Console(outputTemplate: LoggingConstants.ConsoleOutputTemplate);
         });
     }
 }

@@ -1,7 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Veloci.Data.Achievements.Base;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 
 namespace Veloci.Logic.Bot.Telegram.Commands;
@@ -25,7 +26,7 @@ public class AchievementsCommand : ITelegramCommand
             return "все добре, але не вистачає імені пілота";
 
         var pilotName = string.Join(' ', parameters);
-        var pilot = await _pilots.FindAsync(pilotName);
+        var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)
             return "Не знаю такого пілота 😕";
@@ -44,4 +45,5 @@ public class AchievementsCommand : ITelegramCommand
     }
 
     public bool RemoveMessageAfterDelay => false;
+    public bool Public => true;
 }
