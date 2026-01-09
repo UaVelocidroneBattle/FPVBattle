@@ -1,5 +1,6 @@
 import { TrackTimeModel } from "../api/client";
 import { convertMsToSec } from "../utils/utils";
+import PilotName from "@/components/PilotName";
 
 interface CurrentLeaderboardProps {
     trackResults: TrackTimeModel[];
@@ -14,16 +15,27 @@ const CurrentLeaderboard: React.FC<CurrentLeaderboardProps> = ({ trackResults }:
             <ul className="divide-y divide-slate-700/50">
                 {trackResults.map((pilot, index) => (
                     <li key={pilot.playerName} className="px-6 py-4 hover:bg-slate-700/30 transition-colors duration-150">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <span className="font-bold text-slate-400 mr-4 w-8 text-right text-2xl tabular-nums">
-                                    {index + 1}
-                                </span>
-                                <p className="text-sm font-medium text-slate-200">
-                                    {pilot.playerName}
-                                </p>
+                        <div className="grid md:grid-cols-[2rem_1fr_auto_7rem] grid-cols-[2rem_1fr_5rem] items-center gap-4">
+                            {/* Rank */}
+                            <span className="text-right font-bold text-slate-400 text-2xl tabular-nums">
+                                {String(index + 1).padStart(2, "0")}
+                            </span>
+
+                            {/* Player name */}
+                            <PilotName 
+                                name={pilot.playerName}
+                                className="truncate text-sm font-medium text-slate-200"
+                            />
+
+                            {/* Model */}
+                            <p className="hidden md:block text-sm font-medium text-slate-200">
+                                {pilot.modelName}
+                            </p>
+
+                            {/* Time */}
+                            <div className="text-lg text-slate-300 font-semibold tabular-nums text-right">
+                                {convertMsToSec(pilot.time)}
                             </div>
-                            <div className="text-lg text-slate-300 font-semibold tabular-nums">{convertMsToSec(pilot.time)}</div>
                         </div>
                     </li>
                 ))}

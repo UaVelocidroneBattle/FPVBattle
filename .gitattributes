@@ -1,0 +1,88 @@
+# Default: normalize line endings to LF on checkin
+* text=auto
+
+###############################################################################
+# Backend - .NET/C#
+###############################################################################
+*.cs        text diff=csharp
+*.csproj    text merge=union
+*.sln       text eol=crlf merge=union
+*.config    text
+*.props     text
+*.targets   text
+
+###############################################################################
+# Frontend - TypeScript/React
+###############################################################################
+*.js        text
+*.jsx       text
+*.ts        text
+*.tsx       text
+*.json      text
+*.html      text diff=html
+*.css       text diff=css
+
+# Package management
+package.json        text eol=lf
+package-lock.json   text eol=lf -diff
+
+# Build configuration
+vite.config.*   text
+tsconfig*.json  text
+.eslintrc*      text
+.prettierrc*    text
+
+###############################################################################
+# Documentation & Configuration
+###############################################################################
+*.md        text diff=markdown
+*.yml       text
+*.yaml      text
+*.toml      text
+.editorconfig   text
+.gitignore      text
+.gitattributes  text
+
+# Docker
+Dockerfile*         text
+*.dockerignore      text
+docker-compose*.yml text
+
+###############################################################################
+# Scripts
+###############################################################################
+*.sh        text eol=lf
+*.bat       text eol=crlf
+*.ps1       text eol=crlf
+
+###############################################################################
+# OpenAPI
+###############################################################################
+*.openapi   text
+Veloci.Web.json text eol=lf
+
+###############################################################################
+# Binary Files
+###############################################################################
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       text
+
+*.dll       binary
+*.exe       binary
+*.pdb       binary
+*.nupkg     binary
+
+*.db        binary
+*.sqlite    binary
+*.sqlite3   binary
+
+###############################################################################
+# Export Ignore
+###############################################################################
+.gitattributes export-ignore
+.gitignore     export-ignore
+.github/       export-ignore

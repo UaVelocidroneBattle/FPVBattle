@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using Veloci.Data.Achievements.Base;
 
 namespace Veloci.Data.Domain;
 
@@ -15,8 +13,8 @@ public class Pilot
         Name = name;
     }
 
-    [Key]
-    [MaxLength(128)]
+    public int Id { get; set; }
+
     public string Name { get; set; }
 
     /// <summary>
@@ -28,6 +26,8 @@ public class Pilot
     public virtual ICollection<PilotAchievement> Achievements { get; set; }
     public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
     public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
+    public virtual ICollection<PilotNameHistoryRow> NameHistory { get; set; }
+    public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
 
     /// <summary>
     /// Called when competition is finished and pilot took place in it.
@@ -104,19 +104,26 @@ public class Pilot
 
     public bool HasAchievement(string achievementName)
     {
+        Achievements ??= new List<PilotAchievement>();
         return Achievements.Any(achievement => achievement.Name == achievementName);
     }
 
-    public void AddAchievement(IAchievement achievement)
+    public void ChangeName(string newName)
     {
-        var pilotAchievement = new PilotAchievement
-        {
-            Pilot = this,
-            Date = DateTime.Now,
-            Name = achievement.Name
-        };
+        if (string.IsNullOrWhiteSpace(newName))
+            throw new ArgumentException("Pilot name cannot be null or empty.", nameof(newName));
 
-        Achievements.Add(pilotAchievement);
+        if (Name == newName) return;
+
+        NameHistory ??= new List<PilotNameHistoryRow>();
+        NameHistory.Add(new PilotNameHistoryRow
+        {
+            OldName = Name,
+            NewName = newName,
+            ChangedOn = DateTime.Now
+        });
+
+        Name = newName;
     }
 }
 
@@ -127,5 +134,10 @@ public static class PilotExtensions
         await allPilots
             .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
             .ForEachAsync(pilot => pilot.ResetDayStreak(today));
+    }
+
+    public static IQueryable<Pilot> ByName(this IQueryable<Pilot> query, string name)
+    {
+        return query.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
     }
 }

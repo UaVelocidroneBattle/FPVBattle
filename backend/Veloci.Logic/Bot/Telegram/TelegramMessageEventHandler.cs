@@ -16,9 +16,10 @@ public class TelegramMessageEventHandler :
     INotificationHandler<BadTrack>,
     INotificationHandler<CheerUp>,
     INotificationHandler<YearResults>,
-    INotificationHandler<DayStreakAchievements>,
     INotificationHandler<DayStreakPotentialLose>,
-    INotificationHandler<GotAchievements>
+    INotificationHandler<NewPilot>,
+    INotificationHandler<PilotRenamed>,
+    INotificationHandler<EndOfSeasonStatisticsNotification>
 {
     private readonly TelegramMessageComposer _messageComposer;
 
@@ -107,17 +108,6 @@ public class TelegramMessageEventHandler :
         }
     }
 
-    public async Task Handle(DayStreakAchievements notification, CancellationToken cancellationToken)
-    {
-        const int delaySec = 3;
-
-        foreach (var pilot in notification.Pilots)
-        {
-            var message = _messageComposer.DayStreakAchievement(pilot);
-            await TelegramBot.SendMessageAsync(message);
-            await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
-        }
-    }
 
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
@@ -125,9 +115,21 @@ public class TelegramMessageEventHandler :
         await TelegramBot.SendMessageAsync(message);
     }
 
-    public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
+    public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.AchievementList(notification.Results);
+        var message = _messageComposer.NewPilot(notification.Pilot.Name);
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
         await TelegramBot.SendMessageAsync(message);
     }
 }

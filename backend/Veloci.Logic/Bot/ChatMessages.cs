@@ -16,7 +16,7 @@ public static class ChatMessages
         Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "😴 Zzzz..."));
         Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "😕 Знову світла немає?"));
         Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "👀 Подвійний клік по іконці Velocidrone на вашому робочому столі, будь ласка"));
-        Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "👀 Цілу годину нікого, шо у вас там за свіято?"));
+        Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "👀 Цілу годину нікого, шо у вас там за свято?"));
         Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "📺 Може, ще кави поп’єте? І серіал глянете? Не спішіть, звісно."));
         Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "📉 Динаміка польотів — як курс гривні під час кризи."));
         Messages.Add(new ChatMessage(ChatMessageType.NobodyFlying, "📵 Ви там що, Wi-Fi з глиняного горщика ловите?"));

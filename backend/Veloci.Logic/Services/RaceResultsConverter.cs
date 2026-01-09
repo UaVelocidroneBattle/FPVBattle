@@ -6,7 +6,7 @@ namespace Veloci.Logic.Services;
 
 public class RaceResultsConverter
 {
-    private static readonly DtoMapper _mapper = new();
+    private static readonly Mappings.DtoMapper _mapper = new();
 
     public List<TrackTime> ConvertTrackTimes(IEnumerable<TrackTimeDto> timesDtos)
     {
@@ -14,7 +14,7 @@ public class RaceResultsConverter
         return timesDtos
             .Select(MapDtoToTrackTime)
             .Where(x => x != null)
-            .GroupBy(x => x.PlayerName)
+            .GroupBy(x => x.UserId)
             .Select(j => j.MinBy(x => x.Time))
             .Select((x, i) =>
             {

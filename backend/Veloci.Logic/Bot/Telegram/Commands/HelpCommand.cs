@@ -23,6 +23,7 @@ public class HelpCommand : ITelegramCommand
     }
 
     public bool RemoveMessageAfterDelay => true;
+    public bool Public => true;
 
     private string CommandRow(string description)
     {
@@ -33,6 +34,7 @@ public class HelpCommand : ITelegramCommand
     {
         return _serviceProvider
             .GetServices<ITelegramCommand>()
+            .Where(c => c.Public)
             .Select(c => c.Description);
     }
 }

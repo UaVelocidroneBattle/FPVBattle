@@ -8,6 +8,6 @@ public class DefaultInit
     {
         using var scope = app.Services.CreateScope();
         
-        HangfireInit.InitRecurrentJobs(configuration);
+        HangfireInit.InitRecurrentJobs(configuration, app.Services);
     }
 }
