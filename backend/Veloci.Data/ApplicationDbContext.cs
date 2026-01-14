@@ -65,5 +65,12 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<PilotPlatformAccount>().ToTable("PilotPlatformAccounts");
         builder.Entity<PilotPlatformAccount>().HasKey(p => p.Id);
         builder.Entity<PilotPlatformAccount>().Property(p => p.Username).HasMaxLength(128);
+
+        builder.Entity<League>().ToTable("Leagues");
+        builder.Entity<League>().HasKey(p => p.Id);
+        builder.Entity<League>().Property(l => l.Name).HasMaxLength(128);
+
+        builder.Entity<LeagueHistoryRecord>().ToTable("LeagueHistory");
+        builder.Entity<LeagueHistoryRecord>().HasKey(p => p.Id);
     }
 }

@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111184934_AddLeagues")]
+    partial class AddLeagues
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,35 +372,6 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("Leagues", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.LeagueHistoryRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("NewLeagueId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("OldLeagueId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("PilotId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NewLeagueId");
-
-                    b.HasIndex("OldLeagueId");
-
-                    b.HasIndex("PilotId");
-
-                    b.ToTable("LeagueHistory", (string)null);
-                });
-
             modelBuilder.Entity("Veloci.Data.Domain.PatreonSupporter", b =>
                 {
                     b.Property<string>("PatreonId")
@@ -499,9 +473,6 @@ namespace Veloci.Web.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("Qualification")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -853,27 +824,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.LeagueHistoryRecord", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.League", "NewLeague")
-                        .WithMany()
-                        .HasForeignKey("NewLeagueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Veloci.Data.Domain.League", "OldLeague")
-                        .WithMany()
-                        .HasForeignKey("OldLeagueId");
-
-                    b.HasOne("Veloci.Data.Domain.Pilot", null)
-                        .WithMany("LeagueHistory")
-                        .HasForeignKey("PilotId");
-
-                    b.Navigation("NewLeague");
-
-                    b.Navigation("OldLeague");
-                });
-
             modelBuilder.Entity("Veloci.Data.Domain.PatreonSupporter", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
@@ -981,8 +931,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Achievements");
 
                     b.Navigation("DayStreakFreezes");
-
-                    b.Navigation("LeagueHistory");
 
                     b.Navigation("NameHistory");
 

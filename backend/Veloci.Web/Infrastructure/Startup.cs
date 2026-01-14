@@ -20,6 +20,7 @@ using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
+using Veloci.Logic.Settings;
 using Veloci.Web.Infrastructure.Hangfire;
 using Veloci.Web.Infrastructure.Logging;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
@@ -103,6 +104,7 @@ public class Startup
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
         services.Configure<ApiSettings>(Configuration.GetSection("API"));
+        services.Configure<List<LeagueSettings>>(Configuration.GetSection("Leagues"));
 
         services.Configure<IdentityOptions>(options =>
         {

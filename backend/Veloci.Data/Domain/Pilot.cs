@@ -28,6 +28,9 @@ public class Pilot
     public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
     public virtual ICollection<PilotNameHistoryRow> NameHistory { get; set; }
     public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
+    public virtual League? League { get; set; }
+    public virtual ICollection<LeagueHistoryRecord> LeagueHistory { get; set; }
+    public bool Qualification { get; set; }
 
     /// <summary>
     /// Called when competition is finished and pilot took place in it.
@@ -129,15 +132,18 @@ public class Pilot
 
 public static class PilotExtensions
 {
-    public static async Task ResetDayStreaksAsync(this IQueryable<Pilot> allPilots, DateTime today)
+    extension(IQueryable<Pilot> allPilots)
     {
-        await allPilots
-            .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
-            .ForEachAsync(pilot => pilot.ResetDayStreak(today));
-    }
+        public async Task ResetDayStreaksAsync(DateTime today)
+        {
+            await allPilots
+                .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
+                .ForEachAsync(pilot => pilot.ResetDayStreak(today));
+        }
 
-    public static IQueryable<Pilot> ByName(this IQueryable<Pilot> query, string name)
-    {
-        return query.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        public IQueryable<Pilot> ByName(string name)
+        {
+            return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        }
     }
 }

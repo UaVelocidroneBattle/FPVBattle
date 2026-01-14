@@ -5,6 +5,7 @@ using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
 using Veloci.Logic.Features.Achievements;
+using Veloci.Logic.Services.Leagues;
 using Veloci.Logic.Services.Pilots;
 using Veloci.Logic.Services.Tracks;
 using Veloci.Web.Controllers.Heatmap;
@@ -34,6 +35,8 @@ public static class ServiceRegistration
         services.AddScoped<IPilotProfileService, PilotProfileService>();
         services.AddScoped<PilotPlatformsService>();
         services.AddScoped<PointsCalculator>();
+        services.AddScoped<LeagueService>();
+        services.AddScoped<LeagueQualifier>();
         services.AddAchievementsServices();
         services.AddPatreonServices(configuration);
 
