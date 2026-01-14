@@ -300,10 +300,12 @@ public class CompetitionService
 
     public async Task ClearTrackTimesAsync()
     {
-        var allTrackTimes = _trackTimes.GetAll();
-        await _trackTimes.RemoveRangeAsync(allTrackTimes);
+        await _competitions.GetAll()
+            .ExecuteUpdateAsync(c => c
+                .SetProperty(x => x.InitialResultsId, (string?)null)
+                .SetProperty(x => x.CurrentResultsId, (string?)null));
 
-        var allTrackResults = _trackResults.GetAll();
-        await _trackResults.RemoveRangeAsync(allTrackResults);
+        await _trackTimes.GetAll().ExecuteDeleteAsync();
+        await _trackResults.GetAll().ExecuteDeleteAsync();
     }
 }
