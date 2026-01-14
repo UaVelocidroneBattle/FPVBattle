@@ -12,3 +12,9 @@ public class PilotAchievement
 
     public string Name { get; set; }
 }
+
+public static class PilotAchievemntQueries
+{
+    public static IQueryable<PilotAchievement> ForPilot(this IQueryable<PilotAchievement> query, Pilot pilot) =>
+        query.Where(a => a.PilotId == pilot.Id);
+}

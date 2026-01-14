@@ -1,17 +1,20 @@
+using System.Net;
 using Hangfire;
-using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
+using Veloci.Hangfire.Metrics;
 using Veloci.Logic.API.Options;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
@@ -19,6 +22,7 @@ using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
 using Veloci.Web.Infrastructure.Hangfire;
 using Veloci.Web.Infrastructure.Logging;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Veloci.Web.Infrastructure;
 
@@ -34,6 +38,31 @@ public class Startup
     public void ConfigureBuilder(WebApplicationBuilder builder)
     {
         ConfigureLogging(builder);
+
+        var otel = builder.Services.AddOpenTelemetry();
+        otel.ConfigureResource(resource => resource
+            .AddService(serviceName: builder.Environment.ApplicationName));
+
+        otel.WithMetrics(metrics => metrics
+            // Metrics provider from OpenTelemetry
+            .AddAspNetCoreInstrumentation()
+            .AddProcessInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddSqlClientInstrumentation()
+            .AddHangfireInstrumentation()
+            // Metrics provides by ASP.NET Core in .NET 8
+            .AddMeter("Microsoft.AspNetCore.Hosting")
+            .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+            // Metrics provided by System.Net libraries
+            .AddMeter("System.Net.Http")
+            .AddMeter("System.Net.NameResolution")
+            .AddPrometheusExporter());
+
+        var OtlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+        if (OtlpEndpoint != null)
+        {
+            otel.UseOtlpExporter();
+        }
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -41,8 +70,6 @@ public class Startup
         // Add services to the container.
         var connectionString = Configuration.GetConnectionString("DefaultConnection") ??
                                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        var hangfireConnectionString = Configuration.GetConnectionString("HangfireConnection") ??
-                                      throw new InvalidOperationException("Connection string 'HangfireConnection' not found.");
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options
@@ -99,21 +126,8 @@ public class Startup
             });
         });
 
-        services.AddHangfire(config => config
-            .UseSQLiteStorage(new SqliteConnectionStringBuilder(hangfireConnectionString).DataSource)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-        );
-
-        // Add global job execution logging filter
-        GlobalJobFilters.Filters.Add(new JobExecutionLoggingAttribute());
-
-        services.AddHangfireServer(o =>
-        {
-            o.WorkerCount = 1;
-        });
-
         services
+            .AddHangfireConfiguration(Configuration)
             .RegisterCustomServices(Configuration)
             .RegisterTelegramCommands()
             .UseTelegramBotService()
@@ -150,11 +164,20 @@ public class Startup
 
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            KnownNetworks = { new IPNetwork(IPAddress.Parse("172.17.0.0"), 16) }
         });
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
+
+        var user = app.Configuration["PrometheusAuth:Username"];
+        var pass = app.Configuration["PrometheusAuth:Password"];
+
+        if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(pass))
+        {
+            app.ProtectUrl("/metrics", "Prometheus", user, pass);
+        }
 
         app.UseRouting();
 
@@ -167,8 +190,10 @@ public class Startup
         app.MapRazorPages();
         app.MapHangfireDashboard(new DashboardOptions
         {
-            Authorization = new[] { new HangfireAuthorizationFilter() },
+            Authorization = [new HangfireAuthorizationFilter()],
         });
+
+        app.MapPrometheusScrapingEndpoint();
     }
 
     private static void ConfigureLogging(WebApplicationBuilder builder)
@@ -215,6 +240,12 @@ public class Startup
                         AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6,
                         CustomFormatter = new ElasticsearchJsonFormatter()
                     });
+            }
+
+            if (!string.IsNullOrEmpty(logconfig?.Value.SeqToken))
+            {
+                var token = logconfig?.Value.SeqToken;
+                logger.WriteTo.Seq(logconfig.Value.SeqUrl, LogEventLevel.Verbose, 1000, null, apiKey:token);
             }
 
             logger.WriteTo.Console(outputTemplate: LoggingConstants.ConsoleOutputTemplate);

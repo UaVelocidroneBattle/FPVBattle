@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Services.Pilots;
+using Veloci.Logic.Services.Pilots.Models;
 
 namespace Veloci.Web.Controllers.Pilots;
 
@@ -10,22 +12,39 @@ namespace Veloci.Web.Controllers.Pilots;
 public class PilotsController : ControllerBase
 {
     private readonly IRepository<Competition> _competitions;
+    private readonly IPilotProfileService _pilotProfileService;
+    private readonly IRepository<Pilot> _pilots;
 
-    public PilotsController(IRepository<Competition> competitions)
+    public PilotsController(
+        IRepository<Competition> competitions,
+        IPilotProfileService pilotProfileService,
+        IRepository<Pilot> pilots)
     {
         _competitions = competitions;
+        _pilotProfileService = pilotProfileService;
+        _pilots = pilots;
     }
 
     [HttpGet]
     public async Task<List<string>> All()
     {
-        var allPilots = await _competitions.GetAll()
-            .NotCancelled()
-            .SelectMany(comp => comp.CompetitionResults)
-            .Select(res => res.PlayerName)
-            .Distinct()
+        return await _pilots
+            .GetAll()
+            .OrderBy(p => p.Name)
+            .Select(p => p.Name)
             .ToListAsync();
+    }
 
-        return allPilots;
+    [HttpGet]
+    public async Task<ActionResult<PilotProfileModel>> Profile(string pilotName, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(pilotName))
+        {
+            return BadRequest("Pilot name is required");
+        }
+
+        var profile = await _pilotProfileService.GetPilotProfileAsync(pilotName, ct);
+
+        return profile;
     }
 }

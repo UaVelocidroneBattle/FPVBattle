@@ -7,8 +7,8 @@ public static class CompetitionResultsExtensions
         return competitionResults.SingleOrDefault(res => res.LocalRank == rank);
     }
 
-    public static CompetitionResults? GetByPilotName(this IEnumerable<CompetitionResults> competitionResults, string name)
+    public static CompetitionResults? GetByPilotId(this IEnumerable<CompetitionResults> competitionResults, int pilotId)
     {
-        return competitionResults.FirstOrDefault(res => res.PlayerName == name);
+        return competitionResults.FirstOrDefault(res => res.Pilot.Id == pilotId);
     }
 }

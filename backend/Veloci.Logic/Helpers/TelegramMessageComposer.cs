@@ -1,8 +1,6 @@
-using System.Globalization;
 using System.Text;
 using Veloci.Data.Domain;
 using Veloci.Logic.Bot;
-using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Services.Statistics;
 using Veloci.Logic.Services.Statistics.YearResults;
 
@@ -10,6 +8,8 @@ namespace Veloci.Logic.Helpers;
 
 public class TelegramMessageComposer
 {
+    const int PilotNameMaxLength = 15;
+
     public string TimeUpdate(IEnumerable<TrackTimeDelta> deltas)
     {
         var messages = deltas.Select(TimeUpdate);
@@ -29,14 +29,14 @@ public class TelegramMessageComposer
             $"Трек вже літали:{Environment.NewLine}*{string.Join(", ", pilotsFlownOnTrack)}*{Environment.NewLine}" :
             $"Трек ще ніхто з вас не літав.{Environment.NewLine}";
 
-        return $"📅 Вітаємо на щоденному *FPV Battle*!{Environment.NewLine}{Environment.NewLine}" +
+        return $"📅 Вітаємо на *FPV Battle*!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
                $"{flownPilotsText}{Environment.NewLine}" +
-               $"👾 Також не забувайте додаватись в наш Discord:{Environment.NewLine}*https://discord.gg/FrpC2WV8Cw*{Environment.NewLine}";
+               $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
     }
 
     public BotPoll Poll(string trackName)
@@ -73,20 +73,20 @@ public class TelegramMessageComposer
                $"`{string.Join($"{Environment.NewLine}", rows)}`";
     }
 
-    public string Leaderboard(IEnumerable<CompetitionResults> results, string trackName, bool includeExtraNewLine = true)
+    public string Leaderboard(IEnumerable<CompetitionResults> results, string trackName)
     {
         var rows = results.Select(LeaderboardRow);
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
+        var divider = Environment.NewLine;
         return $"🏆 Результати дня{Environment.NewLine}" +
                $"Трек: *{trackName}*{Environment.NewLine}{Environment.NewLine}" +
                $"{string.Join($"{divider}", rows)}" +
                $"{Environment.NewLine}{Environment.NewLine}#dayresults";
     }
 
-    public string TempSeasonResults(IEnumerable<SeasonResult> results, bool includeExtraNewLine = true)
+    public string TempSeasonResults(IEnumerable<SeasonResult> results)
     {
         var rows = results.Select(TempSeasonResultsRow);
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
+        var divider = Environment.NewLine;
         return $"🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}" +
                $"{string.Join($"{divider}", rows)}";
     }
@@ -112,11 +112,11 @@ public class TelegramMessageComposer
 
     public IEnumerable<string> YearResults(YearResultsModel model)
     {
-        var first = $"🎉 *UA Velocidrone Battle WRAPPED 📈 {model.Year}*{Environment.NewLine}" +
+        var first = $"🎉 *FPV Battle WRAPPED 📈 {model.Year}*{Environment.NewLine}" +
                $"або трохи цифр за минулий рік{Environment.NewLine}{Environment.NewLine}" +
                $"📊 *{model.TotalTrackCount} треків!* Це стільки ми пролетіли минулого року.{Environment.NewLine}" +
                $"Із них унікальних - *{model.UniqueTrackCount}*. Так, деякі треки повторювались, але такі вже у нас алгоритми.{Environment.NewLine}" +
-               $"З іншого боку, це гарний привід покращити свій же результат і стати ще швидшим.{Environment.NewLine}{Environment.NewLine}" +
+               $"З іншого боку, це гарний привід обігнати самого себе і подивитись на свій прогрес.{Environment.NewLine}{Environment.NewLine}" +
                $"👎 *{model.TracksSkipped} треків* були настільки ганебні, що довелось їх одразу замінити.{Environment.NewLine}{Environment.NewLine}" +
                $"👍 Але ваш улюблений трек року:{Environment.NewLine}" +
                $"*{model.FavoriteTrack}*{Environment.NewLine}" +
@@ -154,7 +154,7 @@ public class TelegramMessageComposer
 
         foreach (var pilot in pilots)
         {
-            message += $"*{pilot.Name}* - *{pilot.DayStreak}* streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
+            message += $"*{TextHelper.Trim(pilot.Name, PilotNameMaxLength)}* - *{pilot.DayStreak}* streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
         }
 
         message += $"{Environment.NewLine}Швиденько запускайте симулятори і летіть! 🚀" +
@@ -187,23 +187,24 @@ public class TelegramMessageComposer
 
     private string TimeUpdate(TrackTimeDelta delta)
     {
-        var timeChangePart = delta.TimeChange.HasValue ? $" ({MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
+        var timeChangePart = delta.TimeChange.HasValue ? $" ({TrackTimeConverter.MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
         var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
 
-        return $"🎮 *{delta.PlayerName}*{modelPart}{Environment.NewLine}" +
-               $"⏱️ {MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
+        return $"🎮 *{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}*{modelPart}{Environment.NewLine}" +
+               $"⏱️ {TrackTimeConverter.MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 
     private List<string> TempLeaderboardRows(List<CompetitionResults> results)
     {
-        var positionLength = results.Count().ToString().Length + 2;
-        var pilotNameLength = results.Max(r => r.PlayerName.Length) + 2;
+        var positionLength = results.Count.ToString().Length + 2;
+        var pilotNameLength = Math.Min(results.Max(r => r.Pilot.Name.Length), PilotNameMaxLength) + 2;
         var rows = new List<string>();
 
         foreach (var result in results)
         {
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(result.PlayerName, pilotNameLength)}{MsToSec(result.TrackTime)}s");
+            var pilotName = TextHelper.Trim(result.Pilot.Name, PilotNameMaxLength);
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(pilotName, pilotNameLength)}{TrackTimeConverter.MsToSec(result.TrackTime)}s");
         }
 
         return rows;
@@ -226,12 +227,12 @@ public class TelegramMessageComposer
             _ => $"#{time.LocalRank}"
         };
 
-        return $"{icon} - *{time.PlayerName}* ({MsToSec(time.TrackTime)}s) / Балів: *{time.Points}*";
+        return $"{icon} - *{TextHelper.Trim(time.Pilot.Name, PilotNameMaxLength)}* ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / Балів: *{time.Points}*";
     }
 
     private string TempSeasonResultsRow(SeasonResult result)
     {
-        return $"{result.Rank} - *{result.PlayerName}* - {result.Points} балів";
+        return $"{result.Rank} - *{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}* - {result.Points} балів";
     }
 
     private string SeasonResultsRow(SeasonResult result)
@@ -244,7 +245,7 @@ public class TelegramMessageComposer
             _ => $"#{result.Rank}"
         };
 
-        return $"{icon} - *{result.PlayerName}* - {result.Points} балів";
+        return $"{icon} - *{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}* - {result.Points} балів";
     }
 
     private string? MedalCountRow(SeasonResult result)
@@ -253,7 +254,7 @@ public class TelegramMessageComposer
             return null;
 
         var medals = $"{MedalsRow("🥇", result.GoldenCount)}{MedalsRow("🥈", result.SilverCount)}{MedalsRow("🥉", result.BronzeCount)}";
-        return $"*{result.PlayerName}*:{Environment.NewLine}{medals}";
+        return $"*{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}*:{Environment.NewLine}{medals}";
     }
 
     private string MedalsRow(string medalIcon, int count)
@@ -267,8 +268,6 @@ public class TelegramMessageComposer
 
         return result.ToString();
     }
-
-    private static string MsToSec(int ms) => (ms / 1000.0).ToString(CultureInfo.InvariantCulture);
 
     private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
 

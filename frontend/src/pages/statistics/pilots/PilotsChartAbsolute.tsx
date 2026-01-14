@@ -1,5 +1,7 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
+import { PartialTheme } from '@nivo/theming';
 import PilotsChartProps from './PilotChartProps';
+import AbsoluteChartTooltip from './AbsoluteChartTooltip';
 
 const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
 
@@ -25,23 +27,57 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
         pilotData.data = pilotData.data.filter(i => dates[(i.x as Date).valueOf()] == chartData.length);
     }
 
-    const data = chartData.filter(d => d.data.length > 0);
+    const filteredData = chartData.filter(d => d.data.length > 0);
 
-    if (data.length == 0) return <>
+    if (filteredData.length == 0) return <>
         <h2>No data</h2>
     </>
+
+    const theme: PartialTheme = {
+        text: { fill: 'rgba(203, 213, 225, 0.5)' },
+        crosshair: {
+            line: {
+                stroke: 'rgba(203, 213, 225, 0.5)',
+                strokeWidth: 1
+            }
+        },
+        grid: {
+            line: {
+                stroke: '#94a3b8',
+                strokeWidth: 1,
+                strokeOpacity: 0.2
+            }
+        },
+        axis: {
+            domain: { line: { stroke: 'rgba(203, 213, 225, 0.5)' } },
+            ticks: {
+                line: { stroke: 'rgba(203, 213, 225, 0.5)' },
+                text: { fill: 'rgba(203, 213, 225, 0.5)' },
+            },
+            legend: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
+        },
+        legends: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
+    };
 
 
     return (
         <ResponsiveLine
-            data={data}
-            margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-            areaOpacity={0.07}
+            data={filteredData}
+            theme={theme}
+            margin={{ top: 20, right: 20, bottom: 100, left: 50 }}
+            areaOpacity={0.3}
             colors={[
                 'rgb(97, 205, 187)',
                 'rgb(244, 117, 96)'
             ]}
             curve="monotoneX"
+            tooltip={({ point }) => (
+                <AbsoluteChartTooltip
+                    point={point}
+                    filteredData={filteredData}
+                    pilots={pilots}
+                />
+            )}
             xScale={{
                 format: '%Y-%m-%d',
                 precision: 'day',
@@ -64,7 +100,6 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
                 tickPadding: 5,
                 tickRotation: -45,
                 legend: 'Date',
-                //legendOffset: 36,
                 legendPosition: 'middle',
                 truncateTickAt: 0,
                 format: '%b %d',
@@ -91,14 +126,14 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
             useMesh={true}
             legends={[
                 {
-                    anchor: 'bottom-right',
-                    direction: 'column',
+                    anchor: 'bottom',
+                    direction: 'row',
                     justify: false,
-                    translateX: 100,
-                    translateY: 0,
+                    translateX: 0,
+                    translateY: 70,
                     itemsSpacing: 0,
                     itemDirection: 'left-to-right',
-                    itemWidth: 80,
+                    itemWidth: 150,
                     itemHeight: 20,
                     itemOpacity: 0.75,
                     symbolSize: 12,

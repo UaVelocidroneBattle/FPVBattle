@@ -29,11 +29,9 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<TrackTime>().Property(t => t.ModelName).HasMaxLength(128);
 
         builder.Entity<TrackTimeDelta>().ToTable("TrackTimeDeltas");
-        builder.Entity<TrackTimeDelta>().Property(t => t.PlayerName).HasMaxLength(128);
         builder.Entity<TrackTimeDelta>().Property(t => t.ModelName).HasMaxLength(128);
 
         builder.Entity<CompetitionResults>().ToTable("CompetitionResults");
-        builder.Entity<CompetitionResults>().Property(c => c.PlayerName).HasMaxLength(128);
         builder.Entity<CompetitionResults>().Property(c => c.ModelName).HasMaxLength(128);
 
         builder.Entity<Pilot>().ToTable("Pilots");
@@ -63,5 +61,9 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<PilotNameHistoryRow>().HasKey(p => p.Id);
         builder.Entity<PilotNameHistoryRow>().Property(p => p.OldName).HasMaxLength(128);
         builder.Entity<PilotNameHistoryRow>().Property(p => p.NewName).HasMaxLength(128);
+
+        builder.Entity<PilotPlatformAccount>().ToTable("PilotPlatformAccounts");
+        builder.Entity<PilotPlatformAccount>().HasKey(p => p.Id);
+        builder.Entity<PilotPlatformAccount>().Property(p => p.Username).HasMaxLength(128);
     }
 }

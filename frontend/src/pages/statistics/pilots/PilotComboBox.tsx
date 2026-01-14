@@ -13,14 +13,16 @@ const pilotLabel = (pilot: string) => pilot;
 const PilotComboBox = ({ pilots, selectedPilot, selectedPilots, onPilotSelect }: PilotComboBoxProps) => {
     const availablePilots = pilots.filter(p => !selectedPilots.some(sp => sp === p) || selectedPilot == p);
     return (
-        <ComboBox
-            defaultCaption='Select a pilot'
-            items={availablePilots}
-            getKey={pilotKey}
-            getLabel={pilotLabel}
-            onSelect={onPilotSelect}
-            value={selectedPilot}
-        />
+        <div className="flex items-center gap-2">
+            <ComboBox
+                defaultCaption='Select a pilot'
+                items={availablePilots}
+                getKey={pilotKey}
+                getLabel={pilotLabel}
+                onSelect={onPilotSelect}
+                value={selectedPilot}
+            />
+        </div>
     );
 };
 

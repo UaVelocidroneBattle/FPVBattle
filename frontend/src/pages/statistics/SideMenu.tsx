@@ -1,4 +1,4 @@
-import { Calendar, Users } from "lucide-react";
+import { UserRound, ChartNoAxesCombined } from "lucide-react";
 import SideMenuItem from "../../components/ui/SideMenuItem";
 
 const SideMenu = () => {
@@ -7,11 +7,11 @@ const SideMenu = () => {
             <nav className="p-4">
                 <ul className="space-y-2">
                     <li>
-                        <SideMenuItem to="heatmap" icon={Calendar} label="Heat map" />
+                        <SideMenuItem to="profile" icon={UserRound} label="Profile" />
                     </li>
 
-                    <li>
-                        <SideMenuItem to="pilots" icon={Users} label="Pilot Stats" />
+                    <li className="hidden sm:block">
+                        <SideMenuItem to="pilots" icon={ChartNoAxesCombined} label="Pilot stats" />
                     </li>
                 </ul>
             </nav>

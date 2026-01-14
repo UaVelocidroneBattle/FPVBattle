@@ -12,13 +12,13 @@ public interface IDiscordBot
     Task SendMessageInThreadAsync(ulong messageId, string threadName, string message);
     Task ArchiveThreadAsync(string threadName);
     Task ChangeChannelTopicAsync(string message);
-    Task SendImageAsync(byte[] imageBytes);
+    Task SendImageAsync(byte[] imageBytes, string imageName);
 }
 
 public class DiscordBot : IDiscordBot
 {
     private static readonly ILogger _log = Serilog.Log.ForContext<DiscordBot>();
-    
+
     private DiscordSocketClient? _client;
     private readonly string? _token;
     private readonly string? _channelName;
@@ -29,7 +29,7 @@ public class DiscordBot : IDiscordBot
         _token = configuration.GetSection("Discord:BotToken").Value;
         _channelName = configuration.GetSection("Discord:Channel").Value;
 
-        _log.Debug("Discord channel: {@channel}", _channel);
+        _log.Debug("Discord channel: {@channel}", _channelName);
     }
 
     #region Configuration section
@@ -91,11 +91,11 @@ public class DiscordBot : IDiscordBot
 
         try
         {
-            _log.Information("💬 Sending Discord message to channel {ChannelName}: {MessagePreview}...", 
+            _log.Information("💬 Sending Discord message to channel {ChannelName}: {MessagePreview}...",
                 _channel.Name, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
-                
+
             var result = await _channel.SendMessageAsync(message);
-            
+
             _log.Information("Sent Discord message {MessageId} to channel {ChannelName}", result.Id, _channel.Name);
             return result.Id;
         }
@@ -121,14 +121,14 @@ public class DiscordBot : IDiscordBot
 
         try
         {
-            _log.Information("Editing Discord message {MessageId} in channel {ChannelName}: {MessagePreview}...", 
+            _log.Information("Editing Discord message {MessageId} in channel {ChannelName}: {MessagePreview}...",
                 messageId, _channel.Name, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
-                
+
             await _channel.ModifyMessageAsync(messageId, x =>
             {
                 x.Content = message;
             });
-            
+
             _log.Debug("Discord message {MessageId} edited successfully", messageId);
         }
         catch (Exception e)
@@ -159,9 +159,9 @@ public class DiscordBot : IDiscordBot
                 _log.Debug("Using existing Discord thread {ThreadName}", threadName);
             }
 
-            _log.Information("Sending message to Discord thread {ThreadName}: {MessagePreview}...", 
+            _log.Information("Sending message to Discord thread {ThreadName}: {MessagePreview}...",
                 threadName, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
-                
+
             await thread.SendMessageAsync(message);
             _log.Debug("Message sent successfully to Discord thread {ThreadName}", threadName);
 
@@ -218,7 +218,7 @@ public class DiscordBot : IDiscordBot
         }
     }
 
-    public async Task SendImageAsync(byte[] imageBytes)
+    public async Task SendImageAsync(byte[] imageBytes, string imageName)
     {
         if (_client is null || _channel is null)
             return;
@@ -226,7 +226,7 @@ public class DiscordBot : IDiscordBot
         try
         {
             _log.Information("🖼️ Sending Discord image to channel {ChannelName} ({ImageSize} bytes)", _channel.Name, imageBytes.Length);
-            var result = await _channel.SendFileAsync(new MemoryStream(imageBytes), "winners");
+            var result = await _channel.SendFileAsync(new MemoryStream(imageBytes), imageName);
             _log.Information("Discord image sent successfully as message {MessageId}", result.Id);
         }
         catch (Exception e)

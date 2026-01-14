@@ -87,7 +87,8 @@ public class CompetitionService
             return;
         }
 
-        await _pilotService.UpdatePilotsAsync(deltas);
+        var pilotNames = times.ToDictionary(x => x.UserId.Value, x => x.PlayerName);
+        await _pilotService.UpdatePilotsAsync(deltas, pilotNames);
 
         competition.CurrentResults = results;
         competition.TimeDeltas.AddRange(deltas);
@@ -152,14 +153,14 @@ public class CompetitionService
     public List<CompetitionResults> GetLocalLeaderboard(Competition competition)
     {
         return competition.TimeDeltas
-            .GroupBy(d => d.PlayerName)
+            .GroupBy(d => d.PilotId)
             .Select(d => d.MinBy(x => x.TrackTime))
             .OrderBy(d => d.TrackTime)
             .Select((x, i) => new CompetitionResults
             {
                 CompetitionId = x.CompetitionId,
-                PlayerName = x.PlayerName,
-                UserId = x.UserId,
+                PilotId = x.PilotId,
+                Pilot = x.Pilot,
                 TrackTime = x.TrackTime,
                 LocalRank = i + 1,
                 GlobalRank = x.Rank,
@@ -192,10 +193,10 @@ public class CompetitionService
             .GetAll(comp => comp.StartedOn >= from && comp.StartedOn <= to)
             .Where(comp => comp.State != CompetitionState.Cancelled)
             .SelectMany(comp => comp.CompetitionResults)
-            .GroupBy(result => result.PlayerName)
+            .GroupBy(result => result.PilotId)
             .Select(group => new SeasonResult
             {
-                PlayerName = group.Key,
+                PlayerName = group.First().Pilot.Name,
                 Points = group.Sum(r => r.Points),
                 GoldenCount = group.Count(r => r.LocalRank == 1),
                 SilverCount = group.Count(r => r.LocalRank == 2),
@@ -265,7 +266,6 @@ public class CompetitionService
 
     public async Task DayStreakPotentialLoseNotification()
     {
-
         var activeCompetition = await GetCurrentCompetitions()
             .FirstOrDefaultAsync();
 
@@ -276,14 +276,14 @@ public class CompetitionService
         }
 
         var leaderboard = GetLocalLeaderboard(activeCompetition)
-            .Select(r => r.PlayerName)
+            .Select(r => r.Pilot.Id)
             .ToArray();
 
         _log.Debug("Current leaderboard has {ParticipantCount} participants", leaderboard.Length);
 
         var pilots = await _pilots
             .GetAll(p => p.DayStreak > 10)
-            .Where(p => leaderboard.All(l => l != p.Name))
+            .Where(p => leaderboard.All(l => l != p.Id))
             .ToListAsync();
 
         if (pilots.Count == 0)

@@ -107,10 +107,10 @@ public class YearResultsService
             .InRange(_from, _to)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
-            .GroupBy(res => res.PlayerName)
+            .GroupBy(res => res.Pilot.Id)
             .Select(group => new
             {
-                Name = group.Key,
+                Name = group.First().Pilot.Name,
                 Count = group.Count()
             })
             .OrderByDescending(x => x.Count)
@@ -129,7 +129,7 @@ public class YearResultsService
             .InRange(_from, _to)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
-            .GroupBy(res => res.PlayerName)
+            .GroupBy(res => res.Pilot.Name)
             .Select(group => new
             {
                 Name = group.Key,
@@ -168,7 +168,7 @@ public class YearResultsService
             .InRange(_from, _to)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
-            .Select(res => res.PlayerName)
+            .Select(res => res.PilotId)
             .Distinct()
             .CountAsync();
     }

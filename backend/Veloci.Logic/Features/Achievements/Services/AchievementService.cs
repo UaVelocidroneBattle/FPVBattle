@@ -47,13 +47,7 @@ public class AchievementService
 
         foreach (var result in competition.CompetitionResults)
         {
-            var pilot = await _pilots.FindAsync(result.UserId);
-
-            if (pilot is null)
-            {
-                throw new Exception("Pilot not found");
-            }
-
+            var pilot = result.Pilot;
             var triggered = await achievement.CheckAsync(pilot, competition);
 
             if (!triggered)
@@ -134,12 +128,11 @@ public class AchievementService
 
         foreach (var delta in deltas)
         {
-            var pilot = await _pilots.FindAsync(delta.UserId);
+            var pilot = delta.Pilot;
 
-            if (pilot is null) // Maybe a new pilot who is not in the DB yet
+            if (pilot is null)
             {
-                _log.Debug("Skipping achievement check for unknown pilot {PilotName}", delta.PlayerName);
-                continue;
+                throw new Exception("Pilot not found");
             }
 
             var triggered = await achievement.CheckAsync(pilot, deltas);
@@ -214,6 +207,11 @@ public class AchievementService
         {
             _log.Debug("No achievements were triggered in this check");
         }
+    }
+
+    public IAchievement GetAchievementByName(string name)
+    {
+        return _achievements.First(a => a.Name == name);
     }
 }
 

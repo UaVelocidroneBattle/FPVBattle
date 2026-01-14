@@ -274,10 +274,8 @@ namespace Veloci.Web.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PlayerName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("PilotId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Points")
                         .HasColumnType("INTEGER");
@@ -285,12 +283,11 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("TrackTime")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CompetitionId");
+
+                    b.HasIndex("PilotId");
 
                     b.ToTable("CompetitionResults", (string)null);
                 });
@@ -377,6 +374,9 @@ namespace Veloci.Web.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("PilotId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -387,6 +387,8 @@ namespace Veloci.Web.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("PatreonId");
+
+                    b.HasIndex("PilotId");
 
                     b.ToTable("PatreonSupporters", (string)null);
                 });
@@ -502,6 +504,30 @@ namespace Veloci.Web.Data.Migrations
                     b.HasIndex("PilotId");
 
                     b.ToTable("PilotNameHistory", (string)null);
+                });
+
+            modelBuilder.Entity("Veloci.Data.Domain.PilotPlatformAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PilotId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlatformName")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PilotId");
+
+                    b.ToTable("PilotPlatformAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.Track", b =>
@@ -636,10 +662,8 @@ namespace Veloci.Web.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PlayerName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                    b.Property<int>("PilotId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Rank")
                         .HasColumnType("INTEGER");
@@ -653,12 +677,11 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("TrackTime")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CompetitionId");
+
+                    b.HasIndex("PilotId");
 
                     b.ToTable("TrackTimeDeltas", (string)null);
                 });
@@ -745,7 +768,15 @@ namespace Veloci.Web.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                        .WithMany()
+                        .HasForeignKey("PilotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Competition");
+
+                    b.Navigation("Pilot");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.CompetitionVariable", b =>
@@ -766,6 +797,15 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
+            modelBuilder.Entity("Veloci.Data.Domain.PatreonSupporter", b =>
+                {
+                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                        .WithMany()
+                        .HasForeignKey("PilotId");
+
+                    b.Navigation("Pilot");
+                });
+
             modelBuilder.Entity("Veloci.Data.Domain.PilotAchievement", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
@@ -780,6 +820,17 @@ namespace Veloci.Web.Data.Migrations
                     b.HasOne("Veloci.Data.Domain.Pilot", null)
                         .WithMany("NameHistory")
                         .HasForeignKey("PilotId");
+                });
+
+            modelBuilder.Entity("Veloci.Data.Domain.PilotPlatformAccount", b =>
+                {
+                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                        .WithMany("PlatformAccounts")
+                        .HasForeignKey("PilotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pilot");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.Track", b =>
@@ -814,7 +865,15 @@ namespace Veloci.Web.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                        .WithMany()
+                        .HasForeignKey("PilotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Competition");
+
+                    b.Navigation("Pilot");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
@@ -833,6 +892,8 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("DayStreakFreezes");
 
                     b.Navigation("NameHistory");
+
+                    b.Navigation("PlatformAccounts");
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.TrackMap", b =>

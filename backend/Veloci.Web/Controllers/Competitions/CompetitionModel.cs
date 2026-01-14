@@ -26,6 +26,7 @@ public class TrackTimeModel
     public required int Time { get; set; }
     public required int GlobalRank { get; set; }
     public required int LocalRank { get; set; }
+    public required string ModelName { get; set; }
 }
 
 public class SeasonResultModel

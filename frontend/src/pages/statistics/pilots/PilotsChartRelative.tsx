@@ -1,5 +1,13 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
+import { PartialTheme } from '@nivo/theming';
 import PilotsChartProps from './PilotChartProps';
+import RelativeChartTooltip from './RelativeChartTooltip';
+
+export interface RelativeChartDataPoint {
+    x: Date;
+    y: number | null;
+    absoluteDifference?: number;
+}
 
 
 const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
@@ -8,7 +16,7 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
         <h2>No data</h2>
     </>;
 
-    const referencePilot = 0;
+    // pilots[0] is always the reference pilot
 
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - 2); // Get date from 2 months ago
@@ -36,58 +44,91 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
     const t = [];
 
     for (let pilotIndex = 0; pilotIndex < chartData.length; pilotIndex++) {
-        if (pilotIndex == referencePilot) continue;
+        if (pilotIndex == 0) continue; // Skip reference pilot (pilots[0])
         const pilotData = chartData[pilotIndex];
 
         const pilotDataPositive = {
             id: `Faster`,
-            data: [] as { x: Date, y: number | null }[]
+            data: [] as RelativeChartDataPoint[]
         };
 
         const pilotDataNegative = {
             id: `Slower`,
-            data: [] as { x: Date, y: number | null }[]
+            data: [] as RelativeChartDataPoint[]
         };
 
         let lastValue: { x: Date, y: number } | null = null;
 
         for (let i = 0; i < pilotData.data.length; i++) {
             const v = pilotData.data[i];
-            const y = ((chartData[referencePilot].data[i].y as number) - (v.y as number)) / (chartData[referencePilot].data[i].y as number) * 100;
+            const absoluteDifference = Math.abs((v.y as number) - (chartData[0].data[i].y as number));
+            const y = ((v.y as number) - (chartData[0].data[i].y as number)) / (chartData[0].data[i].y as number) * 100;
             v.y = y;
 
             if (lastValue && (lastValue.y < 0 && y > 0 || lastValue.y > 0 && y < 0)) {
                 //add intermediate point        
                 const md = new Date(((v.x as Date).valueOf() + lastValue.x.valueOf()) / 2);
-                pilotDataPositive.data.push({ x: md, y: 0 });
-                pilotDataNegative.data.push({ x: md, y: 0 });
+                pilotDataPositive.data.push({ x: md, y: 0, absoluteDifference });
+                pilotDataNegative.data.push({ x: md, y: 0, absoluteDifference });
             }
 
-            pilotDataPositive.data.push({ x: v.x as Date, y: y >= 0 ? y : null });
-            pilotDataNegative.data.push({ x: v.x as Date, y: y <= 0 ? y : null });
+            // Calculate absolute time difference using original times
+
+            pilotDataPositive.data.push({ x: v.x as Date, y: y >= 0 ? y : null, absoluteDifference });
+            pilotDataNegative.data.push({ x: v.x as Date, y: y <= 0 ? y : null, absoluteDifference });
 
             lastValue = v as { x: Date, y: number };
         }
 
-
         t.push(pilotDataPositive);
         t.push(pilotDataNegative);
-
     }
 
     chartData = t;
 
+    // pilots[0] is reference, pilots[1] is compared pilot
+
+    const theme: PartialTheme = {
+        text: { fill: 'rgba(203, 213, 225, 0.5)' },
+        crosshair: {
+            line: {
+                stroke: 'rgba(203, 213, 225, 0.5)',
+                strokeWidth: 1
+            }
+        },
+        grid: {
+            line: {
+                stroke: '#94a3b8',
+                strokeWidth: 1,
+                strokeOpacity: 0.2
+            }
+        },
+        axis: {
+            domain: { line: { stroke: 'rgba(203, 213, 225, 0.5)' } },
+            ticks: {
+                line: { stroke: 'rgba(203, 213, 225, 0.5)' },
+                text: { fill: 'rgba(203, 213, 225, 0.5)' },
+            },
+            legend: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
+        },
+        legends: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
+    };
+
     return (
         <ResponsiveLine
             data={chartData}
-            margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-            areaOpacity={0.07}
+            margin={{ top: 20, right: 20, bottom: 100, left: 50 }}
+            theme={theme}
+            areaOpacity={0.3}
             colors={[
                 'rgb(97, 205, 187)',
                 'rgb(244, 117, 96)'
             ]}
             enableArea
             curve="monotoneX"
+            tooltip={({ point }) => (
+                <RelativeChartTooltip point={{ data: point.data as RelativeChartDataPoint }} pilots={pilots!} />
+            )}
             xScale={{
                 format: '%Y-%m-%d',
                 precision: 'day',
@@ -110,7 +151,6 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
                 tickPadding: 5,
                 tickRotation: -45,
                 legend: 'Date',
-                //legendOffset: 36,
                 legendPosition: 'middle',
                 truncateTickAt: 0,
                 format: '%b %d',
@@ -137,11 +177,11 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
             useMesh={true}
             legends={[
                 {
-                    anchor: 'bottom-right',
-                    direction: 'column',
+                    anchor: 'bottom',
+                    direction: 'row',
                     justify: false,
-                    translateX: 100,
-                    translateY: 0,
+                    translateX: 0,
+                    translateY: 70,
                     itemsSpacing: 0,
                     itemDirection: 'left-to-right',
                     itemWidth: 80,
