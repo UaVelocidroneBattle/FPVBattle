@@ -22,6 +22,7 @@ public class CompetitionService
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
     private readonly PilotService _pilotService;
+    private readonly PointsCalculator _pointsCalculator;
 
     public CompetitionService(
         IRepository<Competition> competitions,
@@ -30,7 +31,8 @@ public class CompetitionService
         IMediator mediator,
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
-        PilotService pilotService)
+        PilotService pilotService,
+        PointsCalculator pointsCalculator)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -39,6 +41,7 @@ public class CompetitionService
         _pilots = pilots;
         _velocidrone = velocidrone;
         _pilotService = pilotService;
+        _pointsCalculator = pointsCalculator;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
@@ -160,7 +163,7 @@ public class CompetitionService
                 TrackTime = x.TrackTime,
                 LocalRank = i + 1,
                 GlobalRank = x.Rank,
-                Points = PointsByRank(i + 1),
+                Points = _pointsCalculator.PointsByPosition(i + 1),
                 ModelName = x.ModelName
             })
             .ToList();
@@ -198,34 +201,6 @@ public class CompetitionService
                 SilverCount = group.Count(r => r.LocalRank == 2),
                 BronzeCount = group.Count(r => r.LocalRank == 3)
             });
-    }
-
-    private static int PointsByRank(int rank)
-    {
-        return rank switch
-        {
-            1 => 85,
-            2 => 72,
-            3 => 66,
-            4 => 60,
-            5 => 54,
-            6 => 49,
-            7 => 44,
-            8 => 39,
-            9 => 35,
-            10 => 31,
-            11 => 27,
-            12 => 23,
-            13 => 19,
-            14 => 16,
-            15 => 13,
-            16 => 10,
-            17 => 7,
-            18 => 5,
-            19 => 3,
-            20 => 2,
-            _ => 1
-        };
     }
 
     private async Task SendCheerUpMessageAsync(ChatMessageType type)
