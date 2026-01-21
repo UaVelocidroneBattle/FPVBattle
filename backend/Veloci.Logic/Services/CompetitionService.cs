@@ -18,6 +18,8 @@ public class CompetitionService
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<TrackTime> _trackTimes;
+    private readonly IRepository<TrackResults> _trackResults;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
@@ -32,6 +34,8 @@ public class CompetitionService
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         PilotService pilotService,
+        IRepository<TrackTime> trackTimes,
+        IRepository<TrackResults> trackResults,
         PointsCalculator pointsCalculator)
     {
         _competitions = competitions;
@@ -41,13 +45,14 @@ public class CompetitionService
         _pilots = pilots;
         _velocidrone = velocidrone;
         _pilotService = pilotService;
+        _trackTimes = trackTimes;
+        _trackResults = trackResults;
         _pointsCalculator = pointsCalculator;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
     public async Task UpdateResultsAsync()
     {
-
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -62,7 +67,6 @@ public class CompetitionService
         {
             await UpdateResultsAsync(competition);
         }
-
     }
 
     private async Task UpdateResultsAsync(Competition competition)
@@ -235,7 +239,6 @@ public class CompetitionService
             .OrderByDescending(x => x.StartedOn);
     }
 
-
     public async Task DayStreakPotentialLoseNotification()
     {
         var activeCompetition = await GetCurrentCompetitions()
@@ -268,5 +271,22 @@ public class CompetitionService
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
         await _mediator.Publish(new DayStreakPotentialLose(pilots));
+    }
+
+    public async Task ClearTrackTimesAsync()
+    {
+        var preservedIds = await _competitions.GetAll()
+            .SelectMany(c => new[] { c.InitialResultsId, c.CurrentResultsId })
+            .Where(id => id != null)
+            .Distinct()
+            .ToListAsync();
+
+        await _trackTimes.GetAll()
+            .Where(t => t.TrackResultsId == null || !preservedIds.Contains(t.TrackResultsId))
+            .ExecuteDeleteAsync();
+
+        await _trackResults.GetAll()
+            .Where(r => !preservedIds.Contains(r.Id))
+            .ExecuteDeleteAsync();
     }
 }

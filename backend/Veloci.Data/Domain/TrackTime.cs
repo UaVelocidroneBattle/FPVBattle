@@ -30,5 +30,7 @@ public class TrackTime
 
     public int LocalRank { get; set; }
 
+    public string? TrackResultsId { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

@@ -28,9 +28,11 @@ public class Competition
     public virtual Track Track { get; set; }
     public string TrackId { get; set; }
 
-    public virtual TrackResults InitialResults { get; set; }
+    public string? InitialResultsId { get; set; }
+    public virtual TrackResults? InitialResults { get; set; }
 
-    public virtual TrackResults CurrentResults { get; set; }
+    public string? CurrentResultsId { get; set; }
+    public virtual TrackResults? CurrentResults { get; set; }
 
     /// <summary>
     /// Append-only log of all lap time changes recorded during this competition.

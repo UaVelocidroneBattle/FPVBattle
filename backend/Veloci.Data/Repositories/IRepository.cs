@@ -18,6 +18,8 @@ public interface IRepository<T> where T : class
 
     Task RemoveAsync(object id);
 
+    Task RemoveRangeAsync(IEnumerable<T> entries);
+
     Task SaveChangesAsync();
 
     Task SaveChangesAsync(CancellationToken ct);

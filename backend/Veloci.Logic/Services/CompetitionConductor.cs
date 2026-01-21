@@ -168,6 +168,8 @@ public class CompetitionConductor
         await UpdateDayStreakAsync(competition.CompetitionResults);
         await _competitions.SaveChangesAsync();
 
+        await _competitionService.ClearTrackTimesAsync();
+
         await _mediator.Publish(new CompetitionStopped(competition));
         _log.Information("Competition {CompetitionId} closure process completed", competition.Id);
     }
