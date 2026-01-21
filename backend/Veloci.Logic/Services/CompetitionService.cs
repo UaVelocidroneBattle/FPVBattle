@@ -275,12 +275,18 @@ public class CompetitionService
 
     public async Task ClearTrackTimesAsync()
     {
-        await _competitions.GetAll()
-            .ExecuteUpdateAsync(c => c
-                .SetProperty(x => x.InitialResultsId, (string?)null)
-                .SetProperty(x => x.CurrentResultsId, (string?)null));
+        var preservedIds = await _competitions.GetAll()
+            .SelectMany(c => new[] { c.InitialResultsId, c.CurrentResultsId })
+            .Where(id => id != null)
+            .Distinct()
+            .ToListAsync();
 
-        await _trackTimes.GetAll().ExecuteDeleteAsync();
-        await _trackResults.GetAll().ExecuteDeleteAsync();
+        await _trackTimes.GetAll()
+            .Where(t => t.TrackResultsId == null || !preservedIds.Contains(t.TrackResultsId))
+            .ExecuteDeleteAsync();
+
+        await _trackResults.GetAll()
+            .Where(r => !preservedIds.Contains(r.Id))
+            .ExecuteDeleteAsync();
     }
 }
