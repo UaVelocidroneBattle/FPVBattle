@@ -1,55 +1,70 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Services.Tracks.Models;
 
 namespace Veloci.Logic.Services.Tracks;
 
+/// <summary>
+/// Filters tracks based on configuration-driven patterns
+/// </summary>
+/// <remarks>
+/// Supports both whitelist and blacklist patterns. When whitelist patterns are specified,
+/// only tracks matching the whitelist are included. Otherwise, blacklist patterns exclude tracks.
+/// This allows for cup-specific track filtering (e.g., 5-inch excludes whoops, whoop includes only micro drones).
+/// </remarks>
 public class TrackFilter
 {
-    private static readonly Regex[] BlackListedTracks =
+    private readonly Regex[]? _whitelistRegexes;
+    private readonly Regex[]? _blacklistRegexes;
+
+    public TrackFilter(TrackFilterOptions options)
     {
-        new ("Pylons", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Freestyle", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Betafpv", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Beta 2S", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Micro", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("NewBeeDrone", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Toothpick", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Trainer", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Whoop", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("LiPo-Suction", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("WeeBleed", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("^level (01,02, 03)", RegexOptions.Compiled | RegexOptions.IgnoreCase),
+        // Compile whitelist patterns if specified
+        if (options.WhitelistPatterns?.Any() == true)
+        {
+            _whitelistRegexes = options.WhitelistPatterns
+                .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                .ToArray();
+        }
 
-        //From old bot
-        new ("collision", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("redbull dr.one", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl season 3 track 3", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl team championships", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("growers rock garden", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl season 7 championships", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("gokartrelay", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("gods_of_quadhalla", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl-freestyle-country", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("boners journey", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("world of war", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("corona", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("neon cage", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("tbs spec 4", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("tdl races - gamex 2019", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("^opg", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("boners bando towers", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl-freestyle-coast", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("boners bonsai fpv 4 freestyle", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("freestyle_tower_of_magical_power", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("dragons_and_wizards", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("trainer", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("tropical heat", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("rona masters", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-    };
+        // Compile blacklist patterns if specified
+        if (options.BlacklistPatterns?.Any() == true)
+        {
+            _blacklistRegexes = options.BlacklistPatterns
+                .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                .ToArray();
+        }
+    }
 
+    /// <summary>
+    /// Determines if a track is suitable based on the filter configuration
+    /// </summary>
+    /// <param name="track">Track to evaluate</param>
+    /// <returns>True if track passes the filter, false otherwise</returns>
+    public bool IsTrackSuitable(ParsedTrackModel track)
+    {
+        // Whitelist takes precedence (for whoop cup)
+        if (_whitelistRegexes != null)
+        {
+            return _whitelistRegexes.Any(regex => regex.IsMatch(track.Name));
+        }
 
+        // Otherwise use blacklist (for 5-inch cup)
+        if (_blacklistRegexes != null)
+        {
+            return !_blacklistRegexes.Any(regex => regex.IsMatch(track.Name));
+        }
+
+        // No filters configured - allow all tracks
+        return true;
+    }
+
+    /// <summary>
+    /// Legacy method for backward compatibility
+    /// </summary>
+    [Obsolete("Use IsTrackSuitable instead")]
     public bool IsTrackGoodFor5inchRacing(ParsedTrackModel track)
     {
-        return !BlackListedTracks.Any(b => b.IsMatch(track.Name));
+        return IsTrackSuitable(track);
     }
 }

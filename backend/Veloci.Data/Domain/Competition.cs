@@ -23,6 +23,15 @@ public class Competition
 
     public CompetitionState State { get; set; }
 
+    /// <summary>
+    /// References the cup configuration key in appsettings.json (e.g., "5inch", "whoop").
+    /// </summary>
+    /// <remarks>
+    /// This is a lightweight reference to cup configuration rather than a database entity.
+    /// The cup defines track filters, channels, and scheduling for the competition.
+    /// </remarks>
+    public string CupId { get; set; } = "5inch";
+
     public long ChatId { get; set; }
 
     public virtual Track Track { get; set; }
@@ -132,6 +141,16 @@ public static class IQueryableCompetitionExtensions
         public IQueryable<Competition> NotCancelled()
         {
             return query.Where(comp => comp.State != CompetitionState.Cancelled);
+        }
+
+        /// <summary>
+        /// Filters competitions by cup ID
+        /// </summary>
+        /// <param name="cupId">Cup identifier (e.g., "5inch", "whoop")</param>
+        /// <returns></returns>
+        public IQueryable<Competition> ForCup(string cupId)
+        {
+            return query.Where(comp => comp.CupId == cupId);
         }
     }
 }

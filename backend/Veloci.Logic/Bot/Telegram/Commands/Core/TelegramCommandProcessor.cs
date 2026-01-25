@@ -2,18 +2,21 @@ using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Telegram.Bot.Types;
+using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Logic.Bot.Telegram.Commands.Core;
 
 public class TelegramCommandProcessor
 {
     private static readonly ILogger _log = Log.ForContext<TelegramCommandProcessor>();
-    
-    private readonly IServiceProvider _serviceProvider;
 
-    public TelegramCommandProcessor(IServiceProvider serviceProvider)
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ICupContextResolver _cupContextResolver;
+
+    public TelegramCommandProcessor(IServiceProvider serviceProvider, ICupContextResolver cupContextResolver)
     {
         _serviceProvider = serviceProvider;
+        _cupContextResolver = cupContextResolver;
     }
 
     public async Task ProcessAsync(Message message)
@@ -26,8 +29,19 @@ public class TelegramCommandProcessor
             return;
         }
 
-        _log.Information("⚙️ Processing Telegram command {Command} from user {UserId} with {ParameterCount} parameters",
-            parsed.Command, message.From?.Id, parsed.Parameters?.Length ?? 0);
+        var chatId = message.Chat.Id.ToString();
+        var cupId = _cupContextResolver.GetCupIdByChatId(chatId);
+
+        if (cupId != null)
+        {
+            _log.Information("⚙️ Processing Telegram command {Command} from user {UserId} in cup {CupId} with {ParameterCount} parameters",
+                parsed.Command, message.From?.Id, cupId, parsed.Parameters?.Length ?? 0);
+        }
+        else
+        {
+            _log.Information("⚙️ Processing Telegram command {Command} from user {UserId} in unbound chat with {ParameterCount} parameters",
+                parsed.Command, message.From?.Id, parsed.Parameters?.Length ?? 0);
+        }
 
         var command = GetCommand(parsed.Command);
 
@@ -39,15 +53,23 @@ public class TelegramCommandProcessor
 
         try
         {
-            var result = await command.ExecuteAsync(parsed.Parameters);
-            var messageId = await TelegramBot.ReplyMessageAsync(result, message.MessageId, message.Chat.Id.ToString());
+            // Create command context with cup resolution
+            var context = new TelegramCommandContext
+            {
+                ChatId = chatId,
+                CupId = cupId,
+                Parameters = parsed.Parameters
+            };
+
+            var result = await command.ExecuteAsync(context);
+            var messageId = await TelegramBot.ReplyMessageAsync(result, message.MessageId, chatId);
 
             _log.Information("✅ Executed command {Command} successfully", parsed.Command);
 
             if (messageId.HasValue && command.RemoveMessageAfterDelay)
             {
                 _log.Debug("Command {Command} scheduled for auto-removal in 60 seconds", parsed.Command);
-                BackgroundJob.Schedule(() => TelegramBot.RemoveMessageAsync(messageId.Value, message.Chat.Id.ToString()), TimeSpan.FromSeconds(60));
+                BackgroundJob.Schedule(() => TelegramBot.RemoveMessageAsync(messageId.Value, chatId), TimeSpan.FromSeconds(60));
             }
         }
         catch (Exception ex)
@@ -90,4 +112,3 @@ public class ParsedMessage
     public required string Command { get; set; }
     public string[]? Parameters { get; set; }
 }
-

@@ -7,7 +7,9 @@ public static class DiscordBotServiceHelper
 {
     public static void UseDiscordBotService(this IServiceCollection services)
     {
-        services.AddSingleton<IDiscordBot, DiscordBot>();
-        services.AddHostedService<DiscordBotHostedService>();
+        services.AddSingleton<IDiscordBotFactory, DiscordBotFactory>();
+
+        // Register hosted services for bot lifecycle management
+        services.AddHostedService<Bot.DiscordBotHostedService>();
     }
 }

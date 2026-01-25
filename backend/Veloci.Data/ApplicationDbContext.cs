@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext
         base.OnModelCreating(builder);
 
         builder.Entity<Competition>().ToTable("Competitions");
+        builder.Entity<Competition>().Property(c => c.CupId).HasMaxLength(64).IsRequired().HasDefaultValue("5inch");
 
         builder.Entity<Track>().ToTable("Tracks");
 

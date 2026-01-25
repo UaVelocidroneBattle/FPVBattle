@@ -9,7 +9,7 @@ namespace Veloci.Logic.Services.Tracks;
 public class TrackService
 {
     private static readonly ILogger _log = Log.ForContext<TrackService>();
-    
+
     private readonly IRepository<Track> _tracks;
     private readonly IRepository<TrackMap> _maps;
     private readonly IRepository<Competition> _competitions;
@@ -28,17 +28,17 @@ public class TrackService
         _competitions = competitions;
     }
 
-    public async Task<Track> GetRandomTrackAsync()
+    public async Task<Track> GetRandomTrackAsync(TrackFilter? trackFilter = null)
     {
         _log.Information("🎯 Starting track selection process");
-        
+
         var maps = await _trackFetcher.FetchMapsAsync();
-        _log.Debug("Fetched {MapCount} maps from track fetcher", maps.Count());
-        
-        var filteredTracks = GetCandidateTracks(maps);
+        _log.Debug("Fetched {MapCount} maps from track fetcher", maps.Count);
+
+        var filteredTracks = GetCandidateTracks(maps, trackFilter);
         var usedTrackIds = await GetUsedTrackIdsAsync();
-        
-        _log.Information("Found {FilteredCount} candidate tracks for 5-inch racing, excluding {UsedTrackCount} recently used tracks", 
+
+        _log.Information("Found {FilteredCount} candidate tracks for 5-inch racing, excluding {UsedTrackCount} recently used tracks",
             filteredTracks.Count, usedTrackIds.Count);
 
         var attempts = 0;
@@ -49,27 +49,33 @@ public class TrackService
             var dbTrack = await GetTrackAsync(track.Id)
                           ?? await CreateNewTrackAsync(track.Map.Name, track.Map.Id, track.Name, track.Id);
 
-            _log.Debug("Track selection attempt {Attempt}: Evaluating {TrackName} (ID: {TrackId}) - Rating: {Rating}, Recently used: {RecentlyUsed}", 
+            _log.Debug("Track selection attempt {Attempt}: Evaluating {TrackName} (ID: {TrackId}) - Rating: {Rating}, Recently used: {RecentlyUsed}",
                 attempts, dbTrack.Name, dbTrack.TrackId, dbTrack.Rating?.Value, usedTrackIds.Contains(dbTrack.Id));
 
             if (dbTrack.Rating?.Value is null or >= 0 && !usedTrackIds.Contains(dbTrack.Id))
             {
-                _log.Information("✅ Selected track {TrackName} (ID: {TrackId}) from {FilteredCount} candidates after {Attempts} attempts", 
+                _log.Information("✅ Selected track {TrackName} (ID: {TrackId}) from {FilteredCount} candidates after {Attempts} attempts",
                     dbTrack.Name, dbTrack.TrackId, filteredTracks.Count, attempts);
                 return dbTrack;
             }
         }
     }
 
-    private List<ParsedTrackModel> GetCandidateTracks(IEnumerable<ParsedMapModel> maps)
+    private List<ParsedTrackModel> GetCandidateTracks(IEnumerable<ParsedMapModel> maps, TrackFilter? trackFilter)
     {
         var allTracks = maps.SelectMany(m => m.Tracks).ToList();
         _log.Debug("Total tracks from all maps: {TrackCount}", allTracks.Count);
-        
-        var trackFilter = new TrackFilter();
-        var filteredTracks = allTracks.Where(t => trackFilter.IsTrackGoodFor5inchRacing(t)).ToList();
-        
-        _log.Debug("Filtered to {FilteredCount} tracks suitable for 5-inch racing (from {TotalCount} total)", 
+
+        // If no filter provided, return all tracks
+        if (trackFilter == null)
+        {
+            _log.Debug("No track filter provided - using all {TrackCount} tracks", allTracks.Count);
+            return allTracks;
+        }
+
+        var filteredTracks = allTracks.Where(t => trackFilter.IsTrackSuitable(t)).ToList();
+
+        _log.Debug("Filtered to {FilteredCount} tracks suitable for competition (from {TotalCount} total)",
             filteredTracks.Count, allTracks.Count);
 
         return filteredTracks;
@@ -85,7 +91,7 @@ public class TrackService
     private async Task<Track> CreateNewTrackAsync(string mapName, int mapId, string trackName, int trackId)
     {
         _log.Debug("Creating new track {TrackName} (ID: {TrackId}) in map {MapName}", trackName, trackId, mapName);
-        
+
         var dbMap = await _maps
                         .GetAll()
                         .FirstOrDefaultAsync(m => m.Name == mapName)
@@ -135,7 +141,7 @@ public class TrackService
     private async Task<TrackMap> CreateNewMapAsync(string name, int mapId)
     {
         _log.Information("Creating new map {MapName} (ID: {MapId})", name, mapId);
-        
+
         var map = new TrackMap
         {
             Name = name,

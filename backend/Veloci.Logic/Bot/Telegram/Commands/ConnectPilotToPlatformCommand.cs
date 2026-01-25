@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
@@ -20,15 +19,16 @@ public class ConnectPilotToPlatformCommand : ITelegramCommand
 
     public string[] Keywords => ["/connect"];
     public string Description => "/connect {platform} ({pilotName}) ({platformUsername})";
-    public async Task<string> ExecuteAsync(string[]? parameters)
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        if (parameters is null || parameters.Length == 0)
+        // Admin command - works in any chat regardless of cup binding
+        if (context.Parameters is null || context.Parameters.Length == 0)
             return "Use the command with this format: /connect {platform} ({pilotName}) ({platformUsername})";
 
         ParsedConnectCommand parsed;
         try
         {
-            parsed = ParseParameters(parameters);
+            parsed = ParseParameters(context.Parameters);
         }
         catch (ArgumentException ex)
         {

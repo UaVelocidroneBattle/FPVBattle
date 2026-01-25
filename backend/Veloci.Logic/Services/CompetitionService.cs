@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.Bot;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services;
@@ -23,6 +23,7 @@ public class CompetitionService
     private readonly IMediator _mediator;
     private readonly PilotService _pilotService;
     private readonly PointsCalculator _pointsCalculator;
+    private readonly ICupService _cupService;
 
     public CompetitionService(
         IRepository<Competition> competitions,
@@ -32,7 +33,8 @@ public class CompetitionService
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         PilotService pilotService,
-        PointsCalculator pointsCalculator)
+        PointsCalculator pointsCalculator,
+        ICupService cupService)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -42,12 +44,12 @@ public class CompetitionService
         _velocidrone = velocidrone;
         _pilotService = pilotService;
         _pointsCalculator = pointsCalculator;
+        _cupService = cupService;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
     public async Task UpdateResultsAsync()
     {
-
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -62,12 +64,13 @@ public class CompetitionService
         {
             await UpdateResultsAsync(competition);
         }
-
     }
 
     private async Task UpdateResultsAsync(Competition competition)
     {
-        _log.Debug("Starting updating results for competition {CompetitionId} on track {TrackName}", competition.Id, competition.Track.Name);
+        _log.Debug("Starting updating results for competition {CompetitionId} (cup {CupId}) on track {TrackName}", competition.Id, competition.CupId, competition.Track.Name);
+
+        var cupOptions = _cupService.GetCupOptions(competition.CupId);
 
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
         var times = _resultsConverter.ConvertTrackTimes(resultsDto);
@@ -94,14 +97,13 @@ public class CompetitionService
         competition.ResultsPosted = false;
         await _competitions.SaveChangesAsync();
 
-        _log.Information("Updated results for competition {CompetitionId}: {DeltaCount} new results added", competition.Id, deltas.Count);
-        await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas));
+        _log.Information("Updated results for competition {CompetitionId} (cup {CupId}): {DeltaCount} new results added", competition.Id, competition.CupId, deltas.Count);
+        await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas, cupOptions));
     }
 
     [DisableConcurrentExecution("Competition", 1)]
     public async Task PublishCurrentLeaderboardAsync()
     {
-
         var activeCompetitions = await GetCurrentCompetitions().ToListAsync();
 
         if (!activeCompetitions.Any())
@@ -114,7 +116,6 @@ public class CompetitionService
         {
             await PublishCurrentLeaderboardAsync(activeCompetition);
         }
-
     }
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)

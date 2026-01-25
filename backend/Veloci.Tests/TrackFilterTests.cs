@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+using FluentAssertions;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Services.Tracks;
 using Veloci.Logic.Services.Tracks.Models;
 
@@ -10,7 +11,16 @@ public class TrackFilterTests
 
     public TrackFilterTests()
     {
-        _filter = new TrackFilter();
+        // Create filter with 5-inch blacklist patterns
+        var options = new TrackFilterOptions
+        {
+            BlacklistPatterns = new List<string>
+            {
+                "Pylons", "Freestyle", "Betafpv", "Beta 2S", "Micro",
+                "NewBeeDrone", "NBD", "Toothpick", "Trainer", "Whoop"
+            }
+        };
+        _filter = new TrackFilter(options);
     }
 
     [Theory]
@@ -21,7 +31,7 @@ public class TrackFilterTests
     {
         var track = new ParsedTrackModel {Name = trackName};
 
-        _filter.IsTrackGoodFor5inchRacing(track).Should().BeFalse($"{track} is not good for racing quad");
+        _filter.IsTrackSuitable(track).Should().BeFalse($"{track} is not good for racing quad");
     }
 
     [Theory]
@@ -30,6 +40,6 @@ public class TrackFilterTests
     {
         var track = new ParsedTrackModel {Name = trackName};
 
-        _filter.IsTrackGoodFor5inchRacing(track).Should().BeTrue($"{track} is good for racing quad");
+        _filter.IsTrackSuitable(track).Should().BeTrue($"{track} is good for racing quad");
     }
 }

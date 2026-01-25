@@ -1,34 +1,35 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Veloci.Logic.Bot.Discord;
 
 namespace Veloci.Logic.Bot;
 
-public class DiscordBotHostedService : IHostedService, IDisposable
+/// <summary>
+/// Manages Discord bot factory lifecycle - initializes connection on startup, disconnects on shutdown
+/// </summary>
+public class DiscordBotHostedService : IHostedService
 {
     private static readonly ILogger _log = Log.ForContext<DiscordBotHostedService>();
-    
-    private readonly DiscordBot _bot;
-    private readonly IServiceScope _scope;
 
-    public DiscordBotHostedService(IServiceProvider serviceProvider)
+    private readonly IDiscordBotFactory _factory;
+
+    public DiscordBotHostedService(IDiscordBotFactory factory)
     {
-        _scope = serviceProvider.CreateScope();
-        _bot = (DiscordBot)_scope.ServiceProvider.GetRequiredService<IDiscordBot>();
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         try
         {
-            _log.Information("Bot service DiscordBotHostedService starting...");
-            await _bot.StartAsync();
-            _log.Information("✅ Bot service DiscordBotHostedService started successfully");
+            _log.Information("Initializing Discord bot factory...");
+            await _factory.InitializeAsync(cancellationToken);
+            _log.Information("✅ Discord bot factory initialized successfully");
         }
         catch (Exception ex)
         {
-            _log.Error(ex, "Bot service DiscordBotHostedService encountered issues during startup");
+            _log.Error(ex, "❌ Discord bot factory initialization failed");
+            // Rethrow to prevent app from starting with broken Discord
             throw;
         }
     }
@@ -37,27 +38,13 @@ public class DiscordBotHostedService : IHostedService, IDisposable
     {
         try
         {
-            _log.Information("Bot service DiscordBotHostedService stopping...");
-            await _bot.Stop();
-            _log.Information("🛑 Bot service DiscordBotHostedService stopped gracefully");
+            _log.Information("Stopping Discord bot factory...");
+            await _factory.StopAsync();
+            _log.Information("🛑 Discord bot factory stopped gracefully");
         }
         catch (Exception ex)
         {
-            _log.Error(ex, "Bot service DiscordBotHostedService encountered issues during shutdown");
-            throw;
-        }
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            _log.Debug("Disposing DiscordBotHostedService resources");
-            _scope.Dispose();
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Error disposing DiscordBotHostedService resources");
+            _log.Error(ex, "Error during Discord bot factory shutdown");
         }
     }
 }
