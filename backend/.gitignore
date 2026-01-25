@@ -12,3 +12,4 @@ Veloci.Web/DB/*.db
 Veloci.Web/DB/*.db-shm
 Veloci.Web/DB/*.db-wal
 appsettings.Development.json
+.mcp.json

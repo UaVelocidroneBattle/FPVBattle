@@ -19,7 +19,9 @@ public class TelegramMessageEventHandler :
     INotificationHandler<DayStreakPotentialLose>,
     INotificationHandler<NewPilot>,
     INotificationHandler<PilotRenamed>,
-    INotificationHandler<EndOfSeasonStatisticsNotification>
+    INotificationHandler<EndOfSeasonStatisticsNotification>,
+    INotificationHandler<FreezieAdded>,
+    INotificationHandler<TrackRestart>
 {
     private readonly TelegramMessageComposer _messageComposer;
 
@@ -130,6 +132,18 @@ public class TelegramMessageEventHandler :
     public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(FreezieAdded notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.FreezieAdded(notification.PilotName);
+        await TelegramBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.RestartTrack();
         await TelegramBot.SendMessageAsync(message);
     }
 }
