@@ -29,6 +29,7 @@ public class CompetitionConductor
     private readonly TelegramMessageComposer _messageComposer;
     private readonly ImageService _imageService;
     private readonly ICupService _cupService;
+    private readonly ITelegramMessenger _telegramMessenger;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
@@ -40,7 +41,8 @@ public class CompetitionConductor
         IMediator mediator,
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
-        ICupService cupService)
+        ICupService cupService,
+        ITelegramMessenger telegramMessenger)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -52,6 +54,7 @@ public class CompetitionConductor
         _pilots = pilots;
         _velocidrone = velocidrone;
         _cupService = cupService;
+        _telegramMessenger = telegramMessenger;
     }
 
     public async Task StartNewAsync(string cupId)
@@ -145,9 +148,17 @@ public class CompetitionConductor
 
     private async Task CreatePoll(Track track, Competition competition)
     {
-        _log.Debug("Creating poll for track {TrackName}", track.FullName);
+        _log.Debug("Creating poll for track {TrackName} in cup {CupId}", track.FullName, competition.CupId);
+
+        var channelId = _cupService.GetTelegramChannelId(competition.CupId);
+        if (string.IsNullOrEmpty(channelId))
+        {
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping poll creation", competition.CupId);
+            return;
+        }
+
         var poll = _messageComposer.Poll(track.FullName);
-        var pollId = await TelegramBot.SendPollAsync(poll);
+        var pollId = await _telegramMessenger.SendPollAsync(channelId, poll);
 
         if (pollId is null)
         {
@@ -229,6 +240,13 @@ public class CompetitionConductor
         if (competition is null)
             throw new Exception($"There are no active competitions in cup {cupId}");
 
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
+        {
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping poll stop", cupId);
+            return;
+        }
+
         var poll = _messageComposer.Poll(competition.Track.FullName);
 
         if (competition.Track.Rating is null)
@@ -238,7 +256,7 @@ public class CompetitionConductor
         }
 
         _log.Information("Stopping poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
-        var telegramPoll = await TelegramBot.StopPollAsync(competition.Track.Rating.PollMessageId);
+        var telegramPoll = await _telegramMessenger.StopPollAsync(channelId, competition.Track.Rating.PollMessageId);
 
         if (telegramPoll is null)
         {
@@ -298,9 +316,16 @@ public class CompetitionConductor
             return;
         }
 
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
+        {
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping vote reminder", cupId);
+            return;
+        }
+
         var messageText = ChatMessages.GetRandomByType(ChatMessageType.VoteReminder);
 
-        await TelegramBot.ReplyMessageAsync(messageText.Text, competition.Track.Rating.PollMessageId);
+        await _telegramMessenger.SendMessageAsync(channelId, messageText.Text, competition.Track.Rating.PollMessageId);
     }
 
     private async Task TempSeasonResultsAsync()

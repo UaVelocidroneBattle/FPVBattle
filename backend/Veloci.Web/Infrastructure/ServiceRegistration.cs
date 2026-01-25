@@ -24,8 +24,6 @@ public static class ServiceRegistration
         services.AddScoped<TelegramMessageComposer>();
         services.AddScoped<DiscordMessageComposer>();
         services.AddScoped<RaceResultDeltaAnalyzer>();
-        services.AddScoped<TelegramBot>();
-        services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
         services.AddScoped<ImageService>();
         //services.AddScoped<ITrackFetcher, WebTrackFetcher>();
         services.AddScoped<ITrackFetcher, ApiTrackFetcher>();

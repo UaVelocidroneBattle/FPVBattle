@@ -1,4 +1,4 @@
-﻿using Hangfire;
+using Hangfire;
 using MediatR;
 using Serilog;
 using Veloci.Logic.Features.Cups;
@@ -25,43 +25,45 @@ public class TelegramMessageEventHandler :
     private static readonly ILogger _log = Log.ForContext<TelegramMessageEventHandler>();
 
     private readonly TelegramMessageComposer _messageComposer;
-    private readonly ITelegramBotFactory _botFactory;
+    private readonly ITelegramMessenger _messenger;
     private readonly ICupService _cupService;
 
     public TelegramMessageEventHandler(
         TelegramMessageComposer messageComposer,
-        ITelegramBotFactory botFactory,
+        ITelegramMessenger messenger,
         ICupService cupService)
     {
         _messageComposer = messageComposer;
-        _botFactory = botFactory;
+        _messenger = messenger;
         _cupService = cupService;
     }
 
     public async Task Handle(IntermediateCompetitionResult notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
         {
-            _log.Warning("No Telegram bot configured for cup {CupId}, skipping intermediate result message", cupId);
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping intermediate result message", cupId);
             return;
         }
 
         var message = _messageComposer.TempLeaderboard(notification.Leaderboard, notification.Competition.Track);
-        await bot.SendMessageAsync(message);
+        await _messenger.SendMessageAsync(channelId, message);
     }
 
     public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
         {
-            _log.Warning("No Telegram bot configured for cup {CupId}, skipping result update message", cupId);
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping result update message", cupId);
             return;
         }
 
         var message = _messageComposer.TimeUpdate(notification.Deltas);
-        await bot.SendMessageAsync(message);
+        await _messenger.SendMessageAsync(channelId, message);
     }
 
     public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
@@ -72,58 +74,61 @@ public class TelegramMessageEventHandler :
             return;
 
         var cupId = competition.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
         {
-            _log.Warning("No Telegram bot configured for cup {CupId}, skipping competition stopped message", cupId);
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping competition stopped message", cupId);
             return;
         }
 
         var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults, competition.Track.FullName);
-        await bot.SendMessageAsync(resultsMessage);
+        await _messenger.SendMessageAsync(channelId, resultsMessage);
     }
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
         {
-            _log.Warning("No Telegram bot configured for cup {CupId}, skipping competition started message", cupId);
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping competition started message", cupId);
             return;
         }
 
         var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.PilotsFlownOnTrack);
-        await bot.SendMessageAsync(startCompetitionMessage);
+        await _messenger.SendMessageAsync(channelId, startCompetitionMessage);
     }
 
     public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TempSeasonResults(notification.Results);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.SeasonResults(notification.Results);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
 
         var imageStream = new MemoryStream(notification.Image);
-        await SendToAllCupsAsync(bot => bot.SendPhotoAsync(imageStream));
+        await SendToAllCupsAsync(channelId => _messenger.SendPhotoAsync(channelId, imageStream));
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => SendToAllCupsAsync(bot => bot.SendMessageAsync(medalCountMessage)), TimeSpan.FromSeconds(6));
+        BackgroundJob.Schedule(() => SendMedalCountToAllCupsAsync(medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
         {
-            _log.Warning("No Telegram bot configured for cup {CupId}, skipping bad track message", cupId);
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping bad track message", cupId);
             return;
         }
 
         var message = _messageComposer.BadTrackRating();
-        await bot.SendMessageAsync(message);
+        await _messenger.SendMessageAsync(channelId, message);
     }
 
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
@@ -132,13 +137,13 @@ public class TelegramMessageEventHandler :
 
         if (cheerUpMessage.FileUrl is null && cheerUpMessage.Text is not null)
         {
-            await SendToAllCupsAsync(bot => bot.SendMessageAsync(cheerUpMessage.Text));
+            await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, cheerUpMessage.Text));
             return;
         }
 
         if (cheerUpMessage.FileUrl is not null)
         {
-            await SendToAllCupsAsync(bot => bot.SendPhotoAsync(cheerUpMessage.FileUrl, cheerUpMessage.Text));
+            await SendToAllCupsAsync(channelId => _messenger.SendPhotoAsync(channelId, cheerUpMessage.FileUrl, cheerUpMessage.Text));
         }
     }
 
@@ -149,7 +154,7 @@ public class TelegramMessageEventHandler :
 
         foreach (var message in messageSet)
         {
-            await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+            await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
             await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
         }
     }
@@ -158,48 +163,58 @@ public class TelegramMessageEventHandler :
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
     }
 
     public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
         var cupId = notification.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        var channelId = _cupService.GetTelegramChannelId(cupId);
+        if (string.IsNullOrEmpty(channelId))
         {
-            _log.Warning("No Telegram bot configured for cup {CupId}, skipping new pilot message", cupId);
+            _log.Warning("No Telegram channel configured for cup {CupId}, skipping new pilot message", cupId);
             return;
         }
 
         var message = _messageComposer.NewPilot(notification.Pilot.Name);
-        await bot.SendMessageAsync(message);
+        await _messenger.SendMessageAsync(channelId, message);
     }
 
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
     }
 
     public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
+    }
+
+    /// <summary>
+    /// Public method for Hangfire to call - sends medal count message to all cups
+    /// </summary>
+    public async Task SendMedalCountToAllCupsAsync(string message)
+    {
+        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
     }
 
     /// <summary>
     /// Sends a message to all enabled cups that have Telegram configured
     /// </summary>
-    private async Task SendToAllCupsAsync(Func<ITelegramBotChannel, Task> sendAction)
+    private async Task SendToAllCupsAsync(Func<string, Task> sendAction)
     {
         var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
 
         foreach (var cupId in enabledCupIds)
         {
-            if (_botFactory.TryGetBotForCup(cupId, out var bot))
+            var channelId = _cupService.GetTelegramChannelId(cupId);
+            if (!string.IsNullOrEmpty(channelId))
             {
                 try
                 {
-                    await sendAction(bot);
+                    await sendAction(channelId);
                 }
                 catch (Exception ex)
                 {

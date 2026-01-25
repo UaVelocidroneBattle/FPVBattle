@@ -12,11 +12,19 @@ public class TelegramCommandProcessor
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ICupContextResolver _cupContextResolver;
+    private readonly ICupService _cupService;
+    private readonly ITelegramMessenger _messenger;
 
-    public TelegramCommandProcessor(IServiceProvider serviceProvider, ICupContextResolver cupContextResolver)
+    public TelegramCommandProcessor(
+        IServiceProvider serviceProvider,
+        ICupContextResolver cupContextResolver,
+        ICupService cupService,
+        ITelegramMessenger messenger)
     {
         _serviceProvider = serviceProvider;
         _cupContextResolver = cupContextResolver;
+        _cupService = cupService;
+        _messenger = messenger;
     }
 
     public async Task ProcessAsync(Message message)
@@ -62,14 +70,31 @@ public class TelegramCommandProcessor
             };
 
             var result = await command.ExecuteAsync(context);
-            var messageId = await TelegramBot.ReplyMessageAsync(result, message.MessageId, chatId);
+
+            // Get channel for the cup
+            if (cupId == null)
+            {
+                _log.Warning("No cup context for chat {ChatId}, command result not sent", chatId);
+                return;
+            }
+
+            var channelId = _cupService.GetTelegramChannelId(cupId);
+            if (string.IsNullOrEmpty(channelId))
+            {
+                _log.Warning("No Telegram channel configured for cup {CupId}, command result not sent", cupId);
+                return;
+            }
+
+            var messageId = await _messenger.SendMessageAsync(chatId, result, message.MessageId);
 
             _log.Information("✅ Executed command {Command} successfully", parsed.Command);
 
             if (messageId.HasValue && command.RemoveMessageAfterDelay)
             {
                 _log.Debug("Command {Command} scheduled for auto-removal in 60 seconds", parsed.Command);
-                BackgroundJob.Schedule(() => TelegramBot.RemoveMessageAsync(messageId.Value, chatId), TimeSpan.FromSeconds(60));
+                BackgroundJob.Schedule(
+                    () => RemoveMessageAsync(chatId, messageId.Value),
+                    TimeSpan.FromSeconds(60));
             }
         }
         catch (Exception ex)
@@ -104,6 +129,14 @@ public class TelegramCommandProcessor
     {
         var availableCommands = _serviceProvider.GetServices<ITelegramCommand>().ToList();
         return availableCommands.FirstOrDefault(c => c.Keywords.Contains(command));
+    }
+
+    /// <summary>
+    /// Background job method to remove a message from a chat
+    /// </summary>
+    public async Task RemoveMessageAsync(string chatId, int messageId)
+    {
+        await _messenger.RemoveMessageAsync(chatId, messageId);
     }
 }
 
