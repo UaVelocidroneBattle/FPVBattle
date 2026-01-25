@@ -90,7 +90,7 @@ public class CompetitionService
         }
 
         var pilotNames = times.ToDictionary(x => x.UserId.Value, x => x.PlayerName);
-        await _pilotService.UpdatePilotsAsync(deltas, pilotNames);
+        await _pilotService.UpdatePilotsAsync(deltas, pilotNames, competition.CupId);
 
         competition.CurrentResults = results;
         competition.TimeDeltas.AddRange(deltas);

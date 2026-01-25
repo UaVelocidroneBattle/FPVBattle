@@ -148,8 +148,15 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
     {
+        var cupId = notification.Competition.CupId;
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            _log.Warning("No Discord bot configured for cup {CupId}, skipping bad track message", cupId);
+            return;
+        }
+
         var message = _messageComposer.BadTrackRating();
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await bot.SendMessageAsync(message);
     }
 
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
@@ -201,8 +208,15 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
+        var cupId = notification.CupId;
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            _log.Warning("No Discord bot configured for cup {CupId}, skipping new pilot message", cupId);
+            return;
+        }
+
         var message = _messageComposer.NewPilot(notification.Pilot.Name);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await bot.SendMessageAsync(message);
     }
 
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
