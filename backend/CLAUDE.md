@@ -10,6 +10,25 @@ VelocidroneBot backend follows a **Vertical Slices Architecture** within a **Mod
 - **Feature-First Organization**: Code organized by business capability, not technical concern
 - **Minimal Cross-Feature Dependencies**: Features communicate via well-defined interfaces
 
+### Code Quality Principles
+
+**CRITICAL: Always apply SOLID principles, especially SRP and DRY**
+
+#### Single Responsibility Principle (SRP)
+- Each class should have ONE reason to change
+- Extract domain logic to appropriate service extensions (e.g., `CupServiceExtensions.GetTelegramChannelId()`)
+- Don't mix concerns (e.g., telegram handlers should not contain cup configuration logic)
+
+#### Don't Repeat Yourself (DRY)
+- **If you spot duplicate code (same helper method in 3+ files), create a task to refactor it AFTER completing the main work**
+- Use extension methods for shared logic (follow the repository pattern shown below)
+- Place extensions in the appropriate domain namespace (e.g., cup logic → `Features/Cups/CupServiceExtensions.cs`)
+
+**Workflow when spotting violations:**
+1. Complete the main task first
+2. Use TaskCreate to add cleanup task: "Extract duplicated [MethodName] to extension method"
+3. Refactor after main work is stable
+
 ### TKL Controller-Service Architecture Pattern
 
 **Preferred approach for this project:**
