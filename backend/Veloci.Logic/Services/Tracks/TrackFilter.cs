@@ -28,7 +28,7 @@ public class TrackFilter
         }
 
         // Compile blacklist patterns if specified
-        if (options.BlacklistPatterns?.Any() == true)
+        if (options.BlacklistPatterns.Any())
         {
             _blacklistRegexes = options.BlacklistPatterns
                 .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
@@ -57,14 +57,5 @@ public class TrackFilter
 
         // No filters configured - allow all tracks
         return true;
-    }
-
-    /// <summary>
-    /// Legacy method for backward compatibility
-    /// </summary>
-    [Obsolete("Use IsTrackSuitable instead")]
-    public bool IsTrackGoodFor5inchRacing(ParsedTrackModel track)
-    {
-        return IsTrackSuitable(track);
     }
 }
