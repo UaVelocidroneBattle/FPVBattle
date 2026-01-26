@@ -16,7 +16,7 @@ namespace Veloci.Web.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -224,6 +224,13 @@ namespace Veloci.Web.Data.Migrations
 
                     b.Property<long>("ChatId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("CupId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("open-class");
 
                     b.Property<string>("CurrentResultsId")
                         .HasColumnType("TEXT");

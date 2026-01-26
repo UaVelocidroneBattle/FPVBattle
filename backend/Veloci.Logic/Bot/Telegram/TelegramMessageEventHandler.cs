@@ -1,8 +1,7 @@
-﻿using Hangfire;
+using Hangfire;
 using MediatR;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
-using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Bot.Telegram;
 
@@ -22,22 +21,26 @@ public class TelegramMessageEventHandler :
     INotificationHandler<EndOfSeasonStatisticsNotification>
 {
     private readonly TelegramMessageComposer _messageComposer;
+    private readonly ITelegramCupMessenger _cupMessenger;
 
-    public TelegramMessageEventHandler(TelegramMessageComposer messageComposer)
+    public TelegramMessageEventHandler(
+        TelegramMessageComposer messageComposer,
+        ITelegramCupMessenger cupMessenger)
     {
         _messageComposer = messageComposer;
+        _cupMessenger = cupMessenger;
     }
 
     public async Task Handle(IntermediateCompetitionResult notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TempLeaderboard(notification.Leaderboard, notification.Competition.Track);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
     }
 
     public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TimeUpdate(notification.Deltas);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
     }
 
     public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
@@ -48,36 +51,37 @@ public class TelegramMessageEventHandler :
             return;
 
         var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults, competition.Track.FullName);
-        await TelegramBot.SendMessageAsync(resultsMessage);
+        await _cupMessenger.SendMessageToCupAsync(competition.CupId, resultsMessage);
     }
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
         var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.PilotsFlownOnTrack);
-        await TelegramBot.SendMessageAsync(startCompetitionMessage);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, startCompetitionMessage);
     }
 
     public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TempSeasonResults(notification.Results);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.SeasonResults(notification.Results);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
-        await TelegramBot.SendPhotoAsync(new MemoryStream(notification.Image));
+        var imageStream = new MemoryStream(notification.Image);
+        await _cupMessenger.SendPhotoToCupAsync(notification.CupId, imageStream);
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => TelegramBot.SendMessageAsync(medalCountMessage), TimeSpan.FromSeconds(6));
+        BackgroundJob.Schedule(() => SendMedalCountToCupAsync(notification.CupId, medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.BadTrackRating();
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
     }
 
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
@@ -86,13 +90,13 @@ public class TelegramMessageEventHandler :
 
         if (cheerUpMessage.FileUrl is null && cheerUpMessage.Text is not null)
         {
-            await TelegramBot.SendMessageAsync(cheerUpMessage.Text);
+            await _cupMessenger.SendMessageToAllCupsAsync(cheerUpMessage.Text);
             return;
         }
 
         if (cheerUpMessage.FileUrl is not null)
         {
-            await TelegramBot.SendPhotoAsync(cheerUpMessage.FileUrl, cheerUpMessage.Text);
+            await _cupMessenger.SendPhotoToAllCupsAsync(cheerUpMessage.FileUrl, cheerUpMessage.Text);
         }
     }
 
@@ -103,7 +107,7 @@ public class TelegramMessageEventHandler :
 
         foreach (var message in messageSet)
         {
-            await TelegramBot.SendMessageAsync(message);
+            await _cupMessenger.SendMessageToAllCupsAsync(message);
             await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
         }
     }
@@ -112,24 +116,32 @@ public class TelegramMessageEventHandler :
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.NewPilot(notification.Pilot.Name);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
+    }
+
+    /// <summary>
+    /// Public method for Hangfire to call - sends medal count message to a specific cup
+    /// </summary>
+    public async Task SendMedalCountToCupAsync(string cupId, string message)
+    {
+        await _cupMessenger.SendMessageToCupAsync(cupId, message);
     }
 }

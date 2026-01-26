@@ -18,26 +18,26 @@ public class PilotService
         _mediator = mediator;
     }
 
-    public async Task UpdatePilotsAsync(List<TrackTimeDelta> deltas, Dictionary<int, string> pilotNames)
+    public async Task UpdatePilotsAsync(List<TrackTimeDelta> deltas, Dictionary<int, string> pilotNames, string cupId)
     {
-        _log.Debug("Updating pilots from {DeltaCount} deltas", deltas.Count);
+        _log.Debug("Updating pilots from {DeltaCount} deltas for cup {CupId}", deltas.Count, cupId);
 
         foreach (var delta in deltas)
         {
-            await UpdatePilotAsync(delta, pilotNames);
+            await UpdatePilotAsync(delta, pilotNames, cupId);
         }
     }
 
-    private async Task UpdatePilotAsync(TrackTimeDelta delta, Dictionary<int, string> pilotNames)
+    private async Task UpdatePilotAsync(TrackTimeDelta delta, Dictionary<int, string> pilotNames, string cupId)
     {
-        _log.Debug("Updating pilot for delta: {Delta}", delta);
+        _log.Debug("Updating pilot for delta: {Delta} in cup {CupId}", delta, cupId);
 
         var pilotName = pilotNames[delta.PilotId];
         var pilot = await _pilots.FindAsync(delta.PilotId);
 
         if (pilot is null)
         {
-            _log.Debug("Pilot not found for UserId {UserId}, creating new pilot {PilotName}", delta.PilotId, pilotName);
+            _log.Debug("Pilot not found for UserId {UserId}, creating new pilot {PilotName} in cup {CupId}", delta.PilotId, pilotName, cupId);
 
             var newPilot = new Pilot
             {
@@ -46,7 +46,7 @@ public class PilotService
             };
 
             await _pilots.AddAsync(newPilot);
-            await _mediator.Publish(new NewPilot(newPilot));
+            await _mediator.Publish(new NewPilot(newPilot, cupId));
             return;
         }
 

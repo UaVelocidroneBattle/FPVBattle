@@ -26,12 +26,13 @@ public class PilotCommand : ITelegramCommand
 
     public string[] Keywords => ["/pilot", "/p"];
     public string Description => "`/pilot {pilotName}` або `/p {pilotName}` - Pilot's profile";
-    public async Task<string> ExecuteAsync(string[]? parameters)
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        if (parameters is null || parameters.Length == 0)
+        // Pilot command is global - works in any chat regardless of cup binding
+        if (context.Parameters is null || context.Parameters.Length == 0)
             return "все добре, але не вистачає імені пілота";
 
-        var pilotName = string.Join(' ', parameters);
+        var pilotName = string.Join(' ', context.Parameters);
         var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)

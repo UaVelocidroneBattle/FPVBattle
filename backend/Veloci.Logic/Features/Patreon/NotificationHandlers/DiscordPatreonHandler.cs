@@ -10,11 +10,11 @@ public class DiscordPatreonHandler :
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
-    private readonly IDiscordBot _discordBot;
+    private readonly IDiscordCupMessenger _discordCupMessenger;
 
-    public DiscordPatreonHandler(IDiscordBot discordBot)
+    public DiscordPatreonHandler(IDiscordCupMessenger discordCupMessenger)
     {
-        _discordBot = discordBot;
+        _discordCupMessenger = discordCupMessenger;
     }
 
     public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ public class DiscordPatreonHandler :
         message += "Дякуємо всім за підтримку! 🙏\n\n" +
                    "👉 [Наш Patreon](https://patreon.com/FPVBattle)";
 
-        await _discordBot.SendMessageAsync(message);
+        await _discordCupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
@@ -54,12 +54,12 @@ public class DiscordPatreonHandler :
             notification.Supporter.TierName,
             useDiscordMarkdown: true);
 
-        await _discordBot.SendMessageAsync(message);
+        await _discordCupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
         var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: true);
-        await _discordBot.SendMessageAsync(message);
+        await _discordCupMessenger.SendMessageToAllCupsAsync(message);
     }
 }
