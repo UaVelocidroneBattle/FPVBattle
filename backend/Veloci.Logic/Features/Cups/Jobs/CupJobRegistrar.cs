@@ -24,7 +24,7 @@ public class CupJobRegistrar : IJobRegistrar
         _log.Information("Starting dynamic cup job registration");
 
         var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
-        _log.Information("Found {CupCount} enabled cups: {CupIds}", enabledCupIds.Count, string.Join(", ", enabledCupIds));
+        _log.Information("Found {CupCount} enabled cups: {CupIds} (registering start, stop, stop-poll, and vote-reminder jobs)", enabledCupIds.Count, string.Join(", ", enabledCupIds));
 
         foreach (var cupId in enabledCupIds)
         {
@@ -108,5 +108,30 @@ public class CupJobRegistrar : IJobRegistrar
                 TimeZone = TimeZoneInfo.Utc
             });
         _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", stopPollJobId, stopCron, cupId);
+
+        // Register vote reminder job (if configured)
+        if (!string.IsNullOrEmpty(cupOptions.Schedule.VoteReminderTime))
+        {
+            if (TimeSpan.TryParse(cupOptions.Schedule.VoteReminderTime, out var voteReminderTime))
+            {
+                var reminderJobId = $"vote-reminder-{cupId}";
+                var reminderCron = $"{voteReminderTime.Minutes} {voteReminderTime.Hours} * * *";
+                RecurringJob.AddOrUpdate<CompetitionConductor>(
+                    reminderJobId,
+                    conductor => conductor.VoteReminder(cupId),
+                    reminderCron,
+                    new RecurringJobOptions
+                    {
+                        TimeZone = TimeZoneInfo.Utc
+                    });
+                _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}",
+                    reminderJobId, reminderCron, cupId);
+            }
+            else
+            {
+                _log.Error("Invalid VoteReminderTime format '{VoteReminderTime}' for cup {CupId}. Expected HH:mm format.",
+                    cupOptions.Schedule.VoteReminderTime, cupId);
+            }
+        }
     }
 }

@@ -40,6 +40,11 @@ public class ScheduleOptions
     /// Time zone for the schedule (e.g., "UTC")
     /// </summary>
     public string TimeZone { get; set; } = "UTC";
+
+    /// <summary>
+    /// Vote reminder time in HH:mm format (e.g., "14:30"). Optional - if not set, no vote reminder will be sent for this cup.
+    /// </summary>
+    public string? VoteReminderTime { get; set; }
 }
 
 /// <summary>

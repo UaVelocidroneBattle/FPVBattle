@@ -29,13 +29,7 @@ public class HangfireInit
 
         Log.Information("Setting up daily competition schedule recurring jobs");
 
-        // Competition-specific jobs (start/stop) are now registered dynamically by CupJobRegistrar per cup
-        // RecurringJob.AddOrUpdate<CompetitionConductor>("Stop poll", x => x.StopPollAsync("5inch"), "58 14 * * *");
-        // RecurringJob.AddOrUpdate<CompetitionConductor>("Stop competition", x => x.StopAsync("5inch"), "1 15 * * *");
-        // RecurringJob.AddOrUpdate<CompetitionConductor>("Start new competition", x => x.StartNewAsync("5inch"), "3 15 * * *");
-
         RecurringJob.AddOrUpdate<CompetitionService>("Day streak potential lose", x => x.DayStreakPotentialLoseNotification(), "5 14 * * *");
-        RecurringJob.AddOrUpdate<CompetitionConductor>("Vote reminder", x => x.VoteReminder("5inch"), "30 14 * * *");
         RecurringJob.AddOrUpdate<CompetitionConductor>("Season results", x => x.SeasonResultsAsync(), "2 15 * * *");
         RecurringJob.AddOrUpdate<StatisticsService>("End of season statistics", x => x.PublishEndOfSeasonStatisticsAsync(), "15 15 1 * *");
 
