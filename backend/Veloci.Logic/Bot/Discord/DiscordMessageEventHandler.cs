@@ -29,20 +29,20 @@ public class DiscordMessageEventHandler :
 
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBotFactory _botFactory;
-    private readonly ICupService _cupService;
+    private readonly IDiscordCupMessenger _cupMessenger;
     private readonly IRepository<Competition> _competitions;
     private readonly CompetitionService _competitionService;
 
     public DiscordMessageEventHandler(
         DiscordMessageComposer messageComposer,
         IDiscordBotFactory botFactory,
-        ICupService cupService,
+        IDiscordCupMessenger cupMessenger,
         IRepository<Competition> competitions,
         CompetitionService competitionService)
     {
         _messageComposer = messageComposer;
         _botFactory = botFactory;
-        _cupService = cupService;
+        _cupMessenger = cupMessenger;
         _competitions = competitions;
         _competitionService = competitionService;
     }
@@ -132,18 +132,18 @@ public class DiscordMessageEventHandler :
     public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TempSeasonResults(notification.Results, false);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.SeasonResults(notification.Results);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
 
-        await SendToAllCupsAsync(bot => bot.SendImageAsync(notification.Image, notification.ImageName));
+        await _cupMessenger.SendImageToAllCupsAsync(notification.Image, notification.ImageName);
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => SendToAllCupsAsync(bot => bot.SendMessageAsync(medalCountMessage)), TimeSpan.FromSeconds(6));
+        BackgroundJob.Schedule(() => _cupMessenger.SendMessageToAllCupsAsync(medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
@@ -165,7 +165,7 @@ public class DiscordMessageEventHandler :
 
         if (cheerUpMessage.FileUrl is null && cheerUpMessage.Text is not null)
         {
-            await SendToAllCupsAsync(bot => bot.SendMessageAsync(cheerUpMessage.Text));
+            await _cupMessenger.SendMessageToAllCupsAsync(cheerUpMessage.Text);
             return;
         }
         // if (cheerUpMessage.FileUrl is not null)
@@ -181,7 +181,7 @@ public class DiscordMessageEventHandler :
 
         foreach (var message in messageSet)
         {
-            await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+            await _cupMessenger.SendMessageToAllCupsAsync(message);
             await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
         }
     }
@@ -190,7 +190,7 @@ public class DiscordMessageEventHandler :
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     private ulong? GetLeaderboardMessageId(Competition competition)
@@ -222,35 +222,12 @@ public class DiscordMessageEventHandler :
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
-        await SendToAllCupsAsync(bot => bot.SendMessageAsync(message));
-    }
-
-    /// <summary>
-    /// Sends a message to all enabled cups that have Discord configured
-    /// </summary>
-    private async Task SendToAllCupsAsync(Func<IDiscordBot, Task> sendAction)
-    {
-        var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
-
-        foreach (var cupId in enabledCupIds)
-        {
-            if (_botFactory.TryGetBotForCup(cupId, out var bot))
-            {
-                try
-                {
-                    await sendAction(bot);
-                }
-                catch (Exception ex)
-                {
-                    _log.Error(ex, "Failed to send Discord message to cup {CupId}", cupId);
-                }
-            }
-        }
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 }

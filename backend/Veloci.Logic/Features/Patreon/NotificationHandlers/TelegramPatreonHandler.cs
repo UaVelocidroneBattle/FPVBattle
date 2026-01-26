@@ -1,7 +1,5 @@
 using MediatR;
-using Serilog;
 using Veloci.Logic.Bot.Telegram;
-using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Patreon.Notifications;
 using Veloci.Logic.Features.Patreon.Services;
 
@@ -12,15 +10,11 @@ public class TelegramPatreonHandler :
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
-    private static readonly ILogger _log = Log.ForContext<TelegramPatreonHandler>();
+    private readonly ITelegramCupMessenger _cupMessenger;
 
-    private readonly ITelegramMessenger _messenger;
-    private readonly ICupService _cupService;
-
-    public TelegramPatreonHandler(ITelegramMessenger messenger, ICupService cupService)
+    public TelegramPatreonHandler(ITelegramCupMessenger cupMessenger)
     {
-        _messenger = messenger;
-        _cupService = cupService;
+        _cupMessenger = cupMessenger;
     }
 
     public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
@@ -50,7 +44,7 @@ public class TelegramPatreonHandler :
         message += "Дякуємо всім за підтримку! 🙏\n\n" +
                    "Наш Patreon: *https://patreon.com/FPVBattle*";
 
-        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
@@ -60,36 +54,12 @@ public class TelegramPatreonHandler :
             notification.Supporter.TierName,
             useDiscordMarkdown: false);
 
-        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
         var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: false);
-        await SendToAllCupsAsync(channelId => _messenger.SendMessageAsync(channelId, message));
-    }
-
-    /// <summary>
-    /// Sends a message to all enabled cups that have Telegram configured
-    /// </summary>
-    private async Task SendToAllCupsAsync(Func<string, Task> sendAction)
-    {
-        var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
-
-        foreach (var cupId in enabledCupIds)
-        {
-            var channelId = _cupService.GetTelegramChannelId(cupId);
-            if (!string.IsNullOrEmpty(channelId))
-            {
-                try
-                {
-                    await sendAction(channelId);
-                }
-                catch (Exception ex)
-                {
-                    _log.Error(ex, "Failed to send Patreon message to cup {CupId}", cupId);
-                }
-            }
-        }
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 }

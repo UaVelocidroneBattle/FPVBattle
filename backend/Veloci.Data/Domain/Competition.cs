@@ -152,5 +152,30 @@ public static class IQueryableCompetitionExtensions
         {
             return query.Where(comp => comp.CupId == cupId);
         }
+
+        /// <summary>
+        /// Filters competitions where the specified pilot participated
+        /// </summary>
+        /// <param name="pilotId">Pilot identifier</param>
+        /// <returns></returns>
+        public IQueryable<Competition> ForPilot(int pilotId)
+        {
+            return query.Where(comp =>
+                comp.CompetitionResults.Any(r => r.PilotId == pilotId));
+        }
+
+        /// <summary>
+        /// Filters competitions by specific date (ignoring time component)
+        /// </summary>
+        /// <param name="date">Target date</param>
+        /// <returns></returns>
+        public IQueryable<Competition> OnDate(DateTime date)
+        {
+            var startOfDay = date.Date;
+            var endOfDay = startOfDay.AddDays(1);
+
+            return query.Where(comp =>
+                comp.StartedOn >= startOfDay && comp.StartedOn < endOfDay);
+        }
     }
 }

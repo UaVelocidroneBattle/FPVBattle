@@ -8,8 +8,8 @@ public static class DiscordBotServiceHelper
     public static void UseDiscordBotService(this IServiceCollection services)
     {
         services.AddSingleton<IDiscordBotFactory, DiscordBotFactory>();
+        services.AddScoped<IDiscordCupMessenger, DiscordCupMessenger>();
 
-        // Register hosted services for bot lifecycle management
-        services.AddHostedService<Bot.DiscordBotHostedService>();
+        services.AddHostedService<DiscordBotHostedService>();
     }
 }

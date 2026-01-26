@@ -27,6 +27,7 @@ public static class TelegramBotServiceHelper
         });
 
         services.AddScoped<ITelegramMessenger, TelegramMessenger>();
+        services.AddScoped<ITelegramCupMessenger, TelegramCupMessenger>();
         services.AddHostedService<TelegramBotHostedService>();
         services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
 
