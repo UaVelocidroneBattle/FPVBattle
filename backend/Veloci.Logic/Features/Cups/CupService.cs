@@ -46,7 +46,7 @@ public class CupService : ICupService
 
     public CupOptions GetCupOptions(string cupId)
     {
-        if (!_config.Cups.TryGetValue(cupId, out var options))
+        if (!_config.Definitions.TryGetValue(cupId, out var options))
         {
             throw new ArgumentException($"Cup '{cupId}' not found in configuration", nameof(cupId));
         }
@@ -56,18 +56,18 @@ public class CupService : ICupService
 
     public IEnumerable<string> GetEnabledCupIds()
     {
-        return _config.Cups
+        return _config.Definitions
             .Where(c => c.Value.IsEnabled)
             .Select(c => c.Key);
     }
 
     public bool CupExists(string cupId)
     {
-        return _config.Cups.ContainsKey(cupId);
+        return _config.Definitions.ContainsKey(cupId);
     }
 
     public IReadOnlyDictionary<string, CupOptions> GetAllCups()
     {
-        return _config.Cups;
+        return _config.Definitions;
     }
 }

@@ -37,7 +37,7 @@ public class CupContextResolver : ICupContextResolver
         var cupsConfig = config.Value;
 
         // Build reverse lookup maps for fast resolution
-        _telegramChatToCup = cupsConfig.Cups
+        _telegramChatToCup = cupsConfig.Definitions
             .Where(kvp => kvp.Value.Channels?.Telegram?.ChannelId != null)
             .ToDictionary(
                 kvp => kvp.Value.Channels.Telegram!.ChannelId,
@@ -45,7 +45,7 @@ public class CupContextResolver : ICupContextResolver
                 StringComparer.OrdinalIgnoreCase
             );
 
-        _discordChannelToCup = cupsConfig.Cups
+        _discordChannelToCup = cupsConfig.Definitions
             .Where(kvp => kvp.Value.Channels?.Discord?.Channel != null)
             .ToDictionary(
                 kvp => kvp.Value.Channels.Discord!.Channel,

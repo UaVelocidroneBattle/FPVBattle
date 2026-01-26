@@ -7,7 +7,7 @@ public class CupsConfiguration
 {
     public const string SectionName = "Cups";
 
-    public Dictionary<string, CupOptions> Cups { get; set; } = new();
+    public Dictionary<string, CupOptions> Definitions { get; set; } = new();
 }
 
 /// <summary>
