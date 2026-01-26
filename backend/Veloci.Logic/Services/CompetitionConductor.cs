@@ -292,15 +292,21 @@ public class CompetitionConductor
         var now = DateTime.Now;
         _log.Information("Processing season results for {Date} (Day {Day} of month)", now.ToString("yyyy-MM-dd"), now.Day);
 
-        if (now.Day == 1)
+        var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
+        _log.Debug("Processing season results for {CupCount} enabled cups: {CupIds}", enabledCupIds.Count, string.Join(", ", enabledCupIds));
+
+        foreach (var cupId in enabledCupIds)
         {
-            _log.Information("First day of month detected, stopping the season");
-            await StopSeasonAsync();
-        }
-        else
-        {
-            _log.Debug("Publishing temporary season results");
-            await TempSeasonResultsAsync();
+            if (now.Day == 1)
+            {
+                _log.Information("First day of month detected, stopping the season for cup {CupId}", cupId);
+                await StopSeasonAsync(cupId);
+            }
+            else
+            {
+                _log.Debug("Publishing temporary season results for cup {CupId}", cupId);
+                await TempSeasonResultsAsync(cupId);
+            }
         }
     }
 
@@ -328,40 +334,40 @@ public class CompetitionConductor
         await _telegramMessenger.SendMessageAsync(channelId, messageText.Text, competition.Track.Rating.PollMessageId);
     }
 
-    private async Task TempSeasonResultsAsync()
+    private async Task TempSeasonResultsAsync(string cupId)
     {
         var today = DateTime.Now;
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var results = await _competitionService.GetSeasonResultsAsync(firstDayOfMonth, today);
+        var results = await _competitionService.GetSeasonResultsAsync(cupId, firstDayOfMonth, today);
 
-        _log.Debug("Retrieved {ResultCount} results for temporary season leaderboard ({StartDate} to {EndDate})",
-            results.Count, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
+        _log.Debug("Retrieved {ResultCount} results for temporary season leaderboard for cup {CupId} ({StartDate} to {EndDate})",
+            results.Count, cupId, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
 
         if (results.Count == 0)
         {
-            _log.Information("No results found for current season, skipping temporary results publication");
+            _log.Information("No results found for current season in cup {CupId}, skipping temporary results publication", cupId);
             return;
         }
 
-        await _mediator.Publish(new TempSeasonResults(results));
-        _log.Information("Published temporary season results with {ResultCount} entries", results.Count);
+        await _mediator.Publish(new TempSeasonResults(cupId, results));
+        _log.Information("Published temporary season results for cup {CupId} with {ResultCount} entries", cupId, results.Count);
     }
 
-    private async Task StopSeasonAsync()
+    private async Task StopSeasonAsync(string cupId)
     {
         var today = DateTime.Now;
         var firstDayOfPreviousMonth = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
         var firstDayOfCurrentMonth = new DateTime(today.Year, today.Month, 1);
         var seasonName = firstDayOfPreviousMonth.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
 
-        _log.Information("Finalizing season {SeasonName} ({StartDate} to {EndDate})",
-            seasonName, firstDayOfPreviousMonth.ToString("yyyy-MM-dd"), firstDayOfCurrentMonth.ToString("yyyy-MM-dd"));
+        _log.Information("Finalizing season {SeasonName} for cup {CupId} ({StartDate} to {EndDate})",
+            seasonName, cupId, firstDayOfPreviousMonth.ToString("yyyy-MM-dd"), firstDayOfCurrentMonth.ToString("yyyy-MM-dd"));
 
-        var results = await _competitionService.GetSeasonResultsAsync(firstDayOfPreviousMonth, firstDayOfCurrentMonth);
+        var results = await _competitionService.GetSeasonResultsAsync(cupId, firstDayOfPreviousMonth, firstDayOfCurrentMonth);
 
         if (results.Count == 0)
         {
-            _log.Warning("No results found for season {SeasonName}, skipping season finalization", seasonName);
+            _log.Warning("No results found for season {SeasonName} in cup {CupId}, skipping season finalization", seasonName, cupId);
             return;
         }
 
@@ -370,14 +376,14 @@ public class CompetitionConductor
             .Select(x => x.PlayerName)
             .ToArray();
 
-        _log.Information("Season {SeasonName} completed with {ResultCount} participants. Winners: {Winners}",
-            seasonName, results.Count, string.Join(", ", winners));
+        _log.Information("Season {SeasonName} for cup {CupId} completed with {ResultCount} participants. Winners: {Winners}",
+            seasonName, cupId, results.Count, string.Join(", ", winners));
 
         var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
-        _log.Debug("Generated winner image for season {SeasonName}", seasonName);
+        _log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
 
-        await _mediator.Publish(new SeasonFinished(results, seasonName, winners, image, "winners.png"));
-        _log.Information("Season {SeasonName} finalization completed", seasonName);
+        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, image, "winners.png"));
+        _log.Information("Season {SeasonName} finalization completed for cup {CupId}", seasonName, cupId);
     }
 
     private async Task<Competition?> GetActiveCompetitionAsync(string cupId)

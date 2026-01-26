@@ -170,11 +170,11 @@ public class CompetitionService
             .ToList();
     }
 
-    public async Task<List<SeasonResult>> GetSeasonResultsAsync(DateTime from, DateTime to)
+    public async Task<List<SeasonResult>> GetSeasonResultsAsync(string cupId, DateTime from, DateTime to)
     {
-        _log.Debug("Calculating season results from {StartDate} to {EndDate}", from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
+        _log.Debug("Calculating season results for cup {CupId} from {StartDate} to {EndDate}", cupId, from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
 
-        var results = await GetSeasonResultsQuery(from, to)
+        var results = await GetSeasonResultsQuery(cupId, from, to)
             .OrderByDescending(result => result.Points)
             .ToListAsync();
 
@@ -183,14 +183,15 @@ public class CompetitionService
             results[i].Rank = i + 1;
         }
 
-        _log.Debug("Season results calculated: {ResultCount} pilots ranked", results.Count);
+        _log.Debug("Season results calculated for cup {CupId}: {ResultCount} pilots ranked", cupId, results.Count);
         return results;
     }
 
-    public IQueryable<SeasonResult> GetSeasonResultsQuery(DateTime from, DateTime to)
+    public IQueryable<SeasonResult> GetSeasonResultsQuery(string cupId, DateTime from, DateTime to)
     {
         return _competitions
             .GetAll(comp => comp.StartedOn >= from && comp.StartedOn <= to)
+            .ForCup(cupId)
             .Where(comp => comp.State != CompetitionState.Cancelled)
             .SelectMany(comp => comp.CompetitionResults)
             .GroupBy(result => result.PilotId)

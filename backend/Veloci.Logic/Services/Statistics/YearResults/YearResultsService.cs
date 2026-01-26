@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Logic.Services.Statistics.YearResults;
 
@@ -10,6 +11,7 @@ public class YearResultsService
     private readonly IRepository<Competition> _competitions;
     private readonly CompetitionService _competitionService;
     private readonly IMediator _mediator;
+    private readonly ICupService _cupService;
 
     private readonly DateTime _from;
     private readonly DateTime _to;
@@ -17,11 +19,13 @@ public class YearResultsService
     public YearResultsService(
         IRepository<Competition> competitions,
         IMediator mediator,
-        CompetitionService competitionService)
+        CompetitionService competitionService,
+        ICupService cupService)
     {
         _competitions = competitions;
         _mediator = mediator;
         _competitionService = competitionService;
+        _cupService = cupService;
 
         var today = DateTime.Today;
         var previousYear = today.Year - 1;
@@ -31,34 +35,39 @@ public class YearResultsService
 
     public async Task Publish()
     {
-        var statistics = new YearResultsModel
-        {
-            Year = _from.Year,
-            PilotWithTheMostGoldenMedal = await GetPilotWithTheMostGoldenMedalAsync(),
-            PilotWhoCameTheMost = await GetPilotWhoCameTheMostAsync(),
-            PilotWhoCameTheLeast = await GetPilotWhoCameTheLeastAsync(),
-            TracksSkipped = await GetTracksSkippedAsync(),
-            TotalTrackCount = await GetTotalTrackCountAsync(),
-            FavoriteTrack = await GetFavoriteTrackAsync(),
-            UniqueTrackCount = await GetUniqueTrackCountAsync(),
-            TotalPilotCount = await GetTotalPilotCountAsync(),
-            Top3Pilots = await GetTop3PilotsAsync(),
-        };
+        var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
 
-        await _mediator.Publish(new Notifications.YearResults(statistics));
+        foreach (var cupId in enabledCupIds)
+        {
+            var statistics = new YearResultsModel
+            {
+                Year = _from.Year,
+                PilotWithTheMostGoldenMedal = await GetPilotWithTheMostGoldenMedalAsync(cupId),
+                PilotWhoCameTheMost = await GetPilotWhoCameTheMostAsync(cupId),
+                PilotWhoCameTheLeast = await GetPilotWhoCameTheLeastAsync(cupId),
+                TracksSkipped = await GetTracksSkippedAsync(cupId),
+                TotalTrackCount = await GetTotalTrackCountAsync(cupId),
+                FavoriteTrack = await GetFavoriteTrackAsync(cupId),
+                UniqueTrackCount = await GetUniqueTrackCountAsync(cupId),
+                TotalPilotCount = await GetTotalPilotCountAsync(cupId),
+                Top3Pilots = await GetTop3PilotsAsync(cupId),
+            };
+
+            await _mediator.Publish(new Notifications.YearResults(statistics));
+        }
     }
 
-    private async Task<Dictionary<string, int>> GetTop3PilotsAsync()
+    private async Task<Dictionary<string, int>> GetTop3PilotsAsync(string cupId)
     {
-        return await _competitionService.GetSeasonResultsQuery(_from, _to)
+        return await _competitionService.GetSeasonResultsQuery(cupId, _from, _to)
             .OrderByDescending(r => r.Points)
             .Take(3)
             .ToDictionaryAsync(x => x.PlayerName, x => x.Points);
     }
 
-    private async Task<(string name, int count)> GetPilotWithTheMostGoldenMedalAsync()
+    private async Task<(string name, int count)> GetPilotWithTheMostGoldenMedalAsync(string cupId)
     {
-        var result = await _competitionService.GetSeasonResultsQuery(_from, _to)
+        var result = await _competitionService.GetSeasonResultsQuery(cupId, _from, _to)
             .OrderByDescending(result => result.GoldenCount)
             .FirstOrDefaultAsync();
 
@@ -71,19 +80,21 @@ public class YearResultsService
         return (name, count);
     }
 
-    private async Task<int> GetTotalTrackCountAsync()
+    private async Task<int> GetTotalTrackCountAsync(string cupId)
     {
         return await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
             .CountAsync();
     }
 
-    private async Task<int> GetUniqueTrackCountAsync()
+    private async Task<int> GetUniqueTrackCountAsync(string cupId)
     {
         return await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
             .Select(comp => comp.TrackId)
@@ -91,19 +102,21 @@ public class YearResultsService
             .CountAsync();
     }
 
-    private async Task<int> GetTracksSkippedAsync()
+    private async Task<int> GetTracksSkippedAsync(string cupId)
     {
         return await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .Where(comp => comp.State == CompetitionState.Cancelled)
             .CountAsync();
     }
 
-    private async Task<(string name, int count)> GetPilotWhoCameTheLeastAsync()
+    private async Task<(string name, int count)> GetPilotWhoCameTheLeastAsync(string cupId)
     {
         var result = await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
@@ -122,10 +135,11 @@ public class YearResultsService
         return (result.Name, result.Count);
     }
 
-    private async Task<(string name, int count)> GetPilotWhoCameTheMostAsync()
+    private async Task<(string name, int count)> GetPilotWhoCameTheMostAsync(string cupId)
     {
         var result = await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
@@ -144,10 +158,11 @@ public class YearResultsService
         return (result.Name, result.Count);
     }
 
-    private async Task<string> GetFavoriteTrackAsync()
+    private async Task<string> GetFavoriteTrackAsync(string cupId)
     {
         var favoriteMap = await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
             .Select(comp => new
@@ -161,10 +176,11 @@ public class YearResultsService
         return favoriteMap?.Name ?? "No favorite track";
     }
 
-    private async Task<int> GetTotalPilotCountAsync()
+    private async Task<int> GetTotalPilotCountAsync(string cupId)
     {
         return await _competitions
             .GetAll()
+            .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)

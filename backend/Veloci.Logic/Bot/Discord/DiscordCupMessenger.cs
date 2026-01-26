@@ -26,7 +26,7 @@ public class DiscordCupMessenger : IDiscordCupMessenger
 
     public Task SendMessageToCupAsync(string cupId, string message)
     {
-        return SendMessageToCupsAsync(new[] { cupId }, message);
+        return SendMessageToCupsAsync([cupId], message);
     }
 
     public Task SendMessageToAllCupsAsync(string message)
@@ -37,6 +37,11 @@ public class DiscordCupMessenger : IDiscordCupMessenger
     public Task SendImageToAllCupsAsync(byte[] image, string imageName)
     {
         return SendToAllCupsAsync(bot => bot.SendImageAsync(image, imageName));
+    }
+
+    public Task SendImageToCupAsync(string cupId, byte[] image, string imageName)
+    {
+        return SendToCupsAsync([cupId], bot => bot.SendImageAsync(image, imageName));
     }
 
     private async Task SendToCupsAsync(IEnumerable<string> cupIds, Func<IDiscordBot, Task> sendAction)

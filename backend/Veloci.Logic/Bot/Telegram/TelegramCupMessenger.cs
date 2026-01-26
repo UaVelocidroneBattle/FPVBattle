@@ -45,6 +45,11 @@ public class TelegramCupMessenger : ITelegramCupMessenger
         return SendToAllCupsAsync(channelId => _messenger.SendPhotoAsync(channelId, file, caption));
     }
 
+    public Task SendPhotoToCupAsync(string cupId, Stream file, string? caption = null)
+    {
+        return SendToCupsAsync([cupId], channelId => _messenger.SendPhotoAsync(channelId, file, caption));
+    }
+
     private async Task SendToCupsAsync(IEnumerable<string> cupIds, Func<string, Task> sendAction)
     {
         foreach (var cupId in cupIds)

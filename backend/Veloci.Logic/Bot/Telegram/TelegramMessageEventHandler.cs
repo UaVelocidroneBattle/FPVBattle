@@ -63,19 +63,19 @@ public class TelegramMessageEventHandler :
     public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TempSeasonResults(notification.Results);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.SeasonResults(notification.Results);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
         var imageStream = new MemoryStream(notification.Image);
-        await _cupMessenger.SendPhotoToAllCupsAsync(imageStream);
+        await _cupMessenger.SendPhotoToCupAsync(notification.CupId, imageStream);
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => SendMedalCountToAllCupsAsync(medalCountMessage), TimeSpan.FromSeconds(6));
+        BackgroundJob.Schedule(() => SendMedalCountToCupAsync(notification.CupId, medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
@@ -138,10 +138,10 @@ public class TelegramMessageEventHandler :
     }
 
     /// <summary>
-    /// Public method for Hangfire to call - sends medal count message to all cups
+    /// Public method for Hangfire to call - sends medal count message to a specific cup
     /// </summary>
-    public async Task SendMedalCountToAllCupsAsync(string message)
+    public async Task SendMedalCountToCupAsync(string cupId, string message)
     {
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(cupId, message);
     }
 }

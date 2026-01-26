@@ -31,4 +31,12 @@ public interface IDiscordCupMessenger
     /// <param name="image">Image bytes</param>
     /// <param name="imageName">Image file name</param>
     Task SendImageToAllCupsAsync(byte[] image, string imageName);
+
+    /// <summary>
+    /// Sends an image to a specific cup that has Discord configured
+    /// </summary>
+    /// <param name="cupId">Cup identifier to send to</param>
+    /// <param name="image">Image bytes</param>
+    /// <param name="imageName">Image file name</param>
+    Task SendImageToCupAsync(string cupId, byte[] image, string imageName);
 }

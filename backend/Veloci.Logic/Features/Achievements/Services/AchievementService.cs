@@ -16,18 +16,15 @@ public class AchievementService
     private readonly IRepository<Pilot> _pilots;
     private readonly IEnumerable<IAchievement> _achievements;
     private readonly IMediator _mediator;
-    private readonly IPilotCupLookupService _pilotCupLookup;
 
     public AchievementService(
         IRepository<Pilot> pilots,
         IServiceProvider serviceProvider,
-        IMediator mediator,
-        IPilotCupLookupService pilotCupLookup)
+        IMediator mediator)
     {
         _pilots = pilots;
         _mediator = mediator;
         _achievements = serviceProvider.GetServices<IAchievement>();
-        _pilotCupLookup = pilotCupLookup;
     }
 
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
@@ -70,24 +67,24 @@ public class AchievementService
         return results;
     }
 
-    public async Task CheckAfterSeasonAsync(List<SeasonResult> results, CancellationToken cancellationToken)
+    public async Task CheckAfterSeasonAsync(List<SeasonResult> results, string cupId, CancellationToken cancellationToken)
     {
-        _log.Information("Checking achievements after season completion for {PilotCount} pilots", results.Count);
+        _log.Information("Checking achievements after season completion for cup {CupId} with {PilotCount} pilots", cupId, results.Count);
 
         await CheckAndPublishAchievementsAsync<IAchievementAfterSeason>(
-            achievement => CheckAchievementAfterSeason(achievement, results),
+            achievement => CheckAchievementAfterSeason(achievement, results, cupId),
             DateTime.UtcNow,
-            null,
+            cupId,
             cancellationToken
         );
     }
 
     private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement,
-        List<SeasonResult> results)
+        List<SeasonResult> results, string cupId)
     {
         var checkResults = new AchievementCheckResults();
-        _log.Debug("Checking season achievement {AchievementName} for {PilotCount} pilots",
-            achievement.Name, results.Count);
+        _log.Debug("Checking season achievement {AchievementName} for cup {CupId} with {PilotCount} pilots",
+            achievement.Name, cupId, results.Count);
 
         foreach (var result in results)
         {
@@ -105,14 +102,14 @@ public class AchievementService
                 continue;
             }
 
-            _log.Information("🏆 Pilot {PilotName} earned season achievement {AchievementName}", pilot.Name,
-                achievement.Name);
+            _log.Information("🏆 Pilot {PilotName} earned season achievement {AchievementName} in cup {CupId}", pilot.Name,
+                achievement.Name, cupId);
             pilot.AddAchievement(achievement);
-            checkResults.Add(new AchievementCheckResult(pilot, achievement));
+            checkResults.Add(new AchievementCheckResult(pilot, achievement, cupId));
         }
 
-        _log.Debug("Season achievement {AchievementName} check completed: {TriggeredCount} pilots earned it",
-            achievement.Name, checkResults.Count);
+        _log.Debug("Season achievement {AchievementName} check completed for cup {CupId}: {TriggeredCount} pilots earned it",
+            achievement.Name, cupId, checkResults.Count);
         return checkResults;
     }
 

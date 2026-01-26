@@ -132,18 +132,18 @@ public class DiscordMessageEventHandler :
     public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TempSeasonResults(notification.Results, false);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.SeasonResults(notification.Results);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
-        await _cupMessenger.SendImageToAllCupsAsync(notification.Image, notification.ImageName);
+        await _cupMessenger.SendImageToCupAsync(notification.CupId, notification.Image, notification.ImageName);
 
         var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => _cupMessenger.SendMessageToAllCupsAsync(medalCountMessage), TimeSpan.FromSeconds(6));
+        BackgroundJob.Schedule(() => _cupMessenger.SendMessageToCupAsync(notification.CupId, medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
