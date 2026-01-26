@@ -26,7 +26,7 @@ public interface IDiscordBotFactory
     /// <summary>
     /// Gets a Discord bot instance configured for the specified cup
     /// </summary>
-    /// <param name="cupId">Cup identifier (e.g., "5inch", "whoop")</param>
+    /// <param name="cupId">Cup identifier (e.g., "open-class", "whoop")</param>
     /// <returns>Bot channel instance for the cup</returns>
     /// <exception cref="ArgumentException">Thrown when cup doesn't exist or has no Discord configuration</exception>
     IDiscordBot GetBotForCup(string cupId);

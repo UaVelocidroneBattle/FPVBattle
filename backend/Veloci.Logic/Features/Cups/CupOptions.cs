@@ -86,7 +86,7 @@ public class TelegramChannelOptions
 public class DiscordChannelOptions
 {
     /// <summary>
-    /// Discord channel name (e.g., "5inch-daily")
+    /// Discord channel name (e.g., "open-class-daily")
     /// </summary>
     public string Channel { get; set; } = string.Empty;
 }

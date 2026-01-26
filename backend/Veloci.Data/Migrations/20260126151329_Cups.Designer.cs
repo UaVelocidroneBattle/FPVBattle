@@ -233,7 +233,7 @@ namespace Veloci.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(64)
                         .HasColumnType("TEXT")
-                        .HasDefaultValue("5inch");
+                        .HasDefaultValue("open-class");
 
                     b.Property<string>("CurrentResultsId")
                         .HasColumnType("TEXT");

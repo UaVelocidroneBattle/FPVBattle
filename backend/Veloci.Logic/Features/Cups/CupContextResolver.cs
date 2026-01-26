@@ -22,7 +22,7 @@ public interface ICupContextResolver
     /// <summary>
     /// Resolves cup ID from Discord channel name
     /// </summary>
-    /// <param name="channelName">Discord channel name (e.g., "5inch-daily")</param>
+    /// <param name="channelName">Discord channel name (e.g., "open-class-daily")</param>
     /// <returns>Cup ID if found, null if channel is not bound to any cup</returns>
     string? GetCupIdByDiscordChannel(string channelName);
 }

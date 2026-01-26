@@ -10,7 +10,7 @@ public interface ICupService
     /// <summary>
     /// Gets configuration options for a specific cup
     /// </summary>
-    /// <param name="cupId">Cup identifier (e.g., "5inch", "whoop")</param>
+    /// <param name="cupId">Cup identifier (e.g., "open-class", "whoop")</param>
     /// <returns>Cup configuration options</returns>
     /// <exception cref="ArgumentException">Thrown when cup ID is not found in configuration</exception>
     CupOptions GetCupOptions(string cupId);
