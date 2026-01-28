@@ -129,15 +129,18 @@ public class Pilot
 
 public static class PilotExtensions
 {
-    public static async Task ResetDayStreaksAsync(this IQueryable<Pilot> allPilots, DateTime today)
+    extension(IQueryable<Pilot> allPilots)
     {
-        await allPilots
-            .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
-            .ForEachAsync(pilot => pilot.ResetDayStreak(today));
-    }
+        public async Task ResetDayStreaksAsync(DateTime today)
+        {
+            await allPilots
+                .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
+                .ForEachAsync(pilot => pilot.ResetDayStreak(today));
+        }
 
-    public static IQueryable<Pilot> ByName(this IQueryable<Pilot> query, string name)
-    {
-        return query.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        public IQueryable<Pilot> ByName(string name)
+        {
+            return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        }
     }
 }

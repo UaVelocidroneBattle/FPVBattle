@@ -183,6 +183,16 @@ public class TelegramMessageComposer
                $"#endOfSeasonStatistics{Environment.NewLine}";
     }
 
+    public string FreezieAdded(string pilotName)
+    {
+        return $"❄️ *{pilotName}* отримав додатковий freezie";
+    }
+
+    public string RestartTrack()
+    {
+        return "🔁️ Усі прибрали руки від контролерів, ми *міняємо трек*";
+    }
+
     #region Private
 
     private string TimeUpdate(TrackTimeDelta delta)

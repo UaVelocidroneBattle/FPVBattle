@@ -22,7 +22,9 @@ public class DiscordMessageEventHandler :
     INotificationHandler<DayStreakPotentialLose>,
     INotificationHandler<NewPilot>,
     INotificationHandler<PilotRenamed>,
-    INotificationHandler<EndOfSeasonStatisticsNotification>
+    INotificationHandler<EndOfSeasonStatisticsNotification>,
+    INotificationHandler<FreezieAdded>,
+    INotificationHandler<TrackRestart>
 {
     private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
 
@@ -182,6 +184,18 @@ public class DiscordMessageEventHandler :
     public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(FreezieAdded notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.FreezieAdded(notification.PilotName);
+        await _discordBot.SendMessageAsync(message);
+    }
+
+    public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.RestartTrack();
         await _discordBot.SendMessageAsync(message);
     }
 }
