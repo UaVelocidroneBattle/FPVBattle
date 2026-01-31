@@ -20,8 +20,11 @@ using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
+using ModelContextProtocol.AspNetCore;
+using Veloci.Mcp.Tools;
 using Veloci.Web.Infrastructure.Hangfire;
 using Veloci.Web.Infrastructure.Logging;
+using Veloci.Web.Infrastructure.Mcp;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Veloci.Web.Infrastructure;
@@ -136,6 +139,11 @@ public class Startup
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<IntermediateCompetitionResult>());
 
         services.AddOpenApi();
+
+        services
+            .AddMcpServer()
+            .WithHttpTransport()
+            .WithToolsFromAssembly(typeof(PilotsMcpTools).Assembly);
     }
 
     public void Configure(WebApplication app)
@@ -146,6 +154,7 @@ public class Startup
             app.UseMigrationsEndPoint();
             app.MapOpenApi();
         }
+
         if (Configuration.GetValue("RunMigrations", false))
         {
             using var scope = app.Services.CreateScope();
@@ -168,7 +177,15 @@ public class Startup
             KnownNetworks = { new IPNetwork(IPAddress.Parse("172.17.0.0"), 16) }
         });
 
-        app.UseHttpsRedirection();
+        var mcpApiKey = app.Configuration["MCP:Key"];
+        app.ProtectMcpEndpoints("/mcp", mcpApiKey);
+        app.MapMcp("/mcp");
+
+        // Skip HTTPS redirection for MCP endpoint (MCP client may not handle redirects)
+        app.UseWhen(
+            context => !context.Request.Path.StartsWithSegments("/mcp"),
+            appBuilder => appBuilder.UseHttpsRedirection());
+
         app.UseStaticFiles();
 
         var user = app.Configuration["PrometheusAuth:Username"];
