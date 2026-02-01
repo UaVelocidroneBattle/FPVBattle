@@ -24,7 +24,7 @@ public class TelegramPatreonHandler :
             return;
         }
 
-        var message = $"📊 *Щомісячні патрони FPV Battle на Patreon* ({notification.Supporters.Count}):\n\n";
+        var message = $"📊 *Патрони FPV Battle на Patreon* ({notification.Supporters.Count}):\n\n";
 
         var groupedByTier = notification.Supporters
             .GroupBy(s => s.TierName ?? "Невідомий рівень")

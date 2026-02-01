@@ -25,6 +25,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.5.0-preview.1" />
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.13.0" />
         <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.13.0-beta.1" />
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.13.0" />
@@ -45,6 +46,7 @@
       <ProjectReference Include="..\Veloci.Data\Veloci.Data.csproj" />
       <ProjectReference Include="..\Veloci.Logic\Veloci.Logic.csproj" />
       <ProjectReference Include="..\Veloci.Hangfire.Metrics\Veloci.Hangfire.Metrics.csproj" />
+      <ProjectReference Include="..\Veloci.Mcp\Veloci.Mcp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
