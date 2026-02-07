@@ -1,4 +1,4 @@
-using Hangfire;
+﻿using Hangfire;
 using MediatR;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
@@ -150,12 +150,12 @@ public class TelegramMessageEventHandler :
     public async Task Handle(FreezieAdded notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.FreezieAdded(notification.PilotName);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.RestartTrack();
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 }

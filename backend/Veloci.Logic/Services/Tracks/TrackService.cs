@@ -28,14 +28,16 @@ public class TrackService
         _competitions = competitions;
     }
 
-    public async Task<Track> GetRandomTrackAsync(TrackFilter? trackFilter = null)
+    public async Task<Track> GetRandomTrackAsync(TrackFilter trackFilter)
     {
         _log.Information("🎯 Starting track selection process");
 
         var maps = await _trackFetcher.FetchMapsAsync();
         _log.Debug("Fetched {MapCount} maps from track fetcher", maps.Count);
 
-        var filteredTracks = GetCandidateTracks(maps, trackFilter);
+        var filteredTracks = trackFilter.GetSuitableTracks(maps);
+        _log.Debug("Filtered to {FilteredCount} suitable tracks for competition", filteredTracks.Count);
+
         var usedTrackIds = await GetUsedTrackIdsAsync();
 
         _log.Information("Found {FilteredCount} candidate tracks for 5-inch racing, excluding {UsedTrackCount} recently used tracks",
@@ -59,26 +61,6 @@ public class TrackService
                 return dbTrack;
             }
         }
-    }
-
-    private List<ParsedTrackModel> GetCandidateTracks(IEnumerable<ParsedMapModel> maps, TrackFilter? trackFilter)
-    {
-        var allTracks = maps.SelectMany(m => m.Tracks).ToList();
-        _log.Debug("Total tracks from all maps: {TrackCount}", allTracks.Count);
-
-        // If no filter provided, return all tracks
-        if (trackFilter == null)
-        {
-            _log.Debug("No track filter provided - using all {TrackCount} tracks", allTracks.Count);
-            return allTracks;
-        }
-
-        var filteredTracks = allTracks.Where(t => trackFilter.IsTrackSuitable(t)).ToList();
-
-        _log.Debug("Filtered to {FilteredCount} tracks suitable for competition (from {TotalCount} total)",
-            filteredTracks.Count, allTracks.Count);
-
-        return filteredTracks;
     }
 
     private async Task<Track?> GetTrackAsync(int trackId)

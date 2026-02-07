@@ -236,12 +236,19 @@ public class DiscordMessageEventHandler :
     public async Task Handle(FreezieAdded notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.FreezieAdded(notification.PilotName);
-        await _discordBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
     {
+        var cupId = notification.CupId;
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            _log.Warning("No Discord bot configured for cup {CupId}, skipping new pilot message", cupId);
+            return;
+        }
+
         var message = _messageComposer.RestartTrack();
-        await _discordBot.SendMessageAsync(message);
+        await bot.SendMessageAsync(message);
     }
 }

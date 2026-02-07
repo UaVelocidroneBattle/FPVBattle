@@ -5,30 +5,28 @@ using Veloci.Logic.Services.Tracks.Models;
 namespace Veloci.Logic.Services.Tracks;
 
 /// <summary>
-/// Filters tracks based on configuration-driven patterns
+/// Filters tracks based on cup-specific configuration:
+/// scene whitelist, track type whitelist/blacklist, and name blacklist patterns.
 /// </summary>
-/// <remarks>
-/// Supports both whitelist and blacklist patterns. When whitelist patterns are specified,
-/// only tracks matching the whitelist are included. Otherwise, blacklist patterns exclude tracks.
-/// This allows for cup-specific track filtering (e.g., 5-inch excludes whoops, whoop includes only micro drones).
-/// </remarks>
 public class TrackFilter
 {
-    private readonly Regex[]? _whitelistRegexes;
+    private readonly IReadOnlyDictionary<int, string>? _whitelistScenes;
+    private readonly HashSet<int>? _whitelistTrackTypes;
+    private readonly HashSet<int>? _blacklistTrackTypes;
     private readonly Regex[]? _blacklistRegexes;
 
     public TrackFilter(TrackFilterOptions options)
     {
-        // Compile whitelist patterns if specified
-        if (options.WhitelistPatterns?.Any() == true)
-        {
-            _whitelistRegexes = options.WhitelistPatterns
-                .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
-                .ToArray();
-        }
+        if (options.WhitelistScenes.Count > 0)
+            _whitelistScenes = options.WhitelistScenes;
 
-        // Compile blacklist patterns if specified
-        if (options.BlacklistPatterns.Any())
+        if (options.WhitelistTrackTypes.Count > 0)
+            _whitelistTrackTypes = options.WhitelistTrackTypes.ToHashSet();
+
+        if (options.BlacklistTrackTypes.Count > 0)
+            _blacklistTrackTypes = options.BlacklistTrackTypes.ToHashSet();
+
+        if (options.BlacklistPatterns.Count > 0)
         {
             _blacklistRegexes = options.BlacklistPatterns
                 .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
@@ -37,25 +35,42 @@ public class TrackFilter
     }
 
     /// <summary>
-    /// Determines if a track is suitable based on the filter configuration
+    /// Filters maps to whitelisted scenes, maps scene names, and returns suitable tracks.
     /// </summary>
-    /// <param name="track">Track to evaluate</param>
-    /// <returns>True if track passes the filter, false otherwise</returns>
+    public List<ParsedTrackModel> GetSuitableTracks(IEnumerable<ParsedMapModel> maps)
+    {
+        var filteredMaps = _whitelistScenes != null
+            ? maps.Where(m => _whitelistScenes.ContainsKey(m.Id)).ToList()
+            : maps.ToList();
+
+        if (_whitelistScenes != null)
+        {
+            // A bit of weird solution since we do not get scene names from API
+            // so we need to map scene names from our scene whitelist
+            foreach (var map in filteredMaps)
+                map.Name = _whitelistScenes[map.Id];
+        }
+
+        return filteredMaps
+            .SelectMany(m => m.Tracks)
+            .Where(IsTrackSuitable)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Determines if a track passes track-level filters (type and name).
+    /// </summary>
     public bool IsTrackSuitable(ParsedTrackModel track)
     {
-        // Whitelist takes precedence (for whoop cup)
-        if (_whitelistRegexes != null)
-        {
-            return _whitelistRegexes.Any(regex => regex.IsMatch(track.Name));
-        }
+        if (_whitelistTrackTypes != null && !_whitelistTrackTypes.Contains(track.Type))
+            return false;
 
-        // Otherwise use blacklist (for 5-inch cup)
-        if (_blacklistRegexes != null)
-        {
-            return !_blacklistRegexes.Any(regex => regex.IsMatch(track.Name));
-        }
+        if (_blacklistTrackTypes != null && _blacklistTrackTypes.Contains(track.Type))
+            return false;
 
-        // No filters configured - allow all tracks
+        if (_blacklistRegexes != null && _blacklistRegexes.Any(regex => regex.IsMatch(track.Name)))
+            return false;
+
         return true;
     }
 }

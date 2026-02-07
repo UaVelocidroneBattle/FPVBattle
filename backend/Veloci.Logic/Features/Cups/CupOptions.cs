@@ -53,15 +53,24 @@ public class ScheduleOptions
 public class TrackFilterOptions
 {
     /// <summary>
-    /// Patterns to exclude tracks (for 5-inch cup: Whoop, Micro, etc.)
+    /// Patterns to exclude tracks by their names or parts of the names
     /// </summary>
     public List<string> BlacklistPatterns { get; set; } = new();
 
     /// <summary>
-    /// Patterns to include tracks (for whoop cup: Whoop, Micro, Toothpick)
-    /// Takes precedence over blacklist when specified.
+    /// Set of allowed scenes (key: scene ID, value: scene name)
     /// </summary>
-    public List<string> WhitelistPatterns { get; set; } = new();
+    public Dictionary<int, string> WhitelistScenes { get; set; } = new();
+
+    /// <summary>
+    /// To include only tracks by these types
+    /// </summary>
+    public List<int> WhitelistTrackTypes { get; set; } = new();
+
+    /// <summary>
+    /// To exclude tracks by these types
+    /// </summary>
+    public List<int> BlacklistTrackTypes { get; set; } = new();
 }
 
 /// <summary>
