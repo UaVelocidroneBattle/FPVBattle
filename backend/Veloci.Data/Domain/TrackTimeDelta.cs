@@ -5,6 +5,7 @@ public class TrackTimeDelta
     public TrackTimeDelta()
     {
         Id = Guid.NewGuid().ToString();
+        Date = DateTime.UtcNow;
     }
 
     public string Id { get; set; }
@@ -19,4 +20,5 @@ public class TrackTimeDelta
     public int LocalRank { get; set; }
     public int? LocalRankOld { get; set; }
     public string? ModelName { get; set; }
+    public DateTime Date { get; set; }
 }
