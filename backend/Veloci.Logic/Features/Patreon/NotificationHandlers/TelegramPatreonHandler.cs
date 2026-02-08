@@ -10,6 +10,13 @@ public class TelegramPatreonHandler :
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
+    private readonly ITelegramCupMessenger _cupMessenger;
+
+    public TelegramPatreonHandler(ITelegramCupMessenger cupMessenger)
+    {
+        _cupMessenger = cupMessenger;
+    }
+
     public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
     {
         if (!notification.Supporters.Any())
@@ -37,7 +44,7 @@ public class TelegramPatreonHandler :
         message += "Дякуємо всім за підтримку! 🙏\n\n" +
                    "Наш Patreon: *https://patreon.com/FPVBattle*";
 
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
@@ -47,12 +54,12 @@ public class TelegramPatreonHandler :
             notification.Supporter.TierName,
             useDiscordMarkdown: false);
 
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
         var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: false);
-        await TelegramBot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 }

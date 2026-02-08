@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-Veloci.Web-0017D263-91F5-4328-92E2-560DBF80FA83</UserSecretsId>
-        <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+        <OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
         <OpenApiDocumentsDirectory>../../shared/api</OpenApiDocumentsDirectory>
     </PropertyGroup>
 

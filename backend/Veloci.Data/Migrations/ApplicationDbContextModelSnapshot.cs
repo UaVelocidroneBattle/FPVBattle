@@ -225,6 +225,13 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<long>("ChatId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("CupId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("open-class");
+
                     b.Property<string>("CurrentResultsId")
                         .HasColumnType("TEXT");
 

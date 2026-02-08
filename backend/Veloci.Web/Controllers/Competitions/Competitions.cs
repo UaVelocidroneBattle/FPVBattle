@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Services;
 
 namespace Veloci.Web.Controllers.Competitions;
@@ -10,10 +11,12 @@ namespace Veloci.Web.Controllers.Competitions;
 public class CompetitionsController : ControllerBase
 {
     private readonly CompetitionService _competitionService;
+    private readonly ICupService _cupService;
 
-    public CompetitionsController(CompetitionService competitionService)
+    public CompetitionsController(CompetitionService competitionService, ICupService cupService)
     {
         _competitionService = competitionService;
+        _cupService = cupService;
     }
 
     [HttpGet("/api/competitions/current")]
@@ -24,15 +27,21 @@ public class CompetitionsController : ControllerBase
     }
 
     [HttpGet("/api/dashboard")]
-    public async Task<DashboardModel?> Dashboard()
+    public async Task<DashboardModel?> Dashboard([FromQuery] string? cupId = null)
     {
-        var competition  = await _competitionService.GetCurrentCompetitions().FirstOrDefaultAsync();
+        // Default to first enabled cup if not specified
+        cupId ??= _cupService.GetEnabledCupIds().FirstOrDefault() ?? "open-class";
+
+        var competition  = await _competitionService
+            .GetCurrentCompetitions()
+            .ForCup(cupId)
+            .FirstOrDefaultAsync();
 
         var dashboardModel = new DashboardModel
         {
             Competition = competition?.MapToModel(),
             Results = GetCurrentResults(competition),
-            Leaderboard = GetLeaderboard()
+            Leaderboard = GetLeaderboard(cupId)
         };
 
         return dashboardModel;
@@ -46,13 +55,13 @@ public class CompetitionsController : ControllerBase
         return currentResults.MapToModel();
     }
 
-    private List<SeasonResultModel> GetLeaderboard()
+    private List<SeasonResultModel> GetLeaderboard(string cupId)
     {
         var today = DateTime.Now;
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
 
         var leaderboard = _competitionService
-            .GetSeasonResultsQuery(firstDayOfMonth, today)
+            .GetSeasonResultsQuery(cupId, firstDayOfMonth, today)
             .OrderByDescending(result => result.Points)
             .MapToModel();
 

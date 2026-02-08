@@ -8,6 +8,7 @@ using Veloci.Logic.API;
 using Veloci.Logic.API.Dto;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services.Tracks;
@@ -27,6 +28,8 @@ public class CompetitionConductor
     private readonly CompetitionService _competitionService;
     private readonly TelegramMessageComposer _messageComposer;
     private readonly ImageService _imageService;
+    private readonly ICupService _cupService;
+    private readonly ITelegramCupMessenger _telegramCupMessenger;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
@@ -37,7 +40,9 @@ public class CompetitionConductor
         TrackService trackService,
         IMediator mediator,
         IRepository<Pilot> pilots,
-        Velocidrone velocidrone)
+        Velocidrone velocidrone,
+        ICupService cupService,
+        ITelegramCupMessenger telegramCupMessenger)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -48,20 +53,34 @@ public class CompetitionConductor
         _mediator = mediator;
         _pilots = pilots;
         _velocidrone = velocidrone;
+        _cupService = cupService;
+        _telegramCupMessenger = telegramCupMessenger;
     }
 
-    public async Task StartNewAsync()
+    public async Task StartNewAsync(string cupId)
     {
-        _log.Information("🏁 Starting a new competition");
+        _log.Information("🏁 Starting a new competition for cup {CupId}", cupId);
 
-        var activeComp = await GetActiveCompetitionAsync();
+        // Get cup configuration
+        var cupOptions = _cupService.GetCupOptions(cupId);
+
+        if (!cupOptions.IsEnabled)
+        {
+            _log.Warning("Cup {CupId} is disabled, skipping competition start", cupId);
+            return;
+        }
+
+        var activeComp = await GetActiveCompetitionAsync(cupId);
 
         if (activeComp is not null)
         {
-            _log.Information("Found active competition {CompetitionId}, stopping poll and cancelling before starting new one", activeComp.Id);
-            await StopPollAsync();
-            await CancelAsync();
+            _log.Information("Found active competition {CompetitionId} in cup {CupId}, stopping poll and cancelling before starting new one", activeComp.Id, cupId);
+            await StopPollAsync(cupId);
+            await CancelAsync(cupId);
         }
+
+        // Create cup-specific track filter
+        var trackFilter = new TrackFilter(cupOptions.TrackFilter);
 
         Track track;
         ICollection<TrackTimeDto> resultsDto;
@@ -69,9 +88,9 @@ public class CompetitionConductor
 
         do
         {
-            track = await _trackService.GetRandomTrackAsync();
+            track = await _trackService.GetRandomTrackAsync(trackFilter);
             attempts++;
-            _log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for new competition (attempt {Attempt})", track.Name, track.TrackId, attempts);
+            _log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for new competition in cup {CupId} (attempt {Attempt})", track.Name, track.TrackId, cupId, attempts);
             resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
 
             if (resultsDto.Count == 0)
@@ -90,6 +109,7 @@ public class CompetitionConductor
 
         var competition = new Competition
         {
+            CupId = cupId,
             TrackId = track.Id,
             State = CompetitionState.Started,
             InitialResults = trackResults,
@@ -99,15 +119,15 @@ public class CompetitionConductor
         await _competitions.AddAsync(competition);
 
         var pilotsFlownOnTrack = await GetPilotsFlownOnTrackAsync(trackResults);
-        _log.Information("🚀 Competition {CompetitionId} started with {PilotCount} existing pilots on track {TrackName}", competition.Id, pilotsFlownOnTrack.Count, track.Name);
+        _log.Information("🚀 Competition {CompetitionId} started for cup {CupId} with {PilotCount} existing pilots on track {TrackName}", competition.Id, cupId, pilotsFlownOnTrack.Count, track.Name);
 
-        await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack));
+        await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack, cupOptions));
 
         //possible needs to be moved to CompetitionStarted event handler in TelegramHandler
         await CreatePoll(track, competition);
 
         await _competitions.SaveChangesAsync();
-        _log.Information("Competition {CompetitionId} setup completed successfully", competition.Id);
+        _log.Information("Competition {CompetitionId} setup completed successfully for cup {CupId}", competition.Id, cupId);
     }
 
     private async Task<IList<string>> GetPilotsFlownOnTrackAsync(TrackResults trackResults)
@@ -128,9 +148,10 @@ public class CompetitionConductor
 
     private async Task CreatePoll(Track track, Competition competition)
     {
-        _log.Debug("Creating poll for track {TrackName}", track.FullName);
+        _log.Debug("Creating poll for track {TrackName} in cup {CupId}", track.FullName, competition.CupId);
+
         var poll = _messageComposer.Poll(track.FullName);
-        var pollId = await TelegramBot.SendPollAsync(poll);
+        var pollId = await _telegramCupMessenger.SendPollToCupAsync(competition.CupId, poll);
 
         if (pollId is null)
         {
@@ -151,64 +172,49 @@ public class CompetitionConductor
         rating.PollMessageId = pollId.Value;
     }
 
-    public async Task StopAsync()
+    public async Task StopAsync(string cupId)
     {
-        var competition = await GetActiveCompetitionAsync();
+        var competition = await GetActiveCompetitionAsync(cupId);
 
         if (competition is null)
-            throw new Exception("There are no active competitions");
+            throw new Exception($"There are no active competitions in cup '{cupId}'");
 
-        _log.Information("Stopping competition {CompetitionId} for track {TrackName}", competition.Id, competition.Track.Name);
+        _log.Information("Stopping competition {CompetitionId} for track {TrackName} in cup {CupId}", competition.Id, competition.Track.Name, cupId);
+
+        var cupOptions = _cupService.GetCupOptions(cupId);
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _competitionService.GetLocalLeaderboard(competition);
 
-        _log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results", competition.Id, competition.CompetitionResults.Count);
+        _log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
-        await UpdateDayStreakAsync(competition.CompetitionResults);
         await _competitions.SaveChangesAsync();
 
-        await _mediator.Publish(new CompetitionStopped(competition));
-        _log.Information("Competition {CompetitionId} closure process completed", competition.Id);
+        await _mediator.Publish(new CompetitionStopped(competition, cupOptions));
+        _log.Information("Competition {CompetitionId} closure process completed for cup {CupId}", competition.Id, cupId);
     }
 
-    private async Task UpdateDayStreakAsync(List<CompetitionResults> competitionResults)
+    private async Task CancelAsync(string cupId)
     {
-        var today = DateTime.Today;
-        _log.Debug("Updating day streaks for {PilotCount} pilots on {Date}", competitionResults.Count, today.ToString("yyyy-MM-dd"));
+        var competition = await GetActiveCompetitionAsync(cupId);
 
-        foreach (var results in competitionResults)
-        {
-            results.Pilot.OnRaceFlown(today);
-        }
+        if (competition is null) throw new Exception($"There are no active competitions in cup {cupId}");
 
-        await _pilots.SaveChangesAsync();
-        await _pilots.GetAll().ResetDayStreaksAsync(today);
-
-        _log.Information("Updated day streaks for {PilotCount} pilots", competitionResults.Count);
-    }
-
-    private async Task CancelAsync()
-    {
-        var competition = await GetActiveCompetitionAsync();
-
-        if (competition is null) throw new Exception("There are no active competitions");
-
-        _log.Information("Cancelling a competition {competitionId}", competition.Id);
+        _log.Information("Cancelling a competition {competitionId} in cup {CupId}", competition.Id, cupId);
 
         competition.State = CompetitionState.Cancelled;
         await _competitions.SaveChangesAsync();
         await _mediator.Publish(new CompetitionCancelled(competition));
     }
 
-    public async Task StopPollAsync()
+    public async Task StopPollAsync(string cupId)
     {
-        _log.Debug("Stopping poll");
+        _log.Debug("Stopping poll for cup {CupId}", cupId);
 
-        var competition = await GetActiveCompetitionAsync();
+        var competition = await GetActiveCompetitionAsync(cupId);
 
         if (competition is null)
-            throw new Exception("There are no active competitions");
+            throw new Exception($"There are no active competitions in cup {cupId}");
 
         var poll = _messageComposer.Poll(competition.Track.FullName);
 
@@ -219,7 +225,7 @@ public class CompetitionConductor
         }
 
         _log.Information("Stopping poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
-        var telegramPoll = await TelegramBot.StopPollAsync(competition.Track.Rating.PollMessageId);
+        var telegramPoll = await _telegramCupMessenger.StopPollInCupAsync(cupId, competition.Track.Rating.PollMessageId);
 
         if (telegramPoll is null)
         {
@@ -255,62 +261,75 @@ public class CompetitionConductor
         var now = DateTime.Now;
         _log.Information("Processing season results for {Date} (Day {Day} of month)", now.ToString("yyyy-MM-dd"), now.Day);
 
-        if (now.Day == 1)
+        var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
+        _log.Debug("Processing season results for {CupCount} enabled cups: {CupIds}", enabledCupIds.Count, string.Join(", ", enabledCupIds));
+
+        foreach (var cupId in enabledCupIds)
         {
-            _log.Information("First day of month detected, stopping the season");
-            await StopSeasonAsync();
-        }
-        else
-        {
-            _log.Debug("Publishing temporary season results");
-            await TempSeasonResultsAsync();
+            if (now.Day == 1)
+            {
+                _log.Information("First day of month detected, stopping the season for cup {CupId}", cupId);
+                await StopSeasonAsync(cupId);
+            }
+            else
+            {
+                _log.Debug("Publishing temporary season results for cup {CupId}", cupId);
+                await TempSeasonResultsAsync(cupId);
+            }
         }
     }
 
-    public async Task VoteReminder()
+    public async Task VoteReminder(string cupId)
     {
-        _log.Debug("Publishing vote reminder");
+        _log.Debug("Publishing vote reminder for cup {CupId}", cupId);
 
-        var competition = await GetActiveCompetitionAsync();
-        var messageText = ChatMessages.GetRandomByType(ChatMessageType.VoteReminder);
+        var competition = await GetActiveCompetitionAsync(cupId);
 
-        await TelegramBot.ReplyMessageAsync(messageText.Text, competition.Track.Rating.PollMessageId);
-    }
-
-    private async Task TempSeasonResultsAsync()
-    {
-        var today = DateTime.Now;
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var results = await _competitionService.GetSeasonResultsAsync(firstDayOfMonth, today);
-
-        _log.Debug("Retrieved {ResultCount} results for temporary season leaderboard ({StartDate} to {EndDate})",
-            results.Count, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
-
-        if (results.Count == 0)
+        if (competition is null)
         {
-            _log.Information("No results found for current season, skipping temporary results publication");
+            _log.Warning("No active competition found for vote reminder in cup {CupId}", cupId);
             return;
         }
 
-        await _mediator.Publish(new TempSeasonResults(results));
-        _log.Information("Published temporary season results with {ResultCount} entries", results.Count);
+        var messageText = ChatMessages.GetRandomByType(ChatMessageType.VoteReminder);
+
+        await _telegramCupMessenger.SendReplyToCupAsync(cupId, messageText.Text, competition.Track.Rating.PollMessageId);
     }
 
-    private async Task StopSeasonAsync()
+    private async Task TempSeasonResultsAsync(string cupId)
+    {
+        var today = DateTime.Now;
+        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var results = await _competitionService.GetSeasonResultsAsync(cupId, firstDayOfMonth, today);
+
+        _log.Debug("Retrieved {ResultCount} results for temporary season leaderboard for cup {CupId} ({StartDate} to {EndDate})",
+            results.Count, cupId, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
+
+        if (results.Count == 0)
+        {
+            _log.Information("No results found for current season in cup {CupId}, skipping temporary results publication", cupId);
+            return;
+        }
+
+        await _mediator.Publish(new TempSeasonResults(cupId, results));
+        _log.Information("Published temporary season results for cup {CupId} with {ResultCount} entries", cupId, results.Count);
+    }
+
+    private async Task StopSeasonAsync(string cupId)
     {
         var today = DateTime.Now;
         var firstDayOfPreviousMonth = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
         var firstDayOfCurrentMonth = new DateTime(today.Year, today.Month, 1);
         var seasonName = firstDayOfPreviousMonth.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
 
-        _log.Information("Finalizing season {SeasonName} ({StartDate} to {EndDate})",
-            seasonName, firstDayOfPreviousMonth.ToString("yyyy-MM-dd"), firstDayOfCurrentMonth.ToString("yyyy-MM-dd"));
+        _log.Information("Finalizing season {SeasonName} for cup {CupId} ({StartDate} to {EndDate})",
+            seasonName, cupId, firstDayOfPreviousMonth.ToString("yyyy-MM-dd"), firstDayOfCurrentMonth.ToString("yyyy-MM-dd"));
 
-        var results = await _competitionService.GetSeasonResultsAsync(firstDayOfPreviousMonth, firstDayOfCurrentMonth);
+        var results = await _competitionService.GetSeasonResultsAsync(cupId, firstDayOfPreviousMonth, firstDayOfCurrentMonth);
 
         if (results.Count == 0)
         {
-            _log.Warning("No results found for season {SeasonName}, skipping season finalization", seasonName);
+            _log.Warning("No results found for season {SeasonName} in cup {CupId}, skipping season finalization", seasonName, cupId);
             return;
         }
 
@@ -319,20 +338,21 @@ public class CompetitionConductor
             .Select(x => x.PlayerName)
             .ToArray();
 
-        _log.Information("Season {SeasonName} completed with {ResultCount} participants. Winners: {Winners}",
-            seasonName, results.Count, string.Join(", ", winners));
+        _log.Information("Season {SeasonName} for cup {CupId} completed with {ResultCount} participants. Winners: {Winners}",
+            seasonName, cupId, results.Count, string.Join(", ", winners));
 
         var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
-        _log.Debug("Generated winner image for season {SeasonName}", seasonName);
+        _log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
 
-        await _mediator.Publish(new SeasonFinished(results, seasonName, winners, image, "winners.png"));
-        _log.Information("Season {SeasonName} finalization completed", seasonName);
+        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, image, "winners.png"));
+        _log.Information("Season {SeasonName} finalization completed for cup {CupId}", seasonName, cupId);
     }
 
-    private async Task<Competition?> GetActiveCompetitionAsync()
+    private async Task<Competition?> GetActiveCompetitionAsync(string cupId)
     {
         return await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
+            .ForCup(cupId)
             .FirstOrDefaultAsync();
     }
 }

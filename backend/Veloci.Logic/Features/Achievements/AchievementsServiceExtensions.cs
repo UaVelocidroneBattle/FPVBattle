@@ -17,6 +17,7 @@ public static class AchievementsServiceExtensions
             // Register core services
             services.AddScoped<AchievementService>();
             services.AddScoped<AchievementsEventHandler>();
+            services.AddScoped<IPilotCupLookupService, PilotCupLookupService>();
 
             // Register message composers
             services.AddScoped<DiscordAchievementMessageComposer>();

@@ -9,10 +9,7 @@ public class ChatMessage
     }
 
     public ChatMessageType Type { get; set; }
-
-    public string? FileUrl { get; set; }
-
-    public string? Text { get; set; }
+    public string Text { get; set; }
 }
 
 public enum ChatMessageType

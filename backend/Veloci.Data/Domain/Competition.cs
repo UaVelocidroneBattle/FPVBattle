@@ -23,6 +23,15 @@ public class Competition
 
     public CompetitionState State { get; set; }
 
+    /// <summary>
+    /// References the cup configuration key in appsettings.json (e.g., "open-class", "whoop").
+    /// </summary>
+    /// <remarks>
+    /// This is a lightweight reference to cup configuration rather than a database entity.
+    /// The cup defines track filters, channels, and scheduling for the competition.
+    /// </remarks>
+    public string CupId { get; set; } = "open-class";
+
     public long ChatId { get; set; }
 
     public virtual Track Track { get; set; }
@@ -132,6 +141,41 @@ public static class IQueryableCompetitionExtensions
         public IQueryable<Competition> NotCancelled()
         {
             return query.Where(comp => comp.State != CompetitionState.Cancelled);
+        }
+
+        /// <summary>
+        /// Filters competitions by cup ID
+        /// </summary>
+        /// <param name="cupId">Cup identifier (e.g., "open-class", "whoop")</param>
+        /// <returns></returns>
+        public IQueryable<Competition> ForCup(string cupId)
+        {
+            return query.Where(comp => comp.CupId == cupId);
+        }
+
+        /// <summary>
+        /// Filters competitions where the specified pilot participated
+        /// </summary>
+        /// <param name="pilotId">Pilot identifier</param>
+        /// <returns></returns>
+        public IQueryable<Competition> ForPilot(int pilotId)
+        {
+            return query.Where(comp =>
+                comp.CompetitionResults.Any(r => r.PilotId == pilotId));
+        }
+
+        /// <summary>
+        /// Filters competitions by specific date (ignoring time component)
+        /// </summary>
+        /// <param name="date">Target date</param>
+        /// <returns></returns>
+        public IQueryable<Competition> OnDate(DateTime date)
+        {
+            var startOfDay = date.Date;
+            var endOfDay = startOfDay.AddDays(1);
+
+            return query.Where(comp =>
+                comp.StartedOn >= startOfDay && comp.StartedOn < endOfDay);
         }
     }
 }
