@@ -24,10 +24,10 @@ public class DiscordPatreonHandler :
             return;
         }
 
-        var message = $"📊 **Патрони FPV Battle на Patreon** ({notification.Supporters.Count}):\n\n";
+        var message = $"📊 **FPV Battle Patreon supporters** ({notification.Supporters.Count}):\n\n";
 
         var groupedByTier = notification.Supporters
-            .GroupBy(s => s.TierName ?? "Невідомий рівень")
+            .GroupBy(s => s.TierName ?? "Unknown tier")
             .OrderByDescending(g => g.Average(s => s.Amount ?? 0));
 
         foreach (var tierGroup in groupedByTier)
@@ -41,8 +41,8 @@ public class DiscordPatreonHandler :
             message += "\n";
         }
 
-        message += "Дякуємо всім за підтримку! 🙏\n\n" +
-                   "👉 [Наш Patreon](https://patreon.com/FPVBattle)";
+        message += "Thank you all for your support! 🙏\n\n" +
+                   "👉 [Our Patreon](https://patreon.com/FPVBattle)";
 
         await _discordCupMessenger.SendMessageToAllCupsAsync(message);
     }
