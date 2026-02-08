@@ -238,37 +238,5 @@ public class CompetitionService
     }
 
 
-    public async Task DayStreakPotentialLoseNotification()
-    {
-        var activeCompetition = await GetCurrentCompetitions()
-            .FirstOrDefaultAsync();
 
-        if (activeCompetition is null)
-        {
-            _log.Debug("No active competition found for day streak potential lose notification");
-            return;
-        }
-
-        var leaderboard = GetLocalLeaderboard(activeCompetition)
-            .Select(r => r.Pilot.Id)
-            .ToArray();
-
-        _log.Debug("Current leaderboard has {ParticipantCount} participants", leaderboard.Length);
-
-        var pilots = await _pilots
-            .GetAll(p => p.DayStreak > 10)
-            .Where(p => leaderboard.All(l => l != p.Id))
-            .ToListAsync();
-
-        if (pilots.Count == 0)
-        {
-            _log.Debug("All pilots with significant day streaks have already participated today");
-            return;
-        }
-
-        _log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}",
-            pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
-
-        await _mediator.Publish(new DayStreakPotentialLose(pilots));
-    }
 }

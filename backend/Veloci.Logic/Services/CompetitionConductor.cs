@@ -188,27 +188,10 @@ public class CompetitionConductor
 
         _log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
-        await UpdateDayStreakAsync(competition.CompetitionResults);
         await _competitions.SaveChangesAsync();
 
         await _mediator.Publish(new CompetitionStopped(competition, cupOptions));
         _log.Information("Competition {CompetitionId} closure process completed for cup {CupId}", competition.Id, cupId);
-    }
-
-    private async Task UpdateDayStreakAsync(List<CompetitionResults> competitionResults)
-    {
-        var today = DateTime.Today;
-        _log.Debug("Updating day streaks for {PilotCount} pilots on {Date}", competitionResults.Count, today.ToString("yyyy-MM-dd"));
-
-        foreach (var results in competitionResults)
-        {
-            results.Pilot.OnRaceFlown(today);
-        }
-
-        await _pilots.SaveChangesAsync();
-        await _pilots.GetAll().ResetDayStreaksAsync(today);
-
-        _log.Information("Updated day streaks for {PilotCount} pilots", competitionResults.Count);
     }
 
     private async Task CancelAsync(string cupId)
