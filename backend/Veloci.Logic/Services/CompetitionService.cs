@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.Bot;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services;
@@ -23,6 +23,7 @@ public class CompetitionService
     private readonly IMediator _mediator;
     private readonly PilotService _pilotService;
     private readonly PointsCalculator _pointsCalculator;
+    private readonly ICupService _cupService;
 
     public CompetitionService(
         IRepository<Competition> competitions,
@@ -32,7 +33,8 @@ public class CompetitionService
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         PilotService pilotService,
-        PointsCalculator pointsCalculator)
+        PointsCalculator pointsCalculator,
+        ICupService cupService)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -42,12 +44,12 @@ public class CompetitionService
         _velocidrone = velocidrone;
         _pilotService = pilotService;
         _pointsCalculator = pointsCalculator;
+        _cupService = cupService;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
     public async Task UpdateResultsAsync()
     {
-
         var activeCompetitions = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .ToListAsync();
@@ -62,12 +64,13 @@ public class CompetitionService
         {
             await UpdateResultsAsync(competition);
         }
-
     }
 
     private async Task UpdateResultsAsync(Competition competition)
     {
-        _log.Debug("Starting updating results for competition {CompetitionId} on track {TrackName}", competition.Id, competition.Track.Name);
+        _log.Debug("Starting updating results for competition {CompetitionId} (cup {CupId}) on track {TrackName}", competition.Id, competition.CupId, competition.Track.Name);
+
+        var cupOptions = _cupService.GetCupOptions(competition.CupId);
 
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
         var times = _resultsConverter.ConvertTrackTimes(resultsDto);
@@ -87,21 +90,20 @@ public class CompetitionService
         }
 
         var pilotNames = times.ToDictionary(x => x.UserId.Value, x => x.PlayerName);
-        await _pilotService.UpdatePilotsAsync(deltas, pilotNames);
+        await _pilotService.UpdatePilotsAsync(deltas, pilotNames, competition.CupId);
 
         competition.CurrentResults = results;
         competition.TimeDeltas.AddRange(deltas);
         competition.ResultsPosted = false;
         await _competitions.SaveChangesAsync();
 
-        _log.Information("Updated results for competition {CompetitionId}: {DeltaCount} new results added", competition.Id, deltas.Count);
-        await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas));
+        _log.Information("Updated results for competition {CompetitionId} (cup {CupId}): {DeltaCount} new results added", competition.Id, competition.CupId, deltas.Count);
+        await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas, cupOptions));
     }
 
     [DisableConcurrentExecution("Competition", 1)]
     public async Task PublishCurrentLeaderboardAsync()
     {
-
         var activeCompetitions = await GetCurrentCompetitions().ToListAsync();
 
         if (!activeCompetitions.Any())
@@ -114,7 +116,6 @@ public class CompetitionService
         {
             await PublishCurrentLeaderboardAsync(activeCompetition);
         }
-
     }
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)
@@ -128,7 +129,7 @@ public class CompetitionService
         if (competition.TimeDeltas.Count == 0)
         {
             _log.Information("No results yet for competition {CompetitionId}", competition.Id);
-            await SendCheerUpMessageAsync(ChatMessageType.NobodyFlying);
+            await SendCheerUpMessageAsync(competition.CupId, ChatMessageType.NobodyFlying);
             return;
         }
 
@@ -136,7 +137,7 @@ public class CompetitionService
 
         if (leaderboard.Count < 2)
         {
-            await SendCheerUpMessageAsync(ChatMessageType.OnlyOneFlew);
+            await SendCheerUpMessageAsync(competition.CupId, ChatMessageType.OnlyOneFlew);
             return;
         }
 
@@ -169,11 +170,11 @@ public class CompetitionService
             .ToList();
     }
 
-    public async Task<List<SeasonResult>> GetSeasonResultsAsync(DateTime from, DateTime to)
+    public async Task<List<SeasonResult>> GetSeasonResultsAsync(string cupId, DateTime from, DateTime to)
     {
-        _log.Debug("Calculating season results from {StartDate} to {EndDate}", from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
+        _log.Debug("Calculating season results for cup {CupId} from {StartDate} to {EndDate}", cupId, from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
 
-        var results = await GetSeasonResultsQuery(from, to)
+        var results = await GetSeasonResultsQuery(cupId, from, to)
             .OrderByDescending(result => result.Points)
             .ToListAsync();
 
@@ -182,14 +183,15 @@ public class CompetitionService
             results[i].Rank = i + 1;
         }
 
-        _log.Debug("Season results calculated: {ResultCount} pilots ranked", results.Count);
+        _log.Debug("Season results calculated for cup {CupId}: {ResultCount} pilots ranked", cupId, results.Count);
         return results;
     }
 
-    public IQueryable<SeasonResult> GetSeasonResultsQuery(DateTime from, DateTime to)
+    public IQueryable<SeasonResult> GetSeasonResultsQuery(string cupId, DateTime from, DateTime to)
     {
         return _competitions
             .GetAll(comp => comp.StartedOn >= from && comp.StartedOn <= to)
+            .ForCup(cupId)
             .Where(comp => comp.State != CompetitionState.Cancelled)
             .SelectMany(comp => comp.CompetitionResults)
             .GroupBy(result => result.PilotId)
@@ -203,7 +205,7 @@ public class CompetitionService
             });
     }
 
-    private async Task SendCheerUpMessageAsync(ChatMessageType type)
+    private async Task SendCheerUpMessageAsync(string cupId, ChatMessageType type)
     {
         if (DoNotDisturb(DateTime.Now))
         {
@@ -220,7 +222,7 @@ public class CompetitionService
         }
 
         _log.Information("Sending cheer-up message of type {MessageType}", type);
-        await _mediator.Publish(new CheerUp(cheerUpMessage));
+        await _mediator.Publish(new CheerUp(cupId, cheerUpMessage));
     }
 
     private static bool DoNotDisturb(DateTime dateTime)
@@ -233,40 +235,5 @@ public class CompetitionService
         return _competitions
             .GetAll(c => c.State == CompetitionState.Started)
             .OrderByDescending(x => x.StartedOn);
-    }
-
-
-    public async Task DayStreakPotentialLoseNotification()
-    {
-        var activeCompetition = await GetCurrentCompetitions()
-            .FirstOrDefaultAsync();
-
-        if (activeCompetition is null)
-        {
-            _log.Debug("No active competition found for day streak potential lose notification");
-            return;
-        }
-
-        var leaderboard = GetLocalLeaderboard(activeCompetition)
-            .Select(r => r.Pilot.Id)
-            .ToArray();
-
-        _log.Debug("Current leaderboard has {ParticipantCount} participants", leaderboard.Length);
-
-        var pilots = await _pilots
-            .GetAll(p => p.DayStreak > 10)
-            .Where(p => leaderboard.All(l => l != p.Id))
-            .ToListAsync();
-
-        if (pilots.Count == 0)
-        {
-            _log.Debug("All pilots with significant day streaks have already participated today");
-            return;
-        }
-
-        _log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}",
-            pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
-
-        await _mediator.Publish(new DayStreakPotentialLose(pilots));
     }
 }

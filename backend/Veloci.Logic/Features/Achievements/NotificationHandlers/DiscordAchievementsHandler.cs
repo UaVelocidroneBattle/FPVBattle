@@ -10,29 +10,34 @@ public class DiscordAchievementsHandler :
     INotificationHandler<GotAchievements>
 {
     private readonly DiscordAchievementMessageComposer _messageComposer;
-    private readonly IDiscordBot _discordBot;
+    private readonly IDiscordCupMessenger _cupMessenger;
 
-    public DiscordAchievementsHandler(DiscordAchievementMessageComposer messageComposer, IDiscordBot discordBot)
+    public DiscordAchievementsHandler(
+        DiscordAchievementMessageComposer messageComposer,
+        IDiscordCupMessenger cupMessenger)
     {
         _messageComposer = messageComposer;
-        _discordBot = discordBot;
+        _cupMessenger = cupMessenger;
     }
 
     public async Task Handle(DayStreakAchievements notification, CancellationToken cancellationToken)
     {
         const int delaySec = 3;
 
-        foreach (var pilot in notification.Pilots)
+        foreach (var participation in notification.Participations.Where(p => p.CupIds.Count > 0))
         {
-            var message = _messageComposer.DayStreakAchievement(pilot);
-            await _discordBot.SendMessageAsync(message);
+            var message = _messageComposer.DayStreakAchievement(participation.Pilot);
+            await _cupMessenger.SendMessageToCupsAsync(participation.CupIds, message);
             await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
         }
     }
 
     public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.AchievementList(notification.Results);
-        await _discordBot.SendMessageAsync(message);
+        foreach (var (cupId, results) in notification.Results.GroupByCup())
+        {
+            var message = _messageComposer.AchievementList(results);
+            await _cupMessenger.SendMessageToCupAsync(cupId, message);
+        }
     }
 }

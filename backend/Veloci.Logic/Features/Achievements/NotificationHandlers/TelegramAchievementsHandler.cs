@@ -10,27 +10,34 @@ public class TelegramAchievementsHandler :
     INotificationHandler<GotAchievements>
 {
     private readonly TelegramAchievementMessageComposer _messageComposer;
+    private readonly ITelegramCupMessenger _cupMessenger;
 
-    public TelegramAchievementsHandler(TelegramAchievementMessageComposer messageComposer)
+    public TelegramAchievementsHandler(
+        TelegramAchievementMessageComposer messageComposer,
+        ITelegramCupMessenger cupMessenger)
     {
         _messageComposer = messageComposer;
+        _cupMessenger = cupMessenger;
     }
 
     public async Task Handle(DayStreakAchievements notification, CancellationToken cancellationToken)
     {
         const int delaySec = 3;
 
-        foreach (var pilot in notification.Pilots)
+        foreach (var participation in notification.Participations.Where(p => p.CupIds.Count > 0))
         {
-            var message = _messageComposer.DayStreakAchievement(pilot);
-            await TelegramBot.SendMessageAsync(message);
+            var message = _messageComposer.DayStreakAchievement(participation.Pilot);
+            await _cupMessenger.SendMessageToCupsAsync(participation.CupIds, message);
             await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
         }
     }
 
     public async Task Handle(GotAchievements notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.AchievementList(notification.Results);
-        await TelegramBot.SendMessageAsync(message);
+        foreach (var (cupId, results) in notification.Results.GroupByCup())
+        {
+            var message = _messageComposer.AchievementList(results);
+            await _cupMessenger.SendMessageToCupAsync(cupId, message);
+        }
     }
 }

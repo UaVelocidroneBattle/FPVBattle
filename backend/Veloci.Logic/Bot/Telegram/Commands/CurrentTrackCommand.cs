@@ -16,14 +16,22 @@ public class CurrentTrackCommand : ITelegramCommand
 
     public string[] Keywords => ["/current-track", "/ct"];
     public string Description => "`/current-track` або `/ct` - Current track";
-    public async Task<string> ExecuteAsync(string[]? parameters)
+
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
+        // Check if chat is bound to a cup
+        if (context.CupId is null)
+        {
+            return "This chat is not bound to any cup 🤷";
+        }
+
         var activeCompetition = await _competitions
             .GetAll(c => c.State == CompetitionState.Started)
+            .ForCup(context.CupId)
             .FirstOrDefaultAsync();
 
         return activeCompetition is null
-            ? "No active competition found 😕"
+            ? $"No active competition in {context.CupId} cup 😕"
             : $"*{activeCompetition.Track.Map.Name} - `{activeCompetition.Track.Name}`*";
     }
 

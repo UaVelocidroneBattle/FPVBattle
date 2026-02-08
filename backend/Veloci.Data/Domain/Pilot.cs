@@ -134,6 +134,7 @@ public static class PilotExtensions
         public async Task ResetDayStreaksAsync(DateTime today)
         {
             await allPilots
+                .Include(p => p.DayStreakFreezes)
                 .Where(p => p.LastRaceDate < today && p.DayStreak > 0)
                 .ForEachAsync(pilot => pilot.ResetDayStreak(today));
         }
