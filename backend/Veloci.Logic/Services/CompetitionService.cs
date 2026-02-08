@@ -129,7 +129,7 @@ public class CompetitionService
         if (competition.TimeDeltas.Count == 0)
         {
             _log.Information("No results yet for competition {CompetitionId}", competition.Id);
-            await SendCheerUpMessageAsync(ChatMessageType.NobodyFlying);
+            await SendCheerUpMessageAsync(competition.CupId, ChatMessageType.NobodyFlying);
             return;
         }
 
@@ -137,7 +137,7 @@ public class CompetitionService
 
         if (leaderboard.Count < 2)
         {
-            await SendCheerUpMessageAsync(ChatMessageType.OnlyOneFlew);
+            await SendCheerUpMessageAsync(competition.CupId, ChatMessageType.OnlyOneFlew);
             return;
         }
 
@@ -205,7 +205,7 @@ public class CompetitionService
             });
     }
 
-    private async Task SendCheerUpMessageAsync(ChatMessageType type)
+    private async Task SendCheerUpMessageAsync(string cupId, ChatMessageType type)
     {
         if (DoNotDisturb(DateTime.Now))
         {
@@ -222,7 +222,7 @@ public class CompetitionService
         }
 
         _log.Information("Sending cheer-up message of type {MessageType}", type);
-        await _mediator.Publish(new CheerUp(cheerUpMessage));
+        await _mediator.Publish(new CheerUp(cupId, cheerUpMessage));
     }
 
     private static bool DoNotDisturb(DateTime dateTime)
@@ -236,7 +236,4 @@ public class CompetitionService
             .GetAll(c => c.State == CompetitionState.Started)
             .OrderByDescending(x => x.StartedOn);
     }
-
-
-
 }

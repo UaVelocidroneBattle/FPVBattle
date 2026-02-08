@@ -20,6 +20,7 @@ public class StatisticsService
         _mediator = mediator;
     }
 
+    [Obsolete("Need to rework")]
     public async Task PublishEndOfSeasonStatisticsAsync()
     {
         var statistics = await EndOfSeasonStatisticsAsync();

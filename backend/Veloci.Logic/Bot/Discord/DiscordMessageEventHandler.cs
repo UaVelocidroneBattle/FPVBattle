@@ -164,16 +164,7 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
     {
         var cheerUpMessage = notification.Message;
-
-        if (cheerUpMessage.FileUrl is null && cheerUpMessage.Text is not null)
-        {
-            await _cupMessenger.SendMessageToAllCupsAsync(cheerUpMessage.Text);
-            return;
-        }
-        // if (cheerUpMessage.FileUrl is not null)
-        // {
-        //     await TelegramBot.SendPhotoAsync(cheerUpMessage.FileUrl, cheerUpMessage.Text);
-        // }
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, cheerUpMessage.Text);
     }
 
     public async Task Handle(YearResults notification, CancellationToken cancellationToken)
