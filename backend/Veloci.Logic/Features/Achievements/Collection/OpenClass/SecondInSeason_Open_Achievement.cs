@@ -1,13 +1,15 @@
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Achievements.Base;
+using Veloci.Logic.Features.Cups;
 
-namespace Veloci.Logic.Features.Achievements.Collection;
+namespace Veloci.Logic.Features.Achievements.Collection.OpenClass;
 
-public class SecondInSeasonAchievement : IAchievementAfterSeason
+public class SecondInSeason_Open_Achievement : IAchievementAfterSeason
 {
     public string Name => "SecondInSeason";
-    public string Title => "Срібло";
-    public string Description => "Друге місце в сезоні";
+    public string Title => "Silver";
+    public string Description => "Second place in a season (open class)";
+    public string? CupId => CupIds.OpenClass;
 
     public async Task<bool> CheckAsync(Pilot pilot, List<SeasonResult> seasonResults)
     {

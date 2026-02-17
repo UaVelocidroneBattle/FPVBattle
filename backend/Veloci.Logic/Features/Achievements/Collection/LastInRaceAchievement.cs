@@ -6,8 +6,9 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class LastInRaceAchievement : IAchievementAfterCompetition
 {
     public string Name => "LastInRace";
-    public string Title => "Перший з кінця";
-    public string Description => "Останнє місце в гонці";
+    public string Title => "First from the end";
+    public string Description => "Last place in a race";
+    public string? CupId => null;
 
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
     {

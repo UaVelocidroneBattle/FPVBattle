@@ -98,7 +98,7 @@ public class CompetitionService
         await _competitions.SaveChangesAsync();
 
         _log.Information("Updated results for competition {CompetitionId} (cup {CupId}): {DeltaCount} new results added", competition.Id, competition.CupId, deltas.Count);
-        await _mediator.Publish(new CurrentResultUpdateMessage(competition, deltas, cupOptions));
+        await _mediator.Publish(new CurrentResultUpdated(competition, deltas, cupOptions));
     }
 
     [DisableConcurrentExecution("Competition", 1)]

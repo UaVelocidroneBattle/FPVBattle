@@ -4,7 +4,7 @@ using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Logic.Notifications;
 
-public record CompetitionStopped(
+public record CompetitionFinished(
     Competition Competition,
     CupOptions CupOptions
 ) : INotification;

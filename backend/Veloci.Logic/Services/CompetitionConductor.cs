@@ -190,7 +190,7 @@ public class CompetitionConductor
 
         await _competitions.SaveChangesAsync();
 
-        await _mediator.Publish(new CompetitionStopped(competition, cupOptions));
+        await _mediator.Publish(new CompetitionFinished(competition, cupOptions));
         _log.Information("Competition {CompetitionId} closure process completed for cup {CupId}", competition.Id, cupId);
     }
 

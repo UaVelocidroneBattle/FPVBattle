@@ -7,7 +7,12 @@ public static class ExtensionMethods
 {
     public static void AddAchievement(this Pilot pilot, IAchievement achievement)
     {
-        var pilotAchievement = new PilotAchievement { Pilot = pilot, Date = DateTime.Now, Name = achievement.Name };
+        var pilotAchievement = new PilotAchievement
+        {
+            Pilot = pilot,
+            Date = DateTime.UtcNow,
+            Name = achievement.Name
+        };
 
         pilot.Achievements.Add(pilotAchievement);
     }

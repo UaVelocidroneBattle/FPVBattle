@@ -20,8 +20,9 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
     }
 
     public string Name => "BiggestDayStreak";
-    public string Title => "Президент";
-    public string Description => "Пілот з найбільшим дейстріком";
+    public string Title => "President";
+    public string Description => "Pilot with the biggest day streak";
+    public string? CupId => null;
 
     public async Task CheckAsync()
     {

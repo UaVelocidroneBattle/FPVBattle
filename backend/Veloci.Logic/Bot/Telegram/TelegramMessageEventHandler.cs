@@ -7,8 +7,8 @@ namespace Veloci.Logic.Bot.Telegram;
 
 public class TelegramMessageEventHandler :
     INotificationHandler<IntermediateCompetitionResult>,
-    INotificationHandler<CurrentResultUpdateMessage>,
-    INotificationHandler<CompetitionStopped>,
+    INotificationHandler<CurrentResultUpdated>,
+    INotificationHandler<CompetitionFinished>,
     INotificationHandler<CompetitionStarted>,
     INotificationHandler<TempSeasonResults>,
     INotificationHandler<SeasonFinished>,
@@ -39,13 +39,13 @@ public class TelegramMessageEventHandler :
         await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
     }
 
-    public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
+    public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.TimeUpdate(notification.Deltas);
         await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
     }
 
-    public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
+    public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
     {
         var competition = notification.Competition;
 

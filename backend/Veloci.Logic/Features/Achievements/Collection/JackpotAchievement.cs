@@ -7,8 +7,9 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class JackpotAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "Jackpot";
-    public string Title => "Джекпот";
-    public string Description => "Встановити час з однакових цифр (напр. 77.777)";
+    public string Title => "Jackpot";
+    public string Description => "Set a time with identical digits (e.g. 77.777)";
+    public string? CupId => null;
     public async Task<bool> CheckAsync(Pilot pilot, List<TrackTimeDelta> deltas)
     {
         if (pilot.HasAchievement(Name))

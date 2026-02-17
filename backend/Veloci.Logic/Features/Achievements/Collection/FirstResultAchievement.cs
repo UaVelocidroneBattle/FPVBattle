@@ -6,8 +6,9 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class FirstResultAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "FirstResult";
-    public string Title => "Флеш";
-    public string Description => "Перший результат цього дня";
+    public string Title => "Flash";
+    public string Description => "First result of the day";
+    public string? CupId => null;
 
     public async Task<bool> CheckAsync(Pilot pilot, List<TrackTimeDelta> deltas)
     {

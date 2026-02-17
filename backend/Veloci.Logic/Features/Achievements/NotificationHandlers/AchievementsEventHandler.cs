@@ -5,8 +5,8 @@ using Veloci.Logic.Features.Achievements.Services;
 namespace Veloci.Logic.Features.Achievements.NotificationHandlers;
 
 public class AchievementsEventHandler :
-    INotificationHandler<CurrentResultUpdateMessage>,
-    INotificationHandler<CompetitionStopped>,
+    INotificationHandler<CurrentResultUpdated>,
+    INotificationHandler<CompetitionFinished>,
     INotificationHandler<SeasonFinished>
 {
     private readonly AchievementService _achievementService;
@@ -16,12 +16,12 @@ public class AchievementsEventHandler :
         _achievementService = achievementService;
     }
 
-    public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
+    public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
     {
         await _achievementService.CheckAfterTimeUpdateAsync(notification.Competition, notification.Deltas, cancellationToken);
     }
 
-    public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
+    public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
     {
         await _achievementService.CheckAfterCompetitionAsync(notification.Competition, cancellationToken);
         await _achievementService.CheckGlobalsAsync();

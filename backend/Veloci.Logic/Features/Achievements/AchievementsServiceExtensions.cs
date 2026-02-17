@@ -1,9 +1,13 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Collection;
+using Veloci.Logic.Features.Achievements.Collection.OpenClass;
+using Veloci.Logic.Features.Achievements.Collection.WhoopClass;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Achievements.NotificationHandlers;
 using Veloci.Logic.Features.Achievements.Jobs;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Achievements;
@@ -12,7 +16,7 @@ public static class AchievementsServiceExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddAchievementsServices()
+        public IServiceCollection AddAchievementsServices(IConfiguration configuration)
         {
             // Register core services
             services.AddScoped<AchievementService>();
@@ -31,8 +35,11 @@ public static class AchievementsServiceExtensions
             services.AddScoped<DayStreakMilestoneJob>();
             services.AddScoped<IJobRegistrar, AchievementsJobRegistrar>();
 
+            var cupsConfig = configuration.GetSection(CupsConfiguration.SectionName).Get<CupsConfiguration>() ?? new();
+
             // Register all achievements
             services
+                // day streaks
                 .AddAchievement<DayStreak10Achievement>()
                 .AddAchievement<DayStreak20Achievement>()
                 .AddAchievement<DayStreak50Achievement>()
@@ -45,26 +52,53 @@ public static class AchievementsServiceExtensions
                 .AddAchievement<DayStreak365Achievement>()
                 .AddAchievement<DayStreak500Achievement>()
                 .AddAchievement<DayStreak1000Achievement>()
-                .AddAchievement<ThirdPlaceInRaceAchievement>()
-                .AddAchievement<SecondPlaceInRaceAchievement>()
-                .AddAchievement<FirstPlaceInRaceAchievement>()
+                ;
+
+            // Open class achievements
+            if (IsCupEnabled(CupIds.OpenClass))
+            {
+                services
+                    .AddAchievement<ThirdPlaceInRace_Open_Achievement>()
+                    .AddAchievement<SecondPlaceInRace_Open_Achievement>()
+                    .AddAchievement<FirstPlaceInRace_Open_Achievement>()
+                    .AddAchievement<ThirdInSeason_Open_Achievement>()
+                    .AddAchievement<SecondInSeason_Open_Achievement>()
+                    .AddAchievement<FirstInSeason_Open_Achievement>()
+                    ;
+            }
+
+            // Whoop class achievements
+            if (IsCupEnabled(CupIds.WhoopClass))
+            {
+                services
+                    .AddAchievement<ThirdPlaceInRace_Whoop_Achievement>()
+                    .AddAchievement<SecondPlaceInRace_Whoop_Achievement>()
+                    .AddAchievement<FirstPlaceInRace_Whoop_Achievement>()
+                    .AddAchievement<ThirdInSeason_Whoop_Achievement>()
+                    .AddAchievement<SecondInSeason_Whoop_Achievement>()
+                    .AddAchievement<FirstInSeason_Whoop_Achievement>()
+                    ;
+            }
+
+            // Others
+            services
                 .AddAchievement<LastInRaceAchievement>()
-                .AddAchievement<ThirdInSeasonAchievement>()
-                .AddAchievement<SecondInSeasonAchievement>()
-                .AddAchievement<FirstInSeasonAchievement>()
                 .AddAchievement<BiggestDayStreakAchievement>()
                 .AddAchievement<GlobalFirstPlaceAchievement>()
                 .AddAchievement<EarlyBirdAchievement>()
                 .AddAchievement<LateBirdAchievement>()
                 .AddAchievement<FirstResultAchievement>()
                 .AddAchievement<MedalistAchievement>()
-                .AddAchievement<OvertakeTheDuckAchievement>()
+                //.AddAchievement<OvertakeTheDuckAchievement>()
                 .AddAchievement<JackpotAchievement>()
                 .AddAchievement<NanoBoostAchievement>()
                 .AddAchievement<BeastAchievement>()
                 ;
 
             return services;
+
+            bool IsCupEnabled(string cupId) =>
+                cupsConfig.Definitions.TryGetValue(cupId, out var cup) && cup.IsEnabled;
         }
 
         private IServiceCollection AddAchievement<T>() where T : IAchievement

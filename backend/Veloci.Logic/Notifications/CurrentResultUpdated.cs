@@ -4,7 +4,7 @@ using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Logic.Notifications;
 
-public record CurrentResultUpdateMessage(
+public record CurrentResultUpdated(
     Competition Competition,
     List<TrackTimeDelta> Deltas,
     CupOptions CupOptions

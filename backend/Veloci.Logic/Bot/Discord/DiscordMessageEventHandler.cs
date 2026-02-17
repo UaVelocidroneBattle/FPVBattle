@@ -12,8 +12,8 @@ namespace Veloci.Logic.Bot.Discord;
 
 public class DiscordMessageEventHandler :
     INotificationHandler<CompetitionStarted>,
-    INotificationHandler<CurrentResultUpdateMessage>,
-    INotificationHandler<CompetitionStopped>,
+    INotificationHandler<CurrentResultUpdated>,
+    INotificationHandler<CompetitionFinished>,
     INotificationHandler<CompetitionCancelled>,
     INotificationHandler<TempSeasonResults>,
     INotificationHandler<SeasonFinished>,
@@ -70,7 +70,7 @@ public class DiscordMessageEventHandler :
         await bot.ChangeChannelTopicAsync(notification.Track.FullName);
     }
 
-    public async Task Handle(CurrentResultUpdateMessage notification, CancellationToken cancellationToken)
+    public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
         if (!_botFactory.TryGetBotForCup(cupId, out var bot))
@@ -92,7 +92,7 @@ public class DiscordMessageEventHandler :
         await bot.EditMessageAsync(leaderboardMessageId.Value, leaderboardMessage);
     }
 
-    public async Task Handle(CompetitionStopped notification, CancellationToken cancellationToken)
+    public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
         if (!_botFactory.TryGetBotForCup(cupId, out var bot))
