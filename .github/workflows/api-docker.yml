@@ -14,7 +14,17 @@ jobs:
     - name: Prepare Docker tags
       id: docker_tags
       run: |
-        branch_tag=$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr -cs 'a-z0-9_.-' '-')
+        branch_tag=$(
+          printf '%s' "${GITHUB_REF_NAME}" \
+          | tr '[:upper:]' '[:lower:]' \
+          | tr '/' '-' \
+          | tr -cs 'a-z0-9_.-' '-' \
+          | sed -E 's/^-+//; s/-+$//'
+        )
+
+        if [ -z "${branch_tag}" ]; then
+          branch_tag="unknown-branch"
+        fi
 
         if [ "${GITHUB_REF_NAME}" = "master" ]; then
           echo "tags=latest,${branch_tag}" >> "${GITHUB_OUTPUT}"
