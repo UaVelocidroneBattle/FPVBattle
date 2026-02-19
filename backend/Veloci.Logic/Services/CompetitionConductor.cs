@@ -177,7 +177,10 @@ public class CompetitionConductor
         var competition = await GetActiveCompetitionAsync(cupId);
 
         if (competition is null)
-            throw new Exception($"There are no active competitions in cup '{cupId}'");
+        {
+            _log.Warning("No active competition found in cup '{CupId}', skipping stop", cupId);
+            return;
+        }
 
         _log.Information("Stopping competition {CompetitionId} for track {TrackName} in cup {CupId}", competition.Id, competition.Track.Name, cupId);
 
@@ -214,7 +217,10 @@ public class CompetitionConductor
         var competition = await GetActiveCompetitionAsync(cupId);
 
         if (competition is null)
-            throw new Exception($"There are no active competitions in cup {cupId}");
+        {
+            _log.Warning("No active competition found in cup '{CupId}', skipping poll stop", cupId);
+            return;
+        }
 
         var poll = _messageComposer.Poll(competition.Track.FullName);
 
