@@ -27,7 +27,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<FreezieAdded>,
     INotificationHandler<TrackRestart>
 {
-    private static readonly ILogger _log = Log.ForContext<DiscordMessageEventHandler>();
+    private static readonly ILogger Log = Serilog.Log.ForContext<DiscordMessageEventHandler>();
 
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBotFactory _botFactory;
@@ -52,9 +52,10 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
+
         if (!_botFactory.TryGetBotForCup(cupId, out var bot))
         {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping competition started message", cupId);
+            Log.Warning("No Discord bot configured for cup {CupId}, skipping competition started message", cupId);
             return;
         }
 
@@ -73,9 +74,10 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
+
         if (!_botFactory.TryGetBotForCup(cupId, out var bot))
         {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping result update message", cupId);
+            Log.Warning("No Discord bot configured for cup {CupId}, skipping result update message", cupId);
             return;
         }
 
@@ -95,9 +97,10 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
+
         if (!_botFactory.TryGetBotForCup(cupId, out var bot))
         {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping competition stopped message", cupId);
+            Log.Warning("No Discord bot configured for cup {CupId}, skipping competition stopped message", cupId);
             return;
         }
 
@@ -121,9 +124,10 @@ public class DiscordMessageEventHandler :
     public async Task Handle(CompetitionCancelled notification, CancellationToken cancellationToken)
     {
         var cupId = notification.Competition.CupId;
+
         if (!_botFactory.TryGetBotForCup(cupId, out var bot))
         {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping competition cancelled message", cupId);
+            Log.Warning("No Discord bot configured for cup {CupId}, skipping competition cancelled message", cupId);
             return;
         }
 
@@ -150,15 +154,8 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
     {
-        var cupId = notification.Competition.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
-        {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping bad track message", cupId);
-            return;
-        }
-
         var message = _messageComposer.BadTrackRating();
-        await bot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
     }
 
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
@@ -179,7 +176,6 @@ public class DiscordMessageEventHandler :
         }
     }
 
-
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
@@ -195,21 +191,14 @@ public class DiscordMessageEventHandler :
         if (leaderboardMessageId is not null)
             return leaderboardMessageId;
 
-        _log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
+        Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
         return null;
     }
 
     public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
-        var cupId = notification.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
-        {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping new pilot message", cupId);
-            return;
-        }
-
         var message = _messageComposer.NewPilot(notification.Pilot.Name);
-        await bot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
@@ -232,14 +221,7 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
     {
-        var cupId = notification.CupId;
-        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
-        {
-            _log.Warning("No Discord bot configured for cup {CupId}, skipping new pilot message", cupId);
-            return;
-        }
-
         var message = _messageComposer.RestartTrack();
-        await bot.SendMessageAsync(message);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 }

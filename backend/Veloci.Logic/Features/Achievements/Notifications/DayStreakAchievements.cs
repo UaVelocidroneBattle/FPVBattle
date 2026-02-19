@@ -11,6 +11,4 @@ public record PilotCupParticipation(Pilot Pilot, List<string> CupIds);
 /// <summary>
 /// Notification for pilots achieving day streak milestones
 /// </summary>
-public record DayStreakAchievements(
-    List<PilotCupParticipation> Participations
-) : INotification;
+public record DayStreakAchievements(List<PilotCupParticipation> Participations) : INotification;
