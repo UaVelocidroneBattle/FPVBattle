@@ -237,18 +237,29 @@ public class DbMigrator
     {
         _logger.LogInformation("Migrating competitions from source database");
 
-        var sourceCompetitions = await sourceDb.Set<Competition>()
+        var baseQuery = sourceDb.Set<Competition>()
             .Include(x => x.Track)
-            .Include(x => x.InitialResults).ThenInclude(x => x.Times)
-            .Include(x => x.CurrentResults).ThenInclude(x => x.Times)
             .Include(x => x.CompetitionResults)
             .Include(x => x.TimeDeltas)
             .Include(x => x.Variables)
-            .AsNoTracking()
+            .AsNoTracking();
+
+        var closedCompetitions = await baseQuery
+            .Where(x => x.State != CompetitionState.Started)
             .ToListAsync();
 
-        foreach (var sourceCompetition in sourceCompetitions)
-            await MigrateCompetitionAsync(sourceCompetition);
+        // InitialResults and CurrentResults are only needed for in-progress competitions
+        var startedCompetitions = await baseQuery
+            .Include(x => x.InitialResults).ThenInclude(x => x.Times)
+            .Include(x => x.CurrentResults).ThenInclude(x => x.Times)
+            .Where(x => x.State == CompetitionState.Started)
+            .ToListAsync();
+
+        foreach (var competition in closedCompetitions)
+            await MigrateCompetitionAsync(competition);
+
+        foreach (var competition in startedCompetitions)
+            await MigrateCompetitionAsync(competition);
 
         _logger.LogInformation("Competitions migration complete");
     }
