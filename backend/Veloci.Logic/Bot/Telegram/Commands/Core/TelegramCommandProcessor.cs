@@ -12,18 +12,15 @@ public class TelegramCommandProcessor
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ICupContextResolver _cupContextResolver;
-    private readonly ICupService _cupService;
     private readonly ITelegramMessenger _messenger;
 
     public TelegramCommandProcessor(
         IServiceProvider serviceProvider,
         ICupContextResolver cupContextResolver,
-        ICupService cupService,
         ITelegramMessenger messenger)
     {
         _serviceProvider = serviceProvider;
         _cupContextResolver = cupContextResolver;
-        _cupService = cupService;
         _messenger = messenger;
     }
 
@@ -70,21 +67,6 @@ public class TelegramCommandProcessor
             };
 
             var result = await command.ExecuteAsync(context);
-
-            // Get channel for the cup
-            if (cupId == null)
-            {
-                _log.Warning("No cup context for chat {ChatId}, command result not sent", chatId);
-                return;
-            }
-
-            var channelId = _cupService.GetTelegramChannelId(cupId);
-            if (string.IsNullOrEmpty(channelId))
-            {
-                _log.Warning("No Telegram channel configured for cup {CupId}, command result not sent", cupId);
-                return;
-            }
-
             var messageId = await _messenger.SendMessageAsync(chatId, result, message.MessageId);
 
             _log.Information("✅ Executed command {Command} successfully", parsed.Command);

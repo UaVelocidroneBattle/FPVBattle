@@ -18,7 +18,6 @@ public class HelpCommand : ITelegramCommand
 
     public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        // Help command is global - works in any chat regardless of cup binding
         var descriptions = GetCommandDescriptions();
         return string.Join(Environment.NewLine, descriptions.Select(CommandRow));
     }

@@ -52,13 +52,6 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
         var chatId = message.Chat.Id.ToString();
         var cupId = _cupContextResolver.GetCupIdByChatId(chatId);
 
-        // If message is from unbound chat, silently ignore non-command messages
-        if (cupId is null && !text.StartsWith('/'))
-        {
-            _log.Debug("Received non-command message from unbound chat {ChatId}, ignoring", chatId);
-            return;
-        }
-
         if (MessageParser.IsCompetitionRestart(text))
         {
             if (cupId is null)
@@ -71,13 +64,6 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
             if (string.IsNullOrEmpty(channelId))
             {
                 _log.Warning("No Telegram channel configured for cup {CupId}, ignoring restart request", cupId);
-                return;
-            }
-
-            // Only process if message is from the configured channel for this cup
-            if (chatId != channelId)
-            {
-                _log.Debug("Ignoring restart request from non-channel chat {ChatId} for cup {CupId}", chatId, cupId);
                 return;
             }
 
@@ -103,13 +89,6 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
                 return;
             }
 
-            // Only process if message is from the configured channel for this cup
-            if (chatId != channelId)
-            {
-                _log.Debug("Ignoring stop request from non-channel chat {ChatId} for cup {CupId}", chatId, cupId);
-                return;
-            }
-
             _log.Information("Competition stop requested for cup {CupId} from chat {ChatId}", cupId, chatId);
             await _messenger.SendMessageAsync(channelId, "Добре 🫡");
             BackgroundJob.Enqueue(() => _competitionConductor.StopPollAsync(cupId));
@@ -119,6 +98,9 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
 
             return;
         }
+
+        if (!text.StartsWith('/'))
+            return;
 
         await _commandProcessor.ProcessAsync(message);
     }

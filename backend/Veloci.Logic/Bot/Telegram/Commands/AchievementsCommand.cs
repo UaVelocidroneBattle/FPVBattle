@@ -22,7 +22,6 @@ public class AchievementsCommand : ITelegramCommand
     public string Description => "`/achievements {pilotName}` або `/ach {pilotName}` - Your achievements";
     public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        // Achievements command is global - works in any chat regardless of cup binding
         if (context.Parameters is null || context.Parameters.Length == 0)
             return "все добре, але не вистачає імені пілота";
 

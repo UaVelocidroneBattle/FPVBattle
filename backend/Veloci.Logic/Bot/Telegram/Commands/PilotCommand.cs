@@ -28,7 +28,6 @@ public class PilotCommand : ITelegramCommand
     public string Description => "`/pilot {pilotName}` або `/p {pilotName}` - Pilot's profile";
     public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        // Pilot command is global - works in any chat regardless of cup binding
         if (context.Parameters is null || context.Parameters.Length == 0)
             return "все добре, але не вистачає імені пілота";
 

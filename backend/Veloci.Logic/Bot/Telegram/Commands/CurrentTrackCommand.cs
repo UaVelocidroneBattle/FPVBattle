@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
+using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Logic.Bot.Telegram.Commands;
 
@@ -19,20 +20,30 @@ public class CurrentTrackCommand : ITelegramCommand
 
     public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        // Check if chat is bound to a cup
-        if (context.CupId is null)
-        {
-            return "This chat is not bound to any cup 🤷";
-        }
-
-        var activeCompetition = await _competitions
+        var activeCompetitions = _competitions
             .GetAll(c => c.State == CompetitionState.Started)
-            .ForCup(context.CupId)
+            .Include(c => c.Track)
+            .ThenInclude(t => t.Map);
+
+        var openCompetition = await activeCompetitions
+            .ForCup(CupIds.OpenClass)
             .FirstOrDefaultAsync();
 
-        return activeCompetition is null
-            ? $"No active competition in {context.CupId} cup 😕"
-            : $"*{activeCompetition.Track.Map.Name} - `{activeCompetition.Track.Name}`*";
+        var openTrack = openCompetition is null
+            ? "(No track)"
+            : $"*{openCompetition.Track.Map.Name} - `{openCompetition.Track.Name}`*";
+
+        var whoopCompetition = await activeCompetitions
+            .ForCup(CupIds.WhoopClass)
+            .FirstOrDefaultAsync();
+
+        var whoopTrack = whoopCompetition is null
+            ? "(No track)"
+            : $"*{whoopCompetition.Track.Map.Name} - `{whoopCompetition.Track.Name}`*";
+
+        return $"Open class:{Environment.NewLine}{openTrack}" +
+               $"{Environment.NewLine}{Environment.NewLine}" +
+               $"Whoop class:{Environment.NewLine}{whoopTrack}";
     }
 
     public bool RemoveMessageAfterDelay => false;
