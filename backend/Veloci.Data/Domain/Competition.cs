@@ -32,8 +32,6 @@ public class Competition
     /// </remarks>
     public string CupId { get; set; } = "open-class";
 
-    public long ChatId { get; set; }
-
     public virtual Track Track { get; set; }
     public string TrackId { get; set; }
 
