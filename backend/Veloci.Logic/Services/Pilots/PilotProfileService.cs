@@ -51,7 +51,7 @@ public class PilotProfileService : IPilotProfileService
             CurrentDayStreak = pilot.DayStreak,
             MaxDayStreak = pilot.MaxDayStreak,
             LastRaceDate = pilot.LastRaceDate,
-            FirstRaceDate = await raceDates.MinAsync(ct),
+            FirstRaceDate = await raceDates.Cast<DateTime?>().MinAsync(ct),
             TotalRaceDays = await raceDates.CountAsync(ct),
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = achievements.Select(CreatePilotAchievementModel).ToList()
