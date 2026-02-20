@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Veloci.Data;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Services;
 
 namespace Veloci.Web.Controllers;
 
@@ -12,19 +14,30 @@ public class MigrationController
 {
     private readonly IRepository<Competition> _competitions;
     private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<TrackTimeDelta> _trackTimeDeltas;
-    private readonly IRepository<CompetitionResults> _competitionResults;
+    private readonly DbMigrator _dbMigrator;
 
     public MigrationController(
         IRepository<Competition> competitions,
         IRepository<Pilot> pilots,
-        IRepository<TrackTimeDelta> trackTimeDeltas,
-        IRepository<CompetitionResults> competitionResults)
+        DbMigrator dbMigrator)
     {
         _competitions = competitions;
         _pilots = pilots;
-        _trackTimeDeltas = trackTimeDeltas;
-        _competitionResults = competitionResults;
+        _dbMigrator = dbMigrator;
+    }
+
+    [HttpGet("/api/migration/db")]
+    public async Task DbMigration()
+    {
+        var sourceConnectionString = "DataSource=DB/whoop-app.db;Cache=Shared";
+
+        var sourceOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(sourceConnectionString)
+            .Options;
+
+        await using var sourceDb = new ApplicationDbContext(sourceOptions);
+
+        await _dbMigrator.MigrateAsync(sourceDb);
     }
 
     [HttpGet("/api/migration/streaks")]
