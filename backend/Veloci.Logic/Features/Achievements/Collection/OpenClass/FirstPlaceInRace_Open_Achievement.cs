@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection.OpenClass;
 public class FirstPlaceInRace_Open_Achievement : IAchievementAfterCompetition
 {
     public string Name => "FirstPlaceInRace";
-    public string Title => "Track winner";
+    public string Title => "Track Winner";
     public string Description => "First place in a race (open class)";
     public string? CupId => CupIds.OpenClass;
 

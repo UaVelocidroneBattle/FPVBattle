@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection.WhoopClass;
 public class FirstPlaceInRace_Whoop_Achievement : IAchievementAfterCompetition
 {
     public string Name => "FirstPlaceInRace_Whoop";
-    public string Title => "Whoop track winner";
+    public string Title => "Whoop Track Winner";
     public string Description => "First place in a race (whoop class)";
     public string? CupId => CupIds.WhoopClass;
 

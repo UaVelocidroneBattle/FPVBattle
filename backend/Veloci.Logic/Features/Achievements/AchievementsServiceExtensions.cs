@@ -93,6 +93,7 @@ public static class AchievementsServiceExtensions
                 .AddAchievement<JackpotAchievement>()
                 .AddAchievement<NanoBoostAchievement>()
                 .AddAchievement<BeastAchievement>()
+                .AddAchievement<UniversalSoldierAchievement>()
                 ;
 
             return services;

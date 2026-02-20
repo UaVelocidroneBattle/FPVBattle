@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class LateBirdAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "LateBird";
-    public string Title => "Night owl";
+    public string Title => "Night Owl";
     public string Description => "Update time between 1 and 4 AM Kyiv time";
     public string? CupId => null;
 

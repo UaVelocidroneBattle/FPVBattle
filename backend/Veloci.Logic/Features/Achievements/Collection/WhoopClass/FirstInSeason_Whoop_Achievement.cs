@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection.WhoopClass;
 public class FirstInSeason_Whoop_Achievement : IAchievementAfterSeason
 {
     public string Name => "FirstInSeason_Whoop";
-    public string Title => "Whoop class champion";
+    public string Title => "Whoop Class Champion";
     public string Description => "Season winner (whoop class)";
     public string? CupId => CupIds.WhoopClass;
 

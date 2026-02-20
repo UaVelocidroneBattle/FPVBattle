@@ -6,7 +6,7 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class LastInRaceAchievement : IAchievementAfterCompetition
 {
     public string Name => "LastInRace";
-    public string Title => "First from the end";
+    public string Title => "First From The End";
     public string Description => "Last place in a race";
     public string? CupId => null;
 

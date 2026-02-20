@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection.OpenClass;
 public class SecondPlaceInRace_Open_Achievement : IAchievementAfterCompetition
 {
     public string Name => "SecondPlaceInRace";
-    public string Title => "Almost leader";
+    public string Title => "Almost Leader";
     public string Description => "Second place in a race (open class)";
     public string? CupId => CupIds.OpenClass;
 

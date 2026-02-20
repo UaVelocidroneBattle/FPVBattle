@@ -73,7 +73,7 @@ public class DayStreak250Achievement : DayStreakAchievementBase
 
 public class DayStreak300Achievement : DayStreakAchievementBase
 {
-    public override string Title => "Tractor driver";
+    public override string Title => "Tractor Driver";
     protected override int Days => 300;
 }
 

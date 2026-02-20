@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection.OpenClass;
 public class FirstInSeason_Open_Achievement : IAchievementAfterSeason
 {
     public string Name => "FirstInSeason";
-    public string Title => "Open class champion";
+    public string Title => "Open Class Champion";
     public string Description => "Season winner (open class)";
     public string? CupId => CupIds.OpenClass;
 

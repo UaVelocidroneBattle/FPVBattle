@@ -6,7 +6,7 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class NanoBoostAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "NanoBoost";
-    public string Title => "Nano boost";
+    public string Title => "Nano Boost";
     public string Description => "Improve your time by 0.01s or less";
     public string? CupId => null;
     public async Task<bool> CheckAsync(Pilot pilot, List<TrackTimeDelta> deltas)

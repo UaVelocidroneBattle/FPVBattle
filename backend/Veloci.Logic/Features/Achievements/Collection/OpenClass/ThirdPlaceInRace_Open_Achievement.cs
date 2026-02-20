@@ -7,7 +7,7 @@ namespace Veloci.Logic.Features.Achievements.Collection.OpenClass;
 public class ThirdPlaceInRace_Open_Achievement : IAchievementAfterCompetition
 {
     public string Name => "ThirdPlaceInRace";
-    public string Title => "Among the best";
+    public string Title => "Among The Best";
     public string Description => "Third place in a race (open class)";
     public string? CupId => CupIds.OpenClass;
 
