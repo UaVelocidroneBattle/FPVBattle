@@ -2,6 +2,6 @@ namespace Veloci.Logic.Features.Cups;
 
 public static class CupIds
 {
-    public static string OpenClass = "open-class";
-    public static string WhoopClass = "whoop-class";
+    public const string OpenClass = "open-class";
+    public const string WhoopClass = "whoop-class";
 }

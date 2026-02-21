@@ -30,7 +30,7 @@ public class CompetitionsController : ControllerBase
     public async Task<DashboardModel?> Dashboard([FromQuery] string? cupId = null)
     {
         // Default to first enabled cup if not specified
-        cupId ??= _cupService.GetEnabledCupIds().FirstOrDefault() ?? "open-class";
+        cupId ??= _cupService.GetEnabledCupIds().FirstOrDefault() ?? CupIds.OpenClass;
 
         var competition  = await _competitionService
             .GetCurrentCompetitions()

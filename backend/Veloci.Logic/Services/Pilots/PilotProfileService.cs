@@ -40,7 +40,7 @@ public class PilotProfileService : IPilotProfileService
         // Calculate race statistics
         var raceDates = _competitionResults.GetAll()
             .Where(cr => cr.PilotId == pilot.Id && cr.Competition.State == CompetitionState.Closed)
-            .Select(cr => cr.Competition.StartedOn.Date)
+            .Select(cr => (DateTime?)cr.Competition.StartedOn.Date)
             .Distinct();
 
         var achievements = await _achievements.GetAll().ForPilot(pilot).ToListAsync(ct);
@@ -51,7 +51,7 @@ public class PilotProfileService : IPilotProfileService
             CurrentDayStreak = pilot.DayStreak,
             MaxDayStreak = pilot.MaxDayStreak,
             LastRaceDate = pilot.LastRaceDate,
-            FirstRaceDate = await raceDates.Cast<DateTime?>().MinAsync(ct),
+            FirstRaceDate = await raceDates.MinAsync(ct),
             TotalRaceDays = await raceDates.CountAsync(ct),
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = achievements.Select(CreatePilotAchievementModel).ToList()
