@@ -28,9 +28,11 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<TrackTime>().HasIndex(t => t.UserId);
         builder.Entity<TrackTime>().Property(t => t.PlayerName).HasMaxLength(128);
         builder.Entity<TrackTime>().Property(t => t.ModelName).HasMaxLength(128);
+        builder.Entity<TrackTime>().Property(t => t.Country).HasMaxLength(8).HasDefaultValue("UA");
 
         builder.Entity<TrackTimeDelta>().ToTable("TrackTimeDeltas");
         builder.Entity<TrackTimeDelta>().Property(t => t.ModelName).HasMaxLength(128);
+        builder.Entity<TrackTimeDelta>().Property(t => t.Country).HasMaxLength(8).HasDefaultValue("UA");
 
         builder.Entity<CompetitionResults>().ToTable("CompetitionResults");
         builder.Entity<CompetitionResults>().Property(c => c.ModelName).HasMaxLength(128);
@@ -39,6 +41,7 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<Pilot>().HasKey(p => p.Id);
         builder.Entity<Pilot>().Property(p => p.Id).ValueGeneratedNever();
         builder.Entity<Pilot>().Property(p => p.Name).HasMaxLength(128);
+        builder.Entity<Pilot>().Property(p => p.Country).HasMaxLength(8).HasDefaultValue("UA");
 
         builder.Entity<PilotAchievement>().ToTable("PilotAchievements");
         builder.Entity<DayStreakFreeze>().ToTable("DayStreakFreezes");

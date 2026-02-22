@@ -31,4 +31,6 @@ public class TrackTime
     public int LocalRank { get; set; }
 
     public DateTime UpdatedAt { get; set; }
+
+    public string Country { get; set; }
 }

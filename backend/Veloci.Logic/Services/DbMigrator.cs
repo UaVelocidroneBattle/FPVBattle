@@ -81,7 +81,8 @@ public class DbMigrator
                 Id = sourcePilot.Id,
                 Name = sourcePilot.Name,
                 Achievements = new List<PilotAchievement>(),
-                DayStreakFreezes = new List<DayStreakFreeze>()
+                DayStreakFreezes = new List<DayStreakFreeze>(),
+                Country = "UA"
             };
 
             await _pilots.AddAsync(pilot);
@@ -315,6 +316,7 @@ public class DbMigrator
                 LocalRankOld = d.LocalRankOld,
                 ModelName = d.ModelName,
                 Date = d.Date,
+                Country = "UA"
             }).ToList(),
             Variables = sourceCompetition.Variables.Select(v => new CompetitionVariable
             {

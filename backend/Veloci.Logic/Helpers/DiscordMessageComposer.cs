@@ -152,7 +152,6 @@ public class DiscordMessageComposer
         };
     }
 
-
     public string DayStreakPotentialLose(IEnumerable<Pilot> pilots)
     {
         var message = $"## ⚠️ WARNING!{Environment.NewLine}" +
@@ -168,9 +167,9 @@ public class DiscordMessageComposer
         return message;
     }
 
-    public string NewPilot(string name)
+    public string NewPilot(Pilot pilot)
     {
-        return $"🎉 Welcome new pilot **{name}**";
+        return $"🎉 Welcome new pilot {TextHelper.CountryFlagWithSpace(pilot.Country)}**{pilot.Name}**";
     }
 
     public string PilotRenamed(string oldName, string newName)
@@ -204,8 +203,9 @@ public class DiscordMessageComposer
         var timeChangePart = delta.TimeChange.HasValue ? $" ({TrackTimeConverter.MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
         var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
+        var flag = TextHelper.CountryFlagWithSpace(delta.Country);
 
-        return $"✈️  **{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}**{modelPart}{Environment.NewLine}" +
+        return $"{flag}  **{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}**{modelPart}{Environment.NewLine}" +
                $"⏱️  {TrackTimeConverter.MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 
@@ -219,7 +219,7 @@ public class DiscordMessageComposer
         foreach (var result in results)
         {
             var pilotName = TextHelper.Trim(result.Pilot.Name, PilotNameMaxLength);
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(pilotName, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{TextHelper.CountryFlagWithSpace(result.Pilot.Country)}{FillWithSpaces(pilotName, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
         }
 
         return rows;

@@ -113,7 +113,7 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.NewPilot(notification.Pilot.Name);
+        var message = _messageComposer.NewPilot(notification.Pilot);
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
