@@ -99,7 +99,7 @@ public class CompetitionConductor
             }
         } while (resultsDto.Count == 0);
 
-        var results = _resultsConverter.ConvertTrackTimes(resultsDto);
+        var results = await _resultsConverter.ConvertTrackTimesAsync(resultsDto);
         _log.Debug("Retrieved {ResultCount} initial results from Velocidrone API for track {TrackId}", results.Count, track.TrackId);
 
         var trackResults = new TrackResults

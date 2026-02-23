@@ -69,5 +69,9 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<PilotPlatformAccount>().ToTable("PilotPlatformAccounts");
         builder.Entity<PilotPlatformAccount>().HasKey(p => p.Id);
         builder.Entity<PilotPlatformAccount>().Property(p => p.Username).HasMaxLength(128);
+
+        builder.Entity<WhiteListedPilot>().ToTable("WhiteListedPilots");
+        builder.Entity<WhiteListedPilot>().HasKey(p => p.Id);
+        builder.Entity<WhiteListedPilot>().Property(p => p.PilotName).HasMaxLength(128);
     }
 }

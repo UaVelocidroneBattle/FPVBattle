@@ -57,14 +57,33 @@ public class PilotService
             return;
         }
 
-        if (pilot.Name != pilotName)
+        var nameChanged = pilot.Name != pilotName;
+        var countryChanged = pilot.Country != delta.Country;
+
+        PilotRenamed? renamedEvent = null;
+
+        if (nameChanged)
         {
             _log.Debug("Pilot name changed from {OldName} to {NewName} for UserId {UserId}", pilot.Name, pilotName, delta.PilotId);
-
             var oldName = pilot.Name;
             pilot.ChangeName(pilotName);
+            renamedEvent = new PilotRenamed(oldName, pilotName);
+        }
+
+        if (countryChanged)
+        {
+            _log.Debug("Pilot {PilotName} changed his country from {OldCountry} to {NewCountry}", pilot.Name, pilot.Country, delta.Country);
+            pilot.Country = delta.Country;
+        }
+
+        if (nameChanged || countryChanged)
+        {
             await _pilots.SaveChangesAsync();
-            await _mediator.Publish(new PilotRenamed(oldName, pilotName));
+        }
+
+        if (renamedEvent is not null)
+        {
+            await _mediator.Publish(renamedEvent);
         }
     }
 

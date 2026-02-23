@@ -202,7 +202,7 @@ public class TelegramMessageComposer
         var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
         var flag = TextHelper.CountryFlagWithSpace(delta.Country);
 
-        return $"{flag} *{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}*{modelPart}{Environment.NewLine}" +
+        return $"{flag}*{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}*{modelPart}{Environment.NewLine}" +
                $"⏱️ {TrackTimeConverter.MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 
