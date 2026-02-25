@@ -36,7 +36,7 @@ public class PilotService
 
     private async Task UpdatePilotAsync(TrackTimeDelta delta, Dictionary<int, string> pilotNames, string cupId)
     {
-        _log.Debug("Updating pilot for delta: {Delta} in cup {CupId}", delta, cupId);
+        _log.Debug("Updating pilot: {Pilot} in cup {CupId}", delta.Pilot.Name, cupId);
 
         var pilotName = pilotNames[delta.PilotId];
         var pilot = await _pilots.FindAsync(delta.PilotId);
