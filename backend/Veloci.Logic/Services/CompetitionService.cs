@@ -48,6 +48,7 @@ public class CompetitionService
     }
 
     [DisableConcurrentExecution("Competition", 60)]
+    [AutomaticRetry(Attempts = 2, DelaysInSeconds = [20, 120])]
     public async Task UpdateResultsAsync()
     {
         var activeCompetitions = await _competitions
@@ -101,6 +102,7 @@ public class CompetitionService
         await _mediator.Publish(new CurrentResultUpdated(competition, deltas, cupOptions));
     }
 
+    [AutomaticRetry(Attempts = 3, DelaysInSeconds = [20, 120, 600])]
     [DisableConcurrentExecution("Competition", 1)]
     public async Task PublishCurrentLeaderboardAsync()
     {
