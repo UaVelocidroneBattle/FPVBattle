@@ -7,7 +7,8 @@ public class GlobalFirstPlaceAchievement : IAchievementAfterCompetition
 {
     public string Name => "GlobalFirstPlace";
     public string Title => "GOAT";
-    public string Description => "Перше місце в загальному лідерборді треку";
+    public string Description => "First place on the track's global leaderboard";
+    public string? CupId => null;
 
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
     {

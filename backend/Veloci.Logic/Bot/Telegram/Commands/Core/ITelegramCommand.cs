@@ -6,8 +6,17 @@ public interface ITelegramCommand
     /// Synonyms for the command
     /// </summary>
     public string[] Keywords { get; }
+
     public string Description { get; }
-    public Task<string> ExecuteAsync(string[]? parameters);
+
+    /// <summary>
+    /// Executes the command with cup context
+    /// </summary>
+    /// <param name="context">Command context including cup ID, chat ID, and parameters</param>
+    /// <returns>Response message to send back to the user</returns>
+    public Task<string> ExecuteAsync(TelegramCommandContext context);
+
     public bool RemoveMessageAfterDelay { get; }
+
     public bool Public { get; }
 }

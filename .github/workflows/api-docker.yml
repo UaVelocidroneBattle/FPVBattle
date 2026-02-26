@@ -2,7 +2,6 @@ name: VelociBot Docker
 
 on:
   push:
-    branches: [ "master" ]
 
 jobs:
 
@@ -11,6 +10,27 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Prepare Docker tags
+      id: docker_tags
+      run: |
+        branch_tag=$(
+          printf '%s' "${GITHUB_REF_NAME}" \
+          | tr '[:upper:]' '[:lower:]' \
+          | tr '/' '-' \
+          | tr -cs 'a-z0-9_.-' '-' \
+          | sed -E 's/^-+//; s/-+$//'
+        )
+
+        if [ -z "${branch_tag}" ]; then
+          branch_tag="unknown-branch"
+        fi
+
+        if [ "${GITHUB_REF_NAME}" = "master" ]; then
+          echo "tags=latest,${branch_tag}" >> "${GITHUB_OUTPUT}"
+        else
+          echo "tags=${branch_tag}" >> "${GITHUB_OUTPUT}"
+        fi
 
     - name: Build and publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@v4
@@ -21,4 +41,4 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         dockerfile: Veloci.Web/Dockerfile
-        tags: "latest"
+        tags: ${{ steps.docker_tags.outputs.tags }}

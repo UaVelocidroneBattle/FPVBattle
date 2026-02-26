@@ -7,8 +7,9 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class EarlyBirdAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "EarlyBird";
-    public string Title => "Ранній птах";
-    public string Description => "Оновити час з 4 до 8 ранку за київським часом";
+    public string Title => "Early Bird";
+    public string Description => "Update time between 4 and 8 AM Kyiv time";
+    public string? CupId => null;
 
     public async Task<bool> CheckAsync(Pilot pilot, List<TrackTimeDelta> deltas)
     {

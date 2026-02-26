@@ -1,13 +1,15 @@
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Achievements.Base;
+using Veloci.Logic.Features.Cups;
 
-namespace Veloci.Logic.Features.Achievements.Collection;
+namespace Veloci.Logic.Features.Achievements.Collection.OpenClass;
 
-public class FirstInSeasonAchievement : IAchievementAfterSeason
+public class FirstInSeason_Open_Achievement : IAchievementAfterSeason
 {
     public string Name => "FirstInSeason";
-    public string Title => "Чемпіон";
-    public string Description => "Переможець сезону";
+    public string Title => "Open Class Champion";
+    public string Description => "Season winner (open class)";
+    public string? CupId => CupIds.OpenClass;
 
     public async Task<bool> CheckAsync(Pilot pilot, List<SeasonResult> seasonResults)
     {

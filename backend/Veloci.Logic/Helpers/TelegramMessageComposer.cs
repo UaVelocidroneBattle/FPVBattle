@@ -163,9 +163,9 @@ public class TelegramMessageComposer
         return message;
     }
 
-    public string NewPilot(string name)
+    public string NewPilot(Pilot pilot)
     {
-        return $"🎉 Вітаємо нового пілота *{name}*";
+        return $"🎉 Вітаємо нового пілота {TextHelper.CountryFlagWithSpace(pilot.Country)}*{pilot.Name}*";
     }
 
     public string PilotRenamed(string oldName, string newName)
@@ -200,8 +200,9 @@ public class TelegramMessageComposer
         var timeChangePart = delta.TimeChange.HasValue ? $" ({TrackTimeConverter.MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
         var modelPart = delta.ModelName is not null ? $" / {delta.ModelName}" : string.Empty;
+        var flag = TextHelper.CountryFlagWithSpace(delta.Country);
 
-        return $"🎮 *{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}*{modelPart}{Environment.NewLine}" +
+        return $"{flag}*{TextHelper.Trim(delta.Pilot.Name, PilotNameMaxLength)}*{modelPart}{Environment.NewLine}" +
                $"⏱️ {TrackTimeConverter.MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 

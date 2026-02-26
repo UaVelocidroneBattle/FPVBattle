@@ -21,4 +21,5 @@ public class TrackTimeDelta
     public int? LocalRankOld { get; set; }
     public string? ModelName { get; set; }
     public DateTime Date { get; set; }
+    public string Country { get; set; }
 }
