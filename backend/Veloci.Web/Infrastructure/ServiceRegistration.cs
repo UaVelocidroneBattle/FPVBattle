@@ -33,7 +33,7 @@ public static class ServiceRegistration
         services.AddScoped<IPilotProfileService, PilotProfileService>();
         services.AddScoped<PilotPlatformsService>();
         services.AddScoped<PointsCalculator>();
-        services.AddScoped<WhiteListService>();
+        services.AddScoped<IWhiteListService, WhiteListService>();
 
         services.AddScoped<DbMigrator>();
 

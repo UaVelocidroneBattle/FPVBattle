@@ -7,42 +7,63 @@ namespace Veloci.Tests;
 
 public class ResponseConverterTests
 {
-    private readonly RaceResultsConverter _converter = new();
+    private readonly RaceResultsConverter _converter = CreateConverter();
 
     [Fact]
-    public void can_calculate_ranks()
+    public async Task can_calculate_ranks()
     {
         var json = /*language:json*/"""
                                     [
                                         {
                                           "lap_time": "56.055",
                                           "playername": "SWEEPER",
-                                          "model_id": 59,
-                                          "country": "UA"
+                                          "model_name": "5inch",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 1001
                                         },
                                         {
                                           "lap_time": "56.300",
                                           "playername": "APX - BURAK",
-                                          "model_id": 33,
-                                          "country": "UA"
+                                          "model_name": "5inch",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:01:00Z",
+                                          "updated_at": "2026-01-01T10:01:00Z",
+                                          "user_id": 1002
                                         },
                                         {
                                           "lap_time": "61.145",
                                           "playername": "Sarah",
-                                          "model_id": 27,
-                                          "country": "NL"
+                                          "model_name": "tinywhoop",
+                                          "country": "NL",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:02:00Z",
+                                          "updated_at": "2026-01-01T10:02:00Z",
+                                          "user_id": 1003
                                         },
                                         {
                                           "lap_time": "61.818",
                                           "playername": "FPV FPV",
-                                          "model_id": 104,
-                                          "country": "UA"
+                                          "model_name": "cinelifter",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:03:00Z",
+                                          "updated_at": "2026-01-01T10:03:00Z",
+                                          "user_id": 1004
                                         }
                                     ]
                                     """;
         var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
 
-        var times = _converter.ConvertTrackTimes(data);
+        var times = await _converter.ConvertTrackTimesAsync(data!);
 
         times.Should().HaveCount(3);
 
@@ -59,58 +80,80 @@ public class ResponseConverterTests
         var third = times[2];
         third.PlayerName.Should().Be("FPV FPV");
         third.LocalRank.Should().Be(3);
-        third.GlobalRank.Should().Be(4);
+        third.GlobalRank.Should().Be(3);
     }
 
     [Fact]
-    public void can_parse_time()
+    public async Task can_parse_time()
     {
         var json = /*language:json*/"""
                                     [
                                         {
                                           "lap_time": "56.055",
                                           "playername": "SWEEPER",
-                                          "model_id": 59,
-                                          "country": "UA"
+                                          "model_name": "5inch",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 1001
                                         }
                                     ]
                                     """;
         var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
 
-        var times = _converter.ConvertTrackTimes(data);
+        var times = await _converter.ConvertTrackTimesAsync(data!);
 
         var first = times[0];
         first.Time.Should().Be(56055);
     }
 
     [Fact]
-    public void fastest_time_from_two_models_is_considered()
+    public async Task fastest_time_from_two_models_is_considered()
     {
         var json = /*language:json*/"""
                                     [
                                         {
                                           "lap_time": "56.055",
                                           "playername": "SWEEPER",
-                                          "model_id": 59,
-                                          "country": "UA"
+                                          "model_name": "5inch",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 1001
                                         },
                                         {
                                           "lap_time": "56.300",
                                           "playername": "SWEEPER",
-                                          "model_id": 33,
-                                          "country": "UA"
+                                          "model_name": "3.5inch",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:01:00Z",
+                                          "updated_at": "2026-01-01T10:01:00Z",
+                                          "user_id": 1001
                                         },
                                         {
                                           "lap_time": "61.818",
                                           "playername": "FPV FPV",
-                                          "model_id": 104,
-                                          "country": "UA"
+                                          "model_name": "cinelifter",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:02:00Z",
+                                          "updated_at": "2026-01-01T10:02:00Z",
+                                          "user_id": 1002
                                         }
                                     ]
                                     """;
         var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
 
-        var times = _converter.ConvertTrackTimes(data);
+        var times = await _converter.ConvertTrackTimesAsync(data!);
 
         times.Should().HaveCount(2);
 
@@ -118,5 +161,23 @@ public class ResponseConverterTests
 
         first.Time.Should().Be(56055);
         first.PlayerName.Should().Be("SWEEPER");
+    }
+
+    private static RaceResultsConverter CreateConverter(params string[] whitelistedPilots)
+    {
+        return new RaceResultsConverter(new FakeWhiteListService(whitelistedPilots));
+    }
+
+    private sealed class FakeWhiteListService : IWhiteListService
+    {
+        private readonly IReadOnlySet<string> _whitelistedPilots;
+
+        public FakeWhiteListService(IEnumerable<string> whitelistedPilots)
+        {
+            _whitelistedPilots = new HashSet<string>(whitelistedPilots);
+        }
+
+        public Task<IReadOnlySet<string>> GetWhitelistAsync()
+            => Task.FromResult(_whitelistedPilots);
     }
 }

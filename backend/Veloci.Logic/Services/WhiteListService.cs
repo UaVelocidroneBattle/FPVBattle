@@ -4,7 +4,12 @@ using Veloci.Data.Repositories;
 
 namespace Veloci.Logic.Services;
 
-public class WhiteListService
+public interface IWhiteListService
+{
+    Task<IReadOnlySet<string>> GetWhitelistAsync();
+}
+
+public class WhiteListService : IWhiteListService
 {
     private readonly IRepository<WhiteListedPilot> _whitelist;
 
@@ -33,7 +38,7 @@ public class WhiteListService
         await _whitelist.RemoveAsync(record.Id);
     }
 
-    public async Task<HashSet<string>> GetWhitelistAsync()
+    public async Task<IReadOnlySet<string>> GetWhitelistAsync()
     {
         return await _whitelist.GetAll().Select(wl => wl.PilotName).ToHashSetAsync();
     }

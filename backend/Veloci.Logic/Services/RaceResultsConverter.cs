@@ -7,9 +7,9 @@ namespace Veloci.Logic.Services;
 public class RaceResultsConverter
 {
     private static readonly Mappings.DtoMapper _mapper = new();
-    private readonly WhiteListService _whiteListService;
+    private readonly IWhiteListService _whiteListService;
 
-    public RaceResultsConverter(WhiteListService whiteListService)
+    public RaceResultsConverter(IWhiteListService whiteListService)
     {
         _whiteListService = whiteListService;
     }
