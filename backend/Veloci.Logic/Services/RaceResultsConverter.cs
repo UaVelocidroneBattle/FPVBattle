@@ -19,10 +19,11 @@ public class RaceResultsConverter
         var whitelist = await _whiteListService.GetWhitelistAsync();
 
         return timesDtos
-            .Where(dto => IsAllowed(dto, whitelist))
-            .Select(MapDtoToTrackTime)
+            .Select((dto, i) => (dto, globalRank: i + 1))
+            .Where(x => IsAllowed(x.dto, whitelist))
+            .Select(x => MapDtoToTrackTime(x.dto, x.globalRank))
             .GroupBy(x => x.UserId)
-            .Select(j => j.MinBy(x => x.Time))
+            .Select(j => j.MinBy(x => x.Time)!)
             .Select((x, i) =>
             {
                 x.LocalRank = i + 1;
@@ -34,11 +35,11 @@ public class RaceResultsConverter
     private static bool IsAllowed(TrackTimeDto dto, IReadOnlySet<string> whitelist)
         => dto.country == "UA" || whitelist.Contains(dto.playername);
 
-    private static TrackTime MapDtoToTrackTime(TrackTimeDto dto, int index)
+    private static TrackTime MapDtoToTrackTime(TrackTimeDto dto, int globalRank)
     {
         var time = _mapper.MapTrackTime(dto);
         time.Time = int.Parse(dto.lap_time.Replace(".", ""), CultureInfo.InvariantCulture);
-        time.GlobalRank = index + 1;
+        time.GlobalRank = globalRank;
         return time;
     }
 }

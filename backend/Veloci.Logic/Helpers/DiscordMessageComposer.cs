@@ -219,7 +219,7 @@ public class DiscordMessageComposer
         foreach (var result in results)
         {
             var pilotName = TextHelper.Trim(result.Pilot.Name, PilotNameMaxLength);
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{TextHelper.CountryFlagWithSpace(result.Pilot.Country)}{FillWithSpaces(pilotName, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(pilotName, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
         }
 
         return rows;
