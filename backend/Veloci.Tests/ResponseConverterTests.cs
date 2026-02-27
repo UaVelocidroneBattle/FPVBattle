@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Veloci.Logic.API.Dto;
 using Veloci.Logic.Services;
 
@@ -80,7 +81,7 @@ public class ResponseConverterTests
         var third = times[2];
         third.PlayerName.Should().Be("FPV FPV");
         third.LocalRank.Should().Be(3);
-        third.GlobalRank.Should().Be(3);
+        third.GlobalRank.Should().Be(4); // Sarah (NL) was #3 globally; FPV FPV retains original API rank
     }
 
     [Fact]
@@ -163,9 +164,54 @@ public class ResponseConverterTests
         first.PlayerName.Should().Be("SWEEPER");
     }
 
-    private static RaceResultsConverter CreateConverter(params string[] whitelistedPilots)
+    [Fact]
+    public async Task blacklisted_country_is_excluded_even_when_pilot_is_whitelisted()
     {
-        return new RaceResultsConverter(new FakeWhiteListService(whitelistedPilots));
+        var json = /*language:json*/"""
+                                    [
+                                        {
+                                          "lap_time": "56.055",
+                                          "playername": "SWEEPER",
+                                          "model_name": "5inch",
+                                          "country": "UA",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 1001
+                                        },
+                                        {
+                                          "lap_time": "56.300",
+                                          "playername": "RU_PILOT",
+                                          "model_name": "5inch",
+                                          "country": "RU",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:01:00Z",
+                                          "updated_at": "2026-01-01T10:01:00Z",
+                                          "user_id": 1002
+                                        }
+                                    ]
+                                    """;
+        var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
+
+        var converter = CreateConverter(whitelistedPilots: ["RU_PILOT"], blacklistedCountries: ["RU"]);
+        var times = await converter.ConvertTrackTimesAsync(data!);
+
+        times.Should().HaveCount(1);
+        times[0].PlayerName.Should().Be("SWEEPER");
+    }
+
+    private static RaceResultsConverter CreateConverter(
+        string[] whitelistedPilots = null!,
+        string[] blacklistedCountries = null!)
+    {
+        var options = Options.Create(new ResultsOptions
+        {
+            CountriesBlackList = blacklistedCountries?.ToList() ?? []
+        });
+        return new RaceResultsConverter(new FakeWhiteListService(whitelistedPilots ?? []), options);
     }
 
     private sealed class FakeWhiteListService : IWhiteListService

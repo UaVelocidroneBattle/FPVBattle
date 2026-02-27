@@ -1,6 +1,5 @@
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
-using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Helpers;
@@ -40,6 +39,8 @@ public static class ServiceRegistration
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);
         services.AddCups(configuration);
+
+        services.Configure<ResultsOptions>(configuration.GetSection(ResultsOptions.SectionName));
 
         return services;
     }

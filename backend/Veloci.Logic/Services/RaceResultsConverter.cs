@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Logic.API.Dto;
 
@@ -6,12 +7,14 @@ namespace Veloci.Logic.Services;
 
 public class RaceResultsConverter
 {
-    private static readonly Mappings.DtoMapper _mapper = new();
+    private static readonly Mappings.DtoMapper Mapper = new();
     private readonly IWhiteListService _whiteListService;
+    private readonly ResultsOptions _options;
 
-    public RaceResultsConverter(IWhiteListService whiteListService)
+    public RaceResultsConverter(IWhiteListService whiteListService, IOptions<ResultsOptions> options)
     {
         _whiteListService = whiteListService;
+        _options = options.Value;
     }
 
     public async Task<List<TrackTime>> ConvertTrackTimesAsync(IEnumerable<TrackTimeDto> timesDtos)
@@ -32,12 +35,17 @@ public class RaceResultsConverter
             .ToList();
     }
 
-    private static bool IsAllowed(TrackTimeDto dto, IReadOnlySet<string> whitelist)
-        => dto.country == "UA" || whitelist.Contains(dto.playername);
+    private bool IsAllowed(TrackTimeDto dto, IReadOnlySet<string> whitelist)
+    {
+        if (_options.CountriesBlackList.Contains(dto.country, StringComparer.OrdinalIgnoreCase))
+            return false;
+
+        return dto.country == "UA" || whitelist.Contains(dto.playername);
+    }
 
     private static TrackTime MapDtoToTrackTime(TrackTimeDto dto, int globalRank)
     {
-        var time = _mapper.MapTrackTime(dto);
+        var time = Mapper.MapTrackTime(dto);
         time.Time = int.Parse(dto.lap_time.Replace(".", ""), CultureInfo.InvariantCulture);
         time.GlobalRank = globalRank;
         return time;
