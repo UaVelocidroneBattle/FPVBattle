@@ -26,11 +26,20 @@ function LayoutMain() {
                     <nav className="flex justify-center gap-8 md:gap-100">
                         <NavLink
                             to="/"
+                            end
                             className={({isActive}) =>
                                 `transition-colors hidden sm:block ${isActive ? "text-emerald-400" : "text-slate-300 hover:text-emerald-400"}`
                             }
                         >
-                            Dashboard
+                            Open Class
+                        </NavLink>
+                        <NavLink
+                            to="/whoop"
+                            className={({isActive}) =>
+                                `transition-colors hidden sm:block ${isActive ? "text-emerald-400" : "text-slate-300 hover:text-emerald-400"}`
+                            }
+                        >
+                            Whoop Class
                         </NavLink>
                         <NavLink
                             to="/rules"

@@ -16,7 +16,7 @@ function CurrentLeaderboard({ trackResults }: CurrentLeaderboardProps) {
             <ul className="divide-y divide-slate-700/50">
                 {trackResults.map((pilot, index) => (
                     <li key={pilot.playerName} className="px-6 py-4 hover:bg-slate-700/30 transition-colors duration-150">
-                        <div className="grid md:grid-cols-[2rem_1fr_auto_auto_7rem] grid-cols-[2rem_1fr_auto_5rem] items-center gap-4">
+                        <div className="grid md:grid-cols-[2rem_1fr_auto_auto_auto] grid-cols-[2rem_1fr_auto_auto] items-center gap-6">
                             {/* Rank */}
                             <span className="text-right font-bold text-slate-400 text-2xl tabular-nums">
                                 {String(index + 1).padStart(2, "0")}
@@ -34,7 +34,7 @@ function CurrentLeaderboard({ trackResults }: CurrentLeaderboardProps) {
                             </p>
 
                             {/* Country flag */}
-                            <CountryFlag countryCode={pilot.country} className="text-xl" />
+                            <CountryFlag countryCode={pilot.country} className="text-sm" />
 
                             {/* Time */}
                             <div className="text-lg text-slate-300 font-semibold tabular-nums text-right">
