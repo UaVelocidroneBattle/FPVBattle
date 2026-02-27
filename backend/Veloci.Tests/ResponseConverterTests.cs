@@ -223,6 +223,16 @@ public class ResponseConverterTests
             _whitelistedPilots = new HashSet<string>(whitelistedPilots);
         }
 
+        public Task AddToWhiteListAsync(string pilotName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveFromWhiteListAsync(string pilotName)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IReadOnlySet<string>> GetWhitelistAsync()
             => Task.FromResult(_whitelistedPilots);
     }

@@ -6,6 +6,8 @@ namespace Veloci.Logic.Services;
 
 public interface IWhiteListService
 {
+    Task AddToWhiteListAsync(string pilotName);
+    Task RemoveFromWhiteListAsync(string pilotName);
     Task<IReadOnlySet<string>> GetWhitelistAsync();
 }
 

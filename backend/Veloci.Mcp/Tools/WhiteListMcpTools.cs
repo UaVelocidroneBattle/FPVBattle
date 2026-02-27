@@ -13,9 +13,9 @@ public class WhiteListMcpTools
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<WhiteListMcpTools>();
     private readonly IRepository<WhiteListedPilot> _whitelist;
-    private readonly WhiteListService _whiteListService;
+    private readonly IWhiteListService _whiteListService;
 
-    public WhiteListMcpTools(IRepository<WhiteListedPilot> whitelist, WhiteListService whiteListService)
+    public WhiteListMcpTools(IRepository<WhiteListedPilot> whitelist, IWhiteListService whiteListService)
     {
         _whitelist = whitelist;
         _whiteListService = whiteListService;
