@@ -21,5 +21,6 @@ public static partial class CompetitionMapper
 
     [MapProperty(nameof(CompetitionResults.TrackTime), nameof(TrackTimeModel.Time))]
     [MapProperty(nameof(CompetitionResults.Pilot.Name), nameof(TrackTimeModel.PlayerName))]
+    [MapProperty(nameof(CompetitionResults.Pilot.Country), nameof(TrackTimeModel.Country))]
     public static partial TrackTimeModel MapToModel(this CompetitionResults results);
 }

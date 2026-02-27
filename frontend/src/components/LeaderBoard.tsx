@@ -3,6 +3,7 @@ import { SeasonResultModel } from "../api/client";
 import { ChevronDown } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import PilotName from "@/components/PilotName";
+import CountryFlag from "@/components/ui/CountryFlag";
 
 interface LeaderBoardProps {
     leaderBoard: SeasonResultModel[];
@@ -13,7 +14,7 @@ interface LeaderRowProps {
     index: number;
 }
 
-const LeaderRow: React.FC<LeaderRowProps> = ({ res, index }) => {
+function LeaderRow({ res, index }: LeaderRowProps) {
     const isTopTen = index < 10;
 
     const liClasses = isTopTen
@@ -39,18 +40,19 @@ const LeaderRow: React.FC<LeaderRowProps> = ({ res, index }) => {
                     <span className={spanClasses}>
                         {isTopTen ? String(index + 1).padStart(2, "0") : index + 1}
                     </span>
-                    <PilotName 
+                    <PilotName
                         name={res.playerName}
                         className={nameClasses}
                     />
+                    <CountryFlag countryCode={res.country} className="ml-2 text-lg" />
                 </div>
                 <div className={pointsClasses}>{res.points}</div>
             </div>
         </li>
     );
-};
+}
 
-const LeaderBoard: React.FC<LeaderBoardProps> = ({ leaderBoard }) => {
+function LeaderBoard({ leaderBoard }: LeaderBoardProps) {
     const [showMore, setShowMore] = useState(false);
 
     if (!leaderBoard) return <Spinner/>;
@@ -86,6 +88,6 @@ const LeaderBoard: React.FC<LeaderBoardProps> = ({ leaderBoard }) => {
             )}
         </div>
     );
-};
+}
 
 export default LeaderBoard;

@@ -6,7 +6,9 @@ import CurrentCompetition from './CurrentCompetition';
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { Error } from "@/components/ui/error.tsx";
 
-const PageDashboard: React.FC = () => {
+const MINUTE = 60 * 1000;
+
+function PageDashboard() {
 
     const { state, data: dashboard, fetch: fetchData } = useDashboardStore(
         useShallow((state) => ({
@@ -21,6 +23,13 @@ const PageDashboard: React.FC = () => {
             fetchData();
         }
     }, [state, fetchData]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            useDashboardStore.getState().refresh();
+        }, MINUTE);
+        return () => clearInterval(interval);
+    }, []);
 
 
 
@@ -44,13 +53,14 @@ const PageDashboard: React.FC = () => {
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden pb-4">
                 <div className="px-6 py-8 border-b border-slate-700/50">
                     <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium mb-2">
-                        LEADERBOARD
+                        SEASON LEADERBOARD
                     </h3>
                 </div>
                 <LeaderBoard leaderBoard={dashboard.leaderboard}></LeaderBoard>
             </div>
         </div>
     </>
+
 
 }
 

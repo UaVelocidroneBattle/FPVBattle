@@ -48,6 +48,7 @@ public class PilotProfileService : IPilotProfileService
         return new PilotProfileModel
         {
             Name = pilot.Name,
+            Country = pilot.Country,
             CurrentDayStreak = pilot.DayStreak,
             MaxDayStreak = pilot.MaxDayStreak,
             LastRaceDate = pilot.LastRaceDate,

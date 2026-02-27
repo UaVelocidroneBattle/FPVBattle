@@ -203,7 +203,8 @@ public class CompetitionService
                 Points = group.Sum(r => r.Points),
                 GoldenCount = group.Count(r => r.LocalRank == 1),
                 SilverCount = group.Count(r => r.LocalRank == 2),
-                BronzeCount = group.Count(r => r.LocalRank == 3)
+                BronzeCount = group.Count(r => r.LocalRank == 3),
+                Country = group.First().Pilot.Country,
             });
     }
 

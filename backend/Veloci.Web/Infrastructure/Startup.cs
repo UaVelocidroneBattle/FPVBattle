@@ -1,5 +1,6 @@
 using System.Net;
 using Hangfire;
+using Microsoft.OpenApi;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -140,7 +141,18 @@ public class Startup
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<IntermediateCompetitionResult>());
 
-        services.AddOpenApi();
+        services.AddOpenApi(options =>
+        {
+            options.AddSchemaTransformer((schema, context, cancellationToken) =>
+            {
+                if (schema.Type.HasValue && schema.Type.Value.HasFlag(JsonSchemaType.Integer))
+                {
+                    schema.Type = JsonSchemaType.Integer;
+                    schema.Pattern = null;
+                }
+                return Task.CompletedTask;
+            });
+        });
 
         services
             .AddMcpServer()

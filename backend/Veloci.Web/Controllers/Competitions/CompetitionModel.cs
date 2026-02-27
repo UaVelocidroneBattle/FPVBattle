@@ -27,10 +27,12 @@ public class TrackTimeModel
     public required int GlobalRank { get; set; }
     public required int LocalRank { get; set; }
     public required string ModelName { get; set; }
+    public required string Country { get; set; }
 }
 
 public class SeasonResultModel
 {
     public required string PlayerName { get; set; }
     public required int Points { get; set; }
+    public required string Country { get; set; }
 }

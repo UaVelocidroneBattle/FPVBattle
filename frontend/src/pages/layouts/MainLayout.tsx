@@ -1,6 +1,6 @@
 import {Link, NavLink, Outlet} from "react-router-dom"
 import {FaTelegramPlane} from "react-icons/fa";
-import {SiDiscord} from "react-icons/si";
+import {SiDiscord, SiInstagram} from "react-icons/si";
 import {TbBrandPatreonFilled} from "react-icons/tb";
 import logo from "/logo.svg";
 
@@ -8,7 +8,7 @@ import logo from "/logo.svg";
  * Defines main layout that is applied to all top level pages
  */
 
-const LayoutMain: React.FC = () => {
+function LayoutMain() {
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 pb-8 flex flex-col align-items-center">
             <div className="max-w-[1800px] w-full p-4 flex flex-col flex-1 mx-auto">
@@ -58,6 +58,9 @@ const LayoutMain: React.FC = () => {
                             <a href="https://patreon.com/FPVBattle" title="Patreon" target="_blank" rel="noopener noreferrer">
                                 <TbBrandPatreonFilled className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
                             </a>
+                            <a href="https://www.instagram.com/fpv_battle/" title="Instagram" target="_blank" rel="noopener noreferrer">
+                                <SiInstagram className="h-6 w-6 text-slate-300 hover:text-emerald-400"/>
+                            </a>
                         </div>
                     </nav>
                 </header>
@@ -67,6 +70,6 @@ const LayoutMain: React.FC = () => {
             </div>
         </main>
     );
-};
+}
 
 export default LayoutMain;

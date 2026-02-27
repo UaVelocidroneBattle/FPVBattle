@@ -10,6 +10,7 @@ export interface DashboardState {
 
 export interface DashboardActions {
   fetch: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 export type DashboardStore = DashboardState & DashboardActions;
@@ -19,19 +20,29 @@ export const useDashboardStore = create<DashboardStore>()((set, get) => ({
   data: null,
   fetch: async () => {
     if (get().state === 'Loading') return;
-    
+
     set({ state: 'Loading' });
     try {
       const response = await api.getDashboard();
-      set({ 
+      set({
         state: 'Loaded',
-        data: response.data 
+        data: response.data
       });
     } catch (error) {
-      set({ 
+      set({
         state: 'Error',
-        data: null 
+        data: null
       });
+    }
+  },
+  refresh: async () => {
+    if (get().state === 'Loading') return;
+
+    try {
+      const response = await api.getDashboard();
+      set({ state: 'Loaded', data: response.data });
+    } catch {
+      // Keep existing data on refresh failure — only initial load shows error state
     }
   },
 }));
