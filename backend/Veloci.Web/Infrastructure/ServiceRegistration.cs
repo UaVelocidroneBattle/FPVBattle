@@ -34,13 +34,9 @@ public static class ServiceRegistration
         services.AddScoped<PointsCalculator>();
         services.AddScoped<IWhiteListService, WhiteListService>();
 
-        services.AddScoped<DbMigrator>();
-
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);
         services.AddCups(configuration);
-
-        services.Configure<ResultsOptions>(configuration.GetSection(ResultsOptions.SectionName));
 
         return services;
     }

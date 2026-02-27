@@ -21,6 +21,7 @@ using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
 using ModelContextProtocol.AspNetCore;
+using Veloci.Logic.Services;
 using Veloci.Mcp.Tools;
 using Veloci.Web.Infrastructure.Hangfire;
 using Veloci.Web.Infrastructure.Logging;
@@ -106,6 +107,7 @@ public class Startup
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
         services.Configure<ApiSettings>(Configuration.GetSection("API"));
+        services.Configure<ResultsOptions>(Configuration.GetSection(ResultsOptions.SectionName));
 
         services.Configure<IdentityOptions>(options =>
         {
