@@ -23,4 +23,35 @@ public static class TextHelper
 
         return string.Concat(text.AsSpan(0, maxLength - 2), "..");
     }
+
+    public static List<string> SplitIntoChunks(string message, int chunkSize)
+    {
+        if (message.Length <= chunkSize)
+            return [message];
+
+        var chunks = new List<string>();
+        var remaining = message;
+
+        while (remaining.Length > chunkSize)
+        {
+            var splitAt = remaining.LastIndexOf('\n', chunkSize - 1);
+
+            if (splitAt <= 0)
+            {
+                // No newline in range — hard cut as a last resort
+                chunks.Add(remaining[..chunkSize]);
+                remaining = remaining[chunkSize..];
+            }
+            else
+            {
+                chunks.Add(remaining[..splitAt]);
+                remaining = remaining[(splitAt + 1)..];
+            }
+        }
+
+        if (remaining.Length > 0)
+            chunks.Add(remaining);
+
+        return chunks;
+    }
 }

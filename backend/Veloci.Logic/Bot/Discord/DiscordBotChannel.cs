@@ -1,6 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 using Serilog;
+using Veloci.Logic.Helpers;
 
 namespace Veloci.Logic.Bot.Discord;
 
@@ -70,7 +71,7 @@ public class DiscordBotChannel : IDiscordBot
         {
             EnsureChannelResolved();
 
-            var chunks = SplitIntoChunks(message);
+            var chunks = TextHelper.SplitIntoChunks(message, MaxMessageLength);
 
             _log.Information("💬 Sending Discord message to channel {ChannelName} ({ChunkCount} chunk(s)): {MessagePreview}...",
                 _channelName, chunks.Count, message.Length > 50 ? message[..50] + "..." : message);
@@ -93,20 +94,8 @@ public class DiscordBotChannel : IDiscordBot
         }
     }
 
-    private static List<string> SplitIntoChunks(string message)
-    {
-        if (message.Length <= MaxMessageLength)
-            return [message];
 
-        var chunks = new List<string>();
-
-        for (var offset = 0; offset < message.Length; offset += MaxMessageLength)
-            chunks.Add(message.Substring(offset, Math.Min(MaxMessageLength, message.Length - offset)));
-
-        return chunks;
-    }
-
-    public async Task EditMessageAsync(ulong messageId, string message)
+public async Task EditMessageAsync(ulong messageId, string message)
     {
         if (_client is null)
             return;
