@@ -59,6 +59,8 @@ public class DiscordBotChannel : IDiscordBot
         }
     }
 
+    private const int MaxMessageLength = 2000;
+
     public async Task<ulong?> SendMessageAsync(string message)
     {
         if (_client is null)
@@ -68,19 +70,40 @@ public class DiscordBotChannel : IDiscordBot
         {
             EnsureChannelResolved();
 
-            _log.Information("💬 Sending Discord message to channel {ChannelName}: {MessagePreview}...",
-                _channelName, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+            var chunks = SplitIntoChunks(message);
 
-            var result = await _channel!.SendMessageAsync(message);
+            _log.Information("💬 Sending Discord message to channel {ChannelName} ({ChunkCount} chunk(s)): {MessagePreview}...",
+                _channelName, chunks.Count, message.Length > 50 ? message[..50] + "..." : message);
 
-            _log.Information("Sent Discord message {MessageId} to channel {ChannelName}", result.Id, _channelName);
-            return result.Id;
+            ulong? lastId = null;
+
+            foreach (var chunk in chunks)
+            {
+                var result = await _channel.SendMessageAsync(chunk);
+                lastId = result.Id;
+            }
+
+            _log.Information("Sent Discord message to channel {ChannelName} (last id: {MessageId})", _channelName, lastId);
+            return lastId;
         }
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to send Discord message to channel {ChannelName}", _channelName);
             return null;
         }
+    }
+
+    private static List<string> SplitIntoChunks(string message)
+    {
+        if (message.Length <= MaxMessageLength)
+            return [message];
+
+        var chunks = new List<string>();
+
+        for (var offset = 0; offset < message.Length; offset += MaxMessageLength)
+            chunks.Add(message.Substring(offset, Math.Min(MaxMessageLength, message.Length - offset)));
+
+        return chunks;
     }
 
     public async Task EditMessageAsync(ulong messageId, string message)
