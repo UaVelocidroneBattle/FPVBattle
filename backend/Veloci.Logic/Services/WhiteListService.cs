@@ -1,6 +1,8 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services;
 
@@ -14,10 +16,12 @@ public interface IWhiteListService
 public class WhiteListService : IWhiteListService
 {
     private readonly IRepository<WhiteListedPilot> _whitelist;
+    private readonly IMediator _mediator;
 
-    public WhiteListService(IRepository<WhiteListedPilot> whitelist)
+    public WhiteListService(IRepository<WhiteListedPilot> whitelist, IMediator mediator)
     {
         _whitelist = whitelist;
+        _mediator = mediator;
     }
 
     public async Task AddToWhiteListAsync(string pilotName)
@@ -28,6 +32,7 @@ public class WhiteListService : IWhiteListService
             throw new InvalidOperationException($"Pilot '{pilotName}' is already on the whitelist.");
 
         await _whitelist.AddAsync(new WhiteListedPilot(pilotName));
+        await _mediator.Publish(new AddedToWhitelist(pilotName));
     }
 
     public async Task RemoveFromWhiteListAsync(string pilotName)
