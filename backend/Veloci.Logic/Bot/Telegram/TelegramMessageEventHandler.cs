@@ -20,17 +20,21 @@ public class TelegramMessageEventHandler :
     INotificationHandler<PilotRenamed>,
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
-    INotificationHandler<TrackRestart>
+    INotificationHandler<TrackRestart>,
+    INotificationHandler<VoteReminder>
 {
     private readonly TelegramMessageComposer _messageComposer;
     private readonly ITelegramCupMessenger _cupMessenger;
+    private readonly TelegramChatMessages _chatMessages;
 
     public TelegramMessageEventHandler(
         TelegramMessageComposer messageComposer,
-        ITelegramCupMessenger cupMessenger)
+        ITelegramCupMessenger cupMessenger,
+        TelegramChatMessages chatMessages)
     {
         _messageComposer = messageComposer;
         _cupMessenger = cupMessenger;
+        _chatMessages = chatMessages;
     }
 
     public async Task Handle(IntermediateCompetitionResult notification, CancellationToken cancellationToken)
@@ -88,7 +92,13 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
     {
-        var cheerUpMessage = notification.Message;
+        var cheerUpMessage = _chatMessages.GetRandomByTypeWithProbability(notification.Type);
+
+        if (cheerUpMessage is null)
+        {
+            return;
+        }
+
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, cheerUpMessage.Text);
     }
 
@@ -147,5 +157,11 @@ public class TelegramMessageEventHandler :
     {
         var message = _messageComposer.RestartTrack();
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
+    }
+
+    public async Task Handle(VoteReminder notification, CancellationToken cancellationToken)
+    {
+        var messageText = _chatMessages.GetRandomByType(ChatMessageType.VoteReminder);
+        await _cupMessenger.SendReplyToCupAsync(notification.Competition.CupId, messageText.Text, notification.Competition.Track.Rating.PollMessageId);
     }
 }

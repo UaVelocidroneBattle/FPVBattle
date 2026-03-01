@@ -29,7 +29,7 @@ public class HangfireInit
 
         Log.Information("Setting up daily competition schedule recurring jobs");
 
-        RecurringJob.AddOrUpdate<PilotService>("Day streak lose warning", x => x.DayStreakPotentialLoseNotificationAsync(), "30 22 * * *");
+        RecurringJob.AddOrUpdate<PilotService>("Day streak lose warning", x => x.DayStreakPotentialLoseNotificationAsync(), "31 22 * * *");
         RecurringJob.AddOrUpdate<PilotService>("Update pilots day streaks", x => x.UpdatePilotDayStreaksAsync(), "5 0 * * *");
 
         RecurringJob.AddOrUpdate<CompetitionConductor>("Season results", x => x.SeasonResultsAsync(), "2 15 * * *");

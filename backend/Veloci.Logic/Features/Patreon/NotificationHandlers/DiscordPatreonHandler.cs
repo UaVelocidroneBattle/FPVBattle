@@ -49,17 +49,16 @@ public class DiscordPatreonHandler :
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
-        var message = PatreonMessageGenerator.GenerateWelcomeMessage(
+        var message = DiscordMessageGenerator.WelcomeMessage(
             notification.Supporter.Name,
-            notification.Supporter.TierName,
-            useDiscordMarkdown: true);
+            notification.Supporter.TierName);
 
         await _discordCupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
-        var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: true);
+        var message = DiscordMessageGenerator.AccruedFreeziesMessage(notification.Accrued);
         await _discordCupMessenger.SendMessageToAllCupsAsync(message);
     }
 }

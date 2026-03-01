@@ -216,16 +216,7 @@ public class CompetitionService
             return;
         }
 
-        var cheerUpMessage = ChatMessages.GetRandomByTypeWithProbability(type);
-
-        if (cheerUpMessage is null)
-        {
-            _log.Debug("No cheer-up message selected for type {MessageType}", type);
-            return;
-        }
-
-        _log.Information("Sending cheer-up message of type {MessageType}", type);
-        await _mediator.Publish(new CheerUp(cupId, cheerUpMessage));
+        await _mediator.Publish(new CheerUp(cupId, type));
     }
 
     private static bool DoNotDisturb(DateTime dateTime)

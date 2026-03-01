@@ -49,17 +49,16 @@ public class TelegramPatreonHandler :
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
-        var message = PatreonMessageGenerator.GenerateWelcomeMessage(
+        var message = TelegramMessageGenerator.WelcomeMessage(
             notification.Supporter.Name,
-            notification.Supporter.TierName,
-            useDiscordMarkdown: false);
+            notification.Supporter.TierName);
 
         await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
-        var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: false);
+        var message = TelegramMessageGenerator.AccruedFreeziesMessage(notification.Accrued);
         await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 }

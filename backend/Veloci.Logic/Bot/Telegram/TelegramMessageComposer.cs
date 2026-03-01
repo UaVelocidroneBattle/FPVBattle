@@ -1,10 +1,10 @@
 using System.Text;
 using Veloci.Data.Domain;
-using Veloci.Logic.Bot;
+using Veloci.Logic.Helpers;
 using Veloci.Logic.Services.Statistics;
 using Veloci.Logic.Services.Statistics.YearResults;
 
-namespace Veloci.Logic.Helpers;
+namespace Veloci.Logic.Bot.Telegram;
 
 public class TelegramMessageComposer
 {

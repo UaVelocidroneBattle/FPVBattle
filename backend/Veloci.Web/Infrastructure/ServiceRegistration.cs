@@ -1,5 +1,7 @@
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
+using Veloci.Logic.Bot.Discord;
+using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Patreon;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Helpers;
@@ -22,6 +24,8 @@ public static class ServiceRegistration
         services.AddScoped<RaceResultsConverter>();
         services.AddScoped<TelegramMessageComposer>();
         services.AddScoped<DiscordMessageComposer>();
+        services.AddSingleton<TelegramChatMessages>();
+        services.AddSingleton<DiscordChatMessages>();
         services.AddScoped<RaceResultDeltaAnalyzer>();
         services.AddScoped<ImageService>();
         //services.AddScoped<ITrackFetcher, WebTrackFetcher>();

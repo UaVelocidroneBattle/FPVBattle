@@ -6,10 +6,8 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.API.Dto;
-using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Cups;
-using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services.Tracks;
 
@@ -297,9 +295,7 @@ public class CompetitionConductor
             return;
         }
 
-        var messageText = ChatMessages.GetRandomByType(ChatMessageType.VoteReminder);
-
-        await _telegramCupMessenger.SendReplyToCupAsync(cupId, messageText.Text, competition.Track.Rating.PollMessageId);
+        await _mediator.Publish(new VoteReminder(competition));
     }
 
     private async Task TempSeasonResultsAsync(string cupId)

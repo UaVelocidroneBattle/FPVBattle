@@ -34,19 +34,22 @@ public class DiscordMessageEventHandler :
     private readonly IDiscordCupMessenger _cupMessenger;
     private readonly IRepository<Competition> _competitions;
     private readonly CompetitionService _competitionService;
+    private readonly DiscordChatMessages _chatMessages;
 
     public DiscordMessageEventHandler(
         DiscordMessageComposer messageComposer,
         IDiscordBotFactory botFactory,
         IDiscordCupMessenger cupMessenger,
         IRepository<Competition> competitions,
-        CompetitionService competitionService)
+        CompetitionService competitionService,
+        DiscordChatMessages chatMessages)
     {
         _messageComposer = messageComposer;
         _botFactory = botFactory;
         _cupMessenger = cupMessenger;
         _competitions = competitions;
         _competitionService = competitionService;
+        _chatMessages = chatMessages;
     }
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
@@ -160,7 +163,13 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
     {
-        var cheerUpMessage = notification.Message;
+        var cheerUpMessage = _chatMessages.GetRandomByTypeWithProbability(notification.Type);
+
+        if (cheerUpMessage is null)
+        {
+            return;
+        }
+
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, cheerUpMessage.Text);
     }
 
