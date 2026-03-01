@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,9 @@ public class DiscordBotFactory : IDiscordBotFactory
     private readonly ICupService _cupService;
     private readonly DiscordSocketClient? _client;
     private readonly string? _botToken;
+    private readonly string? _generalChannelName;
     private readonly ConcurrentDictionary<string, IDiscordBot> _channelCache;
+    private IDiscordBot? _generalBot;
     private bool _isInitialized;
     private TaskCompletionSource? _readyCompletionSource;
 
@@ -31,6 +34,7 @@ public class DiscordBotFactory : IDiscordBotFactory
         _channelCache = new ConcurrentDictionary<string, IDiscordBot>();
 
         _botToken = configuration.GetSection("Discord:BotToken").Value;
+        _generalChannelName = configuration.GetSection("Discord:GeneralChannel").Value;
 
         if (string.IsNullOrEmpty(_botToken))
         {
@@ -157,7 +161,7 @@ public class DiscordBotFactory : IDiscordBotFactory
         });
     }
 
-    public bool TryGetBotForCup(string cupId, out IDiscordBot? bot)
+    public bool TryGetBotForCup(string cupId, [NotNullWhen(true)] out IDiscordBot? bot)
     {
         bot = null;
 
@@ -212,5 +216,16 @@ public class DiscordBotFactory : IDiscordBotFactory
             _log.Error(ex, "Failed to get Discord bot for cup {CupId}", cupId);
             return false;
         }
+    }
+
+    public bool TryGetGeneralBot([NotNullWhen(true)] out IDiscordBot? bot)
+    {
+        bot = null;
+
+        if (_client is null || string.IsNullOrEmpty(_generalChannelName))
+            return false;
+
+        bot = _generalBot ??= new DiscordBotChannel(_client, _generalChannelName);
+        return true;
     }
 }

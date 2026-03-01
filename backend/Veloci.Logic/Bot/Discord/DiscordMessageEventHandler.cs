@@ -3,8 +3,6 @@ using MediatR;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.Features.Cups;
-using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services;
 
@@ -32,6 +30,7 @@ public class DiscordMessageEventHandler :
     private readonly DiscordMessageComposer _messageComposer;
     private readonly IDiscordBotFactory _botFactory;
     private readonly IDiscordCupMessenger _cupMessenger;
+    private readonly IDiscordGeneralMessenger _generalMessenger;
     private readonly IRepository<Competition> _competitions;
     private readonly CompetitionService _competitionService;
     private readonly DiscordChatMessages _chatMessages;
@@ -40,6 +39,7 @@ public class DiscordMessageEventHandler :
         DiscordMessageComposer messageComposer,
         IDiscordBotFactory botFactory,
         IDiscordCupMessenger cupMessenger,
+        IDiscordGeneralMessenger generalMessenger,
         IRepository<Competition> competitions,
         CompetitionService competitionService,
         DiscordChatMessages chatMessages)
@@ -47,6 +47,7 @@ public class DiscordMessageEventHandler :
         _messageComposer = messageComposer;
         _botFactory = botFactory;
         _cupMessenger = cupMessenger;
+        _generalMessenger = generalMessenger;
         _competitions = competitions;
         _competitionService = competitionService;
         _chatMessages = chatMessages;
@@ -188,7 +189,7 @@ public class DiscordMessageEventHandler :
     public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     private ulong? GetLeaderboardMessageId(Competition competition)
@@ -207,13 +208,13 @@ public class DiscordMessageEventHandler :
     public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.NewPilot(notification.Pilot);
-        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
@@ -225,7 +226,7 @@ public class DiscordMessageEventHandler :
     public async Task Handle(FreezieAdded notification, CancellationToken cancellationToken)
     {
         var message = _messageComposer.FreezieAdded(notification.PilotName);
-        await _cupMessenger.SendMessageToAllCupsAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)

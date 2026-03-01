@@ -1,11 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Veloci.Logic.Bot.Discord;
 
 /// <summary>
-/// Factory for creating cup-specific Discord bot instances
+/// Factory for creating Discord bot instances for cup-specific and general channels
 /// </summary>
 /// <remarks>
 /// Enables multi-cup support by routing messages to the appropriate Discord channel
 /// based on cup configuration. Each cup can have its own dedicated Discord channel.
+/// A separate general channel is available for announcements not tied to a specific cup.
 /// Lifecycle managed by DiscordBotHostedService.
 /// </remarks>
 public interface IDiscordBotFactory
@@ -37,5 +40,12 @@ public interface IDiscordBotFactory
     /// <param name="cupId">Cup identifier</param>
     /// <param name="bot">Bot instance if successful</param>
     /// <returns>True if cup has Discord configuration, false otherwise</returns>
-    bool TryGetBotForCup(string cupId, out IDiscordBot? bot);
+    bool TryGetBotForCup(string cupId, [NotNullWhen(true)] out IDiscordBot? bot);
+
+    /// <summary>
+    /// Tries to get a bot instance for the general channel
+    /// </summary>
+    /// <param name="bot">Bot instance if successful</param>
+    /// <returns>True if Discord:GeneralChannel is configured, false otherwise</returns>
+    bool TryGetGeneralBot([NotNullWhen(true)] out IDiscordBot? bot);
 }

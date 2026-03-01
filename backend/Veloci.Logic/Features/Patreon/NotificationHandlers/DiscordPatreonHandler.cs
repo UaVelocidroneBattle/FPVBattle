@@ -10,19 +10,17 @@ public class DiscordPatreonHandler :
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
-    private readonly IDiscordCupMessenger _discordCupMessenger;
+    private readonly IDiscordGeneralMessenger _generalMessenger;
 
-    public DiscordPatreonHandler(IDiscordCupMessenger discordCupMessenger)
+    public DiscordPatreonHandler(IDiscordGeneralMessenger generalMessenger)
     {
-        _discordCupMessenger = discordCupMessenger;
+        _generalMessenger = generalMessenger;
     }
 
     public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
     {
         if (!notification.Supporters.Any())
-        {
             return;
-        }
 
         var message = $"📊 **FPV Battle Patreon supporters** ({notification.Supporters.Count}):\n\n";
 
@@ -44,7 +42,7 @@ public class DiscordPatreonHandler :
         message += "Thank you all for your support! 🙏\n\n" +
                    "👉 [Our Patreon](https://patreon.com/FPVBattle)";
 
-        await _discordCupMessenger.SendMessageToAllCupsAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
@@ -53,12 +51,12 @@ public class DiscordPatreonHandler :
             notification.Supporter.Name,
             notification.Supporter.TierName);
 
-        await _discordCupMessenger.SendMessageToAllCupsAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
         var message = DiscordMessageGenerator.AccruedFreeziesMessage(notification.Accrued);
-        await _discordCupMessenger.SendMessageToAllCupsAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 }
