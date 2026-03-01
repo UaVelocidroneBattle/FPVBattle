@@ -46,13 +46,13 @@ public class PilotCupLookupService : IPilotCupLookupService
             pilots.Count, targetDate.Date);
 
         // Query returns flat list of (PilotId, CupId) pairs
+        // Note: Where must be outside SelectMany to avoid CROSS APPLY, which SQLite does not support
         var participations = await _competitions
             .GetAll()
             .OnDate(targetDate)
             .NotCancelled()
-            .SelectMany(comp => comp.CompetitionResults
-                .Where(r => pilotIds.Contains(r.PilotId))
-                .Select(r => new { r.PilotId, comp.CupId }))
+            .SelectMany(comp => comp.CompetitionResults, (comp, result) => new { result.PilotId, comp.CupId })
+            .Where(x => pilotIds.Contains(x.PilotId))
             .ToListAsync(cancellationToken);
 
         // Group by pilot and extract distinct cup IDs
