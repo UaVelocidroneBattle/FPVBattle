@@ -58,18 +58,25 @@ public class CupJobRegistrar : IJobRegistrar
 
         // Stop time is 2 minutes before start time
         var stopTime = startTime.Add(TimeSpan.FromMinutes(-2));
+        if (stopTime < TimeSpan.Zero)
+            stopTime = stopTime.Add(TimeSpan.FromHours(24));
+
         var stopHour = stopTime.Hours;
         var stopMinute = stopTime.Minutes;
 
-        // If stop time wraps to previous day, adjust
-        if (stopTime < TimeSpan.Zero)
-        {
-            stopTime = stopTime.Add(TimeSpan.FromHours(24));
-            stopHour = stopTime.Hours;
-            stopMinute = stopTime.Minutes;
-        }
+        // Stop poll time is 1 minute before stop time
+        var stopPollTime = stopTime.Add(TimeSpan.FromMinutes(-1));
+        if (stopPollTime < TimeSpan.Zero)
+            stopPollTime = stopPollTime.Add(TimeSpan.FromHours(24));
 
-        _log.Debug("Cup {CupId} schedule - Start: {StartTime}, Stop: {StopTime}", cupId, $"{startHour:D2}:{startMinute:D2}", $"{stopHour:D2}:{stopMinute:D2}");
+        var stopPollHour = stopPollTime.Hours;
+        var stopPollMinute = stopPollTime.Minutes;
+
+        _log.Debug("Cup {CupId} schedule - Start: {StartTime}, Stop poll: {StopPollTime}, Stop: {StopTime}",
+            cupId,
+            $"{startHour:D2}:{startMinute:D2}",
+            $"{stopPollHour:D2}:{stopPollMinute:D2}",
+            $"{stopHour:D2}:{stopMinute:D2}");
 
         // Register start competition job
         var startJobId = $"start-competition-{cupId}";
@@ -97,17 +104,18 @@ public class CupJobRegistrar : IJobRegistrar
             });
         _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", stopJobId, stopCron, cupId);
 
-        // Register stop poll job (runs 10 seconds before stop)
+        // Register stop poll job (runs 1 minute before stop)
         var stopPollJobId = $"stop-poll-{cupId}";
+        var stopPollCron = $"{stopPollMinute} {stopPollHour} * * *";
         RecurringJob.AddOrUpdate<CompetitionConductor>(
             stopPollJobId,
             conductor => conductor.StopPollAsync(cupId),
-            stopCron,
+            stopPollCron,
             new RecurringJobOptions
             {
                 TimeZone = TimeZoneInfo.Utc
             });
-        _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", stopPollJobId, stopCron, cupId);
+        _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", stopPollJobId, stopPollCron, cupId);
 
         // Register vote reminder job (if configured)
         if (!string.IsNullOrEmpty(cupOptions.Schedule.VoteReminderTime))
