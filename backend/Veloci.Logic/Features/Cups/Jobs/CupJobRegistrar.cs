@@ -64,8 +64,8 @@ public class CupJobRegistrar : IJobRegistrar
         var stopHour = stopTime.Hours;
         var stopMinute = stopTime.Minutes;
 
-        // Stop poll time is 1 minute before stop time
-        var stopPollTime = stopTime.Add(TimeSpan.FromMinutes(-1));
+        // Stop poll time is 2 minutes before stop time
+        var stopPollTime = stopTime.Add(TimeSpan.FromMinutes(-2));
         if (stopPollTime < TimeSpan.Zero)
             stopPollTime = stopPollTime.Add(TimeSpan.FromHours(24));
 
