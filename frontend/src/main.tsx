@@ -18,7 +18,8 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path='/'>
           <Route element={<MainLayout />}>
-            <Route index element={<DashboardPage />} />
+            <Route index element={<DashboardPage cupId="open-class" />} />
+            <Route path='whoop' element={<DashboardPage cupId="whoop-class" />} />
             <Route path='rules' element={<RulesPage />} />
             <Route path='statistics' element={<StatisticsPage />} >
               <Route index element={<Navigate to="profile" replace />} />

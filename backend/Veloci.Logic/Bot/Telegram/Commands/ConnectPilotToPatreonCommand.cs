@@ -18,15 +18,16 @@ public class ConnectPilotToPatreonCommand : ITelegramCommand
 
     public string[] Keywords => ["/connect-patreon"];
     public string Description => "/connect-patreon ({pilotName}) ({patreonUsername})";
-    public async Task<string> ExecuteAsync(string[]? parameters)
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        if (parameters is null || parameters.Length == 0)
+        // Admin command - works in any chat regardless of cup binding
+        if (context.Parameters is null || context.Parameters.Length == 0)
             return "Use the command with this format: /connect-patreon ({pilotName}) ({patreonUsername})";
 
         ParsedConnectCommand parsed;
         try
         {
-            parsed = ParseParameters(parameters);
+            parsed = ParseParameters(context.Parameters);
         }
         catch (ArgumentException ex)
         {

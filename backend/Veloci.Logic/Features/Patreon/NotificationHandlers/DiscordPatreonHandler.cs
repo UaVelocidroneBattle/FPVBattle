@@ -10,24 +10,22 @@ public class DiscordPatreonHandler :
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
-    private readonly IDiscordBot _discordBot;
+    private readonly IDiscordGeneralMessenger _generalMessenger;
 
-    public DiscordPatreonHandler(IDiscordBot discordBot)
+    public DiscordPatreonHandler(IDiscordGeneralMessenger generalMessenger)
     {
-        _discordBot = discordBot;
+        _generalMessenger = generalMessenger;
     }
 
     public async Task Handle(MonthlyPatreonSupportersNotification notification, CancellationToken cancellationToken)
     {
         if (!notification.Supporters.Any())
-        {
             return;
-        }
 
-        var message = $"📊 **Патрони FPV Battle на Patreon** ({notification.Supporters.Count}):\n\n";
+        var message = $"📊 **FPV Battle Patreon supporters** ({notification.Supporters.Count}):\n\n";
 
         var groupedByTier = notification.Supporters
-            .GroupBy(s => s.TierName ?? "Невідомий рівень")
+            .GroupBy(s => s.TierName ?? "Unknown tier")
             .OrderByDescending(g => g.Average(s => s.Amount ?? 0));
 
         foreach (var tierGroup in groupedByTier)
@@ -41,25 +39,24 @@ public class DiscordPatreonHandler :
             message += "\n";
         }
 
-        message += "Дякуємо всім за підтримку! 🙏\n\n" +
-                   "👉 [Наш Patreon](https://patreon.com/FPVBattle)";
+        message += "Thank you all for your support! 🙏\n\n" +
+                   "👉 [Our Patreon](https://patreon.com/FPVBattle)";
 
-        await _discordBot.SendMessageAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
     {
-        var message = PatreonMessageGenerator.GenerateWelcomeMessage(
+        var message = DiscordMessageGenerator.WelcomeMessage(
             notification.Supporter.Name,
-            notification.Supporter.TierName,
-            useDiscordMarkdown: true);
+            notification.Supporter.TierName);
 
-        await _discordBot.SendMessageAsync(message);
+        await _generalMessenger.SendMessageAsync(message);
     }
 
     public async Task Handle(MonthlyAccruedFreeziesNotification notification, CancellationToken cancellationToken)
     {
-        var message = PatreonMessageGenerator.AccruedFreeziesMessage(notification.Accrued, useDiscordMarkdown: true);
-        await _discordBot.SendMessageAsync(message);
+        var message = DiscordMessageGenerator.AccruedFreeziesMessage(notification.Accrued);
+        await _generalMessenger.SendMessageAsync(message);
     }
 }

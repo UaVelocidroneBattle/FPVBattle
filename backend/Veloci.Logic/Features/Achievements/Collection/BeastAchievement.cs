@@ -6,8 +6,10 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class BeastAchievement : IAchievementAfterTimeUpdate
 {
     public string Name => "Beast";
-    public string Title => "Звір";
-    public string Description => "Пролетіти трек за 66.6s";
+    public string Title => "Beast";
+    public string Description => "Fly a track in 66.6s";
+    public string? CupId { get; }
+
     public async Task<bool> CheckAsync(Pilot pilot, List<TrackTimeDelta> deltas)
     {
         if (pilot.HasAchievement(Name))

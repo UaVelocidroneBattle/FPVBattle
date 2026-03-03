@@ -13,4 +13,5 @@ public class SeasonResult
     public int SilverCount { get; set; }
 
     public int BronzeCount { get; set; }
+    public string Country { get; set; }
 }

@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/migration/streaks": {
+    "/api/migration/something": {
       "get": {
         "tags": [
           "Migration"
@@ -183,6 +183,15 @@
         "tags": [
           "Competitions"
         ],
+        "parameters": [
+          {
+            "name": "cupId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -239,19 +248,11 @@
             "type": "string"
           },
           "trackId": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "mapId": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -317,6 +318,7 @@
       "PilotProfileModel": {
         "required": [
           "name",
+          "country",
           "currentDayStreak",
           "maxDayStreak",
           "achievements",
@@ -328,20 +330,15 @@
           "name": {
             "type": "string"
           },
+          "country": {
+            "type": "string"
+          },
           "currentDayStreak": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "maxDayStreak": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "achievements": {
@@ -351,11 +348,7 @@
             }
           },
           "totalRaceDays": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "lastRaceDate": {
@@ -373,11 +366,7 @@
             "format": "date-time"
           },
           "availableFreezes": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -395,19 +384,11 @@
             "format": "date-time"
           },
           "points": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "trackTime": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -415,7 +396,8 @@
       "SeasonResultModel": {
         "required": [
           "playerName",
-          "points"
+          "points",
+          "country"
         ],
         "type": "object",
         "properties": {
@@ -423,12 +405,11 @@
             "type": "string"
           },
           "points": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
+          },
+          "country": {
+            "type": "string"
           }
         }
       },
@@ -438,7 +419,8 @@
           "time",
           "globalRank",
           "localRank",
-          "modelName"
+          "modelName",
+          "country"
         ],
         "type": "object",
         "properties": {
@@ -446,30 +428,21 @@
             "type": "string"
           },
           "time": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "globalRank": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "localRank": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "modelName": {
+            "type": "string"
+          },
+          "country": {
             "type": "string"
           }
         }

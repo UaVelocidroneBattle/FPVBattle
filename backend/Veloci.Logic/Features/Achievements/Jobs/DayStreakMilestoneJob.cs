@@ -5,6 +5,7 @@ using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Achievements.Notifications;
+using Veloci.Logic.Features.Achievements.Services;
 
 namespace Veloci.Logic.Features.Achievements.Jobs;
 
@@ -13,13 +14,16 @@ public class DayStreakMilestoneJob
     private static readonly ILogger _log = Log.ForContext<DayStreakMilestoneJob>();
     private readonly IRepository<Pilot> _pilots;
     private readonly IMediator _mediator;
+    private readonly IPilotCupLookupService _pilotCupLookup;
 
     public DayStreakMilestoneJob(
         IRepository<Pilot> pilots,
-        IMediator mediator)
+        IMediator mediator,
+        IPilotCupLookupService pilotCupLookup)
     {
         _pilots = pilots;
         _mediator = mediator;
+        _pilotCupLookup = pilotCupLookup;
     }
 
     [DisableConcurrentExecution("DayStreakMilestone", 60)]
@@ -42,7 +46,17 @@ public class DayStreakMilestoneJob
         _log.Information("Found {PilotCount} pilots with milestone day streaks: {PilotNames}",
             pilots.Count, string.Join(", ", pilots.Select(p => $"{p.Name} ({p.DayStreak})")));
 
-        await _mediator.Publish(new DayStreakAchievements(pilots), ct);
+        // Lookup which cups each pilot participated in today
+        var participations = await _pilotCupLookup.GetPilotCupsAsync(pilots, DateTime.UtcNow, ct);
+
+        // Log warnings for pilots without cup participation
+        foreach (var participation in participations.Where(p => p.CupIds.Count == 0))
+        {
+            _log.Warning("Pilot {PilotName} achieved day streak {DayStreak} milestone but didn't fly in any cups today",
+                participation.Pilot.Name, participation.Pilot.DayStreak);
+        }
+
+        await _mediator.Publish(new DayStreakAchievements(participations), ct);
 
         _log.Information("DayStreakMilestoneJob completed successfully");
     }

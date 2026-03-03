@@ -10,20 +10,10 @@ export type CompetitionModel = {
     mapId: number;
 };
 
-export type CompetitionModel2 = {
-    id: string;
-    startedOn: string;
-    state: CompetitionState;
-    mapName: string;
-    trackName: string;
-    trackId: number;
-    mapId: number;
-} | null;
-
 export type CompetitionState = number;
 
 export type DashboardModel = {
-    competition?: CompetitionModel2;
+    competition?: null | CompetitionModel;
     results: Array<TrackTimeModel>;
     leaderboard: Array<SeasonResultModel>;
 };
@@ -37,12 +27,13 @@ export type PilotAchievementModel = {
 
 export type PilotProfileModel = {
     name: string;
+    country: string;
     currentDayStreak: number;
     maxDayStreak: number;
     achievements: Array<PilotAchievementModel>;
     totalRaceDays: number;
-    lastRaceDate?: string | null;
-    firstRaceDate?: string | null;
+    lastRaceDate?: null | string;
+    firstRaceDate?: null | string;
     availableFreezes: number;
 };
 
@@ -55,6 +46,7 @@ export type PilotResult = {
 export type SeasonResultModel = {
     playerName: string;
     points: number;
+    country: string;
 };
 
 export type TrackTimeModel = {
@@ -63,16 +55,17 @@ export type TrackTimeModel = {
     globalRank: number;
     localRank: number;
     modelName: string;
+    country: string;
 };
 
-export type GetApiMigrationStreaksData = {
+export type GetApiMigrationSomethingData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/migration/streaks';
+    url: '/api/migration/something';
 };
 
-export type GetApiMigrationStreaksResponses = {
+export type GetApiMigrationSomethingResponses = {
     /**
      * OK
      */
@@ -150,7 +143,9 @@ export type GetApiCompetitionsCurrentResponse = GetApiCompetitionsCurrentRespons
 export type GetApiDashboardData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        cupId?: string;
+    };
     url: '/api/dashboard';
 };
 

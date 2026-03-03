@@ -16,7 +16,7 @@ public class HelpCommand : ITelegramCommand
 
     public string Description => "`/help` або `/?` - Список усіх доступних команд";
 
-    public async Task<string> ExecuteAsync(string[]? parameters)
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
         var descriptions = GetCommandDescriptions();
         return string.Join(Environment.NewLine, descriptions.Select(CommandRow));

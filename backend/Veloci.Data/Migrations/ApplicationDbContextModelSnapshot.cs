@@ -16,7 +16,7 @@ namespace Veloci.Web.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -222,8 +222,12 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("CupId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("open-class");
 
                     b.Property<string>("CurrentResultsId")
                         .HasColumnType("TEXT");
@@ -435,6 +439,13 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("UA");
+
                     b.Property<int>("DayStreak")
                         .HasColumnType("INTEGER");
 
@@ -606,6 +617,13 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("UA");
+
                     b.Property<int>("GlobalRank")
                         .HasColumnType("INTEGER");
 
@@ -652,6 +670,16 @@ namespace Veloci.Web.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("UA");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("LocalRank")
                         .HasColumnType("INTEGER");
 
@@ -684,6 +712,25 @@ namespace Veloci.Web.Data.Migrations
                     b.HasIndex("PilotId");
 
                     b.ToTable("TrackTimeDeltas", (string)null);
+                });
+
+            modelBuilder.Entity("Veloci.Data.Domain.WhiteListedPilot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("AddedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PilotName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WhiteListedPilots", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

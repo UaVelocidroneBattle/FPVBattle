@@ -6,8 +6,9 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class MedalistAchievement : IAchievementAfterSeason
 {
     public string Name => "Medalist";
-    public string Title => "Медаліст";
-    public string Description => "Пілот, який зібрав найбільшу кількість медалей за сезон";
+    public string Title => "Medalist";
+    public string Description => "Pilot with the most medals in a season";
+    public string? CupId => null;
     public async Task<bool> CheckAsync(Pilot pilot, List<SeasonResult> seasonResults)
     {
         if (pilot.HasAchievement(Name))

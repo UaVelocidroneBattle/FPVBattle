@@ -7,7 +7,10 @@ public static class DiscordBotServiceHelper
 {
     public static void UseDiscordBotService(this IServiceCollection services)
     {
-        services.AddSingleton<IDiscordBot, DiscordBot>();
+        services.AddSingleton<IDiscordBotFactory, DiscordBotFactory>();
+        services.AddScoped<IDiscordCupMessenger, DiscordCupMessenger>();
+        services.AddScoped<IDiscordGeneralMessenger, DiscordGeneralMessenger>();
+
         services.AddHostedService<DiscordBotHostedService>();
     }
 }

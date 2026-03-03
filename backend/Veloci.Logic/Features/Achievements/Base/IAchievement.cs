@@ -7,6 +7,11 @@ public interface IAchievement
     string Name { get; }
     string Title { get; }
     string Description { get; }
+
+    /// <summary>
+    /// Returns cup id if the achievement is a cup-specific. Empty if achievement is not cup specific
+    /// </summary>
+    string? CupId { get; }
 }
 
 public interface IAchievementAfterTimeUpdate : IAchievement

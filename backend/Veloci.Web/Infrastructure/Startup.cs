@@ -1,5 +1,6 @@
 using System.Net;
 using Hangfire;
+using Microsoft.OpenApi;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -21,6 +22,7 @@ using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Notifications;
 using ModelContextProtocol.AspNetCore;
+using Veloci.Logic.Services;
 using Veloci.Mcp.Tools;
 using Veloci.Web.Infrastructure.Hangfire;
 using Veloci.Web.Infrastructure.Logging;
@@ -106,6 +108,7 @@ public class Startup
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
         services.Configure<ApiSettings>(Configuration.GetSection("API"));
+        services.Configure<ResultsOptions>(Configuration.GetSection(ResultsOptions.SectionName));
 
         services.Configure<IdentityOptions>(options =>
         {
@@ -138,7 +141,18 @@ public class Startup
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<IntermediateCompetitionResult>());
 
-        services.AddOpenApi();
+        services.AddOpenApi(options =>
+        {
+            options.AddSchemaTransformer((schema, context, cancellationToken) =>
+            {
+                if (schema.Type.HasValue && schema.Type.Value.HasFlag(JsonSchemaType.Integer))
+                {
+                    schema.Type = JsonSchemaType.Integer;
+                    schema.Pattern = null;
+                }
+                return Task.CompletedTask;
+            });
+        });
 
         services
             .AddMcpServer()

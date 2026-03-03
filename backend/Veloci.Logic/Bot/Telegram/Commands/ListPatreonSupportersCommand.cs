@@ -16,8 +16,9 @@ public class ListPatreonSupportersCommand : ITelegramCommand
 
     public string[] Keywords => ["/list-patreon"];
     public string Description => "/list-patreon";
-    public async Task<string> ExecuteAsync(string[]? parameters)
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
+        // Admin command - works in any chat regardless of cup binding
         var supporters = _supporters.GetAll().ToList();
 
         if (supporters.Count == 0)

@@ -1,55 +1,76 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Services.Tracks.Models;
 
 namespace Veloci.Logic.Services.Tracks;
 
+/// <summary>
+/// Filters tracks based on cup-specific configuration:
+/// scene whitelist, track type whitelist/blacklist, and name blacklist patterns.
+/// </summary>
 public class TrackFilter
 {
-    private static readonly Regex[] BlackListedTracks =
+    private readonly IReadOnlyDictionary<int, string>? _whitelistScenes;
+    private readonly HashSet<int>? _whitelistTrackTypes;
+    private readonly HashSet<int>? _blacklistTrackTypes;
+    private readonly Regex[]? _blacklistRegexes;
+
+    public TrackFilter(TrackFilterOptions options)
     {
-        new ("Pylons", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Freestyle", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Betafpv", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Beta 2S", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Micro", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("NewBeeDrone", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Toothpick", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Trainer", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("Whoop", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("LiPo-Suction", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("WeeBleed", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("^level (01,02, 03)", RegexOptions.Compiled | RegexOptions.IgnoreCase),
+        if (options.WhitelistScenes.Count > 0)
+            _whitelistScenes = options.WhitelistScenes;
 
-        //From old bot
-        new ("collision", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("redbull dr.one", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl season 3 track 3", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl team championships", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("growers rock garden", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl season 7 championships", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("gokartrelay", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("gods_of_quadhalla", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl-freestyle-country", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("boners journey", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("world of war", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("corona", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("neon cage", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("tbs spec 4", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("tdl races - gamex 2019", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("^opg", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("boners bando towers", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("vrl-freestyle-coast", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("boners bonsai fpv 4 freestyle", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("freestyle_tower_of_magical_power", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("dragons_and_wizards", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("trainer", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("tropical heat", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-        new ("rona masters", RegexOptions.Compiled | RegexOptions.IgnoreCase),
-    };
+        if (options.WhitelistTrackTypes.Count > 0)
+            _whitelistTrackTypes = options.WhitelistTrackTypes.ToHashSet();
 
+        if (options.BlacklistTrackTypes.Count > 0)
+            _blacklistTrackTypes = options.BlacklistTrackTypes.ToHashSet();
 
-    public bool IsTrackGoodFor5inchRacing(ParsedTrackModel track)
+        if (options.BlacklistPatterns.Count > 0)
+        {
+            _blacklistRegexes = options.BlacklistPatterns
+                .Select(pattern => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase))
+                .ToArray();
+        }
+    }
+
+    /// <summary>
+    /// Filters maps to whitelisted scenes, maps scene names, and returns suitable tracks.
+    /// </summary>
+    public List<ParsedTrackModel> GetSuitableTracks(IEnumerable<ParsedMapModel> maps)
     {
-        return !BlackListedTracks.Any(b => b.IsMatch(track.Name));
+        var filteredMaps = _whitelistScenes != null
+            ? maps.Where(m => _whitelistScenes.ContainsKey(m.Id)).ToList()
+            : maps.ToList();
+
+        if (_whitelistScenes != null)
+        {
+            // A bit of weird solution since we do not get scene names from API
+            // so we need to map scene names from our scene whitelist
+            foreach (var map in filteredMaps)
+                map.Name = _whitelistScenes[map.Id];
+        }
+
+        return filteredMaps
+            .SelectMany(m => m.Tracks)
+            .Where(IsTrackSuitable)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Determines if a track passes track-level filters (type and name).
+    /// </summary>
+    public bool IsTrackSuitable(ParsedTrackModel track)
+    {
+        if (_whitelistTrackTypes != null && !_whitelistTrackTypes.Contains(track.Type))
+            return false;
+
+        if (_blacklistTrackTypes != null && _blacklistTrackTypes.Contains(track.Type))
+            return false;
+
+        if (_blacklistRegexes != null && _blacklistRegexes.Any(regex => regex.IsMatch(track.Name)))
+            return false;
+
+        return true;
     }
 }

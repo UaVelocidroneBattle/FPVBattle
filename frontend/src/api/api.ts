@@ -12,8 +12,8 @@ class ApiClient {
     });
   }
 
-  getDashboard() {
-    return getApiDashboard();
+  getDashboard(cupId: string) {
+    return getApiDashboard({ query: { cupId } });
   }
 }
 

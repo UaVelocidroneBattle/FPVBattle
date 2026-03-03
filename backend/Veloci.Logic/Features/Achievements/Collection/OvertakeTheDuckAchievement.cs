@@ -6,8 +6,9 @@ namespace Veloci.Logic.Features.Achievements.Collection;
 public class OvertakeTheDuckAchievement : IAchievementAfterCompetition
 {
     public string Name => "OvertakeTheDuck";
-    public string Title => "Дожени качку";
-    public string Description => "Обжени качку в гонці";
+    public string Title => "Catch The Duck";
+    public string Description => "Overtake the duck in a race";
+    public string? CupId => null;
 
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
     {

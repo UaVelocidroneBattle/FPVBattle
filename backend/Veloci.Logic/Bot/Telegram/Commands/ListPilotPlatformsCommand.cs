@@ -16,8 +16,9 @@ public class ListPilotPlatformsCommand : ITelegramCommand
 
     public string[] Keywords => ["/list-pilot-platforms"];
     public string Description => "/list-pilot-platforms";
-    public async Task<string> ExecuteAsync(string[]? parameters)
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
+        // Admin command - works in any chat regardless of cup binding
         var pilots = _pilots
             .GetAll(p => p.PlatformAccounts.Any())
             .ToList();

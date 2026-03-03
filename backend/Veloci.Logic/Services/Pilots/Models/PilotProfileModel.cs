@@ -3,6 +3,7 @@ namespace Veloci.Logic.Services.Pilots.Models;
 public class PilotProfileModel
 {
     public required string Name { get; set; }
+    public required string Country { get; set; }
     public required int CurrentDayStreak { get; set; }
     public required int MaxDayStreak { get; set; }
     public required List<PilotAchievementModel> Achievements { get; set; }

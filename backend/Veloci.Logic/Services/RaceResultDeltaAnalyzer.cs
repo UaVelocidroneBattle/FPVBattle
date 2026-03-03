@@ -20,7 +20,8 @@ public class RaceResultDeltaAnalyzer
                     LocalRank = trackTime.LocalRank,
                     Rank = trackTime.GlobalRank,
                     TrackTime = trackTime.Time,
-                    ModelName = trackTime.ModelName
+                    ModelName = trackTime.ModelName,
+                    Country = trackTime.Country,
                 });
 
                 continue;
@@ -38,7 +39,8 @@ public class RaceResultDeltaAnalyzer
                 RankOld = existingTime.GlobalRank,
                 TrackTime = trackTime.Time,
                 TimeChange = trackTime.Time - existingTime.Time,
-                ModelName = trackTime.ModelName
+                ModelName = trackTime.ModelName,
+                Country = trackTime.Country,
             });
         }
 

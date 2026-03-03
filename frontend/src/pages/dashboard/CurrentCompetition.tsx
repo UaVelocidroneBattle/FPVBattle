@@ -26,7 +26,7 @@ const CurrentCompetition = ({ dashboard }: ICurrentCompetitionProps) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="order-1 sm:col-span-1 sm:order-1">
                     <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium">
-                        Today's track:
+                        Today's track
                     </h3>
                 </div>
 

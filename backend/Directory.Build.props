@@ -1,0 +1,22 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.user.props"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.user.props')" />
+    <PropertyGroup>
+        <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+        <WarningsAsErrors>CS4014</WarningsAsErrors>
+        <WarningsAsErrors>UA0001</WarningsAsErrors>
+        <WarningsAsErrors>MSB3568</WarningsAsErrors>
+        <WarningsAsErrors>MA0100</WarningsAsErrors>
+        <WarningsAsErrors>MA0134</WarningsAsErrors>
+        <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+        <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+        <TypeScriptBuildMode>true</TypeScriptBuildMode>
+        <TypeScriptEnableIncrementalMSBuild>false</TypeScriptEnableIncrementalMSBuild>
+        <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+        <Deterministic>true</Deterministic>
+        <BuildInParallel>true</BuildInParallel>
+        <EnableIncrementalBuild>true</EnableIncrementalBuild>
+        <FastUpToDateCheck>true</FastUpToDateCheck>
+        <TargetFramework>net10.0</TargetFramework>
+    </PropertyGroup>
+</Project>
