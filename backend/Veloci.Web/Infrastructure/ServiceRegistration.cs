@@ -7,6 +7,7 @@ using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services;
 using Veloci.Logic.Features.Achievements;
+using Veloci.Logic.Features.Leagues;
 using Veloci.Logic.Services.Pilots;
 using Veloci.Logic.Services.Tracks;
 using Veloci.Web.Controllers.Heatmap;
@@ -41,6 +42,7 @@ public static class ServiceRegistration
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);
         services.AddCups(configuration);
+        services.AddLeagues(configuration);
 
         return services;
     }

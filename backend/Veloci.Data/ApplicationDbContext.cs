@@ -73,5 +73,10 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<WhiteListedPilot>().ToTable("WhiteListedPilots");
         builder.Entity<WhiteListedPilot>().HasKey(p => p.Id);
         builder.Entity<WhiteListedPilot>().Property(p => p.PilotName).HasMaxLength(128);
+
+        builder.Entity<PilotPaceRating>().ToTable("PilotPaceRatings");
+        builder.Entity<PilotPaceRating>().HasKey(p => p.Id);
+        builder.Entity<PilotPaceRating>().Property(p => p.CupId).HasMaxLength(64).IsRequired();
+        builder.Entity<PilotPaceRating>().HasIndex(p => new { p.PilotId, p.CupId });
     }
 }
