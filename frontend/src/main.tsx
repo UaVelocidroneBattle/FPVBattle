@@ -10,6 +10,7 @@ import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
 import LeaderBoardPage from './pages/statistics/leaderboard/LeaderBoardPage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
+import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -22,7 +23,8 @@ createRoot(document.getElementById('root')!).render(
             <Route path='whoop' element={<DashboardPage cupId="whoop-class" />} />
             <Route path='rules' element={<RulesPage />} />
             <Route path='statistics' element={<StatisticsPage />} >
-              <Route index element={<Navigate to="profile" replace />} />
+              <Route index element={<Navigate to="global-rating" replace />} />
+              <Route path="global-rating" element={<GlobalRatingPage />} />
               <Route path="profile" element={<PilotProfilePage />} />
               <Route path="leaderboard" element={<LeaderBoardPage />} />
               <Route path="tracks" element={<TracksPage />} />

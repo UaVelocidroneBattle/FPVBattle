@@ -16,6 +16,14 @@ export interface PilotProfileViewProps {
     loadingState: LoadingStates;
 }
 
+function heatmapHeight(data: PilotResult[]): string {
+    const firstYear = new Date(data[0].date).getFullYear();
+    const lastYear = new Date(data[data.length - 1].date).getFullYear();
+    const numYears = lastYear - firstYear + 1;
+    const px = Math.max(300, numYears * 200 + (numYears - 1) * 70);
+    return `${px}px`;
+}
+
 const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileViewProps) => {
 
     if (loadingState === 'Loading') {
@@ -58,7 +66,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             <div className="bg-slate-800 rounded-lg p-6 hidden sm:block">
                 <h2 className="text-xl font-semibold text-white mb-4">Racing Activity</h2>
                 {heatmapData.length > 0 ? (
-                    <ChartContainer className="bg-none rounded-lg min-h-[200px] md:min-h-[300px]" height={'0'}>
+                    <ChartContainer className="bg-none rounded-lg" height={heatmapHeight(heatmapData)}>
                         <HeatmapChart data={heatmapData} />
                     </ChartContainer>
 
