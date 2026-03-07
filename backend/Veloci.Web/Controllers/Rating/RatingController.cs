@@ -29,6 +29,7 @@ public class RatingController : ControllerBase
             {
                 PilotId = r.PilotId,
                 PilotName = r.Pilot.Name,
+                Country = r.Pilot.Country,
                 AverageGapPercent = r.AverageGapPercent,
                 AverageGapChange = r.AverageGapChange,
                 Rank = r.Rank,

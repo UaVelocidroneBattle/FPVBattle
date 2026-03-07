@@ -10,6 +10,7 @@ public class PilotRatingModel
 {
     public int PilotId { get; set; }
     public string PilotName { get; set; }
+    public string Country { get; set; }
     public double? AverageGapPercent { get; set; }
     public double? AverageGapChange { get; set; }
     public int Rank { get; set; }
