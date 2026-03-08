@@ -38,8 +38,8 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
         <>
             {/* Pilot Header */}
             <div className="bg-slate-800 rounded-lg p-6">
-                <h1 className="text-3xl font-bold text-white mb-3 flex items-center gap-3">
-                    <CountryFlag countryCode={profile.country} className="text-2xl" />
+                <h1 className="text-xl sm:text-3xl font-bold text-white mb-3 flex items-center gap-2 sm:gap-3">
+                    <CountryFlag countryCode={profile.country} className="text-lg sm:text-2xl" />
                     {profile.name}
                 </h1>
                 <div className='text-slate-400 mb-4'>

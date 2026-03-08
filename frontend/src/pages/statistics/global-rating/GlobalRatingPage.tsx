@@ -8,10 +8,11 @@ import { formatDate } from "@/lib/utils";
 
 const CUP_ID = "open-class";
 
+
 function RankChange({ change }: { change: number | null }) {
     if (change === null)
         return (
-            <span className="absolute top-full mt-0.4 right-0 text-[10px] font-bold text-amber-400 tracking-wide">
+            <span className="absolute top-full mt-0.4 left-0 text-[10px] font-bold text-amber-400 tracking-wide">
                 NEW
             </span>
         );
@@ -19,7 +20,7 @@ function RankChange({ change }: { change: number | null }) {
     const improved = change < 0;
     const Icon = improved ? ArrowUp : ArrowDown;
     return (
-        <span className={`absolute top-full mt-0.4 right-0 flex items-center gap-0.5 text-xs font-medium ${improved ? "text-emerald-400" : "text-red-400"}`}>
+        <span className={`absolute top-full mt-0.4 left-0 flex items-center gap-0.5 text-xs font-medium ${improved ? "text-emerald-400" : "text-red-400"}`}>
             <Icon className="h-3 w-3" />
             {Math.abs(change)}
         </span>
@@ -46,10 +47,10 @@ function formatGap(value: number | null): string {
 
 function RatingRow({ pilot }: { pilot: PilotRatingModel }) {
     return (
-        <li className="px-6 py-6 hover:bg-slate-700/30 transition-colors duration-150">
-            <div className="grid grid-cols-[2.5rem_1fr_2rem_5rem] items-center gap-10">
-                <div className="relative flex justify-end">
-                    <span className="font-bold text-slate-400 text-2xl tabular-nums">
+        <li className="px-3 py-6 hover:bg-slate-700/30 transition-colors duration-150">
+            <div className="grid grid-cols-[2.5rem_1fr_2rem_5rem] items-center gap-4">
+                <div className="relative flex justify-start">
+                    <span className="font-bold text-slate-400 text-lg sm:text-2xl tabular-nums">
                         {String(pilot.rank).padStart(2, "0")}
                     </span>
                     <RankChange change={pilot.rankChange} />
@@ -104,8 +105,8 @@ function GlobalRatingPage() {
             )}
 
             {loadingState === "Loaded" && data && (
-                <div className="overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-700/50 grid grid-cols-[3.5rem_1fr_2rem_5rem] gap-6">
+                <div className="overflow-hidden -mx-6 sm:mx-0">
+                    <div className="px-3 py-4 border-b border-slate-700/50 grid grid-cols-[2.5rem_1fr_2rem_5rem] gap-4">
                         <div />
                         <div className="text-sm font-medium text-emerald-400">Pilot</div>
                         <div />
