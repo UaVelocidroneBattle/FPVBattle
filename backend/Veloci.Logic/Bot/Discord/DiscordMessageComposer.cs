@@ -162,7 +162,7 @@ public class DiscordMessageComposer
             message += $"**{TextHelper.Trim(pilot.Name, PilotNameMaxLength)}** - **{pilot.DayStreak}** streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
         }
 
-        message += $"{Environment.NewLine}Quick, fire up your simulators and fly! 🚀";
+        message += $"{Environment.NewLine}Quick, fire up your simulators and fly, you have 2 hours!";
 
         return message;
     }
