@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useGlobalRatingStore, PilotRatingModel } from "@/store/globalRatingStore";
 import { Spinner } from "@/components/ui/spinner";
-import PilotName from "@/components/PilotName";
-import CountryFlag from "@/components/ui/CountryFlag";
+import PilotWithAvatar from "@/components/PilotWithAvatar";
 import { formatDate } from "@/lib/utils";
 
 const CUP_ID = "open-class";
@@ -12,7 +11,7 @@ const CUP_ID = "open-class";
 function RankChange({ change }: { change: number | null }) {
     if (change === null)
         return (
-            <span className="absolute top-full mt-0.4 left-0 text-[10px] font-bold text-amber-400 tracking-wide">
+            <span className="absolute top-full mt-0.5 left-0 text-[10px] font-bold text-amber-400 tracking-wide">
                 NEW
             </span>
         );
@@ -20,7 +19,7 @@ function RankChange({ change }: { change: number | null }) {
     const improved = change < 0;
     const Icon = improved ? ArrowUp : ArrowDown;
     return (
-        <span className={`absolute top-full mt-0.4 left-0 flex items-center gap-0.5 text-xs font-medium ${improved ? "text-emerald-400" : "text-red-400"}`}>
+        <span className={`absolute top-full mt-0.5 left-0 flex items-center gap-0.5 text-xs font-medium ${improved ? "text-emerald-400" : "text-red-400"}`}>
             <Icon className="h-3 w-3" />
             {Math.abs(change)}
         </span>
@@ -30,10 +29,9 @@ function RankChange({ change }: { change: number | null }) {
 function GapChange({ change }: { change: number }) {
     if (change === 0) return null;
     const improved = change < 0;
-    const Icon = improved ? ArrowUp : ArrowDown;
     return (
-        <span className={`absolute top-full mt-0.4 right-0 flex items-center gap-0.5 text-xs font-medium ${improved ? "text-emerald-400" : "text-red-400"}`}>
-            <Icon className="h-3 w-3" />
+        <span className={`absolute top-full mt-0.5 right-0 text-xs font-medium ${improved ? "text-emerald-400" : "text-red-400"}`}>
+            {improved ? "−" : "+"}
             {Math.abs(change).toFixed(2)}%
         </span>
     );
@@ -48,23 +46,20 @@ function formatGap(value: number | null): string {
 function RatingRow({ pilot }: { pilot: PilotRatingModel }) {
     return (
         <li className="px-3 py-6 hover:bg-slate-700/30 transition-colors duration-150">
-            <div className="grid grid-cols-[2.5rem_1fr_2rem_5rem] items-center gap-4">
-                <div className="relative flex justify-start">
-                    <span className="font-bold text-slate-400 text-lg sm:text-2xl tabular-nums">
+            <div className="flex items-center gap-4">
+                <div className="relative w-8 flex-shrink-0">
+                    <span className="font-bold tabular-nums text-lg sm:text-2xl text-slate-400">
                         {String(pilot.rank).padStart(2, "0")}
                     </span>
                     <RankChange change={pilot.rankChange} />
                 </div>
 
-                <PilotName
-                    name={pilot.pilotName}
-                    className="text-sm font-medium text-slate-200"
-                />
+                <div className="flex-1 min-w-0">
+                    <PilotWithAvatar name={pilot.pilotName} countryCode={pilot.country ?? null} />
+                </div>
 
-                <CountryFlag countryCode={pilot.country ?? ""} className="text-sm" />
-
-                <div className="relative flex justify-end">
-                    <span className="text-lg text-slate-300 font-semibold tabular-nums">
+                <div className="relative flex-shrink-0 text-right">
+                    <span className="text-lg font-semibold text-slate-300 tabular-nums">
                         {formatGap(pilot.averageGapPercent)}
                     </span>
                     <GapChange change={pilot.averageGapChange ?? 0} />
@@ -106,11 +101,10 @@ function GlobalRatingPage() {
 
             {loadingState === "Loaded" && data && (
                 <div className="overflow-hidden -mx-6 sm:mx-0">
-                    <div className="px-3 py-4 border-b border-slate-700/50 grid grid-cols-[2.5rem_1fr_2rem_5rem] gap-4">
-                        <div />
-                        <div className="text-sm font-medium text-emerald-400">Pilot</div>
-                        <div />
-                        <div className="text-sm font-medium text-emerald-400 text-right">Gap</div>
+                    <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
+                        <div className="w-8 flex-shrink-0" />
+                        <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>
+                        <div className="flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500">Gap</div>
                     </div>
                     <ul className="divide-y divide-slate-700/50">
                         {data.ratings.map((pilot) => (
