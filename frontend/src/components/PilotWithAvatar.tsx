@@ -17,7 +17,7 @@ function PilotWithAvatar({ name, countryCode }: PilotWithAvatarProps) {
         >
             {hasFlag ? (
                 <span
-                    className={`fi fi-${countryCode.toLowerCase()} flex-shrink-0 rounded-full ring-2 ring-slate-600 group-hover:ring-emerald-500 transition-all`}
+                    className={`fi fi-${countryCode.toLowerCase()} flex-shrink-0 rounded-full ring-slate-600 group-hover:ring-emerald-500 transition-all`}
                     style={{ width: "2.25rem", height: "2.25rem", display: "block", backgroundSize: "cover" }}
                 />
             ) : (
