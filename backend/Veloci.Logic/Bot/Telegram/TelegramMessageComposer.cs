@@ -157,7 +157,7 @@ public class TelegramMessageComposer
             message += $"*{TextHelper.Trim(pilot.Name, PilotNameMaxLength)}* - *{pilot.DayStreak}* streak ({GetFreezieText(pilot.DayStreakFreezeCount)}){Environment.NewLine}";
         }
 
-        message += $"{Environment.NewLine}Швиденько запускайте симулятори і летіть! 🚀";
+        message += $"{Environment.NewLine}Швиденько запускайте симулятори і летіть, у вас ще 2 години!";
 
         return message;
     }

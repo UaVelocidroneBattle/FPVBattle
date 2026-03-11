@@ -16,6 +16,14 @@ export interface PilotProfileViewProps {
     loadingState: LoadingStates;
 }
 
+function heatmapHeight(data: PilotResult[]): string {
+    const firstYear = new Date(data[0].date).getFullYear();
+    const lastYear = new Date(data[data.length - 1].date).getFullYear();
+    const numYears = lastYear - firstYear + 1;
+    const px = Math.max(300, numYears * 200 + (numYears - 1) * 70);
+    return `${px}px`;
+}
+
 const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileViewProps) => {
 
     if (loadingState === 'Loading') {
@@ -30,8 +38,8 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
         <>
             {/* Pilot Header */}
             <div className="bg-slate-800 rounded-lg p-6">
-                <h1 className="text-3xl font-bold text-white mb-3 flex items-center gap-3">
-                    <CountryFlag countryCode={profile.country} className="text-2xl" />
+                <h1 className="text-xl sm:text-3xl font-bold text-white mb-3 flex items-center gap-2 sm:gap-3">
+                    <CountryFlag countryCode={profile.country} className="text-lg sm:text-2xl" />
                     {profile.name}
                 </h1>
                 <div className='text-slate-400 mb-4'>
@@ -58,7 +66,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             <div className="bg-slate-800 rounded-lg p-6 hidden sm:block">
                 <h2 className="text-xl font-semibold text-white mb-4">Racing Activity</h2>
                 {heatmapData.length > 0 ? (
-                    <ChartContainer className="bg-none rounded-lg min-h-[200px] md:min-h-[300px]" height={'0'}>
+                    <ChartContainer className="bg-none rounded-lg" height={heatmapHeight(heatmapData)}>
                         <HeatmapChart data={heatmapData} />
                     </ChartContainer>
 
