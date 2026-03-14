@@ -48,8 +48,7 @@ public class TrackService
         {
             attempts++;
             var track = GetRandomElement(filteredTracks);
-            var dbTrack = await GetTrackAsync(track.Id)
-                          ?? await CreateNewTrackAsync(track.Map.Name, track.Map.Id, track.Name, track.Id);
+            var dbTrack = await GetOrCreateTrackAsync(track.Map.Name, track.Map.Id, track.Name, track.Id);
 
             _log.Debug("Track selection attempt {Attempt}: Evaluating {TrackName} (ID: {TrackId}) - Rating: {Rating}, Recently used: {RecentlyUsed}",
                 attempts, dbTrack.Name, dbTrack.TrackId, dbTrack.Rating?.Value, usedTrackIds.Contains(dbTrack.Id));
@@ -63,11 +62,13 @@ public class TrackService
         }
     }
 
-    private async Task<Track?> GetTrackAsync(int trackId)
+    public async Task<Track> GetOrCreateTrackAsync(string mapName, int mapId, string trackName, int trackId)
     {
-        return await _tracks
+        var dbTrack = await _tracks
                 .GetAll()
                 .FirstOrDefaultAsync(t => t.TrackId == trackId);
+
+        return dbTrack ?? await CreateNewTrackAsync(mapName, mapId, trackName, trackId);
     }
 
     private async Task<Track> CreateNewTrackAsync(string mapName, int mapId, string trackName, int trackId)

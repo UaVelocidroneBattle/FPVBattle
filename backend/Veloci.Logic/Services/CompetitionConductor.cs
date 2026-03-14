@@ -28,6 +28,7 @@ public class CompetitionConductor
     private readonly ImageService _imageService;
     private readonly ICupService _cupService;
     private readonly ITelegramCupMessenger _telegramCupMessenger;
+    private readonly TrackQueueService _trackQueueService;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
@@ -40,7 +41,8 @@ public class CompetitionConductor
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         ICupService cupService,
-        ITelegramCupMessenger telegramCupMessenger)
+        ITelegramCupMessenger telegramCupMessenger,
+        TrackQueueService trackQueueService)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -53,13 +55,13 @@ public class CompetitionConductor
         _velocidrone = velocidrone;
         _cupService = cupService;
         _telegramCupMessenger = telegramCupMessenger;
+        _trackQueueService = trackQueueService;
     }
 
     public async Task StartNewAsync(string cupId)
     {
         _log.Information("🏁 Starting a new competition for cup {CupId}", cupId);
 
-        // Get cup configuration
         var cupOptions = _cupService.GetCupOptions(cupId);
 
         if (!cupOptions.IsEnabled)
@@ -77,25 +79,35 @@ public class CompetitionConductor
             await CancelAsync(cupId);
         }
 
-        // Create cup-specific track filter
-        var trackFilter = new TrackFilter(cupOptions.TrackFilter);
-
-        Track track;
         ICollection<TrackTimeDto> resultsDto;
-        var attempts = 0;
 
-        do
+        var track = await _trackQueueService.TryDequeueNextTrackAsync(cupId);
+
+        if (track is not null)
         {
-            track = await _trackService.GetRandomTrackAsync(trackFilter);
-            attempts++;
-            _log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for new competition in cup {CupId} (attempt {Attempt})", track.Name, track.TrackId, cupId, attempts);
             resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
+        }
+        else
+        {
+            const int maxAttempts = 10;
+            var trackFilter = new TrackFilter(cupOptions.TrackFilter);
+            var attempts = 0;
+
+            do
+            {
+                track = await _trackService.GetRandomTrackAsync(trackFilter);
+                attempts++;
+                _log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for cup {CupId} (attempt {Attempt}/{MaxAttempts})", track.Name, track.TrackId, cupId, attempts, maxAttempts);
+                resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
+
+                if (resultsDto.Count == 0)
+                    _log.Warning("Track {TrackName} has no results, selecting another track", track.Name);
+
+            } while (resultsDto.Count == 0 && attempts < maxAttempts);
 
             if (resultsDto.Count == 0)
-            {
-                _log.Information("Track {TrackName} has no results, selecting another track", track.Name);
-            }
-        } while (resultsDto.Count == 0);
+                throw new InvalidOperationException($"No track with results found for cup {cupId} after {maxAttempts} attempts");
+        }
 
         var results = await _resultsConverter.ConvertTrackTimesAsync(resultsDto);
         _log.Debug("Retrieved {ResultCount} initial results from Velocidrone API for track {TrackId}", results.Count, track.TrackId);
@@ -121,7 +133,7 @@ public class CompetitionConductor
 
         await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack, cupOptions));
 
-        //possible needs to be moved to CompetitionStarted event handler in TelegramHandler
+        //TODO: possible needs to be moved to CompetitionStarted event handler in TelegramHandler
         await CreatePoll(track, competition);
 
         await _competitions.SaveChangesAsync();
@@ -130,18 +142,18 @@ public class CompetitionConductor
 
     private async Task<IList<string>> GetPilotsFlownOnTrackAsync(TrackResults trackResults)
     {
-        var result = new List<string>();
+        var userIds = trackResults.Times
+            .Where(t => t.UserId.HasValue)
+            .Select(t => t.UserId!.Value)
+            .ToList();
 
-        foreach (var time in trackResults.Times)
-        {
-            var pilot = await _pilots.FindAsync(time.UserId);
+        var names = await _pilots
+            .GetAll(p => userIds.Contains(p.Id))
+            .Select(p => p.Name)
+            .ToListAsync();
 
-            if (pilot is not null)
-                result.Add(pilot.Name);
-        }
-
-        result.Sort();
-        return result;
+        names.Sort();
+        return names;
     }
 
     private async Task CreatePoll(Track track, Competition competition)

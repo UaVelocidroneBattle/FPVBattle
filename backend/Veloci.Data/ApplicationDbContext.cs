@@ -78,5 +78,8 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<PilotPaceRating>().HasKey(p => p.Id);
         builder.Entity<PilotPaceRating>().Property(p => p.CupId).HasMaxLength(64).IsRequired();
         builder.Entity<PilotPaceRating>().HasIndex(p => new { p.PilotId, p.CupId });
+
+        builder.Entity<QueuedTrack>().ToTable("TrackQueue");
+        builder.Entity<QueuedTrack>().HasKey(p => p.Id);
     }
 }
