@@ -38,6 +38,7 @@ public static class ServiceRegistration
         services.AddScoped<PilotPlatformsService>();
         services.AddScoped<PointsCalculator>();
         services.AddScoped<IWhiteListService, WhiteListService>();
+        services.AddScoped<TrackQueueService>();
 
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);

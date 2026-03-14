@@ -1,0 +1,76 @@
+@using Veloci.Web.Controllers.TrackQueue
+@model TrackQueueViewModel
+
+@{
+    ViewData["Title"] = "Track Queue";
+}
+
+<h1>Track Queue</h1>
+
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="mb-4">
+    <h5>Add Track</h5>
+    <form asp-action="Add" method="post" class="d-flex gap-2 align-items-end flex-wrap">
+        <div>
+            <label class="form-label mb-1">Cup</label>
+            <select name="cupId" class="form-select w-auto" required>
+                @foreach (var cup in Model.Cups)
+                {
+                    <option value="@cup.CupId">@cup.CupName</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label mb-1">Track Name</label>
+            <input type="text" name="trackName" class="form-control" placeholder="Exact track name" required />
+        </div>
+        <div>
+            <label class="form-label mb-1">Schedule Date <span class="text-muted">(optional)</span></label>
+            <input type="date" name="scheduleOn" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add to Queue</button>
+    </form>
+</div>
+
+@foreach (var cup in Model.Cups)
+{
+    <h4 class="mt-4">@cup.CupName</h4>
+
+    @if (cup.Tracks.Count == 0)
+    {
+        <p class="text-muted">No tracks in the queue for this cup.</p>
+    }
+    else
+    {
+        <table class="table table-bordered w-auto">
+            <thead>
+                <tr>
+                    <th>Track</th>
+                    <th>Scheduled On</th>
+                    <th>Added On</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entry in cup.Tracks)
+                {
+                    <tr>
+                        <td>@entry.Track.Name</td>
+                        <td>@(entry.ScheduledOn?.ToString("yyyy-MM-dd") ?? "—")</td>
+                        <td>@entry.AddedOn.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <form asp-action="Remove" method="post">
+                                <input type="hidden" name="id" value="@entry.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
