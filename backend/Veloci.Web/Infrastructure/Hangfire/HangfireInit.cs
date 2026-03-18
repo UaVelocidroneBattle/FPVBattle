@@ -40,7 +40,10 @@ public class HangfireInit
 
         Log.Information("Setting up continuous monitoring recurring jobs");
 
-        RecurringJob.AddOrUpdate<CompetitionService>("Update results", x => x.UpdateResultsAsync(), "*/10 * * * *");
+        var resultsUpdateEnabled = configuration.GetValue<bool>("ResultsUpdateEnabled");
+        var resultsUpdateSchedule = resultsUpdateEnabled ? "*/10 * * * *" : Cron.Never();
+        RecurringJob.AddOrUpdate<CompetitionService>("Update results", x => x.UpdateResultsAsync(), resultsUpdateSchedule);
+
         RecurringJob.AddOrUpdate<CompetitionService>("Publish current leaderboard", x => x.PublishCurrentLeaderboardAsync(), "1 */2 * * *");
 
         Log.Information("Setting up yearly recurring jobs");
