@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
+using Veloci.Data.Repositories;
 using Veloci.Logic.API.Dto;
 
 namespace Veloci.Logic.Services;
@@ -9,21 +10,25 @@ public class RaceResultsConverter
 {
     private static readonly Mappings.DtoMapper Mapper = new();
     private readonly IWhiteListService _whiteListService;
+    private readonly IRepository<QuadModel> _quadModels;
     private readonly ResultsOptions _options;
 
-    public RaceResultsConverter(IWhiteListService whiteListService, IOptions<ResultsOptions> options)
+    public RaceResultsConverter(IWhiteListService whiteListService, IRepository<QuadModel> quadModels, IOptions<ResultsOptions> options)
     {
         _whiteListService = whiteListService;
+        _quadModels = quadModels;
         _options = options.Value;
     }
 
-    public async Task<List<TrackTime>> ConvertTrackTimesAsync(IEnumerable<TrackTimeDto> timesDtos)
+    public async Task<List<TrackTime>> ConvertTrackTimesAsync(IEnumerable<TrackTimeDto> timesDtos, int[] allowedQuadClasses)
     {
         var whitelist = await _whiteListService.GetWhitelistAsync();
+        var modelClassByName = _quadModels.GetAll()
+            .ToDictionary(m => m.Name, m => m.Class, StringComparer.OrdinalIgnoreCase);
 
         return timesDtos
             .Select((dto, i) => (dto, globalRank: i + 1))
-            .Where(x => IsAllowed(x.dto, whitelist))
+            .Where(x => IsAllowed(x.dto, whitelist, modelClassByName, allowedQuadClasses))
             .Select(x => MapDtoToTrackTime(x.dto, x.globalRank))
             .GroupBy(x => x.UserId)
             .Select(j => j.MinBy(x => x.Time)!)
@@ -35,9 +40,14 @@ public class RaceResultsConverter
             .ToList();
     }
 
-    private bool IsAllowed(TrackTimeDto dto, IReadOnlySet<string> whitelist)
+    private bool IsAllowed(TrackTimeDto dto, IReadOnlySet<string> whitelist, Dictionary<string, int> modelClassByName, int[] allowedQuadClasses)
     {
         if (_options.CountriesBlackList.Contains(dto.country, StringComparer.OrdinalIgnoreCase))
+            return false;
+
+        if (allowedQuadClasses.Length > 0
+            && modelClassByName.TryGetValue(dto.model_name, out var modelClass)
+            && !allowedQuadClasses.Contains(modelClass))
             return false;
 
         return dto.country == "UA" || whitelist.Contains(dto.playername);

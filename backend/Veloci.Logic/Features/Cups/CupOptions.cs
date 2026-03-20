@@ -24,6 +24,8 @@ public class CupOptions
     public TrackFilterOptions TrackFilter { get; set; } = new();
 
     public ChannelOptions Channels { get; set; } = new();
+
+    public int[] QuadClasses { get; set; } = [];
 }
 
 /// <summary>

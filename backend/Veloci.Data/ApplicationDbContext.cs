@@ -81,5 +81,10 @@ public class ApplicationDbContext : IdentityDbContext
 
         builder.Entity<QueuedTrack>().ToTable("TrackQueue");
         builder.Entity<QueuedTrack>().HasKey(p => p.Id);
+
+        builder.Entity<QuadModel>().ToTable("QuadModels");
+        builder.Entity<QuadModel>().HasKey(p => p.Id);
+        builder.Entity<QuadModel>().Property(p => p.Id).ValueGeneratedNever();
+        builder.Entity<QuadModel>().Property(p => p.Name).HasMaxLength(128);
     }
 }
