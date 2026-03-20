@@ -109,7 +109,7 @@ public class CompetitionConductor
                 throw new InvalidOperationException($"No track with results found for cup {cupId} after {maxAttempts} attempts");
         }
 
-        var results = await _resultsConverter.ConvertTrackTimesAsync(resultsDto);
+        var results = await _resultsConverter.ConvertTrackTimesAsync(resultsDto, cupOptions.QuadClasses);
         _log.Debug("Retrieved {ResultCount} initial results from Velocidrone API for track {TrackId}", results.Count, track.TrackId);
 
         var trackResults = new TrackResults

@@ -74,7 +74,7 @@ public class CompetitionService
         var cupOptions = _cupService.GetCupOptions(competition.CupId);
 
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
-        var times = await _resultsConverter.ConvertTrackTimesAsync(resultsDto);
+        var times = await _resultsConverter.ConvertTrackTimesAsync(resultsDto, cupOptions.QuadClasses);
         _log.Debug("Retrieved {ResultCount} results from Velocidrone API for competition {CompetitionId}", times.Count, competition.Id);
 
         var results = new TrackResults

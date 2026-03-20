@@ -40,7 +40,10 @@ public class HangfireInit
 
         Log.Information("Setting up continuous monitoring recurring jobs");
 
-        RecurringJob.AddOrUpdate<CompetitionService>("Update results", x => x.UpdateResultsAsync(), "*/10 * * * *");
+        var resultsUpdateEnabled = configuration.GetValue<bool>("ResultsUpdateEnabled");
+        var resultsUpdateSchedule = resultsUpdateEnabled ? "*/10 * * * *" : Cron.Never();
+        RecurringJob.AddOrUpdate<CompetitionService>("Update results", x => x.UpdateResultsAsync(), resultsUpdateSchedule);
+
         RecurringJob.AddOrUpdate<CompetitionService>("Publish current leaderboard", x => x.PublishCurrentLeaderboardAsync(), "1 */2 * * *");
 
         Log.Information("Setting up yearly recurring jobs");
@@ -49,6 +52,7 @@ public class HangfireInit
         // RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
 
         RecurringJob.AddOrUpdate<PaceRatingCalculator>("Calculate pace rating", x => x.CalculateAsync(), "0 3 * * 1");
+        RecurringJob.AddOrUpdate<ModelsService>("Update models", x => x.UpdateModelsAsync(), "33 3 * * *");
 
         Log.Information("Registering feature-specific jobs");
         using (var scope = serviceProvider.CreateScope())

@@ -42,6 +42,15 @@ public class Velocidrone
         return response.tracktimes;
     }
 
+    public async Task<ICollection<ModelDto>> ModelsAsync()
+    {
+        _log.Debug("Requesting models from Velocidrone API");
+        var response = await DoRequestAsync<ModelsDto>("api/get-models", HttpMethod.Post);
+        _log.Information("Retrieved {ModelCount} results from Velocidrone API", response.models.Count);
+
+        return response.models;
+    }
+
     private async Task<T> DoRequestAsync<T>(string uri, HttpMethod method, string? formData = null)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
