@@ -24,6 +24,6 @@ public class GlobalFirstPlaceAchievement : IAchievementAfterCompetition
             throw new Exception("Result is null. Check the logic");
         }
 
-        return result.GlobalRank == 1;
+        return result is { GlobalRank: 1, LocalRank: 1 };
     }
 }
