@@ -1,13 +1,21 @@
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Achievements.Base;
+using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Features.Achievements.Collection;
 
 public class OvertakeTheDuckAchievement : IAchievementAfterCompetition
 {
+    private readonly ModelsService _modelsService;
+
+    public OvertakeTheDuckAchievement(ModelsService modelsService)
+    {
+        _modelsService = modelsService;
+    }
+
     public string Name => "OvertakeTheDuck";
     public string Title => "Catch The Duck";
-    public string Description => "Overtake the duck in a race";
+    public string Description => "Overtake StDuck on a track";
     public string? CupId => null;
 
     public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
@@ -39,6 +47,8 @@ public class OvertakeTheDuckAchievement : IAchievementAfterCompetition
             return false;
         }
 
-        return pilotResult.LocalRank < duckResult.LocalRank;
+        var sameQuadClass = await _modelsService.QuadsTheSameClassAsync(pilotResult.ModelName, duckResult.ModelName);
+
+        return pilotResult.LocalRank < duckResult.LocalRank && sameQuadClass;
     }
 }

@@ -89,7 +89,7 @@ public static class AchievementsServiceExtensions
                 .AddAchievement<LateBirdAchievement>()
                 .AddAchievement<FirstResultAchievement>()
                 .AddAchievement<MedalistAchievement>()
-                //.AddAchievement<OvertakeTheDuckAchievement>()
+                .AddAchievement<OvertakeTheDuckAchievement>()
                 .AddAchievement<JackpotAchievement>()
                 .AddAchievement<NanoBoostAchievement>()
                 .AddAchievement<BeastAchievement>()

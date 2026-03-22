@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
@@ -39,5 +40,19 @@ public class ModelsService
 
         if (newModels.Count > 0)
             await _quadModels.AddRangeAsync(newModels);
+    }
+
+    public async Task<int?> GetQuadClassAsync(string quadName)
+    {
+        var quad = await _quadModels.GetAll().FirstOrDefaultAsync(x => x.Name == quadName);
+        return quad?.Class;
+    }
+
+    public async Task<bool> QuadsTheSameClassAsync(string firstQuad, string secondQuad)
+    {
+        var firstClass = await GetQuadClassAsync(firstQuad);
+        var secondClass = await GetQuadClassAsync(secondQuad);
+
+        return firstClass is not null && firstClass == secondClass;
     }
 }
