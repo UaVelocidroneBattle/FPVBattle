@@ -19,7 +19,7 @@ public class CompetitionsMcpTools
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionsMcpTools>();
     private readonly CompetitionService _competitionService;
     private readonly CompetitionConductor _competitionConductor;
-    private readonly CupService _cupService;
+    private readonly ICupService _cupService;
     private readonly IRepository<Competition> _competitionRepository;
     private readonly IMediator _mediator;
 
@@ -28,7 +28,7 @@ public class CompetitionsMcpTools
         IRepository<Competition> competitionRepository,
         CompetitionConductor competitionConductor,
         IMediator mediator,
-        CupService cupService)
+        ICupService cupService)
     {
         _competitionService = competitionService;
         _competitionRepository = competitionRepository;
