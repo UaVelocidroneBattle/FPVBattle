@@ -69,7 +69,7 @@ public class CompetitionsMcpTools
 
     [McpServerTool]
     [Description("Get leaderboard for a competition by date. Returns ranked list of pilots with their lap times (in milliseconds), local/global ranks, earned points, and drone model used.")]
-    public async Task<List<CompetitionResults>> GetLeaderboardForCompetition(
+    public async Task<List<CompetitionResultsDto>> GetLeaderboardForCompetition(
         [Description("Cup unique id, e.g. 'open-class' or 'whoop-class'")] string cupId,
         [Description("Date when the competition started")] DateTime startDate)
     {
@@ -88,7 +88,7 @@ public class CompetitionsMcpTools
         Log.Information("Returning leaderboard with {PilotCount} pilots for cup {CupId}, competition {CompetitionId}",
             leaderboard.Count, cupId, competition.Id);
 
-        return leaderboard;
+        return leaderboard.Select(CompetitionResultsDto.FromEntity).ToList();
     }
 
     private async Task<Competition?> FetchCompetitionEntityAsync(string cupId, DateTime startDate)
