@@ -75,9 +75,14 @@ public class Competition
 
     public bool ResultsPosted { get; set; }
 
+    /// <summary>
+    /// The quad assigned for this competition by the quad-of-the-day feature, if triggered.
+    /// </summary>
+    public virtual QuadModel? QuadOfTheDay { get; set; }
+
     public void AddOrUpdateVariable(string name, object value)
     {
-        Variables ??= new List<CompetitionVariable>();
+        Variables ??= [];
 
         var variable = Variables.FirstOrDefault(v => v.Name == name);
 

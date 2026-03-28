@@ -16,7 +16,7 @@ public class DiscordMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack)
+    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack, string? quadOfTheDay)
     {
         var rating = string.Empty;
 
@@ -29,11 +29,16 @@ public class DiscordMessageComposer
             $"Already flown this track:{Environment.NewLine}**{string.Join(", ", pilotsFlownOnTrack)}**{Environment.NewLine}" :
             $"No one has flown this track yet.{Environment.NewLine}";
 
+        var quadOfTheDayText = quadOfTheDay is null
+            ? string.Empty
+            : $"Quad of the day: **{quadOfTheDay}**{Environment.NewLine}{Environment.NewLine}";
+
         return $"## 📅  Welcome to **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Track of the day:{Environment.NewLine}" +
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
+               $"{quadOfTheDayText}" +
                $"{flownPilotsText}{Environment.NewLine}" +
                $"👾 Instructions, statistics and more here:{Environment.NewLine}https://ua-velocidrone.fun/{Environment.NewLine}⠀";
     }
@@ -247,7 +252,12 @@ public class DiscordMessageComposer
             _ => $"#{time.LocalRank}"
         };
 
-        return $"{icon} - **{TextHelper.Trim(time.Pilot.Name, PilotNameMaxLength)}** ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / Points: **{time.Points}**";
+        var points = $"Pts: **{time.Points}**";
+
+        if (time.BonusPoints > 0)
+            points += $" +**{time.BonusPoints}**";
+
+        return $"{icon} - **{TextHelper.Trim(time.Pilot.Name, PilotNameMaxLength)}** ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / {points}";
     }
 
     private string TempSeasonResultsRow(SeasonResult result)

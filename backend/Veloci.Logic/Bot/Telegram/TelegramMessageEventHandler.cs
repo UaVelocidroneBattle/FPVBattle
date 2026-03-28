@@ -62,7 +62,7 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
-        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.PilotsFlownOnTrack);
+        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.PilotsFlownOnTrack, notification.Competition.QuadOfTheDay?.Name);
         await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, startCompetitionMessage);
     }
 

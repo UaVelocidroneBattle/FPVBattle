@@ -200,7 +200,7 @@ public class CompetitionService
             .Select(group => new SeasonResult
             {
                 PlayerName = group.First().Pilot.Name,
-                Points = group.Sum(r => r.Points),
+                Points = group.Sum(r => r.Points + r.BonusPoints),
                 GoldenCount = group.Count(r => r.LocalRank == 1),
                 SilverCount = group.Count(r => r.LocalRank == 2),
                 BronzeCount = group.Count(r => r.LocalRank == 3),

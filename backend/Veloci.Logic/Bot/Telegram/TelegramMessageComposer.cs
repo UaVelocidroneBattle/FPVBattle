@@ -16,7 +16,7 @@ public class TelegramMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack)
+    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack, string? quadOfTheDay)
     {
         var rating = string.Empty;
 
@@ -29,12 +29,17 @@ public class TelegramMessageComposer
             $"Трек вже літали:{Environment.NewLine}*{string.Join(", ", pilotsFlownOnTrack)}*{Environment.NewLine}" :
             $"Трек ще ніхто з вас не літав.{Environment.NewLine}";
 
+        var quadOfTheDayText = quadOfTheDay is null
+            ? string.Empty
+            : $"Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
+
         return $"📅 Вітаємо на *FPV Battle*!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
+               $"{quadOfTheDayText}" +
                $"{flownPilotsText}{Environment.NewLine}" +
                $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
     }
@@ -237,7 +242,12 @@ public class TelegramMessageComposer
             _ => $"#{time.LocalRank}"
         };
 
-        return $"{icon} - *{TextHelper.Trim(time.Pilot.Name, PilotNameMaxLength)}* ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / Балів: *{time.Points}*";
+        var points = $"Балів: *{time.Points}*";
+
+        if (time.BonusPoints > 0)
+            points += $" +*{time.BonusPoints}*";
+
+        return $"{icon} - *{TextHelper.Trim(time.Pilot.Name, PilotNameMaxLength)}* ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / {points}";
     }
 
     private string TempSeasonResultsRow(SeasonResult result)

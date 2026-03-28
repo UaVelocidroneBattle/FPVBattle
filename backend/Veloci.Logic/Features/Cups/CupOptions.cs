@@ -26,6 +26,8 @@ public class CupOptions
     public ChannelOptions Channels { get; set; } = new();
 
     public int[] QuadClasses { get; set; } = [];
+
+    public QuadOfTheDayOptions QuadOfTheDay { get; set; } = new();
 }
 
 /// <summary>
@@ -105,4 +107,30 @@ public class DiscordChannelOptions
     /// Discord channel name (e.g., "open-class-daily")
     /// </summary>
     public string Channel { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration for the quad-of-the-day feature
+/// </summary>
+public class QuadOfTheDayOptions
+{
+    /// <summary>
+    /// Enables the feature in the cup
+    /// </summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>
+    /// Probability of quad-of-the-day being triggered, in percent (0–100)
+    /// </summary>
+    public int Probability { get; set; }
+
+    /// <summary>
+    /// Bonus points awarded to pilots who fly on quad-of-the-day
+    /// </summary>
+    public int BonusPoints { get; set; }
+
+    /// <summary>
+    /// Pool of quad names to randomly select from
+    /// </summary>
+    public string[] Quads { get; set; } = [];
 }
