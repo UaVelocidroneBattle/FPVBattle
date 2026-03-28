@@ -19,7 +19,7 @@ public class CompetitionsMcpTools
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionsMcpTools>();
     private readonly CompetitionService _competitionService;
     private readonly CompetitionConductor _competitionConductor;
-    private readonly CupService _cupService;
+    private readonly ICupService _cupService;
     private readonly IRepository<Competition> _competitionRepository;
     private readonly IMediator _mediator;
 
@@ -28,7 +28,7 @@ public class CompetitionsMcpTools
         IRepository<Competition> competitionRepository,
         CompetitionConductor competitionConductor,
         IMediator mediator,
-        CupService cupService)
+        ICupService cupService)
     {
         _competitionService = competitionService;
         _competitionRepository = competitionRepository;
@@ -69,7 +69,7 @@ public class CompetitionsMcpTools
 
     [McpServerTool]
     [Description("Get leaderboard for a competition by date. Returns ranked list of pilots with their lap times (in milliseconds), local/global ranks, earned points, and drone model used.")]
-    public async Task<List<CompetitionResults>> GetLeaderboardForCompetition(
+    public async Task<List<CompetitionResultsDto>> GetLeaderboardForCompetition(
         [Description("Cup unique id, e.g. 'open-class' or 'whoop-class'")] string cupId,
         [Description("Date when the competition started")] DateTime startDate)
     {
@@ -88,7 +88,7 @@ public class CompetitionsMcpTools
         Log.Information("Returning leaderboard with {PilotCount} pilots for cup {CupId}, competition {CompetitionId}",
             leaderboard.Count, cupId, competition.Id);
 
-        return leaderboard;
+        return leaderboard.Select(CompetitionResultsDto.FromEntity).ToList();
     }
 
     private async Task<Competition?> FetchCompetitionEntityAsync(string cupId, DateTime startDate)
