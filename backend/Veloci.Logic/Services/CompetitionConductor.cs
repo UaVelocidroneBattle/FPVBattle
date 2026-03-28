@@ -8,6 +8,7 @@ using Veloci.Logic.API;
 using Veloci.Logic.API.Dto;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.QuadOfTheDay;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services.Tracks;
 
@@ -29,6 +30,7 @@ public class CompetitionConductor
     private readonly ICupService _cupService;
     private readonly ITelegramCupMessenger _telegramCupMessenger;
     private readonly TrackQueueService _trackQueueService;
+    private readonly QuadOfTheDayService _quadOfTheDayService;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
@@ -42,7 +44,8 @@ public class CompetitionConductor
         Velocidrone velocidrone,
         ICupService cupService,
         ITelegramCupMessenger telegramCupMessenger,
-        TrackQueueService trackQueueService)
+        TrackQueueService trackQueueService,
+        QuadOfTheDayService quadOfTheDayService)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -56,6 +59,7 @@ public class CompetitionConductor
         _cupService = cupService;
         _telegramCupMessenger = telegramCupMessenger;
         _trackQueueService = trackQueueService;
+        _quadOfTheDayService = quadOfTheDayService;
     }
 
     public async Task StartNewAsync(string cupId)
@@ -123,8 +127,10 @@ public class CompetitionConductor
             TrackId = track.Id,
             State = CompetitionState.Started,
             InitialResults = trackResults,
-            CurrentResults = trackResults
+            CurrentResults = trackResults,
         };
+
+        competition.QuadOfTheDay = await _quadOfTheDayService.GetQuadOfTheDayAsync(cupOptions);
 
         await _competitions.AddAsync(competition);
 
@@ -198,6 +204,7 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _competitionService.GetLocalLeaderboard(competition);
+        _quadOfTheDayService.ApplyBonusPoints(competition, cupOptions);
 
         _log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 

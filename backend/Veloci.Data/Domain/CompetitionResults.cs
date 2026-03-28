@@ -20,5 +20,7 @@ public class CompetitionResults
 
     public int Points { get; set; }
 
+    public int BonusPoints { get; set; }
+
     public string? ModelName { get; set; }
 }

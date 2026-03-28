@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328153553_QuadOfTheDay")]
+    partial class QuadOfTheDay
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -268,9 +271,6 @@ namespace Veloci.Web.Data.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("BonusPoints")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("CompetitionId")
                         .IsRequired()
