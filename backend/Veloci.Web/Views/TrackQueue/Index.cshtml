@@ -32,6 +32,16 @@
             <label class="form-label mb-1">Schedule Date <span class="text-muted">(optional)</span></label>
             <input type="date" name="scheduleOn" class="form-control" />
         </div>
+        <div>
+            <label class="form-label mb-1">Quad <span class="text-muted">(optional)</span></label>
+            <select name="quadId" class="form-select w-auto">
+                <option value="">— any —</option>
+                @foreach (var quad in Model.Quads)
+                {
+                    <option value="@quad.Id">@quad.Name</option>
+                }
+            </select>
+        </div>
         <button type="submit" class="btn btn-primary">Add to Queue</button>
     </form>
 </div>
@@ -50,6 +60,7 @@
             <thead>
                 <tr>
                     <th>Track</th>
+                    <th>Quad</th>
                     <th>Scheduled On</th>
                     <th>Added On</th>
                     <th></th>
@@ -60,6 +71,7 @@
                 {
                     <tr>
                         <td>@entry.Track.Name</td>
+                        <td>@(entry.Quad?.Name ?? "—")</td>
                         <td>@(entry.ScheduledOn?.ToString("yyyy-MM-dd") ?? "—")</td>
                         <td>@entry.AddedOn.ToString("yyyy-MM-dd")</td>
                         <td>

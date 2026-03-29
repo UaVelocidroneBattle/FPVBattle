@@ -8,5 +8,7 @@ public class QueuedTrack
     public DateTime? ScheduledOn { get; set; }
     public virtual Track Track { get; set; }
     public string TrackId { get; set; }
+    public virtual QuadModel? Quad { get; set; }
+    public int? QuadId { get; set; }
     public bool Used { get; set; }
 }

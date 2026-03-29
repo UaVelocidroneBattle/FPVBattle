@@ -85,10 +85,15 @@ public class CompetitionConductor
 
         ICollection<TrackTimeDto> resultsDto;
 
-        var track = await _trackQueueService.TryDequeueNextTrackAsync(cupId);
+        Track track;
+        QuadModel? quad = null;
 
-        if (track is not null)
+        var queuedTrack = await _trackQueueService.TryDequeueNextTrackAsync(cupId);
+
+        if (queuedTrack is not null)
         {
+            track = queuedTrack.Track;
+            quad = queuedTrack.Quad;
             resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
         }
         else
@@ -130,7 +135,7 @@ public class CompetitionConductor
             CurrentResults = trackResults,
         };
 
-        competition.QuadOfTheDay = await _quadOfTheDayService.GetQuadOfTheDayAsync(cupOptions);
+        competition.QuadOfTheDay = quad ?? await _quadOfTheDayService.GetQuadOfTheDayAsync(cupOptions);
 
         await _competitions.AddAsync(competition);
 

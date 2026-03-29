@@ -5,6 +5,7 @@ namespace Veloci.Web.Controllers.TrackQueue;
 public class TrackQueueViewModel
 {
     public List<CupQueueModel> Cups { get; set; } = [];
+    public List<QuadModel> Quads { get; set; } = [];
 }
 
 public class CupQueueModel
