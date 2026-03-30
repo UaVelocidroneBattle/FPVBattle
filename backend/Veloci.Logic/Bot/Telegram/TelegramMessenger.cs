@@ -211,6 +211,7 @@ public class TelegramMessenger : ITelegramMessenger
         .Replace(".", "\\.")
         .Replace("!", "\\!")
         .Replace("-", "\\-")
+        .Replace("+", "\\+")
         .Replace("_", "\\_")
         .Replace(")", "\\)")
         .Replace("(", "\\(")
