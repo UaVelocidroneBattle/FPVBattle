@@ -31,7 +31,7 @@ public class DiscordMessageComposer
 
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
-            : $"Quad of the day: **{quadOfTheDay}**{Environment.NewLine}{Environment.NewLine}";
+            : $"⚠️ Quad of the day: **{quadOfTheDay}**{Environment.NewLine}{Environment.NewLine}";
 
         return $"## 📅  Welcome to **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Track of the day:{Environment.NewLine}" +

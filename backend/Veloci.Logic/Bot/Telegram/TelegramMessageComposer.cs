@@ -31,7 +31,7 @@ public class TelegramMessageComposer
 
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
-            : $"Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
+            : $"⚠️ Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
 
         return $"📅 Вітаємо на *FPV Battle*!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
