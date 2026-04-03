@@ -284,26 +284,20 @@ public class CompetitionConductor
         await _mediator.Publish(new BadTrack(competition, competition.Track));
     }
 
-    public async Task SeasonResultsAsync()
+    public async Task SeasonResultsAsync(string cupId)
     {
         var now = DateTime.Now;
         _log.Information("Processing season results for {Date} (Day {Day} of month)", now.ToString("yyyy-MM-dd"), now.Day);
 
-        var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
-        _log.Debug("Processing season results for {CupCount} enabled cups: {CupIds}", enabledCupIds.Count, string.Join(", ", enabledCupIds));
-
-        foreach (var cupId in enabledCupIds)
+        if (now.Day == 1)
         {
-            if (now.Day == 1)
-            {
-                _log.Information("First day of month detected, stopping the season for cup {CupId}", cupId);
-                await StopSeasonAsync(cupId);
-            }
-            else
-            {
-                _log.Debug("Publishing temporary season results for cup {CupId}", cupId);
-                await TempSeasonResultsAsync(cupId);
-            }
+            _log.Information("First day of month detected, stopping the season for cup {CupId}", cupId);
+            await StopSeasonAsync(cupId);
+        }
+        else
+        {
+            _log.Debug("Publishing temporary season results for cup {CupId}", cupId);
+            await TempSeasonResultsAsync(cupId);
         }
     }
 

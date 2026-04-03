@@ -24,7 +24,7 @@ public class CupJobRegistrar : IJobRegistrar
         _log.Information("Starting dynamic cup job registration");
 
         var enabledCupIds = _cupService.GetEnabledCupIds().ToList();
-        _log.Information("Found {CupCount} enabled cups: {CupIds} (registering start, stop, stop-poll, and vote-reminder jobs)", enabledCupIds.Count, string.Join(", ", enabledCupIds));
+        _log.Information("Found {CupCount} enabled cups: {CupIds} (registering start, stop, stop-poll, season-results, and vote-reminder jobs)", enabledCupIds.Count, string.Join(", ", enabledCupIds));
 
         foreach (var cupId in enabledCupIds)
         {
@@ -104,7 +104,7 @@ public class CupJobRegistrar : IJobRegistrar
             });
         _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", stopJobId, stopCron, cupId);
 
-        // Register stop poll job (runs 1 minute before stop)
+        // Register stop poll job
         var stopPollJobId = $"stop-poll-{cupId}";
         var stopPollCron = $"{stopPollMinute} {stopPollHour} * * *";
         RecurringJob.AddOrUpdate<CompetitionConductor>(
@@ -116,6 +116,23 @@ public class CupJobRegistrar : IJobRegistrar
                 TimeZone = TimeZoneInfo.Utc
             });
         _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", stopPollJobId, stopPollCron, cupId);
+
+        // Register season results job (1 minute before start)
+        var seasonResultsTime = startTime.Add(TimeSpan.FromMinutes(-1));
+        if (seasonResultsTime < TimeSpan.Zero)
+            seasonResultsTime = seasonResultsTime.Add(TimeSpan.FromHours(24));
+
+        var seasonResultsJobId = $"season-results-{cupId}";
+        var seasonResultsCron = $"{seasonResultsTime.Minutes} {seasonResultsTime.Hours} * * *";
+        RecurringJob.AddOrUpdate<CompetitionConductor>(
+            seasonResultsJobId,
+            conductor => conductor.SeasonResultsAsync(cupId),
+            seasonResultsCron,
+            new RecurringJobOptions
+            {
+                TimeZone = TimeZoneInfo.Utc
+            });
+        _log.Information("✅ Registered job {JobId} with cron '{Cron}' (UTC) for cup {CupId}", seasonResultsJobId, seasonResultsCron, cupId);
 
         // Register vote reminder job (if configured)
         if (!string.IsNullOrEmpty(cupOptions.Schedule.VoteReminderTime))
