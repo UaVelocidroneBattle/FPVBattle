@@ -230,4 +230,14 @@ public class CompetitionService
             .GetAll(c => c.State == CompetitionState.Started)
             .OrderByDescending(x => x.StartedOn);
     }
+
+    public IQueryable<Competition> GetCompetitionsForDate(DateOnly date)
+    {
+        var dayStart = date.ToDateTime(TimeOnly.MinValue);
+        var dayEnd = date.ToDateTime(TimeOnly.MaxValue);
+
+        return _competitions
+            .GetAll(c => c.StartedOn >= dayStart && c.StartedOn <= dayEnd)
+            .OrderByDescending(x => x.StartedOn);
+    }
 }

@@ -190,6 +190,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           }
         ],
         "responses": {
@@ -254,6 +262,12 @@
           "mapId": {
             "type": "integer",
             "format": "int32"
+          },
+          "quadOfTheDay": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

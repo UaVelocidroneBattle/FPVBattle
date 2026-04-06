@@ -10,7 +10,7 @@ interface ChartContainerProps {
 export function ChartContainer({
   children,
   height = "600px",
-  className = "bg-slate-200 rounded-lg"
+  className = "bg-slate-200"
 }: ChartContainerProps) {
 
   return (

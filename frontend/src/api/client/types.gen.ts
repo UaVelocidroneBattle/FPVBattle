@@ -8,6 +8,7 @@ export type CompetitionModel = {
     trackName: string;
     trackId: number;
     mapId: number;
+    quadOfTheDay?: null | string;
 };
 
 export type CompetitionState = number;
@@ -145,6 +146,7 @@ export type GetApiDashboardData = {
     path?: never;
     query?: {
         cupId?: string;
+        date?: string;
     };
     url: '/api/dashboard';
 };

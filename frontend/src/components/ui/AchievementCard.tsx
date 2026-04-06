@@ -25,7 +25,7 @@ const AchievementCard = ({ achievement }: AchievementCardProps) => {
             >
                 {/* Front of card */}
                 <div 
-                    className="absolute inset-0 w-full h-full bg-slate-700 rounded-lg p-4 flex flex-col justify-between hover:bg-slate-600 transition-colors duration-200"
+                    className="absolute inset-0 w-full h-full bg-slate-700 p-4 flex flex-col justify-between hover:bg-slate-600 transition-colors duration-200"
                     style={{ backfaceVisibility: 'hidden' }}
                 >
                     <div className="text-sm font-medium text-white">
@@ -38,7 +38,7 @@ const AchievementCard = ({ achievement }: AchievementCardProps) => {
 
                 {/* Back of card */}
                 <div 
-                    className="absolute inset-0 w-full h-full bg-slate-600 rounded-lg p-4 flex items-center justify-center"
+                    className="absolute inset-0 w-full h-full bg-slate-600 p-4 flex items-center justify-center"
                     style={{ 
                         backfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg)'

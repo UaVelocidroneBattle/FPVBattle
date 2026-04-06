@@ -37,7 +37,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
     return (
         <>
             {/* Pilot Header */}
-            <div className="bg-slate-800 rounded-lg p-6">
+            <div className="bg-slate-800 p-6">
                 <h1 className="text-xl sm:text-3xl font-bold text-white mb-3 flex items-center gap-2 sm:gap-3">
                     <CountryFlag countryCode={profile.country} className="text-lg sm:text-2xl" />
                     {profile.name}
@@ -53,7 +53,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             </div>
 
             {/* Achievements */}
-            <div className="bg-slate-800 rounded-lg p-6">
+            <div className="bg-slate-800 p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">
                     Achievements ({profile.achievements.length})
                 </h2>
@@ -63,10 +63,10 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             </div>
 
             {/* Heatmap */}
-            <div className="bg-slate-800 rounded-lg p-6 hidden sm:block">
+            <div className="bg-slate-800 p-6 hidden sm:block">
                 <h2 className="text-xl font-semibold text-white mb-4">Racing Activity</h2>
                 {heatmapData.length > 0 ? (
-                    <ChartContainer className="bg-none rounded-lg" height={heatmapHeight(heatmapData)}>
+                    <ChartContainer className="bg-none" height={heatmapHeight(heatmapData)}>
                         <HeatmapChart data={heatmapData} />
                     </ChartContainer>
 

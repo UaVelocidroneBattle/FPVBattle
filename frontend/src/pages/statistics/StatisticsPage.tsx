@@ -10,7 +10,7 @@ const PageStatistics: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-8 flex-1">
                 <SideMenu />
 
-                <main className="flex-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-6">
+                <main className="flex-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6">
                     <Outlet />
                 </main>
             </div>

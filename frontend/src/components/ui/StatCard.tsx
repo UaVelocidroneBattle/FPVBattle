@@ -20,7 +20,7 @@ const StatCard = ({
     const classes = sizeClasses[size];
 
     return (
-        <div className={`bg-slate-700 rounded text-center flex flex-col justify-center h-full ${classes.container}`}>
+        <div className={`bg-slate-700 text-center flex flex-col justify-center h-full ${classes.container}`}>
             <div className={`${classes.value} ${valueColor}`}>{value}</div>
             <div className={`${classes.label} text-gray-300`}>{label}</div>
         </div>

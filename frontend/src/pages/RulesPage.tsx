@@ -41,8 +41,8 @@ const translations: Record<Language, RulesContent> = {
         howItWorksTitle: 'Як це працює',
         howItWorksItems: [
             'Сервіс автоматично оновлює результати кожні 10 хвилин і підтягне ваш результат, якщо він з\'явиться.',
-            'Щодня о 17:00 сервіс випадковим чином обирає трек із доступного набору локацій і треків. У деяких випадках трек може бути змінений, якщо він не підходить для змагань.',
-            'Через 24 години, о 17:00, сервіс підбиває підсумки дня та нараховує бали відповідно до зайнятого місця.',
+            'Щодня о 00:00 (UTC) сервіс випадковим чином обирає трек із доступного набору локацій і треків. У деяких випадках трек може бути змінений, якщо він не підходить для змагань.',
+            'Через 24 години, о 00:00 (UTC), сервіс підбиває підсумки дня та нараховує бали відповідно до зайнятого місця.',
             'Сезон починається 1-го числа кожного місяця і завершується 1-го числа наступного місяця.',
             'Дуже важливо оцінювати кожен трек. Для цього сервіс публікує голосування (наразі тільки в Telegram-каналі). Результати голосування впливають на те, чи буде цей трек обраний знову.',
         ],
@@ -85,8 +85,8 @@ const translations: Record<Language, RulesContent> = {
         howItWorksTitle: 'How it works',
         howItWorksItems: [
             'The service automatically updates results every 10 minutes and will pick up your result once it appears.',
-            'Every day at 17:00 (EET) the service randomly selects a track from the available set of locations and tracks. In some cases the track may be changed if it is not suitable for competition.',
-            'After 24 hours, at 17:00 (EET), the service calculates the day\'s results and awards points based on final placement.',
+            'Every day at 00:00 (UTC) the service randomly selects a track from the available set of locations and tracks. In some cases the track may be changed if it is not suitable for competition.',
+            'After 24 hours, at 00:00 (UTC), the service calculates the day\'s results and awards points based on final placement.',
             'The season starts on the 1st of each month and ends on the 1st of the following month.',
             'It is very important to rate each track. The service publishes a poll (currently only in the Telegram channel). Poll results affect whether the track will be selected again.',
         ],
@@ -122,12 +122,12 @@ function SectionTitle({ children }: { children: ReactNode }) {
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (lang: Language) => void }) {
     return (
-        <div className="flex gap-1 rounded-lg border border-slate-600 p-0.5 text-sm font-medium">
+        <div className="flex gap-1 border border-slate-600 p-0.5 text-sm font-medium">
             {(['ua', 'en'] as Language[]).map((lang) => (
                 <button
                     key={lang}
                     onClick={() => setLanguage(lang)}
-                    className={`px-3 py-1 rounded-md transition-colors uppercase ${
+                    className={`px-3 py-1 transition-colors uppercase ${
                         language === lang ? 'bg-slate-600 text-slate-200' : 'text-slate-500 hover:text-slate-300'
                     }`}
                 >
@@ -143,7 +143,7 @@ function PageRules() {
     const t = translations[language];
 
     return (
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden p-6 max-w-4xl mx-auto">
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden p-6 max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <SectionTitle>{t.title}</SectionTitle>
                 <LanguageToggle language={language} setLanguage={setLanguage} />

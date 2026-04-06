@@ -39,34 +39,33 @@ function LayoutMain() {
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 pb-8 flex flex-col">
             <div className="max-w-[1800px] w-full p-4 flex flex-col flex-1 mx-auto">
-                <header className="p-4 mb-4">
-                    {/* Top row: logo + hamburger (mobile) / centered logo (desktop) */}
-                    <div className="flex items-center justify-between sm:justify-center">
-                        <Link to="/" className="flex items-center">
-                            <img src={logo} alt="FPV Battle" className="h-10 md:h-14 w-auto" />
-                        </Link>
-
-                        <button
-                            className="sm:hidden text-slate-300 hover:text-emerald-400 transition-colors"
-                            onClick={() => setMobileMenuOpen(open => !open)}
-                            aria-label="Toggle menu"
-                        >
-                            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                        </button>
-                    </div>
+                <header className="py-3 mb-4 flex items-center justify-between relative">
+                    <Link to="/" className="flex items-center">
+                        <img src={logo} alt="FPV Battle" className="h-8 w-auto" />
+                    </Link>
 
                     {/* Desktop nav */}
-                    <nav className="hidden sm:flex justify-center items-center gap-8 mt-4">
+                    <nav className="hidden sm:flex items-center gap-8">
                         <NavLink to="/" end className={navLinkClass}>Open Class</NavLink>
                         <NavLink to="/whoop" className={navLinkClass}>Whoop Class</NavLink>
                         <NavLink to="/rules" className={navLinkClass}>Instructions</NavLink>
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
+                        <div className="w-px h-5 bg-slate-600" />
                         <SocialLinks />
                     </nav>
 
+                    {/* Mobile hamburger */}
+                    <button
+                        className="sm:hidden text-slate-300 hover:text-emerald-400 transition-colors"
+                        onClick={() => setMobileMenuOpen(open => !open)}
+                        aria-label="Toggle menu"
+                    >
+                        {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    </button>
+
                     {/* Mobile dropdown */}
                     {mobileMenuOpen && (
-                        <nav className="sm:hidden mt-4 pt-4 border-t border-slate-700 flex flex-col gap-5">
+                        <nav className="sm:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
                             <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
                             <NavLink to="/whoop" className={navLinkClass} onClick={closeMobileMenu}>Whoop Class</NavLink>
                             <NavLink to="/rules" className={navLinkClass} onClick={closeMobileMenu}>Instructions</NavLink>
