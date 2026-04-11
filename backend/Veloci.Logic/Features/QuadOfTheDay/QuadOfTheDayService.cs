@@ -17,6 +17,9 @@ public class QuadOfTheDayService
         _quadModels = quadModels;
     }
 
+    /// <summary>
+    /// Reward strategy. Adds bonus points to those whe used quad of the day
+    /// </summary>
     public void ApplyBonusPoints(Competition competition, CupOptions cupOptions)
     {
         if (competition.QuadOfTheDay is null || cupOptions.QuadOfTheDay.BonusPoints == 0)
@@ -38,6 +41,32 @@ public class QuadOfTheDayService
 
         Log.Information("Applied {BonusPoints} bonus points to {PilotCount} pilots who flew quad-of-the-day {QuadName}",
             cupOptions.QuadOfTheDay.BonusPoints, eligible.Count, competition.QuadOfTheDay.Name);
+    }
+
+    /// <summary>
+    /// Punishment strategy. Pilots get only 1 point if used not quad of the day
+    /// </summary>
+    public void PunishNonQuadOfTheDayPilots(Competition competition)
+    {
+        if (competition.QuadOfTheDay is null)
+            return;
+
+        var penalized = competition.CompetitionResults
+            .Where(r => r.ModelName != competition.QuadOfTheDay.Name)
+            .ToList();
+
+        if (penalized.Count == 0)
+        {
+            Log.Information("All pilots flew quad-of-the-day {QuadName} in competition {CompetitionId}",
+                competition.QuadOfTheDay.Name, competition.Id);
+            return;
+        }
+
+        foreach (var result in penalized)
+            result.Points = 1;
+
+        Log.Information("Penalized {PilotCount} pilots to 1 point for not flying quad-of-the-day {QuadName}",
+            penalized.Count, competition.QuadOfTheDay.Name);
     }
 
     public async Task<QuadModel?> GetQuadOfTheDayAsync(CupOptions cupOptions)

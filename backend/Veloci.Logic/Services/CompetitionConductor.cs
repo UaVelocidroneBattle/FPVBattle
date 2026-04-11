@@ -209,7 +209,7 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _competitionService.GetLocalLeaderboard(competition);
-        _quadOfTheDayService.ApplyBonusPoints(competition, cupOptions);
+        _quadOfTheDayService.PunishNonQuadOfTheDayPilots(competition);
 
         _log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
