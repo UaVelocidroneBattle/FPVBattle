@@ -70,11 +70,16 @@ public class TelegramMessageComposer
         return "😔 Бачу трек не сподобався. Більше його не буде";
     }
 
-    public string TempLeaderboard(List<CompetitionResults> results, Track track)
+    public string TempLeaderboard(List<CompetitionResults> results, Track track, string? quadOfTheDay)
     {
+        var quadOfTheDayText = quadOfTheDay is null
+            ? string.Empty
+            : $"⚠️ Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
+
         var rows = TempLeaderboardRows(results);
         return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
+               quadOfTheDayText +
                $"`{string.Join($"{Environment.NewLine}", rows)}`";
     }
 
