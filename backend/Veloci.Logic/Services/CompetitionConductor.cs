@@ -118,7 +118,9 @@ public class CompetitionConductor
                 throw new InvalidOperationException($"No track with results found for cup {cupId} after {maxAttempts} attempts");
         }
 
-        var results = await _resultsConverter.ConvertTrackTimesAsync(resultsDto, cupOptions.QuadClasses);
+        quad ??= await _quadOfTheDayService.GetQuadOfTheDayAsync(cupOptions);
+
+        var results = await _resultsConverter.ConvertTrackTimesAsync(resultsDto, cupOptions.QuadClasses, quad);
         _log.Debug("Retrieved {ResultCount} initial results from Velocidrone API for track {TrackId}", results.Count, track.TrackId);
 
         var trackResults = new TrackResults
@@ -135,7 +137,7 @@ public class CompetitionConductor
             CurrentResults = trackResults,
         };
 
-        competition.QuadOfTheDay = quad ?? await _quadOfTheDayService.GetQuadOfTheDayAsync(cupOptions);
+        competition.QuadOfTheDay = quad;
 
         await _competitions.AddAsync(competition);
 

@@ -20,7 +20,7 @@ public class RaceResultsConverter
         _options = options.Value;
     }
 
-    public async Task<List<TrackTime>> ConvertTrackTimesAsync(IEnumerable<TrackTimeDto> timesDtos, int[] allowedQuadClasses)
+    public async Task<List<TrackTime>> ConvertTrackTimesAsync(IEnumerable<TrackTimeDto> timesDtos, int[] allowedQuadClasses, QuadModel? quadOfTheDay = null)
     {
         var whitelist = await _whiteListService.GetWhitelistAsync();
         var modelClassByName = _quadModels.GetAll()
@@ -31,13 +31,26 @@ public class RaceResultsConverter
             .Where(x => IsAllowed(x.dto, whitelist, modelClassByName, allowedQuadClasses))
             .Select(x => MapDtoToTrackTime(x.dto, x.globalRank))
             .GroupBy(x => x.UserId)
-            .Select(j => j.MinBy(x => x.Time)!)
+            .Select(group => SelectBestTime(group, quadOfTheDay))
+            .OrderBy(x => x.Time)
             .Select((x, i) =>
             {
                 x.LocalRank = i + 1;
                 return x;
             })
             .ToList();
+    }
+
+    private static TrackTime SelectBestTime(IGrouping<int?, TrackTime> userGroup, QuadModel? quadOfTheDay)
+    {
+        var fastest = userGroup.MinBy(x => x.Time)!;
+
+        if (quadOfTheDay is null)
+            return fastest;
+
+        return userGroup
+            .Where(x => x.ModelName.Equals(quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
+            .MinBy(x => x.Time) ?? fastest;
     }
 
     private bool IsAllowed(TrackTimeDto dto, IReadOnlySet<string> whitelist, Dictionary<string, int> modelClassByName, int[] allowedQuadClasses)
