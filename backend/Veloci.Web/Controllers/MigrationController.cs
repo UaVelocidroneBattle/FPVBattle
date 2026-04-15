@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.Services;
 using ILogger = Serilog.ILogger;
 
 namespace Veloci.Web.Controllers;
@@ -13,49 +11,47 @@ namespace Veloci.Web.Controllers;
 public class MigrationController : ControllerBase
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<MigrationController>();
-    private readonly IRepository<PilotAchievement> _achievements;
+    private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<CompetitionResults> _competitionResults;
 
-    public MigrationController(IRepository<PilotAchievement> achievements)
+    public MigrationController(IRepository<Pilot> pilots, IRepository<CompetitionResults> competitionResults)
     {
-        _achievements = achievements;
+        _pilots = pilots;
+        _competitionResults = competitionResults;
     }
 
     [HttpGet]
-    public async Task RecalibrateEarlyLateAchievements()
+    public async Task CalculatePilotProperties()
     {
-        var hourRanges = new Dictionary<string, (int From, int To)>
+        var pilots = await _pilots.GetAll().ToListAsync();
+        Log.Information("Starting pilot properties migration for {PilotCount} pilots", pilots.Count);
+
+        var updated = 0;
+        var skipped = 0;
+
+        foreach (var pilot in pilots)
         {
-            ["EarlyBird"] = (4, 8),
-            ["LateBird"] = (1, 4),
-        };
+            var raceDates = _competitionResults.GetAll()
+                .Where(cr => cr.PilotId == pilot.Id && cr.Competition.State == CompetitionState.Closed)
+                .Select(cr => cr.Competition.StartedOn.Date)
+                .Distinct();
 
-        var achievementNames = hourRanges.Keys.ToArray();
-
-        var achievements = await _achievements
-            .GetAll()
-            .Include(a => a.Pilot)
-            .Where(a => achievementNames.Contains(a.Name) && a.Pilot.Country != "UA")
-            .ToListAsync();
-
-        Log.Information("Recalibrating {Count} early/late achievements for non-UA pilots", achievements.Count);
-
-        var removed = 0;
-
-        foreach (var achievement in achievements)
-        {
-            var (hourFrom, hourTo) = hourRanges[achievement.Name];
-            var localTime = TimeZoneService.GetLocalTime(achievement.Date, achievement.Pilot.Country);
-            var isValid = localTime.Hour >= hourFrom && localTime.Hour < hourTo;
-
-            if (!isValid)
+            if (!await raceDates.AnyAsync())
             {
-                Log.Information("Removing {Achievement} from {Pilot} ({Country}): local time was {LocalTime}",
-                    achievement.Name, achievement.Pilot.Name, achievement.Pilot.Country, localTime);
-                await _achievements.RemoveAsync(achievement.Id);
-                removed++;
+                Log.Warning("Pilot {PilotName} has no race dates. Skipping", pilot.Name);
+                skipped++;
+                continue;
             }
+
+            pilot.CreatedAt = await raceDates.MinAsync();
+            pilot.TotalRaceDays = await raceDates.CountAsync();
+
+            Log.Debug("Updated pilot {PilotName}: CreatedAt={CreatedAt}, TotalRaceDays={TotalRaceDays}",
+                pilot.Name, pilot.CreatedAt, pilot.TotalRaceDays);
+            updated++;
         }
 
-        Log.Information("Recalibration complete. Removed {Removed} of {Total} achievements", removed, achievements.Count);
+        await _pilots.SaveChangesAsync();
+        Log.Information("Pilot properties migration complete. Updated: {Updated}, Skipped: {Skipped}", updated, skipped);
     }
 }

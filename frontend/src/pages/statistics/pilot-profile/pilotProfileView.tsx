@@ -20,7 +20,7 @@ function heatmapHeight(data: PilotResult[]): string {
     const firstYear = new Date(data[0].date).getFullYear();
     const lastYear = new Date(data[data.length - 1].date).getFullYear();
     const numYears = lastYear - firstYear + 1;
-    const px = Math.max(300, numYears * 200 + (numYears - 1) * 70);
+    const px = Math.max(260, numYears * 170 + (numYears - 1) * 60);
     return `${px}px`;
 }
 
@@ -43,8 +43,8 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
                     {profile.name}
                 </h1>
                 <div className='text-slate-400 mb-4'>
-                    <div>Last race: {formatDate(profile.lastRaceDate)}</div>
                     <div>First race: {formatDate(profile.firstRaceDate)}</div>
+                    <div>Last race: {formatDate(profile.lastRaceDate)}</div>
                 </div>
                 
 
@@ -55,7 +55,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             {/* Achievements */}
             <div className="bg-slate-800 p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">
-                    Achievements ({profile.achievements.length})
+                    Achievements &nbsp;·&nbsp; {profile.achievements.filter(a => a.achievedOn != null).length} of {profile.achievements.length}
                 </h2>
                 <AchievementsList
                     achievements={profile.achievements}
@@ -64,7 +64,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
 
             {/* Heatmap */}
             <div className="bg-slate-800 p-6 hidden sm:block">
-                <h2 className="text-xl font-semibold text-white mb-4">Racing Activity</h2>
+                <h2 className="text-xl font-semibold text-white mb-8">Racing Activity</h2>
                 {heatmapData.length > 0 ? (
                     <ChartContainer className="bg-none" height={heatmapHeight(heatmapData)}>
                         <HeatmapChart data={heatmapData} />

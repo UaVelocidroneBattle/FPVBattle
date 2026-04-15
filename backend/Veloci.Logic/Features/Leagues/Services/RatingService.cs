@@ -27,6 +27,20 @@ public class RatingService
             .ToListAsync();
     }
 
+    public async Task<int?> GetPilotRankAsync(string cupId, int pilotId)
+    {
+        var lastDate = await GetLastCalculationDateAsync(cupId);
+
+        if (lastDate is null)
+            return null;
+
+        var pilotRank = await _ratings
+            .GetAll(r => r.CupId == cupId && r.CalculatedOn == lastDate.Value)
+            .FirstOrDefaultAsync(r => r.PilotId == pilotId);
+
+        return pilotRank?.Rank;
+    }
+
     private async Task<DateTime?> GetLastCalculationDateAsync(string cupId)
     {
         return await _ratings

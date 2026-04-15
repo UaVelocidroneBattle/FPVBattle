@@ -14,13 +14,10 @@ public class Pilot
     }
 
     public int Id { get; set; }
-
     public string Name { get; set; }
-
-    /// <summary>
-    /// The day when the pilot last raced.
-    /// </summary>
+    public DateTime CreatedAt { get; set; }
     public DateTime? LastRaceDate { get; set; }
+    public int TotalRaceDays { get; set; }
     public int DayStreak { get; set; }
     public int MaxDayStreak { get; set; }
     public string Country { get; set; }
@@ -44,6 +41,8 @@ public class Pilot
         IncrementDayStreak();
 
         AddFreezie(today);
+
+        TotalRaceDays++;
     }
 
     private void IncrementDayStreak()

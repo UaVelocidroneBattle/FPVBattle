@@ -21,7 +21,7 @@ export type DashboardModel = {
 
 export type PilotAchievementModel = {
     name: string;
-    earnedOn: string;
+    achievedOn: string | null;
     title: string;
     description: string;
 };
@@ -36,6 +36,7 @@ export type PilotProfileModel = {
     lastRaceDate?: null | string;
     firstRaceDate?: null | string;
     availableFreezes: number;
+    globalRating: number | null;
 };
 
 export type PilotResult = {

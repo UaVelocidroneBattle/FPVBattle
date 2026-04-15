@@ -11,17 +11,14 @@ namespace Veloci.Logic.Bot.Telegram.Commands;
 public class PilotCommand : ITelegramCommand
 {
     private readonly IRepository<Pilot> _pilots;
-    private readonly IEnumerable<IAchievement> _achievements;
     private readonly IPilotProfileService _pilotProfileService;
 
     public PilotCommand(
         IRepository<Pilot> pilots,
-        IServiceProvider serviceProvider,
         IPilotProfileService pilotProfileService)
     {
         _pilots = pilots;
         _pilotProfileService = pilotProfileService;
-        _achievements = serviceProvider.GetServices<IAchievement>();
     }
 
     public string[] Keywords => ["/pilot", "/p"];
@@ -35,7 +32,7 @@ public class PilotCommand : ITelegramCommand
         var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)
-            return $"Не знаю такого пілота 😕";
+            return "Не знаю такого пілота 😕";
 
         var profile = await _pilotProfileService.GetPilotProfileAsync(pilot.Name, CancellationToken.None);
 
@@ -49,7 +46,7 @@ public class PilotCommand : ITelegramCommand
                $"Max day streak: *{pilot.MaxDayStreak}*{Environment.NewLine}" +
                $"Freezies: *{pilot.DayStreakFreezeCount}*{Environment.NewLine}" +
                $"Total flight days: *{profile.TotalRaceDays}*{Environment.NewLine}" +
-               $"Achievements: *{pilot.Achievements?.Count ?? 0}/{_achievements.Count()}*";
+               $"Achievements: *{profile.Achievements.Count(x => x.AchievedOn != null)}/{profile.Achievements.Count}*";
     }
 
     public bool RemoveMessageAfterDelay => false;

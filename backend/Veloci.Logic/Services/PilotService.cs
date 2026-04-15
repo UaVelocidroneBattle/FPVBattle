@@ -49,6 +49,7 @@ public class PilotService
                 Id = delta.PilotId,
                 Name = pilotName,
                 Country = delta.Country,
+                CreatedAt = DateTime.UtcNow,
             };
 
             await _pilots.AddAsync(newPilot);

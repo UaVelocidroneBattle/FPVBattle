@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.Features.Achievements.Services;
+using Veloci.Logic.Features.Achievements.Base;
+using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.Leagues.Services;
 using Veloci.Logic.Services.Pilots.Models;
 
 namespace Veloci.Logic.Services.Pilots;
@@ -14,20 +17,17 @@ public interface IPilotProfileService
 public class PilotProfileService : IPilotProfileService
 {
     private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<CompetitionResults> _competitionResults;
-    private readonly IRepository<PilotAchievement> _achievements;
-    private readonly AchievementService _achievementService;
+    private readonly IEnumerable<IAchievement> _allAchievements;
+    private readonly RatingService _ratingService;
 
     public PilotProfileService(
         IRepository<Pilot> pilots,
-        IRepository<CompetitionResults> competitionResults,
-        IRepository<PilotAchievement> achievements,
-        AchievementService achievementService)
+        IServiceProvider serviceProvider,
+        RatingService ratingService)
     {
         _pilots = pilots;
-        _competitionResults = competitionResults;
-        _achievements = achievements;
-        _achievementService = achievementService;
+        _ratingService = ratingService;
+        _allAchievements = serviceProvider.GetServices<IAchievement>();
     }
 
     public async Task<PilotProfileModel> GetPilotProfileAsync(string pilotName, CancellationToken ct)
@@ -37,14 +37,6 @@ public class PilotProfileService : IPilotProfileService
             .ByName(pilotName)
             .SingleAsync(ct);
 
-        // Calculate race statistics
-        var raceDates = _competitionResults.GetAll()
-            .Where(cr => cr.PilotId == pilot.Id && cr.Competition.State == CompetitionState.Closed)
-            .Select(cr => (DateTime?)cr.Competition.StartedOn.Date)
-            .Distinct();
-
-        var achievements = await _achievements.GetAll().ForPilot(pilot).ToListAsync(ct);
-
         return new PilotProfileModel
         {
             Name = pilot.Name,
@@ -52,21 +44,22 @@ public class PilotProfileService : IPilotProfileService
             CurrentDayStreak = pilot.DayStreak,
             MaxDayStreak = pilot.MaxDayStreak,
             LastRaceDate = pilot.LastRaceDate,
-            FirstRaceDate = await raceDates.MinAsync(ct),
-            TotalRaceDays = await raceDates.CountAsync(ct),
+            FirstRaceDate = pilot.CreatedAt,
+            TotalRaceDays = pilot.TotalRaceDays,
             AvailableFreezes = pilot.DayStreakFreezeCount,
-            Achievements = achievements.Select(CreatePilotAchievementModel).ToList()
+            Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
+            GlobalRating = await _ratingService.GetPilotRankAsync(CupIds.OpenClass, pilot.Id)
         };
     }
 
-    private PilotAchievementModel CreatePilotAchievementModel(PilotAchievement pa)
+    private PilotAchievementModel CreatePilotAchievementModel(IAchievement achievement, Pilot pilot)
     {
-        var achievement = _achievementService.GetAchievementByName(pa.Name);
+        var pa = pilot.Achievements.FirstOrDefault(a => a.Name == achievement.Name);
 
         return new PilotAchievementModel
         {
-            Name = pa.Name,
-            EarnedOn = pa.Date,
+            Name = achievement.Name,
+            AchievedOn = pa?.Date,
             Title = achievement.Title,
             Description = achievement.Description
         };

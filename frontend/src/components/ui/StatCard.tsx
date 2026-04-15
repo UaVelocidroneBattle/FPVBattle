@@ -1,6 +1,9 @@
+import { LucideIcon } from 'lucide-react';
+
 export interface StatCardProps {
     value: string | number;
     label: string;
+    icon?: LucideIcon;
     valueColor?: string;
     size?: 'sm' | 'md' | 'lg';
 }
@@ -8,6 +11,7 @@ export interface StatCardProps {
 const StatCard = ({
                       value,
                       label,
+                      icon: Icon,
                       valueColor = 'text-white',
                       size = 'md'
                   }: StatCardProps) => {
@@ -20,9 +24,12 @@ const StatCard = ({
     const classes = sizeClasses[size];
 
     return (
-        <div className={`bg-slate-700 text-center flex flex-col justify-center h-full ${classes.container}`}>
-            <div className={`${classes.value} ${valueColor}`}>{value}</div>
-            <div className={`${classes.label} text-gray-300`}>{label}</div>
+        <div className={`relative bg-slate-700 border-t-2 border-emerald-400 flex flex-col justify-center h-full overflow-hidden ${classes.container}`}>
+            {Icon && (
+                <Icon size={80} className="absolute -right-4 top-1/2 -translate-y-1/2 text-slate-600 opacity-50 rotate-12" />
+            )}
+            <div className={`relative ${classes.value} ${valueColor}`}>{value}</div>
+            <div className={`relative ${classes.label} text-gray-400`}>{label}</div>
         </div>
     );
 };

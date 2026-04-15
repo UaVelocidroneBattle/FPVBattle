@@ -11,4 +11,5 @@ public class PilotProfileModel
     public DateTime? LastRaceDate { get; set; }
     public DateTime? FirstRaceDate { get; set; }
     public required int AvailableFreezes { get; set; }
+    public required int? GlobalRating { get; set; }
 }

@@ -308,7 +308,7 @@
       "PilotAchievementModel": {
         "required": [
           "name",
-          "earnedOn",
+          "achievedOn",
           "title",
           "description"
         ],
@@ -317,8 +317,11 @@
           "name": {
             "type": "string"
           },
-          "earnedOn": {
-            "type": "string",
+          "achievedOn": {
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date-time"
           },
           "title": {
@@ -337,7 +340,8 @@
           "maxDayStreak",
           "achievements",
           "totalRaceDays",
-          "availableFreezes"
+          "availableFreezes",
+          "globalRating"
         ],
         "type": "object",
         "properties": {
@@ -381,6 +385,13 @@
           },
           "availableFreezes": {
             "type": "integer",
+            "format": "int32"
+          },
+          "globalRating": {
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           }
         }

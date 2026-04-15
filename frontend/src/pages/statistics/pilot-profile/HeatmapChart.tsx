@@ -37,7 +37,7 @@ const HeatmapChart = ({ data }: HeatmapChartProps) => {
             emptyColor="#0000"
             colors={['#125348', '#156154', '#1d8775', '#22a18b', '#2ed3b8']}
             margin={{ top: 0, right: 20, bottom: 40, left: 20 }}
-            yearSpacing={70}
+            yearSpacing={60}
             dayBorderWidth={1}
             dayBorderColor="#516585"
 
