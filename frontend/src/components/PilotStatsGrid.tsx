@@ -1,6 +1,6 @@
 import { PilotProfileModel } from '@/api/client';
 import StatCard from '@/components/ui/StatCard';
-import { Calendar, Flame, Snowflake, Star, TrendingUp, Trophy } from 'lucide-react';
+import { Calendar, Flame, Snowflake, TrendingUp, Trophy } from 'lucide-react';
 
 interface PilotStatsGridProps {
     profile: PilotProfileModel;
@@ -37,14 +37,7 @@ export function PilotStatsGrid({ profile }: PilotStatsGridProps) {
                 valueColor="text-emerald-400"
             />
 
-            <StatCard
-                value={profile.achievements.length}
-                label="Achievements"
-                icon={Star}
-                valueColor="text-emerald-400"
-            />
-
-            <StatCard
+<StatCard
                 value={profile.availableFreezes}
                 label="Freezes"
                 icon={Snowflake}
