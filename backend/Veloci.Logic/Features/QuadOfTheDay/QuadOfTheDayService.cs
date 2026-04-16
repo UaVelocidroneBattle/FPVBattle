@@ -69,6 +69,31 @@ public class QuadOfTheDayService
             penalized.Count, competition.QuadOfTheDay.Name);
     }
 
+    public async Task<QuadModel?> DetectQuadFromTrackNameAsync(string trackName, CupOptions cupOptions)
+    {
+        var options = cupOptions.QuadOfTheDay;
+
+        if (!options.Enabled || options.Quads.Length == 0)
+            return null;
+
+        var matchedName = options.Quads
+            .FirstOrDefault(q => trackName.Contains(q, StringComparison.OrdinalIgnoreCase));
+
+        if (matchedName is null)
+            return null;
+
+        Log.Information("Detected quad {QuadName} from track name '{TrackName}'", matchedName, trackName);
+
+        var quad = await _quadModels
+            .GetAll()
+            .FirstOrDefaultAsync(q => q.Name == matchedName);
+
+        if (quad is null)
+            Log.Warning("Quad {QuadName} detected from track name but not found in the database", matchedName);
+
+        return quad;
+    }
+
     public async Task<QuadModel?> GetQuadOfTheDayAsync(CupOptions cupOptions)
     {
         var options = cupOptions.QuadOfTheDay;
