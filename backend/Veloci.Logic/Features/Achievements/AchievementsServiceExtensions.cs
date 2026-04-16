@@ -6,9 +6,7 @@ using Veloci.Logic.Features.Achievements.Collection.OpenClass;
 using Veloci.Logic.Features.Achievements.Collection.WhoopClass;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Achievements.NotificationHandlers;
-using Veloci.Logic.Features.Achievements.Jobs;
 using Veloci.Logic.Features.Cups;
-using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Achievements;
 
@@ -30,10 +28,6 @@ public static class AchievementsServiceExtensions
             // Register notification handlers
             services.AddScoped<DiscordAchievementsHandler>();
             services.AddScoped<TelegramAchievementsHandler>();
-
-            // Register jobs
-            services.AddScoped<DayStreakMilestoneJob>();
-            services.AddScoped<IJobRegistrar, AchievementsJobRegistrar>();
 
             var cupsConfig = configuration.GetSection(CupsConfiguration.SectionName).Get<CupsConfiguration>() ?? new();
 
