@@ -25,7 +25,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path='statistics' element={<StatisticsPage />} >
               <Route index element={<Navigate to="global-rating" replace />} />
               <Route path="global-rating" element={<GlobalRatingPage />} />
-              <Route path="profile" element={<PilotProfilePage />} />
+              <Route path="profile/:pilot?" element={<PilotProfilePage />} />
               <Route path="leaderboard" element={<LeaderBoardPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />

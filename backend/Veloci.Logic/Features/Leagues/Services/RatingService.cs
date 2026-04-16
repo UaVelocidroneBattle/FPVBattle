@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Services.Pilots.Models;
 
 namespace Veloci.Logic.Features.Leagues.Services;
 
@@ -39,6 +40,20 @@ public class RatingService
             .FirstOrDefaultAsync(r => r.PilotId == pilotId);
 
         return pilotRank?.Rank;
+    }
+
+    public async Task<List<PilotRatingHistoryPoint>> GetPilotRatingHistoryAsync(string cupId, int pilotId)
+    {
+        return await _ratings
+            .GetAll(r => r.CupId == cupId && r.PilotId == pilotId)
+            .OrderBy(r => r.CalculatedOn)
+            .Select(r => new PilotRatingHistoryPoint
+            {
+                Date = r.CalculatedOn,
+                GapPercent = r.AverageGapPercent,
+                Rank = r.Rank
+            })
+            .ToListAsync();
     }
 
     private async Task<DateTime?> GetLastCalculationDateAsync(string cupId)

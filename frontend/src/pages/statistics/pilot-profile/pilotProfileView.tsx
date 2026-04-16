@@ -7,6 +7,7 @@ import { ChartContainer } from '@/components/ChartContainer';
 import { lazy } from 'react';
 import { formatDate } from '@/lib/utils';
 import CountryFlag from '@/components/ui/CountryFlag';
+import GapHistorySection from './GapHistorySection';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'));
 
@@ -61,6 +62,11 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
                     achievements={profile.achievements}
                 />
             </div>
+
+            {/* Rating Gap History */}
+            {profile.ratingHistory.length > 1 && (
+                <GapHistorySection history={profile.ratingHistory} />
+            )}
 
             {/* Heatmap */}
             <div className="bg-slate-800 p-6 hidden sm:block">

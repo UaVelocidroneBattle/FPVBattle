@@ -37,6 +37,13 @@ export type PilotProfileModel = {
     firstRaceDate?: null | string;
     availableFreezes: number;
     globalRating: number | null;
+    ratingHistory: Array<PilotRatingHistoryPoint>;
+};
+
+export type PilotRatingHistoryPoint = {
+    date: string;
+    gapPercent?: number | null;
+    rank: number;
 };
 
 export type PilotResult = {

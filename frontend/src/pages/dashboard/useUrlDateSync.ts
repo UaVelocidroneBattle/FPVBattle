@@ -29,6 +29,9 @@ export function useUrlDateSync(cupId: string) {
   }, [cupId, searchParams]);
 
   // Effect 2: Store → URL (for sharing/bookmarking)
+  // Always replace — date is filter state, not page navigation.
+  // Pushing would add history entries on every date change, requiring extra
+  // back-button presses to leave the dashboard.
   useEffect(() => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -38,6 +41,6 @@ export function useUrlDateSync(cupId: string) {
         next.delete(DATE_PARAM);
       }
       return next;
-    });
+    }, { replace: true });
   }, [selectedDate, setSearchParams]);
 }

@@ -48,7 +48,8 @@ public class PilotProfileService : IPilotProfileService
             TotalRaceDays = pilot.TotalRaceDays,
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
-            GlobalRating = await _ratingService.GetPilotRankAsync(CupIds.OpenClass, pilot.Id)
+            GlobalRating = await _ratingService.GetPilotRankAsync(CupIds.OpenClass, pilot.Id),
+            RatingHistory = await _ratingService.GetPilotRatingHistoryAsync(CupIds.OpenClass, pilot.Id)
         };
     }
 

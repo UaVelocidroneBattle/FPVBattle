@@ -341,7 +341,8 @@
           "achievements",
           "totalRaceDays",
           "availableFreezes",
-          "globalRating"
+          "globalRating",
+          "ratingHistory"
         ],
         "type": "object",
         "properties": {
@@ -392,6 +393,36 @@
               "integer",
               "null"
             ],
+            "format": "int32"
+          },
+          "ratingHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PilotRatingHistoryPoint"
+            }
+          }
+        }
+      },
+      "PilotRatingHistoryPoint": {
+        "required": [
+          "date",
+          "rank"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gapPercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "rank": {
+            "type": "integer",
             "format": "int32"
           }
         }

@@ -47,11 +47,11 @@ const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-                <Command>
-                    <CommandInput placeholder="Search ..."/>
-                    <CommandList>
-                        <CommandEmpty>Nothing found</CommandEmpty>
+            <PopoverContent className="w-[200px] p-0 bg-slate-800 border-slate-700">
+                <Command className="bg-slate-800">
+                    <CommandInput placeholder="Search ..." className="text-slate-200 placeholder:text-slate-500 border-slate-700" />
+                    <CommandList className="[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full">
+                        <CommandEmpty className="text-slate-400 py-4 text-center text-sm">Nothing found</CommandEmpty>
                         <CommandGroup>
                             {items.map((item) => (
                                 <CommandItem
@@ -61,10 +61,11 @@ const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect
                                         onSelect(item);
                                         setOpen(false)
                                     }}
+                                    className="text-slate-200 data-[selected=true]:bg-slate-700 data-[selected=true]:text-white"
                                 >
                                     <Check
                                         className={cn(
-                                            "mr-2 h-4 w-4",
+                                            "mr-2 h-4 w-4 text-emerald-400",
                                             value === getLabel(item) ? "opacity-100" : "opacity-0"
                                         )}
                                     />
