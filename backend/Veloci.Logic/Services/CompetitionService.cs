@@ -156,7 +156,7 @@ public class CompetitionService
     {
         return competition.TimeDeltas
             .GroupBy(d => d.PilotId)
-            .Select(d => d.MinBy(x => x.TrackTime))
+            .Select(d => SelectBestDelta(d, competition.QuadOfTheDay))
             .OrderBy(d => d.TrackTime)
             .Select((x, i) => new CompetitionResults
             {
@@ -170,6 +170,18 @@ public class CompetitionService
                 ModelName = x.ModelName
             })
             .ToList();
+    }
+
+    private static TrackTimeDelta SelectBestDelta(IGrouping<int, TrackTimeDelta> pilotDeltas, QuadModel? quadOfTheDay)
+    {
+        var fastest = pilotDeltas.MinBy(x => x.TrackTime)!;
+
+        if (quadOfTheDay is null)
+            return fastest;
+
+        return pilotDeltas
+            .FirstOrDefault(x => string.Equals(x.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
+            ?? fastest;
     }
 
     public async Task<List<SeasonResult>> GetSeasonResultsAsync(string cupId, DateTime from, DateTime to)
