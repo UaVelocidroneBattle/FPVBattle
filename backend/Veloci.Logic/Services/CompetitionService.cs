@@ -180,8 +180,8 @@ public class CompetitionService
             return fastest;
 
         return pilotDeltas
-            .FirstOrDefault(x => string.Equals(x.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
-            ?? fastest;
+            .Where(x => string.Equals(x.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
+            .MinBy(x => x.TrackTime) ?? fastest;
     }
 
     public async Task<List<SeasonResult>> GetSeasonResultsAsync(string cupId, DateTime from, DateTime to)
