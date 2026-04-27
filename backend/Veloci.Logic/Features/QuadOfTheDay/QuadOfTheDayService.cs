@@ -10,11 +10,13 @@ public class QuadOfTheDayService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<QuadOfTheDayService>();
     private readonly IRepository<QuadModel> _quadModels;
+    private readonly IRepository<Competition> _competitions;
     private static readonly Random Random = new();
 
-    public QuadOfTheDayService(IRepository<QuadModel> quadModels)
+    public QuadOfTheDayService(IRepository<QuadModel> quadModels, IRepository<Competition> competitions)
     {
         _quadModels = quadModels;
+        _competitions = competitions;
     }
 
     /// <summary>
@@ -94,8 +96,11 @@ public class QuadOfTheDayService
         return quad;
     }
 
-    public async Task<QuadModel?> GetQuadOfTheDayAsync(CupOptions cupOptions)
+    public async Task<QuadModel?> GetQuadOfTheDayAsync(CupOptions cupOptions, string cupId)
     {
+        if (await LastCompetitionWasQuadOfTheDayAsync(cupId))
+            return null;
+
         var options = cupOptions.QuadOfTheDay;
 
         if (!options.Enabled || options.Quads.Length == 0)
@@ -120,5 +125,16 @@ public class QuadOfTheDayService
             Log.Warning("Quad-of-the-day {QuadName} not found in the database", quadName);
 
         return quad;
+    }
+
+    private async Task<bool> LastCompetitionWasQuadOfTheDayAsync(string cupId)
+    {
+        var lastCompetition = await _competitions
+            .GetAll(c => c.State == CompetitionState.Closed)
+            .ForCup(cupId)
+            .OrderByDescending(c => c.StartedOn)
+            .FirstOrDefaultAsync();
+
+        return lastCompetition?.QuadOfTheDay != null;
     }
 }
