@@ -88,7 +88,13 @@ public class PatreonApiClient : IPatreonApiClient
             currentUrl = data.Links?.Next;
         }
 
-        return new PatreonMembersResponse { Data = allMembers, Included = allIncluded };
+        // JSON:API repeats the same related resource in every page that references it,
+        // so deduplicate by (type, id) before returning.
+        return new PatreonMembersResponse
+        {
+            Data = allMembers,
+            Included = allIncluded.DistinctBy(i => (i.Type, i.Id)).ToList()
+        };
     }
 
     /// <summary>
