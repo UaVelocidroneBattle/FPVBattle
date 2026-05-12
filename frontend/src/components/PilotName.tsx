@@ -8,7 +8,7 @@ interface PilotNameProps {
 function PilotName({ name, className = "" }: PilotNameProps) {
     return (
         <Link 
-            to={`/statistics/profile?pilot=${encodeURIComponent(name)}`}
+            to={`/statistics/profile/${encodeURIComponent(name)}`}
             className={`hover:text-emerald-400 transition-colors cursor-pointer ${className}`}
             title={`View ${name}'s profile`}
         >

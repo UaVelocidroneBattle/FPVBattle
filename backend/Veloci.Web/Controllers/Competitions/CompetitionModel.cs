@@ -11,6 +11,7 @@ public class CompetitionModel
     public required string TrackName { get; set; }
     public required int TrackId { get; set; }
     public required int MapId { get; set; }
+    public string? QuadOfTheDay { get; set; }
 }
 
 public class DashboardModel

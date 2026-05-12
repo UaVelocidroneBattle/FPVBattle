@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Veloci.Data.Domain;
+using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Services.Tracks;
 
@@ -8,11 +11,13 @@ public class TrackQueueController : Controller
 {
     private readonly TrackQueueService _trackQueueService;
     private readonly ICupService _cupService;
+    private readonly IRepository<QuadModel> _quads;
 
-    public TrackQueueController(TrackQueueService trackQueueService, ICupService cupService)
+    public TrackQueueController(TrackQueueService trackQueueService, ICupService cupService, IRepository<QuadModel> quads)
     {
         _trackQueueService = trackQueueService;
         _cupService = cupService;
+        _quads = quads;
     }
 
     public async Task<IActionResult> Index()
@@ -26,15 +31,17 @@ public class TrackQueueController : Controller
             Tracks = await _trackQueueService.GetQueueAsync(kv.Key)
         }));
 
-        return View(new TrackQueueViewModel { Cups = [..cupModels] });
+        var quads = await _quads.GetAll().OrderBy(q => q.Name).ToListAsync();
+
+        return View(new TrackQueueViewModel { Cups = [..cupModels], Quads = quads });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(string cupId, string trackName, DateTime? scheduleOn)
+    public async Task<IActionResult> Add(string cupId, string trackName, DateTime? scheduleOn, int? quadId)
     {
         try
         {
-            await _trackQueueService.QueueTrackAsync(cupId, trackName, scheduleOn);
+            await _trackQueueService.QueueTrackAsync(cupId, trackName, scheduleOn, quadId);
         }
         catch (Exception ex)
         {

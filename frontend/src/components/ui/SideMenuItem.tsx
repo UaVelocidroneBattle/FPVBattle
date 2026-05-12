@@ -13,7 +13,7 @@ const SideMenuItem = ({ to, icon: Icon, label }: SideMenuItemProps) => {
         <NavLink
             to={to}
             className={({ isActive }) =>
-                `flex items-center w-full transition-colors py-2 px-3 rounded
+                `flex items-center w-full transition-colors py-2 px-3
                  lg:justify-between
                  ${isActive
                     ? "text-emerald-400 bg-slate-700/50"

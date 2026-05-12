@@ -13,8 +13,8 @@ const AchievementsList = ({ achievements }: AchievementsListProps) => {
                     No achievements yet
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {achievements.map((achievement, index) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {[...achievements].sort((a, b) => (a.achievedOn == null ? 1 : 0) - (b.achievedOn == null ? 1 : 0)).map((achievement, index) => (
                         <AchievementCard
                             key={index}
                             achievement={achievement}

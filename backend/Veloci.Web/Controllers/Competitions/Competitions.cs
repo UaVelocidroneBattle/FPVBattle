@@ -27,13 +27,16 @@ public class CompetitionsController : ControllerBase
     }
 
     [HttpGet("/api/dashboard")]
-    public async Task<DashboardModel?> Dashboard([FromQuery] string? cupId = null)
+    public async Task<DashboardModel?> Dashboard([FromQuery] string? cupId = null, [FromQuery] DateOnly? date = null)
     {
         // Default to first enabled cup if not specified
         cupId ??= _cupService.GetEnabledCupIds().FirstOrDefault() ?? CupIds.OpenClass;
 
-        var competition  = await _competitionService
-            .GetCurrentCompetitions()
+        var competitionsQuery = date.HasValue
+            ? _competitionService.GetCompetitionsForDate(date.Value)
+            : _competitionService.GetCurrentCompetitions();
+
+        var competition = await competitionsQuery
             .ForCup(cupId)
             .FirstOrDefaultAsync();
 
@@ -41,7 +44,7 @@ public class CompetitionsController : ControllerBase
         {
             Competition = competition?.MapToModel(),
             Results = GetCurrentResults(competition),
-            Leaderboard = GetLeaderboard(cupId)
+            Leaderboard = GetLeaderboard(cupId, date)
         };
 
         return dashboardModel;
@@ -49,19 +52,22 @@ public class CompetitionsController : ControllerBase
 
     private List<TrackTimeModel> GetCurrentResults(Competition? competition)
     {
-        if (competition == null) return new List<TrackTimeModel>();
+        if (competition is null)
+            return [];
 
         var currentResults = _competitionService.GetLocalLeaderboard(competition);
         return currentResults.MapToModel();
     }
 
-    private List<SeasonResultModel> GetLeaderboard(string cupId)
+    private List<SeasonResultModel> GetLeaderboard(string cupId, DateOnly? date = null)
     {
-        var today = DateTime.Now;
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var to = date.HasValue
+            ? date.Value.ToDateTime(TimeOnly.MaxValue)
+            : DateTime.Now;
+        var firstDayOfMonth = new DateTime(to.Year, to.Month, 1);
 
         var leaderboard = _competitionService
-            .GetSeasonResultsQuery(cupId, firstDayOfMonth, today)
+            .GetSeasonResultsQuery(cupId, firstDayOfMonth, to)
             .OrderByDescending(result => result.Points)
             .MapToModel();
 

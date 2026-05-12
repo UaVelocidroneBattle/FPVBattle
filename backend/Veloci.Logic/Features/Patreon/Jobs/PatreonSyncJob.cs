@@ -108,7 +108,7 @@ public class PatreonSyncJob
             _log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
         }
 
-        await _supportersRepository.SaveChangesAsync();
+        await _supportersRepository.SaveChangesAsync(ct);
 
         _log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
             newSupporters.Count, updatedSupporters.Count);

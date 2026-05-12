@@ -31,15 +31,15 @@ public class TelegramMessageComposer
 
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
-            : $"Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
+            : $"⚠️ Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
 
         return $"📅 Вітаємо на *FPV Battle*!{Environment.NewLine}{Environment.NewLine}" +
                $"Трек дня:{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
+               $"{quadOfTheDayText}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
-               $"{quadOfTheDayText}" +
                $"{flownPilotsText}{Environment.NewLine}" +
                $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
     }
@@ -70,11 +70,16 @@ public class TelegramMessageComposer
         return "😔 Бачу трек не сподобався. Більше його не буде";
     }
 
-    public string TempLeaderboard(List<CompetitionResults> results, Track track)
+    public string TempLeaderboard(List<CompetitionResults> results, Track track, string? quadOfTheDay)
     {
+        var quadOfTheDayText = quadOfTheDay is null
+            ? string.Empty
+            : $"⚠️ Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
+
         var rows = TempLeaderboardRows(results);
         return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
+               quadOfTheDayText +
                $"`{string.Join($"{Environment.NewLine}", rows)}`";
     }
 

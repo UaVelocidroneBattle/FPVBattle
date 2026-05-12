@@ -12,14 +12,12 @@ export interface PilotProfileState {
   heatmapData: Record<string, PilotResult[]>;
   profileLoadingState: Record<string, LoadingStates>;
   heatmapLoadingState: Record<string, LoadingStates>;
-  currentPilot: string | null;
 }
 
 export interface PilotProfileActions {
   fetchPilotProfile: (pilotName: string) => Promise<void>;
   fetchPilotHeatmapData: (pilotName: string) => Promise<void>;
   clearProfile: (pilotName: string) => void;
-  choosePilot: (pilotName: string) => void;
 }
 
 export type PilotProfileStore = PilotProfileState & PilotProfileActions;
@@ -29,7 +27,6 @@ export const usePilotProfileStore = create<PilotProfileStore>()((set, get) => ({
   heatmapData: {},
   profileLoadingState: {},
   heatmapLoadingState: {},
-  currentPilot: null,
 
   fetchPilotProfile: async (pilotName: string) => {
     const currentState = get();
@@ -147,27 +144,6 @@ export const usePilotProfileStore = create<PilotProfileStore>()((set, get) => ({
     });
   },
 
-  choosePilot: (pilotName: string) => {
-    const state = get();
-
-    // Set the current pilot
-    set({ currentPilot: pilotName });
-
-    // Automatically fetch data for the selected pilot if not already loaded/loading
-    if (
-      state.profileLoadingState[pilotName] !== "Loaded" &&
-      state.profileLoadingState[pilotName] !== "Loading"
-    ) {
-      state.fetchPilotProfile(pilotName);
-    }
-
-    if (
-      state.heatmapLoadingState[pilotName] !== "Loaded" &&
-      state.heatmapLoadingState[pilotName] !== "Loading"
-    ) {
-      state.fetchPilotHeatmapData(pilotName);
-    }
-  },
 }));
 
 const empty: PilotResult[] = [];

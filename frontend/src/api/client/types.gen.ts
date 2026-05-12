@@ -8,6 +8,7 @@ export type CompetitionModel = {
     trackName: string;
     trackId: number;
     mapId: number;
+    quadOfTheDay?: null | string;
 };
 
 export type CompetitionState = number;
@@ -20,7 +21,7 @@ export type DashboardModel = {
 
 export type PilotAchievementModel = {
     name: string;
-    earnedOn: string;
+    achievedOn: string | null;
     title: string;
     description: string;
 };
@@ -35,6 +36,14 @@ export type PilotProfileModel = {
     lastRaceDate?: null | string;
     firstRaceDate?: null | string;
     availableFreezes: number;
+    globalRating: number | null;
+    ratingHistory: Array<PilotRatingHistoryPoint>;
+};
+
+export type PilotRatingHistoryPoint = {
+    date: string;
+    gapPercent?: number | null;
+    rank: number;
 };
 
 export type PilotResult = {
@@ -145,6 +154,7 @@ export type GetApiDashboardData = {
     path?: never;
     query?: {
         cupId?: string;
+        date?: string;
     };
     url: '/api/dashboard';
 };

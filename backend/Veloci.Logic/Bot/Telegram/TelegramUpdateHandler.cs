@@ -93,7 +93,7 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
             await _messenger.SendMessageAsync(channelId, "Добре 🫡");
             BackgroundJob.Enqueue(() => _competitionConductor.StopPollAsync(cupId));
             BackgroundJob.Schedule(() => _competitionConductor.StopAsync(cupId), new TimeSpan(0, 0, 10));
-            BackgroundJob.Schedule(() => _competitionConductor.SeasonResultsAsync(), new TimeSpan(0, 0, 30));
+            BackgroundJob.Schedule(() => _competitionConductor.SeasonResultsAsync(cupId), new TimeSpan(0, 0, 30));
             BackgroundJob.Schedule(() => _competitionConductor.StartNewAsync(cupId), new TimeSpan(0, 0, 45));
 
             return;

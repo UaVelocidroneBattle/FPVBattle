@@ -8,27 +8,30 @@ namespace Veloci.Logic.Services.Tracks;
 
 public class TrackQueueService
 {
-    private static readonly ILogger _log = Log.ForContext<TrackQueueService>();
+    private static readonly ILogger Log = Serilog.Log.ForContext<TrackQueueService>();
     private readonly ITrackFetcher _trackFetcher;
     private readonly ICupService _cupService;
     private readonly TrackService _trackService;
     private readonly IRepository<QueuedTrack> _trackQueue;
+    private readonly IRepository<QuadModel> _quads;
 
     public TrackQueueService(
         ITrackFetcher trackFetcher,
         ICupService cupService,
         IRepository<QueuedTrack> trackQueue,
-        TrackService trackService)
+        TrackService trackService,
+        IRepository<QuadModel> quads)
     {
         _trackFetcher = trackFetcher;
         _cupService = cupService;
         _trackQueue = trackQueue;
         _trackService = trackService;
+        _quads = quads;
     }
 
-    public async Task QueueTrackAsync(string cupId, string trackName, DateTime? scheduleOn)
+    public async Task QueueTrackAsync(string cupId, string trackName, DateTime? scheduleOn, int? quadId)
     {
-        _log.Information("Queuing track {TrackName} for cup {CupId}, scheduled on {ScheduledOn}",
+        Log.Information("Queuing track {TrackName} for cup {CupId}, scheduled on {ScheduledOn}",
             trackName, cupId, (object?)scheduleOn ?? "next available date");
 
         if (scheduleOn.HasValue && AlreadyScheduledOnTheDate(cupId, scheduleOn.Value))
@@ -54,22 +57,29 @@ public class TrackQueueService
 
         var track = found.Single();
         var dbTrack = await _trackService.GetOrCreateTrackAsync(track.Map.Name, track.Map.Id, track.Name, track.Id);
+        QuadModel? quad = null;
+
+        if (quadId is not null)
+        {
+            quad = await _quads.FindAsync(quadId.Value);
+        }
 
         var queuedTrack = new QueuedTrack
         {
             TrackId = dbTrack.Id,
             ScheduledOn = scheduleOn,
             AddedOn = DateTime.UtcNow,
-            CupId = cupId
+            CupId = cupId,
+            Quad = quad
         };
 
         await _trackQueue.AddAsync(queuedTrack);
 
-        _log.Information("✅ Track '{TrackName}' (ID: {TrackId}) queued for cup {CupId}, scheduled on {ScheduledOn}",
+        Log.Information("✅ Track '{TrackName}' (ID: {TrackId}) queued for cup {CupId}, scheduled on {ScheduledOn}",
             dbTrack.Name, dbTrack.TrackId, cupId, (object?)scheduleOn ?? "next available date");
     }
 
-    public async Task<Track?> TryDequeueNextTrackAsync(string cupId)
+    public async Task<QueuedTrack?> TryDequeueNextTrackAsync(string cupId)
     {
         var today = DateTime.Today;
 
@@ -77,6 +87,7 @@ public class TrackQueueService
             .ForCup(cupId)
             .NotUsed()
             .Include(x => x.Track)
+            .Include(x => x.Quad)
             .FirstOrDefaultAsync(x => x.ScheduledOn == today);
 
         nextTrack ??= await _trackQueue.GetAll()
@@ -85,21 +96,22 @@ public class TrackQueueService
             .Where(x => x.ScheduledOn == null)
             .OrderBy(x => x.AddedOn)
             .Include(x => x.Track)
+            .Include(x => x.Quad)
             .FirstOrDefaultAsync();
 
         if (nextTrack is null)
         {
-            _log.Debug("No queued tracks available for cup {CupId}", cupId);
+            Log.Debug("No queued tracks available for cup {CupId}", cupId);
             return null;
         }
 
         nextTrack.Used = true;
         await _trackQueue.SaveChangesAsync();
 
-        _log.Information("Picked queued track '{TrackName}' for cup {CupId} (scheduled: {WasScheduled})",
+        Log.Information("Picked queued track '{TrackName}' for cup {CupId} (scheduled: {WasScheduled})",
             nextTrack.Track.Name, cupId, nextTrack.ScheduledOn.HasValue);
 
-        return nextTrack.Track;
+        return nextTrack;
     }
 
     public async Task<List<QueuedTrack>> GetQueueAsync(string cupId)
@@ -108,6 +120,7 @@ public class TrackQueueService
             .ForCup(cupId)
             .NotUsed()
             .Include(x => x.Track)
+            .Include(x => x.Quad)
             .OrderBy(x => x.ScheduledOn == null ? DateTime.MaxValue : x.ScheduledOn)
             .ThenBy(x => x.AddedOn)
             .ToListAsync();
@@ -115,7 +128,7 @@ public class TrackQueueService
 
     public async Task RemoveFromQueueAsync(Guid id)
     {
-        _log.Information("Removing queued track {Id} from queue", id);
+        Log.Information("Removing queued track {Id} from queue", id);
         await _trackQueue.RemoveAsync(id);
     }
 

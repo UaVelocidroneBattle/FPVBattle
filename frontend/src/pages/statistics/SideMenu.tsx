@@ -3,7 +3,7 @@ import SideMenuItem from "../../components/ui/SideMenuItem";
 
 const SideMenu = () => {
     return (
-        <aside className="lg:w-64 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg overflow-hidden">
+        <aside className="lg:w-64 bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
             <nav className="p-2 lg:p-4">
                 <ul className="flex lg:flex-col gap-1 lg:gap-2">
                     <li className="flex-1 lg:flex-none">

@@ -25,25 +25,25 @@ public class CurrentTrackCommand : ITelegramCommand
             .Include(c => c.Track)
             .ThenInclude(t => t.Map);
 
-        var openCompetition = await activeCompetitions
-            .ForCup(CupIds.OpenClass)
-            .FirstOrDefaultAsync();
+        var openCompetition = await activeCompetitions.ForCup(CupIds.OpenClass).FirstOrDefaultAsync();
+        var whoopCompetition = await activeCompetitions.ForCup(CupIds.WhoopClass).FirstOrDefaultAsync();
 
-        var openTrack = openCompetition is null
-            ? "(No track)"
-            : $"*{openCompetition.Track.Map.Name} - `{openCompetition.Track.Name}`*";
-
-        var whoopCompetition = await activeCompetitions
-            .ForCup(CupIds.WhoopClass)
-            .FirstOrDefaultAsync();
-
-        var whoopTrack = whoopCompetition is null
-            ? "(No track)"
-            : $"*{whoopCompetition.Track.Map.Name} - `{whoopCompetition.Track.Name}`*";
-
-        return $"Open class:{Environment.NewLine}{openTrack}" +
+        return $"Open class:{Environment.NewLine}{FormatTrack(openCompetition)}" +
                $"{Environment.NewLine}{Environment.NewLine}" +
-               $"Whoop class:{Environment.NewLine}{whoopTrack}";
+               $"Whoop class:{Environment.NewLine}{FormatTrack(whoopCompetition)}";
+    }
+
+    private static string FormatTrack(Competition? competition)
+    {
+        if (competition is null)
+            return "(No track)";
+
+        var trackName = $"*{competition.Track.Map.Name} - `{competition.Track.Name}`*";
+
+        if (competition.QuadOfTheDay is null)
+            return trackName;
+
+        return $"{trackName}{Environment.NewLine}{Environment.NewLine}⚠️ Квад дня: *{competition.QuadOfTheDay.Name}*";
     }
 
     public bool RemoveMessageAfterDelay => false;

@@ -74,7 +74,7 @@ public class CompetitionService
         var cupOptions = _cupService.GetCupOptions(competition.CupId);
 
         var resultsDto = await _velocidrone.LeaderboardAsync(competition.Track.TrackId);
-        var times = await _resultsConverter.ConvertTrackTimesAsync(resultsDto, cupOptions.QuadClasses);
+        var times = await _resultsConverter.ConvertTrackTimesAsync(resultsDto, cupOptions.QuadClasses, competition.QuadOfTheDay);
         _log.Debug("Retrieved {ResultCount} results from Velocidrone API for competition {CompetitionId}", times.Count, competition.Id);
 
         var results = new TrackResults
@@ -156,7 +156,7 @@ public class CompetitionService
     {
         return competition.TimeDeltas
             .GroupBy(d => d.PilotId)
-            .Select(d => d.MinBy(x => x.TrackTime))
+            .Select(d => SelectBestDelta(d, competition.QuadOfTheDay))
             .OrderBy(d => d.TrackTime)
             .Select((x, i) => new CompetitionResults
             {
@@ -170,6 +170,18 @@ public class CompetitionService
                 ModelName = x.ModelName
             })
             .ToList();
+    }
+
+    private static TrackTimeDelta SelectBestDelta(IGrouping<int, TrackTimeDelta> pilotDeltas, QuadModel? quadOfTheDay)
+    {
+        var fastest = pilotDeltas.MinBy(x => x.TrackTime)!;
+
+        if (quadOfTheDay is null)
+            return fastest;
+
+        return pilotDeltas
+            .Where(x => string.Equals(x.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
+            .MinBy(x => x.TrackTime) ?? fastest;
     }
 
     public async Task<List<SeasonResult>> GetSeasonResultsAsync(string cupId, DateTime from, DateTime to)
@@ -228,6 +240,16 @@ public class CompetitionService
     {
         return _competitions
             .GetAll(c => c.State == CompetitionState.Started)
+            .OrderByDescending(x => x.StartedOn);
+    }
+
+    public IQueryable<Competition> GetCompetitionsForDate(DateOnly date)
+    {
+        var dayStart = date.ToDateTime(TimeOnly.MinValue);
+        var dayEnd = date.ToDateTime(TimeOnly.MaxValue);
+
+        return _competitions
+            .GetAll(c => c.StartedOn >= dayStart && c.StartedOn <= dayEnd)
             .OrderByDescending(x => x.StartedOn);
     }
 }

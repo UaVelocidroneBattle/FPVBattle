@@ -6,11 +6,13 @@ import { LoadingStates } from '../lib/loadingStates';
 export interface DashboardState {
   state: LoadingStates;
   data: DashboardModel | null;
+  selectedDate: string | null;
 }
 
 export interface DashboardActions {
   fetch: () => Promise<void>;
   refresh: () => Promise<void>;
+  selectDate: (date: string | null) => void;
 }
 
 export type DashboardStore = DashboardState & DashboardActions;
@@ -19,12 +21,13 @@ function createDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardSt
   return create<DashboardStore>()((set, get) => ({
     state: 'Idle',
     data: null,
+    selectedDate: null,
     fetch: async () => {
       if (get().state === 'Loading') return;
 
       set({ state: 'Loading' });
       try {
-        const response = await api.getDashboard(cupId);
+        const response = await api.getDashboard(cupId, get().selectedDate ?? undefined);
         set({ state: 'Loaded', data: response.data });
       } catch {
         set({ state: 'Error', data: null });
@@ -34,11 +37,14 @@ function createDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardSt
       if (get().state === 'Loading') return;
 
       try {
-        const response = await api.getDashboard(cupId);
+        const response = await api.getDashboard(cupId, get().selectedDate ?? undefined);
         set({ state: 'Loaded', data: response.data });
       } catch {
         // Keep existing data on refresh failure — only initial load shows error state
       }
+    },
+    selectDate: (date: string | null) => {
+      set({ selectedDate: date, state: 'Idle' });
     },
   }));
 }

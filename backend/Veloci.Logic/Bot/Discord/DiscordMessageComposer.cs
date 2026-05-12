@@ -31,14 +31,14 @@ public class DiscordMessageComposer
 
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
-            : $"Quad of the day: **{quadOfTheDay}**{Environment.NewLine}{Environment.NewLine}";
+            : $"⚠️ Quad of the day: **{quadOfTheDay}**{Environment.NewLine}{Environment.NewLine}";
 
         return $"## 📅  Welcome to **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Track of the day:{Environment.NewLine}" +
                $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
-               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
                $"{quadOfTheDayText}" +
+               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
                $"{flownPilotsText}{Environment.NewLine}" +
                $"👾 Instructions, statistics and more here:{Environment.NewLine}https://ua-velocidrone.fun/{Environment.NewLine}⠀";
     }
@@ -71,16 +71,22 @@ public class DiscordMessageComposer
 
     public string TempLeaderboard(List<CompetitionResults>? results)
     {
-        var message = $"### 🧐 Leaderboard:{Environment.NewLine}{Environment.NewLine}⠀";
+        var header = $"### 🧐 Leaderboard:{Environment.NewLine}{Environment.NewLine}⠀";
 
         if (results is null || results.Count == 0)
         {
-            return $"{message}```Waiting for the first results```";
+            return $"{header}```Waiting for the first results```";
         }
 
-        var rows = TempLeaderboardRows(results);
-        return $"{message}" +
-               $"```{string.Join($"{Environment.NewLine}", rows)}```";
+        var message = BuildTempLeaderboard(header, results, includeModelNames: true);
+
+        return message.Length <= 2000 ? message : BuildTempLeaderboard(header, results, includeModelNames: false);
+    }
+
+    private string BuildTempLeaderboard(string header, List<CompetitionResults> results, bool includeModelNames)
+    {
+        var rows = TempLeaderboardRows(results, includeModelNames);
+        return $"{header}```{string.Join(Environment.NewLine, rows)}```";
     }
 
     public string Leaderboard(IEnumerable<CompetitionResults> results)
@@ -219,7 +225,7 @@ public class DiscordMessageComposer
                $"⏱️  {TrackTimeConverter.MsToSec(delta.TrackTime)}s{timeChangePart} / #{delta.Rank}{rankOldPart}";
     }
 
-    private List<string> TempLeaderboardRows(List<CompetitionResults> results)
+    private List<string> TempLeaderboardRows(List<CompetitionResults> results, bool includeModelNames = true)
     {
         var positionLength = results.Count.ToString().Length + 2;
         var pilotNameLength = Math.Min(results.Max(r => r.Pilot.Name.Length), PilotNameMaxLength) + 2;
@@ -229,7 +235,8 @@ public class DiscordMessageComposer
         foreach (var result in results)
         {
             var pilotName = TextHelper.Trim(result.Pilot.Name, PilotNameMaxLength);
-            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(pilotName, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{result.ModelName}");
+            var modelName = includeModelNames ? result.ModelName : string.Empty;
+            rows.Add($"{FillWithSpaces(result.LocalRank, positionLength)}{FillWithSpaces(pilotName, pilotNameLength)}{FillWithSpaces(TrackTimeConverter.MsToSec(result.TrackTime) + "s", timeLength)}{modelName}");
         }
 
         return rows;
