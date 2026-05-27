@@ -9,7 +9,9 @@ public class RatingService
 {
     private readonly IRepository<PilotPaceRating> _ratings;
 
-    public RatingService(IRepository<PilotPaceRating> ratings)
+    public RatingService(
+        IRepository<PilotPaceRating> ratings
+        )
     {
         _ratings = ratings;
     }
@@ -53,6 +55,20 @@ public class RatingService
                 GapPercent = r.AverageGapPercent,
                 Rank = r.Rank
             })
+            .ToListAsync();
+    }
+
+    public async Task<List<int>> GetRankedPilotIdsAsync(string cupId)
+    {
+        var lastCalculationDate = await GetLastCalculationDateAsync(cupId);
+
+        if (lastCalculationDate is null)
+            return [];
+
+        return await _ratings
+            .GetAll(r => r.CupId == cupId && r.CalculatedOn == lastCalculationDate.Value)
+            .OrderBy(r => r.Rank)
+            .Select(x => x.PilotId)
             .ToListAsync();
     }
 

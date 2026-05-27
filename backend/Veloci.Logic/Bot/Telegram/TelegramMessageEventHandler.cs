@@ -56,7 +56,7 @@ public class TelegramMessageEventHandler :
         if (competition.CompetitionResults.Count == 0)
             return;
 
-        var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults, competition.Track.FullName);
+        var resultsMessage = _messageComposer.Leaderboard(notification.Leaderboard, competition.Track.FullName);
         await _cupMessenger.SendMessageToCupAsync(competition.CupId, resultsMessage);
     }
 
@@ -79,9 +79,6 @@ public class TelegramMessageEventHandler :
 
         var imageStream = new MemoryStream(notification.Image);
         await _cupMessenger.SendPhotoToCupAsync(notification.CupId, imageStream);
-
-        var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => SendMedalCountToCupAsync(notification.CupId, medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)

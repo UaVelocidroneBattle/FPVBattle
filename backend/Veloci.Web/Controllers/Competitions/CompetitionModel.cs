@@ -1,6 +1,30 @@
 ﻿using Veloci.Data.Domain;
+using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Web.Controllers.Competitions;
+
+public class DashboardModel
+{
+    public CompetitionModel? Competition { get; set; }
+    public required List<LeagueLeaderboardModel> Leaderboard { get; set; }
+    public required List<LeagueSeasonLeaderboard> SeasonLeaderboard { get; set; }
+}
+
+public class LeagueLeaderboardModel
+{
+    public string? League { get; set; }
+    public required List<LeaderboardResultModel> Results { get; set; }
+}
+
+public class LeaderboardResultModel
+{
+    public required string PlayerName { get; set; }
+    public int TrackTime { get; set; }
+    public int LocalRank { get; set; }
+    public int GlobalRank { get; set; }
+    public string? ModelName { get; set; }
+    public required string Country { get; set; }
+}
 
 public class CompetitionModel
 {
@@ -12,28 +36,5 @@ public class CompetitionModel
     public required int TrackId { get; set; }
     public required int MapId { get; set; }
     public string? QuadOfTheDay { get; set; }
-}
-
-public class DashboardModel
-{
-    public CompetitionModel? Competition { get; set; }
-    public required List<TrackTimeModel> Results { get; set; }
-    public required List<SeasonResultModel> Leaderboard { get; set; }
-}
-
-public class TrackTimeModel
-{
-    public required string PlayerName { get; set; }
-    public required int Time { get; set; }
-    public required int GlobalRank { get; set; }
-    public required int LocalRank { get; set; }
-    public required string ModelName { get; set; }
-    public required string Country { get; set; }
-}
-
-public class SeasonResultModel
-{
-    public required string PlayerName { get; set; }
-    public required int Points { get; set; }
-    public required string Country { get; set; }
+    public LeagueOptions Leagues { get; set; } = new();
 }

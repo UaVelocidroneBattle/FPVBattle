@@ -51,39 +51,41 @@ public static class AchievementsServiceExtensions
             // Open class achievements
             if (IsCupEnabled(CupIds.OpenClass))
             {
-                services
-                    .AddAchievement<ThirdPlaceInRace_Open_Achievement>()
-                    .AddAchievement<SecondPlaceInRace_Open_Achievement>()
-                    .AddAchievement<FirstPlaceInRace_Open_Achievement>()
-                    .AddAchievement<ThirdInSeason_Open_Achievement>()
-                    .AddAchievement<SecondInSeason_Open_Achievement>()
-                    .AddAchievement<FirstInSeason_Open_Achievement>()
-                    ;
+                // OUTDATED FOR NOW
+
+                // services
+                //     .AddAchievement<ThirdPlaceInRace_Open_Achievement>()
+                //     .AddAchievement<SecondPlaceInRace_Open_Achievement>()
+                //     .AddAchievement<FirstPlaceInRace_Open_Achievement>()
+                //     .AddAchievement<ThirdInSeason_Open_Achievement>()
+                //     .AddAchievement<SecondInSeason_Open_Achievement>()
+                //     .AddAchievement<FirstInSeason_Open_Achievement>()
+                //     ;
             }
 
             // Whoop class achievements
             if (IsCupEnabled(CupIds.WhoopClass))
             {
-                services
-                    .AddAchievement<ThirdPlaceInRace_Whoop_Achievement>()
-                    .AddAchievement<SecondPlaceInRace_Whoop_Achievement>()
-                    .AddAchievement<FirstPlaceInRace_Whoop_Achievement>()
-                    .AddAchievement<ThirdInSeason_Whoop_Achievement>()
-                    .AddAchievement<SecondInSeason_Whoop_Achievement>()
-                    .AddAchievement<FirstInSeason_Whoop_Achievement>()
-                    ;
+                // OUTDATED FOR NOW
+
+                // services
+                //     .AddAchievement<ThirdPlaceInRace_Whoop_Achievement>()
+                //     .AddAchievement<SecondPlaceInRace_Whoop_Achievement>()
+                //     .AddAchievement<FirstPlaceInRace_Whoop_Achievement>()
+                //     .AddAchievement<ThirdInSeason_Whoop_Achievement>()
+                //     .AddAchievement<SecondInSeason_Whoop_Achievement>()
+                //     .AddAchievement<FirstInSeason_Whoop_Achievement>()
+                //     ;
             }
 
             // Others
             services
-                .AddAchievement<LastInRaceAchievement>()
+                //.AddAchievement<LastInRaceAchievement>()
                 .AddAchievement<BiggestDayStreakAchievement>()
                 .AddAchievement<GlobalFirstPlaceAchievement>()
                 .AddAchievement<EarlyBirdAchievement>()
                 .AddAchievement<LateBirdAchievement>()
                 .AddAchievement<FirstResultAchievement>()
-                .AddAchievement<MedalistAchievement>()
-                //.AddAchievement<OvertakeTheDuckAchievement>()
                 .AddAchievement<JackpotAchievement>()
                 .AddAchievement<NanoBoostAchievement>()
                 .AddAchievement<BeastAchievement>()

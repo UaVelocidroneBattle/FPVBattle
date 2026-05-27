@@ -26,6 +26,7 @@ public class Pilot
     public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
     public virtual ICollection<PilotNameHistoryRow> NameHistory { get; set; }
     public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
+    public virtual ICollection<PilotLeague> Leagues { get; set; }
 
     /// <summary>
     /// Called when competition is finished and pilot took place in it.
@@ -124,6 +125,18 @@ public class Pilot
         });
 
         Name = newName;
+    }
+
+    public string? GetCurrentLeague(string cupId, DateTime? date = null)
+    {
+        var records = Leagues.Where(l => l.CupId == cupId);
+
+        // UNCOMMENT LATER
+        // return date is null
+        //     ? records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League
+        //     : records.Where(l => l.Date <= date.Value).MaxBy(l => l.Date)?.League;
+
+        return records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League;
     }
 }
 

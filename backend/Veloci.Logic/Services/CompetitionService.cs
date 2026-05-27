@@ -17,34 +17,31 @@ public class CompetitionService
 
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
-    private readonly IRepository<Pilot> _pilots;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
     private readonly PilotService _pilotService;
-    private readonly PointsCalculator _pointsCalculator;
     private readonly ICupService _cupService;
+    private readonly ILeaderboardCalculator  _leaderboardCalculator;
 
     public CompetitionService(
         IRepository<Competition> competitions,
         RaceResultsConverter resultsConverter,
         RaceResultDeltaAnalyzer analyzer,
         IMediator mediator,
-        IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         PilotService pilotService,
-        PointsCalculator pointsCalculator,
-        ICupService cupService)
+        ICupService cupService,
+        ILeaderboardCalculator leaderboardCalculator)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
         _analyzer = analyzer;
         _mediator = mediator;
-        _pilots = pilots;
         _velocidrone = velocidrone;
         _pilotService = pilotService;
-        _pointsCalculator = pointsCalculator;
         _cupService = cupService;
+        _leaderboardCalculator = leaderboardCalculator;
     }
 
     [DisableConcurrentExecution("Competition", 60)]
@@ -122,11 +119,12 @@ public class CompetitionService
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)
     {
-        if (competition.ResultsPosted)
-        {
-            _log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
-            return;
-        }
+        // UNCOMMENT LATER
+        // if (competition.ResultsPosted)
+        // {
+        //     _log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
+        //     return;
+        // }
 
         if (competition.TimeDeltas.Count == 0)
         {
@@ -135,9 +133,9 @@ public class CompetitionService
             return;
         }
 
-        var leaderboard = GetLocalLeaderboard(competition);
+        var leaderboard = _leaderboardCalculator.GetLeagueLeaderboard(competition);
 
-        if (leaderboard.Count < 2)
+        if (leaderboard.Sum(x => x.Results.Count) < 2)
         {
             await SendCheerUpMessageAsync(competition.CupId, ChatMessageType.OnlyOneFlew);
             return;
@@ -150,74 +148,6 @@ public class CompetitionService
         competition.ResultsPosted = true;
         await _competitions.SaveChangesAsync();
         _log.Debug("Marked leaderboard as published for competition {CompetitionId}", competition.Id);
-    }
-
-    public List<CompetitionResults> GetLocalLeaderboard(Competition competition)
-    {
-        return competition.TimeDeltas
-            .GroupBy(d => d.PilotId)
-            .Select(d => SelectBestDelta(d, competition.QuadOfTheDay))
-            .OrderBy(d => d.TrackTime)
-            .Select((x, i) => new CompetitionResults
-            {
-                CompetitionId = x.CompetitionId,
-                PilotId = x.PilotId,
-                Pilot = x.Pilot,
-                TrackTime = x.TrackTime,
-                LocalRank = i + 1,
-                GlobalRank = x.Rank,
-                Points = _pointsCalculator.PointsByPosition(i + 1),
-                ModelName = x.ModelName
-            })
-            .ToList();
-    }
-
-    private static TrackTimeDelta SelectBestDelta(IGrouping<int, TrackTimeDelta> pilotDeltas, QuadModel? quadOfTheDay)
-    {
-        var fastest = pilotDeltas.MinBy(x => x.TrackTime)!;
-
-        if (quadOfTheDay is null)
-            return fastest;
-
-        return pilotDeltas
-            .Where(x => string.Equals(x.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
-            .MinBy(x => x.TrackTime) ?? fastest;
-    }
-
-    public async Task<List<SeasonResult>> GetSeasonResultsAsync(string cupId, DateTime from, DateTime to)
-    {
-        _log.Debug("Calculating season results for cup {CupId} from {StartDate} to {EndDate}", cupId, from.ToString("yyyy-MM-dd"), to.ToString("yyyy-MM-dd"));
-
-        var results = await GetSeasonResultsQuery(cupId, from, to)
-            .OrderByDescending(result => result.Points)
-            .ToListAsync();
-
-        for (var i = 0; i < results.Count; i++)
-        {
-            results[i].Rank = i + 1;
-        }
-
-        _log.Debug("Season results calculated for cup {CupId}: {ResultCount} pilots ranked", cupId, results.Count);
-        return results;
-    }
-
-    public IQueryable<SeasonResult> GetSeasonResultsQuery(string cupId, DateTime from, DateTime to)
-    {
-        return _competitions
-            .GetAll(comp => comp.StartedOn >= from && comp.StartedOn <= to)
-            .ForCup(cupId)
-            .Where(comp => comp.State != CompetitionState.Cancelled)
-            .SelectMany(comp => comp.CompetitionResults)
-            .GroupBy(result => result.PilotId)
-            .Select(group => new SeasonResult
-            {
-                PlayerName = group.First().Pilot.Name,
-                Points = group.Sum(r => r.Points + r.BonusPoints),
-                GoldenCount = group.Count(r => r.LocalRank == 1),
-                SilverCount = group.Count(r => r.LocalRank == 2),
-                BronzeCount = group.Count(r => r.LocalRank == 3),
-                Country = group.First().Pilot.Country,
-            });
     }
 
     private async Task SendCheerUpMessageAsync(string cupId, ChatMessageType type)

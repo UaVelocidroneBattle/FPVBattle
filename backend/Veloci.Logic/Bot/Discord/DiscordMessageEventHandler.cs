@@ -3,6 +3,7 @@ using MediatR;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services;
 
@@ -33,7 +34,8 @@ public class DiscordMessageEventHandler :
     private readonly IDiscordCupMessenger _cupMessenger;
     private readonly IDiscordGeneralMessenger _generalMessenger;
     private readonly IRepository<Competition> _competitions;
-    private readonly CompetitionService _competitionService;
+    private readonly ILeaderboardCalculator _leaderboardCalculator;
+    private readonly ICupService _cupService;
     private readonly DiscordChatMessages _chatMessages;
 
     public DiscordMessageEventHandler(
@@ -42,7 +44,8 @@ public class DiscordMessageEventHandler :
         IDiscordCupMessenger cupMessenger,
         IDiscordGeneralMessenger generalMessenger,
         IRepository<Competition> competitions,
-        CompetitionService competitionService,
+        ILeaderboardCalculator leaderboardCalculator,
+        ICupService cupService,
         DiscordChatMessages chatMessages)
     {
         _messageComposer = messageComposer;
@@ -50,7 +53,8 @@ public class DiscordMessageEventHandler :
         _cupMessenger = cupMessenger;
         _generalMessenger = generalMessenger;
         _competitions = competitions;
-        _competitionService = competitionService;
+        _leaderboardCalculator = leaderboardCalculator;
+        _cupService = cupService;
         _chatMessages = chatMessages;
     }
 
@@ -68,11 +72,20 @@ public class DiscordMessageEventHandler :
         var startMessage = _messageComposer.StartCompetition(track, notification.PilotsFlownOnTrack, notification.Competition.QuadOfTheDay?.Name);
         await bot.SendMessageAsync(startMessage);
 
-        var leaderboardMessage = _messageComposer.TempLeaderboard(null);
-        var messageId = await bot.SendMessageAsync(leaderboardMessage);
-        notification.Competition.AddOrUpdateVariable(CompetitionVariables.DiscordLeaderboardMessageId, messageId.Value);
-        await _competitions.SaveChangesAsync(cancellationToken);
+        var leagueNames = _cupService.GetCupOptions(cupId).Leagues.GetAllLeagueNames();
+        var leaderboardMessages = _messageComposer.TempLeaderboard(null, leagueNames);
+        var lastKey = leaderboardMessages.Keys.Last();
 
+        foreach (var message in leaderboardMessages)
+        {
+            var messageId = await bot.SendMessageAsync(message.Value);
+            notification.Competition.AddOrUpdateVariable(CompetitionVariables.GetDiscordLeaderboardMessageId(message.Key), messageId.Value);
+
+            if (message.Key == lastKey)
+                notification.Competition.AddOrUpdateVariable(CompetitionVariables.DiscordTimeUpdatesMessageId, messageId.Value);
+        }
+
+        await _competitions.SaveChangesAsync(cancellationToken);
         await bot.ChangeChannelTopicAsync(notification.Track.FullName);
     }
 
@@ -86,17 +99,29 @@ public class DiscordMessageEventHandler :
             return;
         }
 
-        var leaderboardMessageId = GetLeaderboardMessageId(notification.Competition);
+        var threadMessageId = notification.Competition
+            .GetVariable(CompetitionVariables.DiscordTimeUpdatesMessageId)?
+            .ULongValue;
 
-        if (leaderboardMessageId is null)
+        if (threadMessageId is null)
             return;
 
-        var message = _messageComposer.TimeUpdate(notification.Deltas);
-        await bot.SendMessageInThreadAsync(leaderboardMessageId.Value, CompetitionVariables.DiscordTimeUpdatesThreadName, message);
+        var timeUpdateMessage = _messageComposer.TimeUpdate(notification.Deltas);
+        await bot.SendMessageInThreadAsync(threadMessageId.Value, CompetitionVariables.DiscordTimeUpdatesThreadName, timeUpdateMessage);
 
-        var leaderboard = _competitionService.GetLocalLeaderboard(notification.Competition);
-        var leaderboardMessage = _messageComposer.TempLeaderboard(leaderboard);
-        await bot.EditMessageAsync(leaderboardMessageId.Value, leaderboardMessage);
+        var leagueNames = _cupService.GetCupOptions(cupId).Leagues.GetAllLeagueNames();
+        var leagueLeaderboard = _leaderboardCalculator.GetLeagueLeaderboard(notification.Competition);
+        var leaderboardMessages = _messageComposer.TempLeaderboard(leagueLeaderboard, leagueNames);
+
+        foreach (var message in leaderboardMessages)
+        {
+            var messageId = GetLeaderboardMessageIdForLeague(notification.Competition, message.Key);
+
+            if (messageId is null)
+                continue;
+
+            await bot.EditMessageAsync(messageId.Value, message.Value);
+        }
     }
 
     public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
@@ -117,13 +142,17 @@ public class DiscordMessageEventHandler :
         if (competition.CompetitionResults.Count == 0)
             return;
 
-        var leaderboardMessageId = GetLeaderboardMessageId(competition);
+        var leaderboardMessages = _messageComposer.Leaderboard(notification.Leaderboard);
 
-        if (leaderboardMessageId is null)
-            return;
+        foreach (var message in leaderboardMessages)
+        {
+            var messageId = GetLeaderboardMessageIdForLeague(competition, message.Key);
 
-        var resultsMessage = _messageComposer.Leaderboard(competition.CompetitionResults);
-        await bot.EditMessageAsync(leaderboardMessageId.Value, resultsMessage);
+            if (messageId is null)
+                continue;
+
+            await bot.EditMessageAsync(messageId.Value, message.Value);
+        }
     }
 
     public async Task Handle(CompetitionCancelled notification, CancellationToken cancellationToken)
@@ -142,7 +171,7 @@ public class DiscordMessageEventHandler :
 
     public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.TempSeasonResults(notification.Results, false);
+        var message = _messageComposer.TempSeasonResults(notification.Results);
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 
@@ -152,9 +181,6 @@ public class DiscordMessageEventHandler :
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
         await _cupMessenger.SendImageToCupAsync(notification.CupId, notification.Image, notification.ImageName);
-
-        var medalCountMessage = _messageComposer.MedalCount(notification.Results);
-        BackgroundJob.Schedule(() => _cupMessenger.SendMessageToCupAsync(notification.CupId, medalCountMessage), TimeSpan.FromSeconds(6));
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
@@ -193,16 +219,16 @@ public class DiscordMessageEventHandler :
         await _generalMessenger.SendMessageAsync(message);
     }
 
-    private ulong? GetLeaderboardMessageId(Competition competition)
+    private ulong? GetLeaderboardMessageIdForLeague(Competition competition, string leagueName)
     {
         var leaderboardMessageId = competition
-            .GetVariable(CompetitionVariables.DiscordLeaderboardMessageId)?
+            .GetVariable(CompetitionVariables.GetDiscordLeaderboardMessageId(leagueName))?
             .ULongValue;
 
         if (leaderboardMessageId is not null)
             return leaderboardMessageId;
 
-        Log.Error("Discord leaderboard message ID is null for competition {CompetitionId}", competition.Id);
+        Log.Error("Discord leaderboard message ID for league {League} is null for competition {CompetitionId}", leagueName, competition.Id);
         return null;
     }
 

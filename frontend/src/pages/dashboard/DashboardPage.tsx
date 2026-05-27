@@ -50,6 +50,12 @@ function PageDashboard({ cupId }: DashboardPageProps) {
         return <><Error /></>
     }
 
+    const leagueColors = new Map(
+        dashboard.competition?.leagues.definitions
+            .filter(d => d.color)
+            .map(d => [d.name, d.color!]) ?? []
+    );
+
     return (
         <div className="flex flex-col gap-8">
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
@@ -63,21 +69,25 @@ function PageDashboard({ cupId }: DashboardPageProps) {
 
             <div className="grid lg:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
-                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1">
+                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1 flex items-baseline gap-2">
                         TODAY'S LEADERBOARD
+                        {(() => {
+                            const count = dashboard.leaderboard?.reduce((sum, g) => sum + (g.results?.length ?? 0), 0) ?? 0;
+                            return count > 0 && <span className="text-xs text-slate-500 normal-case tracking-normal font-normal">{count} pilots</span>;
+                        })()}
                     </h3>
-                    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
-                        <CurrentLeaderboard trackResults={dashboard.results} />
-                    </div>
+                    <CurrentLeaderboard leaderboard={dashboard.leaderboard} leagueColors={leagueColors} />
                 </div>
 
                 <div className="flex flex-col gap-3">
-                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1">
+                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1 flex items-baseline gap-2">
                         SEASON LEADERBOARD
+                        {(() => {
+                            const count = dashboard.seasonLeaderboard?.reduce((sum, g) => sum + (g.results?.length ?? 0), 0) ?? 0;
+                            return count > 0 && <span className="text-xs text-slate-500 normal-case tracking-normal font-normal">{count} pilots</span>;
+                        })()}
                     </h3>
-                    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
-                        <LeaderBoard leaderBoard={dashboard.leaderboard} />
-                    </div>
+                    <LeaderBoard leaderboard={dashboard.seasonLeaderboard} leagueColors={leagueColors} />
                 </div>
             </div>
         </div>

@@ -4,6 +4,12 @@ public class CompetitionVariables
 {
     public const string DiscordTimeUpdatesThreadName = "Time updates";
     public const string DiscordLeaderboardMessageId = "DiscordLeaderboardMessageId";
+    public const string DiscordTimeUpdatesMessageId = "DiscordTimeUpdateMessageId";
+
+    public static string GetDiscordLeaderboardMessageId(string leagueName)
+    {
+        return $"{DiscordLeaderboardMessageId}_{leagueName}";
+    }
 }
 
 public class CompetitionVariable

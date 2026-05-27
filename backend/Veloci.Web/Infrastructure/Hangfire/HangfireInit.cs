@@ -1,13 +1,8 @@
 using Hangfire;
 using Hangfire.Storage;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Veloci.Logic.Features.Leagues.Services;
 using Veloci.Logic.Jobs;
 using Veloci.Logic.Services;
-using Veloci.Logic.Services.Statistics;
-using Veloci.Logic.Services.Statistics.YearResults;
 
 namespace Veloci.Web.Infrastructure.Hangfire;
 
@@ -47,7 +42,6 @@ public class HangfireInit
         // Need to rework
         // RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");
 
-        RecurringJob.AddOrUpdate<PaceRatingCalculator>("Calculate pace rating", x => x.CalculateAsync(), "0 3 * * 1");
         RecurringJob.AddOrUpdate<ModelsService>("Update models", x => x.UpdateModelsAsync(), "33 3 * * *");
 
         Log.Information("Registering feature-specific jobs");
