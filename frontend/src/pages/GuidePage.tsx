@@ -40,7 +40,7 @@ const translations: Record<Language, RulesContent> = {
         ],
         howItWorksTitle: 'Як це працює',
         howItWorksItems: [
-            'Сервіс автоматично оновлює результати кожні 10 хвилин і підтягне ваш результат, якщо він з\'явиться.',
+            'Сервіс автоматично оновлює результати кожні 10 хвилин і підтягне твій результат, якщо він з\'явиться.',
             'Щодня о 00:00 (UTC) сервіс випадковим чином обирає трек із доступного набору локацій і треків. У деяких випадках трек може бути змінений, якщо він не підходить для змагань.',
             'Через 24 години, о 00:00 (UTC), сервіс підбиває підсумки дня та нараховує бали відповідно до зайнятого місця.',
             'Сезон починається 1-го числа кожного місяця і завершується 1-го числа наступного місяця.',
@@ -61,8 +61,8 @@ const translations: Record<Language, RulesContent> = {
         ],
         quadOfTheDayTitle: 'Квад дня',
         quadOfTheDayParagraphs: [
-            'Іноді разом із треком сервіс також оголошує Квад дня. Якщо ви летите на обраному дроні в цей день — отримаєте бонусні бали наприкінці.',
-            'Ви можете летіти на будь-якому дроні, але бонусні бали нараховуються лише за виконання умови.',
+            'Іноді разом із треком сервіс також оголошує Квад дня.',
+            'Якщо ви летите не на обраному дроні — незалежно від зайнятого місця, отримаєте лише 1 бал наприкінці дня. Крім того, ваш результат буде виключено з розрахунку глобального рейтингу, щоб не спотворювати показники інших пілотів.',
         ],
         achievementsTitle: 'Achievements',
         achievementsText: 'У системі є набір achievements, який постійно розширюється. Вони видаються за досягнення певної кількості day streak, першого місця в гонці, тощо.',
@@ -105,8 +105,8 @@ const translations: Record<Language, RulesContent> = {
         ],
         quadOfTheDayTitle: 'Quad of the Day',
         quadOfTheDayParagraphs: [
-            'The system may occasionally announce a Quad of the Day alongside the Track of the Day. If you fly using the selected quad on that day, you\'ll receive bonus points at the end.',
-            'You can still fly any quad you want, but you won\'t earn bonus points unless you use the selected one.',
+            'The system may occasionally announce a Quad of the Day alongside the Track of the Day.',
+            'If you fly on a different quad — regardless of your finishing position — you will only receive 1 point at the end of the day. Your result will also be excluded from global rating calculation to avoid distorting other pilots\' statistics.',
         ],
         achievementsTitle: 'Achievements',
         achievementsText: 'The system has a growing set of achievements, awarded for reaching certain day streak milestones, finishing in first place, and more.',

@@ -131,7 +131,6 @@ public class Pilot
     {
         var records = Leagues.Where(l => l.CupId == cupId);
 
-        // UNCOMMENT LATER
         // return date is null
         //     ? records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League
         //     : records.Where(l => l.Date <= date.Value).MaxBy(l => l.Date)?.League;

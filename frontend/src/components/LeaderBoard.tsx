@@ -101,7 +101,7 @@ function LeaderBoard({ leaderboard, leagueColors }: LeaderBoardProps) {
         );
     }
 
-    const hasLeagues = leaderboard.some(g => g.league != null);
+    const hasLeagues = leaderboard.length > 1;
 
     return (
         <div className={hasLeagues ? "flex flex-col gap-6" : ""}>

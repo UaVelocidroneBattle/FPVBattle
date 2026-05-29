@@ -130,8 +130,8 @@ public class LeaderboardCalculator : ILeaderboardCalculator
                 League = leaguesEnabled
                     ? group.First().Pilot.Leagues
                         .Where(l => l.CupId == cupId)
-                        //.Where(l => l.Date <= from) // UNCOMMENT LATER
-                        .OrderByDescending(l => l.Date)
+                        //.Where(l => l.Date <= from) // TODO: look at this later
+                        .Where(l => l.Status == LeagueRecordStatus.Current)
                         .Select(l => l.League)
                         .FirstOrDefault()
                     : null

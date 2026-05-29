@@ -119,12 +119,11 @@ public class CompetitionService
 
     private async Task PublishCurrentLeaderboardAsync(Competition competition)
     {
-        // UNCOMMENT LATER
-        // if (competition.ResultsPosted)
-        // {
-        //     _log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
-        //     return;
-        // }
+        if (competition.ResultsPosted)
+        {
+            _log.Debug("Leaderboard already published for competition {CompetitionId}, skipping", competition.Id);
+            return;
+        }
 
         if (competition.TimeDeltas.Count == 0)
         {
