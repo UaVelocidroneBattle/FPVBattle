@@ -3,7 +3,8 @@ import { PartialTheme } from '@nivo/theming';
 import { CalendarDatum, ResponsiveCalendarCanvas } from '@nivo/calendar'
 
 interface HeatmapChartProps {
-    data: PilotResult[]
+    data: PilotResult[];
+    year: number;
 }
 
 const theme: PartialTheme = {
@@ -18,16 +19,14 @@ const theme: PartialTheme = {
     },
 };
 
-const HeatmapChart = ({ data }: HeatmapChartProps) => {
+const HeatmapChart = ({ data, year }: HeatmapChartProps) => {
     const d = data.map(i => ({
         day: new Date(i.date!).toISOString().split('T')[0],
         value: i.points
     } as CalendarDatum));
 
-    if (data.length == 0) return <></>;
-
-    const from = new Date(data[0].date);
-    const to = new Date(data[data.length - 1].date);
+    const from = new Date(year, 0, 1);
+    const to = new Date(year, 11, 31);
 
     return <>
         <ResponsiveCalendarCanvas
@@ -36,7 +35,7 @@ const HeatmapChart = ({ data }: HeatmapChartProps) => {
             to={to}
             emptyColor="#0000"
             colors={['#125348', '#156154', '#1d8775', '#22a18b', '#2ed3b8']}
-            margin={{ top: 0, right: 20, bottom: 40, left: 20 }}
+            margin={{ top: 30, right: 20, bottom: 40, left: 20 }}
             yearSpacing={60}
             dayBorderWidth={1}
             dayBorderColor="#516585"
