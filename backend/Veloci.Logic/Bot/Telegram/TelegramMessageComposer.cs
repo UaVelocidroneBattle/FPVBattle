@@ -1,5 +1,6 @@
 using System.Text;
 using Veloci.Data.Domain;
+using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services.Statistics;
 using Veloci.Logic.Services.Statistics.YearResults;
@@ -293,6 +294,25 @@ public class TelegramMessageComposer
     }
 
     private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
+
+    public string LeagueUpdates(IList<LeagueUpdateModel> updates)
+    {
+        var sb = new StringBuilder($"🏆 *League updates:*{Environment.NewLine}{Environment.NewLine}");
+
+        foreach (var update in updates)
+        {
+            var line = update switch
+            {
+                { OldLeague: null } => $"▫️ {update.PilotName} → *{update.NewLeague?.ToUpper()}*",
+                { NewLeague: null } => $"▫️ {update.PilotName} покидає *{update.OldLeague?.ToUpper()}*",
+                _ => $"▫️ {update.PilotName} *{update.OldLeague?.ToUpper()}* → *{update.NewLeague?.ToUpper()}*"
+            };
+
+            sb.AppendLine(line);
+        }
+
+        return sb.ToString().TrimEnd();
+    }
 
     #endregion
 }

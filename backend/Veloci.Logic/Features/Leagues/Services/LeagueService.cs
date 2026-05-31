@@ -1,8 +1,11 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.Leagues.Models;
+using Veloci.Logic.Features.Leagues.Notifications;
 
 namespace Veloci.Logic.Features.Leagues.Services;
 
@@ -13,17 +16,20 @@ public class LeagueService
     private readonly RatingService _ratingService;
     private readonly IRepository<PilotLeague> _pilotLeagues;
     private readonly PaceRatingCalculator _paceRatingCalculator;
+    private readonly IMediator _mediator;
 
     public LeagueService(
         ICupService cupService,
         RatingService ratingService,
         IRepository<PilotLeague> pilotLeagues,
-        PaceRatingCalculator paceRatingCalculator)
+        PaceRatingCalculator paceRatingCalculator,
+        IMediator mediator)
     {
         _cupService = cupService;
         _ratingService = ratingService;
         _pilotLeagues = pilotLeagues;
         _paceRatingCalculator = paceRatingCalculator;
+        _mediator = mediator;
     }
 
     public async Task UpdatePilotLeaguesAsync()
@@ -48,9 +54,10 @@ public class LeagueService
     {
         Log.Information("Updating pilot leagues for cup {CupId}", cupId);
 
+        var leagueUpdates = new List<LeagueUpdateModel>();
         var leagueDistribution = await GetLeagueDistributionAsync(cupId);
 
-        foreach (var (pilotId, league) in leagueDistribution)
+        foreach (var (pilotId, league, pilotName) in leagueDistribution)
         {
             var pilotLeagueRecord = await _pilotLeagues
                 .GetAll()
@@ -74,6 +81,13 @@ public class LeagueService
                 League = league,
                 Status = LeagueRecordStatus.Current
             });
+
+            leagueUpdates.Add(new LeagueUpdateModel
+            {
+                OldLeague = pilotLeagueRecord?.League,
+                NewLeague = league,
+                PilotName = pilotName
+            });
         }
 
         var distributedPilotIds = leagueDistribution.Select(x => x.PilotId).ToHashSet();
@@ -83,35 +97,50 @@ public class LeagueService
             .ForCup(cupId)
             .Active()
             .Where(r => !distributedPilotIds.Contains(r.PilotId))
+            .Include(r => r.Pilot)
             .ToListAsync();
 
         foreach (var record in recordsToRetire)
         {
             Log.Information("Pilot {PilotId} retired from league {League}", record.PilotId, record.League);
             record.Status = LeagueRecordStatus.Historical;
+
+            leagueUpdates.Add(new LeagueUpdateModel
+            {
+                OldLeague = record.League,
+                NewLeague = null,
+                PilotName = record.Pilot.Name
+            });
         }
 
         await _pilotLeagues.SaveChangesAsync();
 
+        if (leagueUpdates.Count != 0)
+        {
+            await _mediator.Publish(new LeagueUpdateNotification(cupId, leagueUpdates));
+        }
+
         Log.Information("Pilot leagues updated for cup {CupId}", cupId);
     }
 
-    private async Task<List<(int PilotId, string League)>> GetLeagueDistributionAsync(string cupId)
+    private async Task<List<(int PilotId, string League, string PilotName)>> GetLeagueDistributionAsync(string cupId)
     {
         var cupOptions = _cupService.GetCupOptions(cupId);
-        var pilotIds = await _ratingService.GetRankedPilotIdsAsync(cupId);
+        var ratings = await _ratingService.GetRatingsForCupAsync(cupId);
         var leagues = cupOptions.Leagues.Definitions.OrderBy(l => l.Order).ToList();
-        var distribution = new List<(int PilotId, string League)>();
+        var distribution = new List<(int PilotId, string League, string PilotName)>();
         var position = 0;
 
         foreach (var league in leagues)
         {
             var slice = league.Size == 0
-                ? pilotIds.Skip(position)
-                : pilotIds.Skip(position).Take(league.Size);
+                ? ratings.Skip(position)
+                : ratings.Skip(position).Take(league.Size);
 
-            foreach (var pilotId in slice)
-                distribution.Add((pilotId, league.Name));
+            foreach (var rating in slice)
+                distribution.Add((rating.PilotId, league.Name, rating.Pilot.Name));
+
+            if (league.Size == 0) break;
 
             position += league.Size;
         }
