@@ -64,9 +64,6 @@ public class CompetitionConductor
 
     public async Task StartNewAsync(string cupId)
     {
-        _log.Information("Skipping starting competition {CupId}. Waiting for update", cupId);
-        return;
-
         _log.Information("🏁 Starting a new competition for cup {CupId}", cupId);
 
         var cupOptions = _cupService.GetCupOptions(cupId);
