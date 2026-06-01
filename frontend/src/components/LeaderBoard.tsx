@@ -1,64 +1,83 @@
 import { useState } from "react";
-import { SeasonResultModel } from "../api/client";
+import { LeagueSeasonLeaderboard, SeasonResult } from "../api/client";
 import { ChevronDown } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
 
 interface LeaderBoardProps {
-    leaderBoard: SeasonResultModel[];
+    leaderboard: LeagueSeasonLeaderboard[];
+    leagueColors?: Map<string, string>;
 }
 
-function LeaderBoard({ leaderBoard }: LeaderBoardProps) {
+const PAGE_SIZE = 25;
+
+function rankStyle(rank: number): string {
+    if (rank === 1) return "font-bold text-yellow-500";
+    if (rank === 2) return "font-bold text-slate-400";
+    if (rank === 3) return "font-bold text-amber-700";
+    return "font-medium text-slate-500";
+}
+
+function ColumnHeaders() {
+    return (
+        <div className="px-4 py-2 border-b border-slate-700 grid grid-cols-[2.5rem_1fr_2rem_4rem] gap-6">
+            <div className="text-xs font-medium text-slate-500 text-right">#</div>
+            <div className="text-xs font-medium text-slate-500">Pilot</div>
+            <div />
+            <div className="text-xs font-medium text-slate-500 text-right">Points</div>
+        </div>
+    );
+}
+
+function ResultRow({ result, index }: { result: SeasonResult; index: number }) {
+    return (
+        <li className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}>
+            <div className="grid grid-cols-[2.5rem_1fr_2rem_4rem] items-center gap-6">
+                <span className={`text-right text-sm tabular-nums ${rankStyle(result.rank)}`}>
+                    {String(result.rank).padStart(2, "0")}
+                </span>
+                <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                <CountryFlag countryCode={result.country} className="text-sm" />
+                <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">{result.points}</div>
+            </div>
+        </li>
+    );
+}
+
+function LeagueGroup({ group, hasLeagues, leagueColors }: { group: LeagueSeasonLeaderboard; hasLeagues: boolean; leagueColors?: Map<string, string> }) {
     const [showMore, setShowMore] = useState(false);
-
-    if (!leaderBoard) return <Spinner />;
-    if (!leaderBoard.length) return <div className="px-6 py-8 text-slate-400 text-sm">No results yet</div>;
-
-    const first25 = leaderBoard.slice(0, 25);
-    const remaining = leaderBoard.slice(25);
+    const first = group.results?.slice(0, PAGE_SIZE) ?? [];
+    const rest = group.results?.slice(PAGE_SIZE) ?? [];
 
     return (
-        <div className="overflow-hidden">
-            <div className="px-4 py-2 border-b border-slate-700 grid grid-cols-[2.5rem_1fr_2rem_4rem] gap-6">
-                <div className="text-xs font-medium text-slate-500 text-right">#</div>
-                <div className="text-xs font-medium text-slate-500">Pilot</div>
-                <div />
-                <div className="text-xs font-medium text-slate-500 text-right">Points</div>
-            </div>
-            <ul>
-                {first25.map((res, index) => (
-                    <li
-                        key={res.playerName}
-                        className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+            {hasLeagues && (
+                <div className="px-4 py-2 border-b border-slate-700 bg-slate-700/20">
+                    <span
+                        className="text-xs font-semibold uppercase tracking-wider text-emerald-400"
+                        style={{ color: (group.league && leagueColors?.get(group.league)) || undefined }}
                     >
-                        <div className="grid grid-cols-[2.5rem_1fr_2rem_4rem] items-center gap-6">
-                            <span className={`text-right text-sm tabular-nums ${index === 0 ? "font-bold text-yellow-500" : index === 1 ? "font-bold text-slate-400" : index === 2 ? "font-bold text-amber-700" : "font-medium text-slate-500"}`}>
-                                {String(index + 1).padStart(2, "0")}
-                            </span>
-                            <PilotName name={res.playerName} className="text-sm text-slate-200 truncate" />
-                            <CountryFlag countryCode={res.country} className="text-sm" />
-                            <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">{res.points}</div>
-                        </div>
-                    </li>
-                ))}
-                {showMore && remaining.map((res, index) => (
-                    <li
-                        key={res.playerName}
-                        className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${(index + 25) % 2 === 0 ? "bg-slate-700/20" : ""}`}
-                    >
-                        <div className="grid grid-cols-[2.5rem_1fr_2rem_4rem] items-center gap-6">
-                            <span className="text-right text-sm font-medium text-slate-400 tabular-nums">
-                                {String(index + 26).padStart(2, "0")}
-                            </span>
-                            <PilotName name={res.playerName} className="text-sm text-slate-200 truncate" />
-                            <CountryFlag countryCode={res.country} className="text-sm" />
-                            <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">{res.points}</div>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-            {remaining.length > 0 && !showMore && (
+                        {group.league ?? "Others"}
+                    </span>
+                </div>
+            )}
+            {!group.results?.length ? (
+                <div className="px-4 py-6 text-slate-500 text-sm text-center">No results</div>
+            ) : (
+                <>
+                    <ColumnHeaders />
+                    <ul>
+                        {first.map((result, index) => (
+                            <ResultRow key={result.playerName} result={result} index={index} />
+                        ))}
+                        {showMore && rest.map((result, index) => (
+                            <ResultRow key={result.playerName} result={result} index={index + PAGE_SIZE} />
+                        ))}
+                    </ul>
+                </>
+            )}
+            {rest.length > 0 && !showMore && (
                 <div className="flex justify-center py-4">
                     <button
                         className="flex items-center text-emerald-400 hover:text-emerald-300 transition-colors text-sm font-medium"
@@ -68,6 +87,27 @@ function LeaderBoard({ leaderBoard }: LeaderBoardProps) {
                     </button>
                 </div>
             )}
+        </div>
+    );
+}
+
+function LeaderBoard({ leaderboard, leagueColors }: LeaderBoardProps) {
+    if (!leaderboard) return <Spinner />;
+    if (!leaderboard.length || leaderboard.every(g => !g.results?.length)) {
+        return (
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 px-6 py-8 text-slate-400 text-sm">
+                No results yet
+            </div>
+        );
+    }
+
+    const hasLeagues = leaderboard.length > 1;
+
+    return (
+        <div className={hasLeagues ? "flex flex-col gap-6" : ""}>
+            {leaderboard.map(group => (
+                <LeagueGroup key={group.league ?? 'all'} group={group} hasLeagues={hasLeagues} leagueColors={leagueColors} />
+            ))}
         </div>
     );
 }

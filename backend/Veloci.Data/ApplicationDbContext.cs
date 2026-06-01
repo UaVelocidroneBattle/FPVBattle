@@ -82,6 +82,12 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<QueuedTrack>().ToTable("TrackQueue");
         builder.Entity<QueuedTrack>().HasKey(p => p.Id);
 
+        builder.Entity<PilotLeague>().ToTable("PilotLeagues");
+        builder.Entity<PilotLeague>().HasKey(p => p.Id);
+        builder.Entity<PilotLeague>().Property(p => p.CupId).HasMaxLength(64).IsRequired();
+        builder.Entity<PilotLeague>().Property(p => p.League).HasMaxLength(64).IsRequired();
+        builder.Entity<PilotLeague>().HasIndex(p => new { p.PilotId, p.CupId });
+
         builder.Entity<QuadModel>().ToTable("QuadModels");
         builder.Entity<QuadModel>().HasKey(p => p.Id);
         builder.Entity<QuadModel>().Property(p => p.Id).ValueGeneratedNever();

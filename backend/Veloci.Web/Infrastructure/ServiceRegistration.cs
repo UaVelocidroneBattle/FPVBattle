@@ -41,6 +41,7 @@ public static class ServiceRegistration
         services.AddScoped<IWhiteListService, WhiteListService>();
         services.AddScoped<TrackQueueService>();
         services.AddScoped<ModelsService>();
+        services.AddScoped<ILeaderboardCalculator, LeaderboardCalculator>();
 
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);

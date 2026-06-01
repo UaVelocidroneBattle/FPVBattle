@@ -1,5 +1,6 @@
 using System.Text;
 using Veloci.Data.Domain;
+using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services.Statistics;
 using Veloci.Logic.Services.Statistics.YearResults;
@@ -69,18 +70,36 @@ public class DiscordMessageComposer
         return "😔 Looks like the track wasn't well received. It won't appear again";
     }
 
-    public string TempLeaderboard(List<CompetitionResults>? results)
+    public Dictionary<string, string> TempLeaderboard(List<LeagueLeaderboard>? leaderboard, IReadOnlyList<string> configuredLeagueNames)
     {
-        var header = $"### 🧐 Leaderboard:{Environment.NewLine}{Environment.NewLine}⠀";
+        var showHeaders = configuredLeagueNames.Count > 1;
 
-        if (results is null || results.Count == 0)
-        {
-            return $"{header}```Waiting for the first results```";
-        }
+        if (leaderboard is null || leaderboard.Count == 0)
+            return configuredLeagueNames.ToDictionary(name => name, name => LeagueNoResultsMessage(name, showHeaders));
 
-        var message = BuildTempLeaderboard(header, results, includeModelNames: true);
+        return leaderboard.ToDictionary(
+            l => l.League,
+            l => l.Results.Count == 0
+                ? LeagueNoResultsMessage(l.League, showHeaders)
+                : BuildLeagueMessage(l, showHeaders));
+    }
 
-        return message.Length <= 2000 ? message : BuildTempLeaderboard(header, results, includeModelNames: false);
+    private string BuildLeagueMessage(LeagueLeaderboard league, bool showHeader)
+    {
+        var header = showHeader ? LeagueHeader(league.League) : string.Empty;
+        var message = BuildTempLeaderboard(header, league.Results, includeModelNames: true);
+        return message.Length <= 2000 ? message : BuildTempLeaderboard(header, league.Results, includeModelNames: false);
+    }
+
+    private string LeagueNoResultsMessage(string leagueName, bool showHeader)
+    {
+        var header = showHeader ? LeagueHeader(leagueName) : string.Empty;
+        return $"{header}```No results```";
+    }
+
+    private static string LeagueHeader(string leagueName)
+    {
+        return $"### {leagueName.ToUpper()}{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
     private string BuildTempLeaderboard(string header, List<CompetitionResults> results, bool includeModelNames)
@@ -89,41 +108,51 @@ public class DiscordMessageComposer
         return $"{header}```{string.Join(Environment.NewLine, rows)}```";
     }
 
-    public string Leaderboard(IEnumerable<CompetitionResults> results)
+    public Dictionary<string, string> Leaderboard(List<LeagueLeaderboard> leaderboard)
     {
-        var rows = results.Select(LeaderboardRow);
-        var divider = Environment.NewLine;
-        return $"### 🏆 Leaderboard{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}";
+        var showHeaders = leaderboard.Count > 1;
+
+        return leaderboard.ToDictionary(
+            l => l.League,
+            l => BuildFinalLeagueMessage(l, showHeaders));
     }
 
-    public string TempSeasonResults(IEnumerable<SeasonResult> results, bool includeExtraNewLine = true)
+    private string BuildFinalLeagueMessage(LeagueLeaderboard league, bool showHeader)
     {
-        var rows = results.Select(TempSeasonResultsRow);
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
+        var title = showHeader ? $"### {league.League.ToUpper()}" : "### 🏆 Leaderboard";
+        var rows = league.Results.Any() ? string.Join(Environment.NewLine, league.Results.Select(LeaderboardRow)) : "no results";
+        return $"{title}{Environment.NewLine}{Environment.NewLine}{rows}";
+    }
+
+    public string TempSeasonResults(List<LeagueSeasonLeaderboard> leaderboard)
+    {
+        var showHeaders = leaderboard.Count > 1;
+        var sectionDivider = $"{Environment.NewLine}{Environment.NewLine}";
+        var sections = leaderboard.Select(l =>
+        {
+            var header = showHeaders ? $"**{l.League?.ToUpper()}**{Environment.NewLine}{Environment.NewLine}" : "";
+            var rows = l.Results.Any() ? string.Join(Environment.NewLine, l.Results.Select(TempSeasonResultsRow)) : "no results";
+            return $"{header}{rows}";
+        });
+
         return $"### 🗓 Monthly results{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}" +
+               $"{string.Join(sectionDivider, sections)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
-    public string SeasonResults(IEnumerable<SeasonResult> results)
+    public string SeasonResults(List<LeagueSeasonLeaderboard> leaderboard)
     {
-        var rows = results.Select(SeasonResultsRow);
+        var showHeaders = leaderboard.Count > 1;
+
+        var sections = leaderboard.Select(l =>
+        {
+            var header = showHeaders ? $"**{l.League?.ToUpper()}**{Environment.NewLine}{Environment.NewLine}" : "";
+            var rows = l.Results.Any() ? string.Join(Environment.NewLine, l.Results.Select(SeasonResultsRow)) : "no results";
+            return $"{header}{rows}";
+        });
+
         return $"### 🏁 Final monthly results{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}" +
-               $"{Environment.NewLine}{Environment.NewLine}⠀";
-    }
-
-    public string MedalCount(IEnumerable<SeasonResult> results, bool includeExtraNewLine = true)
-    {
-        var rows = results
-            .Select(MedalCountRow)
-            .Where(row => row is not null);
-
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-
-        return $"## Monthly medals{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}" +
+               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", sections)}" +
                $"{Environment.NewLine}{Environment.NewLine}⠀";
     }
 
@@ -285,28 +314,27 @@ public class DiscordMessageComposer
         return $"{icon} - **{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}** - {result.Points} points";
     }
 
-    private string? MedalCountRow(SeasonResult result)
-    {
-        if (result is { GoldenCount: 0, SilverCount: 0, BronzeCount: 0 })
-            return null;
-
-        var medals = $"{MedalsRow("🥇", result.GoldenCount)}{MedalsRow("🥈", result.SilverCount)}{MedalsRow("🥉", result.BronzeCount)}";
-        return $"**{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}**:{Environment.NewLine}{medals}";
-    }
-
-    private string MedalsRow(string medalIcon, int count)
-    {
-        var result = new StringBuilder();
-
-        for (var i = 0; i < count; i++)
-        {
-            result.Append(medalIcon);
-        }
-
-        return result.ToString();
-    }
 
     private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
+
+    public string LeagueUpdates(IList<LeagueUpdateModel> updates)
+    {
+        var sb = new StringBuilder($"🏆 **League updates:**{Environment.NewLine}{Environment.NewLine}");
+
+        foreach (var update in updates)
+        {
+            var line = update switch
+            {
+                { OldLeague: null } => $"▫️ {update.PilotName} → **{update.NewLeague?.ToUpper()}**",
+                { NewLeague: null } => $"▫️ {update.PilotName} leaves **{update.OldLeague?.ToUpper()}**",
+                _ => $"▫️ {update.PilotName} **{update.OldLeague?.ToUpper()}** → **{update.NewLeague?.ToUpper()}**"
+            };
+
+            sb.AppendLine(line);
+        }
+
+        return sb.ToString().TrimEnd();
+    }
 
     #endregion
 }

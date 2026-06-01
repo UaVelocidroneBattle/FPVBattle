@@ -1,5 +1,6 @@
 using System.Text;
 using Veloci.Data.Domain;
+using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services.Statistics;
 using Veloci.Logic.Services.Statistics.YearResults;
@@ -70,54 +71,71 @@ public class TelegramMessageComposer
         return "😔 Бачу трек не сподобався. Більше його не буде";
     }
 
-    public string TempLeaderboard(List<CompetitionResults> results, Track track, string? quadOfTheDay)
+    public string TempLeaderboard(List<LeagueLeaderboard> leaderboard, Track track, string? quadOfTheDay)
     {
+        var showHeaders = leaderboard.Count > 1;
+
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
             : $"⚠️ Квад дня: *{quadOfTheDay}*{Environment.NewLine}{Environment.NewLine}";
 
-        var rows = TempLeaderboardRows(results);
+        var sections = leaderboard.Select(l =>
+        {
+            var header = showHeaders ? $"*{l.League.ToUpper()}*{Environment.NewLine}{Environment.NewLine}" : string.Empty;
+            var rows = TempLeaderboardRows(l.Results);
+            return $"{header}`{string.Join(Environment.NewLine, rows)}`";
+        });
+
         return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
                $"*{track.Map.Name} - `{track.Name}`*{Environment.NewLine}{Environment.NewLine}" +
                quadOfTheDayText +
-               $"`{string.Join($"{Environment.NewLine}", rows)}`";
+               string.Join($"{Environment.NewLine}{Environment.NewLine}", sections);
     }
 
-    public string Leaderboard(IEnumerable<CompetitionResults> results, string trackName)
+    public string Leaderboard(List<LeagueLeaderboard> leaderboard, string trackName)
     {
-        var rows = results.Select(LeaderboardRow);
-        var divider = Environment.NewLine;
+        var showHeaders = leaderboard.Count > 1;
+
+        var sections = leaderboard.Select(l =>
+        {
+            var header = showHeaders ? $"*{l.League!.ToUpper()}*{Environment.NewLine}{Environment.NewLine}" : string.Empty;
+            var rows = l.Results.Any() ? string.Join(Environment.NewLine, l.Results.Select(LeaderboardRow)) : "поки нікого";
+            return $"{header}{rows}";
+        });
+
         return $"🏆 Результати дня{Environment.NewLine}" +
                $"Трек: *{trackName}*{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}" +
-               $"{Environment.NewLine}{Environment.NewLine}#dayresults";
+               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", sections)}";
     }
 
-    public string TempSeasonResults(IEnumerable<SeasonResult> results)
+    public string TempSeasonResults(List<LeagueSeasonLeaderboard> leaderboard)
     {
-        var rows = results.Select(TempSeasonResultsRow);
-        var divider = Environment.NewLine;
+        var showHeaders = leaderboard.Count > 1;
+
+        var sections = leaderboard.Select(l =>
+        {
+            var header = showHeaders ? $"*{l.League!.ToUpper()}*{Environment.NewLine}{Environment.NewLine}" : string.Empty;
+            var rows = l.Results.Select(TempSeasonResultsRow);
+            return $"{header}{string.Join(Environment.NewLine, rows)}";
+        });
+
         return $"🗓 Проміжні результати місяця{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}";
+               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", sections)}";
     }
 
-    public string SeasonResults(IEnumerable<SeasonResult> results)
+    public string SeasonResults(List<LeagueSeasonLeaderboard> leaderboard)
     {
-        var rows = results.Select(SeasonResultsRow);
+        var showHeaders = leaderboard.Count > 1;
+
+        var sections = leaderboard.Select(l =>
+        {
+            var header = showHeaders ? $"*{l.League!.ToUpper()}*{Environment.NewLine}{Environment.NewLine}" : string.Empty;
+            var rows = l.Results.Select(SeasonResultsRow);
+            return $"{header}{string.Join($"{Environment.NewLine}", rows)}";
+        });
+
         return $"🏁 Фінальні результати місяця{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", rows)}";
-    }
-
-    public string MedalCount(IEnumerable<SeasonResult> results, bool includeExtraNewLine = true)
-    {
-        var rows = results
-            .Select(MedalCountRow)
-            .Where(row => row is not null);
-
-        var divider = includeExtraNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : Environment.NewLine;
-
-        return $"*Медалі за місяць*{Environment.NewLine}{Environment.NewLine}" +
-               $"{string.Join($"{divider}", rows)}";
+               $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", sections)}";
     }
 
     public IEnumerable<string> YearResults(YearResultsModel model)
@@ -155,7 +173,6 @@ public class TelegramMessageComposer
             third
         };
     }
-
 
     public string DayStreakPotentialLose(IEnumerable<Pilot> pilots)
     {
@@ -217,6 +234,9 @@ public class TelegramMessageComposer
 
     private List<string> TempLeaderboardRows(List<CompetitionResults> results)
     {
+        if (results.Count == 0)
+            return ["поки нікого"];
+
         var positionLength = results.Count.ToString().Length + 2;
         var pilotNameLength = Math.Min(results.Max(r => r.Pilot.Name.Length), PilotNameMaxLength) + 2;
         var rows = new List<string>();
@@ -273,28 +293,26 @@ public class TelegramMessageComposer
         return $"{icon} - *{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}* - {result.Points} балів";
     }
 
-    private string? MedalCountRow(SeasonResult result)
+    private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
+
+    public string LeagueUpdates(IList<LeagueUpdateModel> updates)
     {
-        if (result is { GoldenCount: 0, SilverCount: 0, BronzeCount: 0 })
-            return null;
+        var sb = new StringBuilder($"🏆 *League updates:*{Environment.NewLine}{Environment.NewLine}");
 
-        var medals = $"{MedalsRow("🥇", result.GoldenCount)}{MedalsRow("🥈", result.SilverCount)}{MedalsRow("🥉", result.BronzeCount)}";
-        return $"*{TextHelper.Trim(result.PlayerName, PilotNameMaxLength)}*:{Environment.NewLine}{medals}";
-    }
-
-    private string MedalsRow(string medalIcon, int count)
-    {
-        var result = new StringBuilder();
-
-        for (var i = 0; i < count; i++)
+        foreach (var update in updates)
         {
-            result.Append(medalIcon);
+            var line = update switch
+            {
+                { OldLeague: null } => $"▫️ {update.PilotName} → *{update.NewLeague?.ToUpper()}*",
+                { NewLeague: null } => $"▫️ {update.PilotName} покидає *{update.OldLeague?.ToUpper()}*",
+                _ => $"▫️ {update.PilotName} *{update.OldLeague?.ToUpper()}* → *{update.NewLeague?.ToUpper()}*"
+            };
+
+            sb.AppendLine(line);
         }
 
-        return result.ToString();
+        return sb.ToString().TrimEnd();
     }
-
-    private static string GetFreezieText(int number) => number == 1 ? $"{number} freezie" : $"{number} freezies";
 
     #endregion
 }

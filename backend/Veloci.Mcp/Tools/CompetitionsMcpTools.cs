@@ -22,19 +22,22 @@ public class CompetitionsMcpTools
     private readonly ICupService _cupService;
     private readonly IRepository<Competition> _competitionRepository;
     private readonly IMediator _mediator;
+    private readonly ILeaderboardCalculator _leaderboardCalculator;
 
     public CompetitionsMcpTools(
         CompetitionService competitionService,
         IRepository<Competition> competitionRepository,
         CompetitionConductor competitionConductor,
         IMediator mediator,
-        ICupService cupService)
+        ICupService cupService,
+        ILeaderboardCalculator leaderboardCalculator)
     {
         _competitionService = competitionService;
         _competitionRepository = competitionRepository;
         _competitionConductor = competitionConductor;
         _mediator = mediator;
         _cupService = cupService;
+        _leaderboardCalculator = leaderboardCalculator;
     }
 
     [McpServerTool]
@@ -83,12 +86,12 @@ public class CompetitionsMcpTools
             return [];
         }
 
-        var leaderboard = _competitionService.GetLocalLeaderboard(competition);
+        var leaderboard = _leaderboardCalculator.GetLeagueLeaderboard(competition);
 
         Log.Information("Returning leaderboard with {PilotCount} pilots for cup {CupId}, competition {CompetitionId}",
-            leaderboard.Count, cupId, competition.Id);
+            leaderboard.Sum(l => l.Results.Count), cupId, competition.Id);
 
-        return leaderboard.Select(CompetitionResultsDto.FromEntity).ToList();
+        return leaderboard.SelectMany(l => l.Results).Select(CompetitionResultsDto.FromEntity).ToList();
     }
 
     private async Task<Competition?> FetchCompetitionEntityAsync(string cupId, DateTime startDate)
@@ -119,16 +122,17 @@ public class CompetitionsMcpTools
 
     [McpServerTool]
     [Description("Get season leaderboard for a date range. Returns accumulated pilot rankings with total points and medal counts (gold/silver/bronze placements). Typically a season is one calendar month.")]
-    public async Task<List<SeasonResult>> GetSeasonLeaderboard(
+    public async Task<List<LeagueSeasonLeaderboard>> GetSeasonLeaderboard(
         [Description("Cup unique id, e.g. 'open-class' or 'whoop-class'")] string cupId,
         [Description("Season start date (inclusive), e.g., first day of month")] DateTime from,
         [Description("Season end date (inclusive), e.g., last day of month or today for current season")] DateTime to)
     {
         Log.Information("Fetching season leaderboard for cup {CupId} from {From} to {To}", cupId, from, to);
 
-        var results = await _competitionService.GetSeasonResultsAsync(cupId, from, to);
+        var results = await _leaderboardCalculator.GetSeasonLeaderboardAsync(cupId, from, to);
+        var totalCount = results.Sum(l => l.Results.Count);
 
-        Log.Information("Returning season leaderboard with {PilotCount} pilots for cup {CupId}", results.Count, cupId);
+        Log.Information("Returning season leaderboard with {PilotCount} pilots for cup {CupId}", totalCount, cupId);
 
         return results;
     }

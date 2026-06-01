@@ -50,7 +50,7 @@ public class PaceRatingCalculator
         }
     }
 
-    private async Task CalculateForCupAsync(string cupId)
+    public async Task CalculateForCupAsync(string cupId)
     {
         var today = DateTime.Today;
         var since = today.AddDays(-_settings.LookBackDays);
@@ -71,6 +71,7 @@ public class PaceRatingCalculator
             .Where(c => c.StartedOn >= since)
             .Where(c => c.State == CompetitionState.Closed)
             .Include(c => c.CompetitionResults)
+            .Include(c => c.QuadOfTheDay)
             .ToListAsync();
 
         Log.Information("Cup {CupId}: found {CompetitionCount} competitions in the last {Days} days",
@@ -111,19 +112,23 @@ public class PaceRatingCalculator
 
     private IEnumerable<PilotStats> ComputeCompetitionStats(Competition competition)
     {
-        var referenceTime = GetTopPilotsAverageTime(competition.CompetitionResults);
+        var eligibleResults = competition.QuadOfTheDay is not null
+            ? competition.CompetitionResults.Where(r => r.ModelName == competition.QuadOfTheDay.Name).ToList()
+            : competition.CompetitionResults;
+
+        var referenceTime = GetTopPilotsAverageTime(eligibleResults);
 
         if (referenceTime is null)
             return [];
 
-        return competition.CompetitionResults
+        return eligibleResults
             .Select(r => new PilotStats(r.PilotId, GapPercent(r.TrackTime, referenceTime.Value)));
     }
 
     private double? GetTopPilotsAverageTime(List<CompetitionResults> results)
     {
         var topTimes = results
-            .OrderBy(r => r.LocalRank)
+            .OrderBy(r => r.TrackTime)
             .Take(_settings.TopPilotsForReference)
             .Select(r => r.TrackTime)
             .ToList();

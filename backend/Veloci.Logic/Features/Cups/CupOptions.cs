@@ -28,6 +28,8 @@ public class CupOptions
     public int[] QuadClasses { get; set; } = [];
 
     public QuadOfTheDayOptions QuadOfTheDay { get; set; } = new();
+
+    public LeagueOptions Leagues { get; set; } = new();
 }
 
 /// <summary>
@@ -133,4 +135,25 @@ public class QuadOfTheDayOptions
     /// Pool of quad names to randomly select from
     /// </summary>
     public string[] Quads { get; set; } = [];
+}
+
+/// <summary>
+/// Configuration for the leagues
+/// </summary>
+public class LeagueOptions
+{
+    public bool Enabled { get; set; }
+    public string OthersName { get; set; } = "Others";
+    public List<LeagueDescriptor> Definitions { get; set; } = new();
+
+    public IReadOnlyList<string> GetAllLeagueNames() =>
+        Definitions.OrderBy(d => d.Order).Select(d => d.Name).Append(OthersName).ToList();
+}
+
+public class LeagueDescriptor
+{
+    public string Name { get; set; } = string.Empty;
+    public int Size { get; set; }
+    public int Order { get; set; }
+    public string? Color { get; set; }
 }

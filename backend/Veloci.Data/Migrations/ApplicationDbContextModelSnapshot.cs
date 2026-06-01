@@ -502,6 +502,38 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotAchievements", (string)null);
                 });
 
+            modelBuilder.Entity("Veloci.Data.Domain.PilotLeague", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CupId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("League")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PilotId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PilotId", "CupId");
+
+                    b.ToTable("PilotLeagues", (string)null);
+                });
+
             modelBuilder.Entity("Veloci.Data.Domain.PilotNameHistoryRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -971,6 +1003,17 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
+            modelBuilder.Entity("Veloci.Data.Domain.PilotLeague", b =>
+                {
+                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                        .WithMany("Leagues")
+                        .HasForeignKey("PilotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pilot");
+                });
+
             modelBuilder.Entity("Veloci.Data.Domain.PilotNameHistoryRow", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.Pilot", null)
@@ -1074,6 +1117,8 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Achievements");
 
                     b.Navigation("DayStreakFreezes");
+
+                    b.Navigation("Leagues");
 
                     b.Navigation("NameHistory");
 

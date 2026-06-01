@@ -1,5 +1,14 @@
 namespace Veloci.Data.Domain;
 
+/// <summary>
+/// Calculated in-memory model for league visualization
+/// </summary>
+public class LeagueLeaderboard
+{
+    public required string League { get; set; }
+    public required List<CompetitionResults> Results { get; set; }
+}
+
 public class CompetitionResults
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();

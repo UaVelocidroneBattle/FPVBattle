@@ -31,6 +31,7 @@ public class CompetitionConductor
     private readonly ITelegramCupMessenger _telegramCupMessenger;
     private readonly TrackQueueService _trackQueueService;
     private readonly QuadOfTheDayService _quadOfTheDayService;
+    private readonly ILeaderboardCalculator _leaderboardCalculator;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
@@ -45,7 +46,8 @@ public class CompetitionConductor
         ICupService cupService,
         ITelegramCupMessenger telegramCupMessenger,
         TrackQueueService trackQueueService,
-        QuadOfTheDayService quadOfTheDayService)
+        QuadOfTheDayService quadOfTheDayService,
+        ILeaderboardCalculator leaderboardCalculator)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -60,6 +62,7 @@ public class CompetitionConductor
         _telegramCupMessenger = telegramCupMessenger;
         _trackQueueService = trackQueueService;
         _quadOfTheDayService = quadOfTheDayService;
+        _leaderboardCalculator = leaderboardCalculator;
     }
 
     public async Task StartNewAsync(string cupId)
@@ -208,17 +211,17 @@ public class CompetitionConductor
 
         _log.Information("Stopping competition {CompetitionId} for track {TrackName} in cup {CupId}", competition.Id, competition.Track.Name, cupId);
 
-        var cupOptions = _cupService.GetCupOptions(cupId);
-
         competition.State = CompetitionState.Closed;
-        competition.CompetitionResults = _competitionService.GetLocalLeaderboard(competition);
+        competition.CompetitionResults = _leaderboardCalculator.GetLeaderboard(competition);
         _quadOfTheDayService.PunishNonQuadOfTheDayPilots(competition);
 
         _log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
         await _competitions.SaveChangesAsync();
 
-        await _mediator.Publish(new CompetitionFinished(competition, cupOptions));
+        var leaderboard = _leaderboardCalculator.GetLeagueLeaderboard(competition);
+        await _mediator.Publish(new CompetitionFinished(competition, leaderboard));
+
         _log.Information("Competition {CompetitionId} closure process completed for cup {CupId}", competition.Id, cupId);
     }
 
@@ -323,19 +326,20 @@ public class CompetitionConductor
     {
         var today = DateTime.Now;
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var results = await _competitionService.GetSeasonResultsAsync(cupId, firstDayOfMonth, today);
+        var results = await _leaderboardCalculator.GetSeasonLeaderboardAsync(cupId, firstDayOfMonth, today);
+        var totalCount = results.Sum(l => l.Results.Count);
 
         _log.Debug("Retrieved {ResultCount} results for temporary season leaderboard for cup {CupId} ({StartDate} to {EndDate})",
-            results.Count, cupId, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
+            totalCount, cupId, firstDayOfMonth.ToString("yyyy-MM-dd"), today.ToString("yyyy-MM-dd"));
 
-        if (results.Count == 0)
+        if (totalCount == 0)
         {
             _log.Information("No results found for current season in cup {CupId}, skipping temporary results publication", cupId);
             return;
         }
 
         await _mediator.Publish(new TempSeasonResults(cupId, results));
-        _log.Information("Published temporary season results for cup {CupId} with {ResultCount} entries", cupId, results.Count);
+        _log.Information("Published temporary season results for cup {CupId} with {ResultCount} entries", cupId, totalCount);
     }
 
     private async Task StopSeasonAsync(string cupId)
@@ -348,21 +352,23 @@ public class CompetitionConductor
         _log.Information("Finalizing season {SeasonName} for cup {CupId} ({StartDate} to {EndDate})",
             seasonName, cupId, firstDayOfPreviousMonth.ToString("yyyy-MM-dd"), firstDayOfCurrentMonth.ToString("yyyy-MM-dd"));
 
-        var results = await _competitionService.GetSeasonResultsAsync(cupId, firstDayOfPreviousMonth, firstDayOfCurrentMonth);
+        var results = await _leaderboardCalculator.GetSeasonLeaderboardAsync(cupId, firstDayOfPreviousMonth, firstDayOfCurrentMonth);
+        var totalCount = results.Sum(l => l.Results.Count);
 
-        if (results.Count == 0)
+        if (totalCount == 0)
         {
             _log.Warning("No results found for season {SeasonName} in cup {CupId}, skipping season finalization", seasonName, cupId);
             return;
         }
 
         var winners = results
+            .First().Results
             .Take(3)
             .Select(x => x.PlayerName)
             .ToArray();
 
         _log.Information("Season {SeasonName} for cup {CupId} completed with {ResultCount} participants. Winners: {Winners}",
-            seasonName, cupId, results.Count, string.Join(", ", winners));
+            seasonName, cupId, totalCount, string.Join(", ", (IEnumerable<string>)winners));
 
         var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
         _log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);

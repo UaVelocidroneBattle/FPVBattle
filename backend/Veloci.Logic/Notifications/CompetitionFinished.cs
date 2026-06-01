@@ -6,5 +6,5 @@ namespace Veloci.Logic.Notifications;
 
 public record CompetitionFinished(
     Competition Competition,
-    CupOptions CupOptions
+    List<LeagueLeaderboard> Leaderboard
 ) : INotification;

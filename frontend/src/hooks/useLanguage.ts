@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { create } from 'zustand';
 
 export type Language = 'ua' | 'en';
 
@@ -14,13 +14,19 @@ function getStoredLanguage(): Language {
     return stored === 'en' || stored === 'ua' ? stored : detectLanguage();
 }
 
-export function useLanguage() {
-    const [language, setLanguageState] = useState<Language>(getStoredLanguage);
+interface LanguageStore {
+    language: Language;
+    setLanguage: (lang: Language) => void;
+}
 
-    function setLanguage(lang: Language) {
+const useLanguageStore = create<LanguageStore>()((set) => ({
+    language: getStoredLanguage(),
+    setLanguage: (lang) => {
         localStorage.setItem(STORAGE_KEY, lang);
-        setLanguageState(lang);
-    }
+        set({ language: lang });
+    },
+}));
 
-    return { language, setLanguage };
+export function useLanguage() {
+    return useLanguageStore();
 }

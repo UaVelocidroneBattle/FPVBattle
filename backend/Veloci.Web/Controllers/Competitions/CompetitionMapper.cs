@@ -14,14 +14,4 @@ public static partial class CompetitionMapper
 
     public static partial IQueryable<CompetitionModel> ProjectToModel(this IQueryable<Competition> competitions);
 
-    public static partial List<TrackTimeModel> MapToModel(this IEnumerable<TrackTime> results);
-
-    public static partial List<SeasonResultModel> MapToModel(this IEnumerable<SeasonResult> results);
-
-    public static partial List<TrackTimeModel> MapToModel(this IEnumerable<CompetitionResults> results);
-
-    [MapProperty(nameof(CompetitionResults.TrackTime), nameof(TrackTimeModel.Time))]
-    [MapProperty(nameof(CompetitionResults.Pilot.Name), nameof(TrackTimeModel.PlayerName))]
-    [MapProperty(nameof(CompetitionResults.Pilot.Country), nameof(TrackTimeModel.Country))]
-    public static partial TrackTimeModel MapToModel(this CompetitionResults results);
 }

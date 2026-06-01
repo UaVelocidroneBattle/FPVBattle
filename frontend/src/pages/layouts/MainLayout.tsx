@@ -48,7 +48,7 @@ function LayoutMain() {
                     <nav className="hidden sm:flex items-center gap-8">
                         <NavLink to="/" end className={navLinkClass}>Open Class</NavLink>
                         <NavLink to="/whoop" className={navLinkClass}>Whoop Class</NavLink>
-                        <NavLink to="/rules" className={navLinkClass}>Instructions</NavLink>
+                        <NavLink to="/guide" className={navLinkClass}>Guide</NavLink>
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
                         <div className="w-px h-5 bg-slate-600" />
                         <SocialLinks />
@@ -68,7 +68,7 @@ function LayoutMain() {
                         <nav className="sm:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
                             <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
                             <NavLink to="/whoop" className={navLinkClass} onClick={closeMobileMenu}>Whoop Class</NavLink>
-                            <NavLink to="/rules" className={navLinkClass} onClick={closeMobileMenu}>Instructions</NavLink>
+                            <NavLink to="/guide" className={navLinkClass} onClick={closeMobileMenu}>Guide</NavLink>
                             <NavLink to="/statistics" className={navLinkClass} onClick={closeMobileMenu}>Statistics</NavLink>
                             <SocialLinks />
                         </nav>

@@ -42,7 +42,7 @@ public class YearResultsService
             var statistics = new YearResultsModel
             {
                 Year = _from.Year,
-                PilotWithTheMostGoldenMedal = await GetPilotWithTheMostGoldenMedalAsync(cupId),
+                //PilotWithTheMostGoldenMedal = await GetPilotWithTheMostGoldenMedalAsync(cupId),
                 PilotWhoCameTheMost = await GetPilotWhoCameTheMostAsync(cupId),
                 PilotWhoCameTheLeast = await GetPilotWhoCameTheLeastAsync(cupId),
                 TracksSkipped = await GetTracksSkippedAsync(cupId),
@@ -50,35 +50,35 @@ public class YearResultsService
                 FavoriteTrack = await GetFavoriteTrackAsync(cupId),
                 UniqueTrackCount = await GetUniqueTrackCountAsync(cupId),
                 TotalPilotCount = await GetTotalPilotCountAsync(cupId),
-                Top3Pilots = await GetTop3PilotsAsync(cupId),
+                //Top3Pilots = await GetTop3PilotsAsync(cupId),
             };
 
             await _mediator.Publish(new Notifications.YearResults(statistics));
         }
     }
 
-    private async Task<Dictionary<string, int>> GetTop3PilotsAsync(string cupId)
-    {
-        return await _competitionService.GetSeasonResultsQuery(cupId, _from, _to)
-            .OrderByDescending(r => r.Points)
-            .Take(3)
-            .ToDictionaryAsync(x => x.PlayerName, x => x.Points);
-    }
+    // private async Task<Dictionary<string, int>> GetTop3PilotsAsync(string cupId)
+    // {
+    //     return await _competitionService.GetSeasonResultsQuery(cupId, _from, _to)
+    //         .OrderByDescending(r => r.Points)
+    //         .Take(3)
+    //         .ToDictionaryAsync(x => x.PlayerName, x => x.Points);
+    // }
 
-    private async Task<(string name, int count)> GetPilotWithTheMostGoldenMedalAsync(string cupId)
-    {
-        var result = await _competitionService.GetSeasonResultsQuery(cupId, _from, _to)
-            .OrderByDescending(result => result.GoldenCount)
-            .FirstOrDefaultAsync();
-
-        if (result is null)
-            throw new Exception("No results found");
-
-        var count = result.GoldenCount;
-        var name = result.PlayerName;
-
-        return (name, count);
-    }
+    // private async Task<(string name, int count)> GetPilotWithTheMostGoldenMedalAsync(string cupId)
+    // {
+    //     var result = await _competitionService.GetSeasonResultsQuery(cupId, _from, _to)
+    //         .OrderByDescending(result => result.GoldenCount)
+    //         .FirstOrDefaultAsync();
+    //
+    //     if (result is null)
+    //         throw new Exception("No results found");
+    //
+    //     var count = result.GoldenCount;
+    //     var name = result.PlayerName;
+    //
+    //     return (name, count);
+    // }
 
     private async Task<int> GetTotalTrackCountAsync(string cupId)
     {
