@@ -6,6 +6,7 @@ import CountryFlag from "@/components/ui/CountryFlag";
 interface CurrentLeaderboardProps {
     leaderboard: LeagueLeaderboard[];
     leagueColors?: Map<string, string>;
+    flat?: boolean;
 }
 
 const COLS = "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]";
@@ -29,13 +30,45 @@ function ColumnHeaders() {
     );
 }
 
-function CurrentLeaderboard({ leaderboard, leagueColors }: CurrentLeaderboardProps) {
+function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: CurrentLeaderboardProps) {
     const isEmpty = !leaderboard?.length || leaderboard.every(g => !g.results?.length);
 
     if (isEmpty) {
         return (
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 px-4 py-8 text-slate-400 text-sm">
                 No results yet
+            </div>
+        );
+    }
+
+    if (flat) {
+        const results = leaderboard
+            .flatMap(g => g.results ?? [])
+            .sort((a, b) => a.trackTime - b.trackTime);
+
+        return (
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+                <ColumnHeaders />
+                <ul>
+                    {results.map((result, index) => (
+                        <li
+                            key={`${result.playerName}-${index}`}
+                            className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
+                        >
+                            <div className={`grid ${COLS} items-center gap-6`}>
+                                <span className={`text-right text-sm tabular-nums ${rankStyle(index + 1)}`}>
+                                    {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
+                                <CountryFlag countryCode={result.country} className="text-sm" />
+                                <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
+                                    {convertMsToSec(result.trackTime)}
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             </div>
         );
     }
