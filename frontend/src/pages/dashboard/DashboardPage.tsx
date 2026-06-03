@@ -83,10 +83,15 @@ function PageDashboard({ cupId }: DashboardPageProps) {
                         </h3>
                         {leaguesEnabled && (
                             <button
+                                role="switch"
+                                aria-checked={flat}
                                 onClick={() => setFlat(f => !f)}
-                                className={`px-3 py-1 text-sm rounded transition-colors duration-150 ${flat ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'}`}
+                                className="flex items-center gap-1.5 cursor-pointer"
                             >
-                                Flat
+                                <span className="text-xs text-slate-400">Flat</span>
+                                <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${flat ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+                                    <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${flat ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                                </span>
                             </button>
                         )}
                     </div>
