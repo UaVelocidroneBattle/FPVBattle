@@ -86,7 +86,9 @@ public class LeaderboardCalculator : ILeaderboardCalculator
     {
         var cupOptions = _cupService.GetCupOptions(competition.CupId);
         var leagueOrder = cupOptions.Leagues.Definitions.ToDictionary(d => d.Name, d => d.Order);
-        var leaderboard = GetLeaderboard(competition);
+        var leaderboard = competition.CompetitionResults is { Count: > 0 }
+            ? competition.CompetitionResults
+            : GetLeaderboard(competition);
 
         var othersName = cupOptions.Leagues.OthersName;
 
