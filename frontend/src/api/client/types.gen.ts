@@ -76,6 +76,8 @@ export type PilotProfileModel = {
     firstRaceDate?: null | string;
     availableFreezes: number;
     globalRating: number | null;
+    league?: string | null;
+    leagueColor?: string | null;
     ratingHistory: Array<PilotRatingHistoryPoint>;
 };
 
