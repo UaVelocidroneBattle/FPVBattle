@@ -9,14 +9,54 @@ export type CompetitionModel = {
     trackId: number;
     mapId: number;
     quadOfTheDay?: null | string;
+    leagues?: LeagueOptions;
 };
 
 export type CompetitionState = number;
 
 export type DashboardModel = {
     competition?: null | CompetitionModel;
-    results: Array<TrackTimeModel>;
-    leaderboard: Array<SeasonResultModel>;
+    leaderboard: Array<LeagueLeaderboardModel>;
+    seasonLeaderboard: Array<LeagueSeasonLeaderboard>;
+};
+
+export type LeagueLeaderboardModel = {
+    league?: null | string;
+    results: Array<LeaderboardResultModel>;
+};
+
+export type LeaderboardResultModel = {
+    playerName: string;
+    trackTime?: number;
+    localRank?: number;
+    globalRank?: number;
+    modelName?: null | string;
+    country: string;
+};
+
+export type LeagueSeasonLeaderboard = {
+    league?: null | string;
+    results: Array<SeasonResult>;
+};
+
+export type SeasonResult = {
+    playerName: string;
+    points?: number;
+    rank?: number;
+    country: string;
+};
+
+export type LeagueOptions = {
+    enabled?: boolean;
+    othersName?: string;
+    definitions?: Array<LeagueDescriptor>;
+};
+
+export type LeagueDescriptor = {
+    name?: string;
+    size?: number;
+    order?: number;
+    color?: null | string;
 };
 
 export type PilotAchievementModel = {
@@ -37,6 +77,8 @@ export type PilotProfileModel = {
     firstRaceDate?: null | string;
     availableFreezes: number;
     globalRating: number | null;
+    league?: null | string;
+    leagueColor?: null | string;
     ratingHistory: Array<PilotRatingHistoryPoint>;
 };
 
@@ -52,19 +94,20 @@ export type PilotResult = {
     trackTime: number;
 };
 
-export type SeasonResultModel = {
-    playerName: string;
-    points: number;
-    country: string;
+export type RatingModel = {
+    calculatedOn: string;
+    ratings: Array<PilotRatingModel>;
+    droppedOutPilots: Array<PilotRatingModel>;
 };
 
-export type TrackTimeModel = {
-    playerName: string;
-    time: number;
-    globalRank: number;
-    localRank: number;
-    modelName: string;
-    country: string;
+export type PilotRatingModel = {
+    pilotId: number;
+    pilotName: string;
+    country?: null | string;
+    averageGapPercent?: number | null;
+    averageGapChange?: number | null;
+    rank: number;
+    rankChange?: number | null;
 };
 
 export type GetApiMigrationSomethingData = {
@@ -167,3 +210,21 @@ export type GetApiDashboardResponses = {
 };
 
 export type GetApiDashboardResponse = GetApiDashboardResponses[keyof GetApiDashboardResponses];
+
+export type GetApiRatingsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        cupId?: string;
+    };
+    url: '/api/ratings/get';
+};
+
+export type GetApiRatingsGetResponses = {
+    /**
+     * OK
+     */
+    200: RatingModel;
+};
+
+export type GetApiRatingsGetResponse = GetApiRatingsGetResponses[keyof GetApiRatingsGetResponses];

@@ -53,7 +53,7 @@ export function PilotStatsGrid({ profile }: PilotStatsGridProps) {
                 valueColor="text-emerald-400"
             />
 
-<StatCard
+            <StatCard
                 value={profile.availableFreezes}
                 label="Freezes"
                 icon={Snowflake}

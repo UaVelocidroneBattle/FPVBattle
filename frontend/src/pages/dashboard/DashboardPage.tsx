@@ -52,13 +52,13 @@ function PageDashboard({ cupId }: DashboardPageProps) {
         return <><Error /></>
     }
 
-    const leagueColors = new Map(
-        dashboard.competition?.leagues.definitions
-            .filter(d => d.color)
-            .map(d => [d.name, d.color!]) ?? []
+    const leagueColors = new Map<string, string>(
+        dashboard.competition?.leagues?.definitions
+            ?.filter((d): d is typeof d & { name: string; color: string } => !!d.name && !!d.color)
+            .map(d => [d.name, d.color]) ?? []
     );
 
-    const leaguesEnabled = dashboard.competition?.leagues.enabled ?? false;
+    const leaguesEnabled = dashboard.competition?.leagues?.enabled ?? false;
 
     return (
         <div className="flex flex-col gap-8">

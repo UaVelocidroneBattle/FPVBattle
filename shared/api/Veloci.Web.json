@@ -223,6 +223,34 @@
           }
         }
       }
+    },
+    "/api/ratings/get": {
+      "get": {
+        "tags": [
+          "Rating"
+        ],
+        "parameters": [
+          {
+            "name": "cupId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingModel"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -268,6 +296,9 @@
               "null",
               "string"
             ]
+          },
+          "leagues": {
+            "$ref": "#/components/schemas/LeagueOptions"
           }
         }
       },
@@ -276,8 +307,8 @@
       },
       "DashboardModel": {
         "required": [
-          "results",
-          "leaderboard"
+          "leaderboard",
+          "seasonLeaderboard"
         ],
         "type": "object",
         "properties": {
@@ -291,17 +322,152 @@
               }
             ]
           },
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TrackTimeModel"
-            }
-          },
           "leaderboard": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SeasonResultModel"
+              "$ref": "#/components/schemas/LeagueLeaderboardModel"
             }
+          },
+          "seasonLeaderboard": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeagueSeasonLeaderboard"
+            }
+          }
+        }
+      },
+      "LeagueLeaderboardModel": {
+        "required": [
+          "results"
+        ],
+        "type": "object",
+        "properties": {
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardResultModel"
+            }
+          }
+        }
+      },
+      "LeaderboardResultModel": {
+        "required": [
+          "playerName",
+          "country"
+        ],
+        "type": "object",
+        "properties": {
+          "playerName": {
+            "type": "string"
+          },
+          "trackTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "localRank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "globalRank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "modelName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "LeagueSeasonLeaderboard": {
+        "required": [
+          "results"
+        ],
+        "type": "object",
+        "properties": {
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeasonResult"
+            }
+          }
+        }
+      },
+      "SeasonResult": {
+        "required": [
+          "playerName",
+          "country"
+        ],
+        "type": "object",
+        "properties": {
+          "playerName": {
+            "type": "string"
+          },
+          "points": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "LeagueOptions": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "othersName": {
+            "type": "string"
+          },
+          "definitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeagueDescriptor"
+            }
+          }
+        }
+      },
+      "LeagueDescriptor": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "color": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -395,6 +561,18 @@
             ],
             "format": "int32"
           },
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "leagueColor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "ratingHistory": {
             "type": "array",
             "items": {
@@ -449,57 +627,77 @@
           }
         }
       },
-      "SeasonResultModel": {
+      "RatingModel": {
         "required": [
-          "playerName",
-          "points",
-          "country"
+          "calculatedOn",
+          "ratings",
+          "droppedOutPilots"
         ],
         "type": "object",
         "properties": {
-          "playerName": {
-            "type": "string"
+          "calculatedOn": {
+            "type": "string",
+            "format": "date-time"
           },
-          "points": {
-            "type": "integer",
-            "format": "int32"
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PilotRatingModel"
+            }
           },
-          "country": {
-            "type": "string"
+          "droppedOutPilots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PilotRatingModel"
+            }
           }
         }
       },
-      "TrackTimeModel": {
+      "PilotRatingModel": {
         "required": [
-          "playerName",
-          "time",
-          "globalRank",
-          "localRank",
-          "modelName",
-          "country"
+          "pilotId",
+          "pilotName",
+          "rank"
         ],
         "type": "object",
         "properties": {
-          "playerName": {
-            "type": "string"
-          },
-          "time": {
+          "pilotId": {
             "type": "integer",
             "format": "int32"
           },
-          "globalRank": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "localRank": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "modelName": {
+          "pilotName": {
             "type": "string"
           },
           "country": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "averageGapPercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "averageGapChange": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rankChange": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
           }
         }
       }
@@ -517,6 +715,9 @@
     },
     {
       "name": "Competitions"
+    },
+    {
+      "name": "Rating"
     }
   ]
 }
