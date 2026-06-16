@@ -16,7 +16,7 @@ import SupportPage from './pages/guide/SupportPage.tsx'
 import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
 import DashboardPage from './pages/dashboard/DashboardPage.tsx'
 import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
-import LeaderBoardPage from './pages/statistics/leaderboard/LeaderBoardPage.tsx'
+import DayStreaksPage from './pages/statistics/daystreaks/DayStreaksPage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
@@ -46,7 +46,7 @@ createRoot(document.getElementById('root')!).render(
               <Route index element={<Navigate to="global-rating" replace />} />
               <Route path="global-rating" element={<GlobalRatingPage />} />
               <Route path="profile/:pilot?" element={<PilotProfilePage />} />
-              <Route path="leaderboard" element={<LeaderBoardPage />} />
+              <Route path="daystreaks" element={<DayStreaksPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />
             </Route>

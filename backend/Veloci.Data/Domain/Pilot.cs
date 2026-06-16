@@ -131,11 +131,9 @@ public class Pilot
     {
         var records = Leagues.Where(l => l.CupId == cupId);
 
-        // return date is null
-        //     ? records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League
-        //     : records.Where(l => l.Date <= date.Value).MaxBy(l => l.Date)?.League;
-
-        return records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League;
+        return date is null
+            ? records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League
+            : records.Where(l => l.Date.Date <= date.Value.Date).MaxBy(l => l.Date)?.League;
     }
 }
 

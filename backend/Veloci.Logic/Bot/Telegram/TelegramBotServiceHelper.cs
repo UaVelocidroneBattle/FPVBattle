@@ -17,9 +17,8 @@ public static class TelegramBotServiceHelper
 
             if (string.IsNullOrEmpty(botToken))
             {
-                Log.Fatal("Telegram bot token not configured. Application cannot start without Telegram support.");
-                throw new InvalidOperationException(
-                    "Telegram:BotToken is required but not configured. Please add it to your configuration.");
+                Log.Error("Telegram:BotToken not configured. Running without Telegram support.");
+                return null!;
             }
 
             Log.Information("Telegram bot client created with configured token");

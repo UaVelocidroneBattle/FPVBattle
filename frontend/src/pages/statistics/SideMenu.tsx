@@ -13,7 +13,7 @@ const SideMenu = () => {
                         <SideMenuItem to="profile" icon={UserRound} label="Profile" />
                     </li>
                     <li className="flex-1 lg:flex-none">
-                        <SideMenuItem to="leaderboard" icon={Flame} label="Day Streaks" />
+                        <SideMenuItem to="daystreaks" icon={Flame} label="Day Streaks" />
                     </li>
                     <li className="hidden sm:flex flex-1 lg:flex-none">
                         <SideMenuItem to="pilots" icon={ChartNoAxesCombined} label="Pilot stats" />

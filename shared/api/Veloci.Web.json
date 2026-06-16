@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/migration/something": {
+    "/api/migration/CalculatePilotProperties": {
       "get": {
         "tags": [
           "Migration"
@@ -13,6 +13,44 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ratings/get": {
+      "get": {
+        "tags": [
+          "Rating"
+        ],
+        "parameters": [
+          {
+            "name": "cupId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingModel"
+                }
+              }
+            }
           }
         }
       }
@@ -140,6 +178,44 @@
         }
       }
     },
+    "/api/daystreak/Leaderboard": {
+      "get": {
+        "tags": [
+          "DayStreak"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DayStreakLeaderboardRow"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DayStreakLeaderboardRow"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DayStreakLeaderboardRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/competitions/current": {
       "get": {
         "tags": [
@@ -217,34 +293,6 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DashboardModel"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ratings/get": {
-      "get": {
-        "tags": [
-          "Rating"
-        ],
-        "parameters": [
-          {
-            "name": "cupId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RatingModel"
                 }
               }
             }
@@ -336,23 +384,22 @@
           }
         }
       },
-      "LeagueLeaderboardModel": {
+      "DayStreakLeaderboardRow": {
         "required": [
-          "results"
+          "pilotName"
         ],
         "type": "object",
         "properties": {
-          "league": {
-            "type": [
-              "null",
-              "string"
-            ]
+          "pilotName": {
+            "type": "string"
           },
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LeaderboardResultModel"
-            }
+          "dayStreak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxStreak": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -389,66 +436,6 @@
           }
         }
       },
-      "LeagueSeasonLeaderboard": {
-        "required": [
-          "results"
-        ],
-        "type": "object",
-        "properties": {
-          "league": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SeasonResult"
-            }
-          }
-        }
-      },
-      "SeasonResult": {
-        "required": [
-          "playerName",
-          "country"
-        ],
-        "type": "object",
-        "properties": {
-          "playerName": {
-            "type": "string"
-          },
-          "points": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "rank": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "country": {
-            "type": "string"
-          }
-        }
-      },
-      "LeagueOptions": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "othersName": {
-            "type": "string"
-          },
-          "definitions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LeagueDescriptor"
-            }
-          }
-        }
-      },
       "LeagueDescriptor": {
         "type": "object",
         "properties": {
@@ -471,6 +458,63 @@
           }
         }
       },
+      "LeagueLeaderboardModel": {
+        "required": [
+          "results"
+        ],
+        "type": "object",
+        "properties": {
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardResultModel"
+            }
+          }
+        }
+      },
+      "LeagueOptions": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "othersName": {
+            "type": "string"
+          },
+          "definitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeagueDescriptor"
+            }
+          }
+        }
+      },
+      "LeagueSeasonLeaderboard": {
+        "required": [
+          "results"
+        ],
+        "type": "object",
+        "properties": {
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeasonResult"
+            }
+          }
+        }
+      },
       "PilotAchievementModel": {
         "required": [
           "name",
@@ -485,8 +529,8 @@
           },
           "achievedOn": {
             "type": [
-              "string",
-              "null"
+              "null",
+              "string"
             ],
             "format": "date-time"
           },
@@ -555,10 +599,7 @@
             "format": "int32"
           },
           "globalRating": {
-            "type": [
-              "integer",
-              "null"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "league": {
@@ -582,10 +623,6 @@
         }
       },
       "PilotRatingHistoryPoint": {
-        "required": [
-          "date",
-          "rank"
-        ],
         "type": "object",
         "properties": {
           "date": {
@@ -593,13 +630,56 @@
             "format": "date-time"
           },
           "gapPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
             "type": [
+              "null",
               "number",
-              "null"
+              "string"
             ],
             "format": "double"
           },
           "rank": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PilotRatingModel": {
+        "type": "object",
+        "properties": {
+          "pilotId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pilotName": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "averageGapPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "averageGapChange": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rankChange": {
             "type": "integer",
             "format": "int32"
           }
@@ -628,11 +708,6 @@
         }
       },
       "RatingModel": {
-        "required": [
-          "calculatedOn",
-          "ratings",
-          "droppedOutPilots"
-        ],
         "type": "object",
         "properties": {
           "calculatedOn": {
@@ -653,51 +728,26 @@
           }
         }
       },
-      "PilotRatingModel": {
+      "SeasonResult": {
         "required": [
-          "pilotId",
-          "pilotName",
-          "rank"
+          "playerName",
+          "country"
         ],
         "type": "object",
         "properties": {
-          "pilotId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pilotName": {
+          "playerName": {
             "type": "string"
           },
-          "country": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "averageGapPercent": {
-            "type": [
-              "number",
-              "null"
-            ],
-            "format": "double"
-          },
-          "averageGapChange": {
-            "type": [
-              "number",
-              "null"
-            ],
-            "format": "double"
+          "points": {
+            "type": "integer",
+            "format": "int32"
           },
           "rank": {
             "type": "integer",
             "format": "int32"
           },
-          "rankChange": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int32"
+          "country": {
+            "type": "string"
           }
         }
       }
@@ -708,16 +758,19 @@
       "name": "Migration"
     },
     {
+      "name": "Rating"
+    },
+    {
       "name": "Pilots"
     },
     {
       "name": "PilotResults"
     },
     {
-      "name": "Competitions"
+      "name": "DayStreak"
     },
     {
-      "name": "Rating"
+      "name": "Competitions"
     }
   ]
 }

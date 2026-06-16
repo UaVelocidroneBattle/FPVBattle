@@ -20,9 +20,10 @@ export type DashboardModel = {
     seasonLeaderboard: Array<LeagueSeasonLeaderboard>;
 };
 
-export type LeagueLeaderboardModel = {
-    league?: null | string;
-    results: Array<LeaderboardResultModel>;
+export type DayStreakLeaderboardRow = {
+    pilotName: string;
+    dayStreak?: number;
+    maxStreak?: number;
 };
 
 export type LeaderboardResultModel = {
@@ -34,16 +35,16 @@ export type LeaderboardResultModel = {
     country: string;
 };
 
-export type LeagueSeasonLeaderboard = {
-    league?: null | string;
-    results: Array<SeasonResult>;
+export type LeagueDescriptor = {
+    name?: string;
+    size?: number;
+    order?: number;
+    color?: null | string;
 };
 
-export type SeasonResult = {
-    playerName: string;
-    points?: number;
-    rank?: number;
-    country: string;
+export type LeagueLeaderboardModel = {
+    league?: null | string;
+    results: Array<LeaderboardResultModel>;
 };
 
 export type LeagueOptions = {
@@ -52,16 +53,14 @@ export type LeagueOptions = {
     definitions?: Array<LeagueDescriptor>;
 };
 
-export type LeagueDescriptor = {
-    name?: string;
-    size?: number;
-    order?: number;
-    color?: null | string;
+export type LeagueSeasonLeaderboard = {
+    league?: null | string;
+    results: Array<SeasonResult>;
 };
 
 export type PilotAchievementModel = {
     name: string;
-    achievedOn: string | null;
+    achievedOn: null | string;
     title: string;
     description: string;
 };
@@ -76,16 +75,26 @@ export type PilotProfileModel = {
     lastRaceDate?: null | string;
     firstRaceDate?: null | string;
     availableFreezes: number;
-    globalRating: number | null;
+    globalRating: number;
     league?: null | string;
     leagueColor?: null | string;
     ratingHistory: Array<PilotRatingHistoryPoint>;
 };
 
 export type PilotRatingHistoryPoint = {
-    date: string;
-    gapPercent?: number | null;
-    rank: number;
+    date?: string;
+    gapPercent?: null | string;
+    rank?: number;
+};
+
+export type PilotRatingModel = {
+    pilotId?: number;
+    pilotName?: string;
+    country?: string;
+    averageGapPercent?: null | string;
+    averageGapChange?: null | string;
+    rank?: number;
+    rankChange?: number;
 };
 
 export type PilotResult = {
@@ -95,34 +104,49 @@ export type PilotResult = {
 };
 
 export type RatingModel = {
-    calculatedOn: string;
-    ratings: Array<PilotRatingModel>;
-    droppedOutPilots: Array<PilotRatingModel>;
+    calculatedOn?: string;
+    ratings?: Array<PilotRatingModel>;
+    droppedOutPilots?: Array<PilotRatingModel>;
 };
 
-export type PilotRatingModel = {
-    pilotId: number;
-    pilotName: string;
-    country?: null | string;
-    averageGapPercent?: number | null;
-    averageGapChange?: number | null;
-    rank: number;
-    rankChange?: number | null;
+export type SeasonResult = {
+    playerName: string;
+    points?: number;
+    rank?: number;
+    country: string;
 };
 
-export type GetApiMigrationSomethingData = {
+export type GetApiMigrationCalculatePilotPropertiesData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/migration/something';
+    url: '/api/migration/CalculatePilotProperties';
 };
 
-export type GetApiMigrationSomethingResponses = {
+export type GetApiMigrationCalculatePilotPropertiesResponses = {
     /**
      * OK
      */
     200: unknown;
 };
+
+export type GetApiRatingsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        cupId?: string;
+    };
+    url: '/api/ratings/get';
+};
+
+export type GetApiRatingsGetResponses = {
+    /**
+     * OK
+     */
+    200: RatingModel;
+};
+
+export type GetApiRatingsGetResponse = GetApiRatingsGetResponses[keyof GetApiRatingsGetResponses];
 
 export type GetApiPilotsAllData = {
     body?: never;
@@ -176,6 +200,22 @@ export type GetApiResultsForPilotResponses = {
 
 export type GetApiResultsForPilotResponse = GetApiResultsForPilotResponses[keyof GetApiResultsForPilotResponses];
 
+export type GetApiDaystreakLeaderboardData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/daystreak/Leaderboard';
+};
+
+export type GetApiDaystreakLeaderboardResponses = {
+    /**
+     * OK
+     */
+    200: Array<DayStreakLeaderboardRow>;
+};
+
+export type GetApiDaystreakLeaderboardResponse = GetApiDaystreakLeaderboardResponses[keyof GetApiDaystreakLeaderboardResponses];
+
 export type GetApiCompetitionsCurrentData = {
     body?: never;
     path?: never;
@@ -210,21 +250,3 @@ export type GetApiDashboardResponses = {
 };
 
 export type GetApiDashboardResponse = GetApiDashboardResponses[keyof GetApiDashboardResponses];
-
-export type GetApiRatingsGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        cupId?: string;
-    };
-    url: '/api/ratings/get';
-};
-
-export type GetApiRatingsGetResponses = {
-    /**
-     * OK
-     */
-    200: RatingModel;
-};
-
-export type GetApiRatingsGetResponse = GetApiRatingsGetResponses[keyof GetApiRatingsGetResponses];

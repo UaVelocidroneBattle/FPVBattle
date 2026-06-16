@@ -97,7 +97,7 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             .Select(g => new LeagueLeaderboard
             {
                 League = g.Key ?? othersName,
-                Results = g.ToList()
+                Results = g.OrderBy(r => r.LocalRank).ToList()
             })
             .ToDictionary(l => l.League);
 
@@ -131,9 +131,8 @@ public class LeaderboardCalculator : ILeaderboardCalculator
                 Country = group.First().Pilot.Country,
                 League = leaguesEnabled
                     ? group.First().Pilot.Leagues
-                        .Where(l => l.CupId == cupId)
-                        //.Where(l => l.Date <= from) // TODO: look at this later
-                        .Where(l => l.Status == LeagueRecordStatus.Current)
+                        .Where(l => l.CupId == cupId && l.Date.Date <= from.Date)
+                        .OrderByDescending(l => l.Date)
                         .Select(l => l.League)
                         .FirstOrDefault()
                     : null

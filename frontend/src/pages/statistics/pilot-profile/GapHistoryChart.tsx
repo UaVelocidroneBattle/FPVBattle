@@ -43,8 +43,8 @@ const theme: PartialTheme = {
 
 const GapHistoryChart = ({ history }: GapHistoryChartProps) => {
     const points = history
-        .filter(p => p.gapPercent != null)
-        .map(p => ({ x: new Date(p.date), y: p.gapPercent as number }));
+        .filter(p => p.gapPercent != null && p.date != null)
+        .map(p => ({ x: new Date(p.date!), y: Number(p.gapPercent) }));
 
     const data = points.slice(0, -1).map((point, i) => {
         const next = points[i + 1];

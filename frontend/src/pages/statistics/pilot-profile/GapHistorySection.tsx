@@ -20,7 +20,7 @@ function filterByRange(history: PilotRatingHistoryPoint[], range: Range): PilotR
     if (range === '1M') cutoff.setMonth(now.getMonth() - 1);
     if (range === '6M') cutoff.setMonth(now.getMonth() - 6);
     if (range === '1Y') cutoff.setFullYear(now.getFullYear() - 1);
-    return history.filter(p => new Date(p.date) >= cutoff);
+    return history.filter(p => p.date != null && new Date(p.date) >= cutoff);
 }
 
 interface GapHistorySectionProps {
