@@ -5,6 +5,7 @@ public class CompetitionVariables
     public const string DiscordTimeUpdatesThreadName = "Time updates";
     public const string DiscordLeaderboardMessageId = "DiscordLeaderboardMessageId";
     public const string DiscordTimeUpdatesMessageId = "DiscordTimeUpdateMessageId";
+    public const string DiscordPollMessageId = "DiscordPollMessageId";
 
     public static string GetDiscordLeaderboardMessageId(string leagueName)
     {

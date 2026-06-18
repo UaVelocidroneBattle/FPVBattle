@@ -6,6 +6,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.API.Dto;
+using Veloci.Logic.Bot.Discord;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.QuadOfTheDay;
@@ -26,9 +27,11 @@ public class CompetitionConductor
     private readonly RaceResultsConverter _resultsConverter;
     private readonly CompetitionService _competitionService;
     private readonly TelegramMessageComposer _messageComposer;
+    private readonly DiscordMessageComposer _discordMessageComposer;
     private readonly ImageService _imageService;
     private readonly ICupService _cupService;
     private readonly ITelegramCupMessenger _telegramCupMessenger;
+    private readonly IDiscordCupMessenger _discordCupMessenger;
     private readonly TrackQueueService _trackQueueService;
     private readonly QuadOfTheDayService _quadOfTheDayService;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
@@ -38,6 +41,7 @@ public class CompetitionConductor
         RaceResultsConverter resultsConverter,
         CompetitionService competitionService,
         TelegramMessageComposer messageComposer,
+        DiscordMessageComposer discordMessageComposer,
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
@@ -45,6 +49,7 @@ public class CompetitionConductor
         Velocidrone velocidrone,
         ICupService cupService,
         ITelegramCupMessenger telegramCupMessenger,
+        IDiscordCupMessenger discordCupMessenger,
         TrackQueueService trackQueueService,
         QuadOfTheDayService quadOfTheDayService,
         ILeaderboardCalculator leaderboardCalculator)
@@ -53,6 +58,7 @@ public class CompetitionConductor
         _resultsConverter = resultsConverter;
         _competitionService = competitionService;
         _messageComposer = messageComposer;
+        _discordMessageComposer = discordMessageComposer;
         _imageService = imageService;
         _trackService = trackService;
         _mediator = mediator;
@@ -60,6 +66,7 @@ public class CompetitionConductor
         _velocidrone = velocidrone;
         _cupService = cupService;
         _telegramCupMessenger = telegramCupMessenger;
+        _discordCupMessenger = discordCupMessenger;
         _trackQueueService = trackQueueService;
         _quadOfTheDayService = quadOfTheDayService;
         _leaderboardCalculator = leaderboardCalculator;
@@ -177,26 +184,44 @@ public class CompetitionConductor
     {
         _log.Debug("Creating poll for track {TrackName} in cup {CupId}", track.FullName, competition.CupId);
 
-        var poll = _messageComposer.Poll(track.FullName);
-        var pollId = await _telegramCupMessenger.SendPollToCupAsync(competition.CupId, poll);
+        // Create Telegram poll
+        var telegramPoll = _messageComposer.Poll(track.FullName);
+        var telegramPollId = await _telegramCupMessenger.SendPollToCupAsync(competition.CupId, telegramPoll);
 
-        if (pollId is null)
+        if (telegramPollId is null)
         {
-            _log.Warning("Failed to create poll for track {TrackName}", track.FullName);
-            return;
+            _log.Warning("Failed to create Telegram poll for track {TrackName}", track.FullName);
+        }
+        else
+        {
+            _log.Information("🗳️ Created Telegram poll {PollId} for track {TrackName}", telegramPollId.Value, track.FullName);
         }
 
-        _log.Information("🗳️ Created poll {PollId} for track {TrackName}", pollId.Value, track.FullName);
+        // Create Discord poll
+        var discordPoll = _discordMessageComposer.Poll(track.FullName);
+        var discordPollId = await _discordCupMessenger.SendPollToCupAsync(competition.CupId, discordPoll);
 
+        if (discordPollId is null)
+        {
+            _log.Warning("Failed to create Discord poll for track {TrackName}", track.FullName);
+        }
+        else
+        {
+            _log.Information("🗳️ Created Discord poll {PollId} for track {TrackName}", discordPollId.Value, track.FullName);
+            
+            // Store Discord poll message ID in competition variables
+            competition.AddOrUpdateVariable(CompetitionVariables.DiscordPollMessageId, discordPollId.Value);
+        }
+
+        // Store Telegram poll message ID in track rating
         var rating = competition.Track.Rating;
-
         if (rating is null)
         {
             rating = new TrackRating();
             competition.Track.Rating = rating;
         }
 
-        rating.PollMessageId = pollId.Value;
+        rating.PollMessageId = telegramPollId ?? 0; // Store Telegram poll ID, 0 if failed
     }
 
     public async Task StopAsync(string cupId)
@@ -250,43 +275,95 @@ public class CompetitionConductor
             return;
         }
 
-        var poll = _messageComposer.Poll(competition.Track.FullName);
+        var telegramPoll = _messageComposer.Poll(competition.Track.FullName);
 
-        if (competition.Track.Rating is null)
+        // Stop Telegram poll and calculate rating
+        if (competition.Track.Rating is not null && competition.Track.Rating.PollMessageId != 0)
         {
-            _log.Error("No poll to stop for competition {CompetitionId}", competition.Id);
-            return;
+            _log.Information("Stopping Telegram poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
+            var telegramPollResult = await _telegramCupMessenger.StopPollInCupAsync(cupId, competition.Track.Rating.PollMessageId);
+
+            if (telegramPollResult is not null)
+            {
+                var totalPoints = telegramPollResult.Options.Sum(option =>
+                {
+                    var points = telegramPoll.Options.FirstOrDefault(x => x.Text == option.Text).Points;
+                    return option.VoterCount * points;
+                });
+
+                double? telegramRating = telegramPollResult.TotalVoterCount == 0
+                    ? null
+                    : totalPoints / (double)telegramPollResult.TotalVoterCount;
+
+                _log.Information("Telegram poll {PollId} voting completed: {VoterCount} voters, calculated rating: {Rating:F2}",
+                    competition.Track.Rating.PollMessageId, telegramPollResult.TotalVoterCount, telegramRating ?? 0);
+
+                competition.Track.Rating.Value = telegramRating;
+            }
+            else
+            {
+                _log.Warning("Telegram poll {PollId} is already stopped or failed to stop", competition.Track.Rating.PollMessageId);
+            }
+        }
+        else
+        {
+            _log.Warning("No Telegram poll to stop for competition {CompetitionId}", competition.Id);
         }
 
-        _log.Information("Stopping poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
-        var telegramPoll = await _telegramCupMessenger.StopPollInCupAsync(cupId, competition.Track.Rating.PollMessageId);
-
-        if (telegramPoll is null)
+        // Stop Discord poll and calculate rating
+        var discordPollMessageId = competition.GetVariable(CompetitionVariables.DiscordPollMessageId)?.ULongValue;
+        if (discordPollMessageId.HasValue && discordPollMessageId.Value != 0)
         {
-            _log.Error("Poll {PollId} is already stopped", competition.Track.Rating.PollMessageId);
-            return;
+            _log.Information("Stopping Discord poll {PollId} for track {TrackName}", discordPollMessageId.Value, competition.Track.FullName);
+            var discordPollResult = await _discordCupMessenger.StopPollInCupAsync(cupId, discordPollMessageId.Value);
+
+            if (discordPollResult is not null)
+            {
+                var discordPoll = _discordMessageComposer.Poll(competition.Track.FullName);
+                var totalPoints = discordPollResult.OptionVoterCounts.Sum(kv =>
+                {
+                    var points = discordPoll.Options.FirstOrDefault(x => x.Text == kv.Key).Points;
+                    return kv.Value * points;
+                });
+
+                double? discordRating = discordPollResult.TotalVoterCount == 0
+                    ? null
+                    : totalPoints / (double)discordPollResult.TotalVoterCount;
+
+                _log.Information("Discord poll {PollId} voting completed: {VoterCount} voters, calculated rating: {Rating:F2}",
+                    discordPollMessageId.Value, discordPollResult.TotalVoterCount, discordRating ?? 0);
+
+                // If we didn't have a Telegram rating or it failed, use Discord rating
+                if (competition.Track.Rating?.Value is null)
+                {
+                    competition.Track.Rating ??= new TrackRating();
+                    competition.Track.Rating.Value = discordRating;
+                }
+                else
+                {
+                    // Average both ratings if we have both
+                    if (discordRating is not null)
+                    {
+                        competition.Track.Rating.Value = (competition.Track.Rating.Value + discordRating) / 2;
+                    }
+                }
+            }
+            else
+            {
+                _log.Warning("Discord poll {PollId} is already stopped or failed to stop", discordPollMessageId.Value);
+            }
+        }
+        else
+        {
+            _log.Warning("No Discord poll to stop for competition {CompetitionId}", competition.Id);
         }
 
-        var totalPoints = telegramPoll.Options.Sum(option =>
-        {
-            var points = poll.Options.FirstOrDefault(x => x.Text == option.Text).Points;
-            return option.VoterCount * points;
-        });
-
-        double? rating = telegramPoll.TotalVoterCount == 0
-            ? null
-            : totalPoints / (double)telegramPoll.TotalVoterCount;
-
-        _log.Information("Poll {PollId} voting completed: {VoterCount} voters, calculated rating: {Rating:F2}",
-            competition.Track.Rating.PollMessageId, telegramPoll.TotalVoterCount, rating ?? 0);
-
-        competition.Track.Rating.Value = rating;
         await _competitions.SaveChangesAsync();
 
-        if (rating is null or >= 0)
+        if (competition.Track.Rating?.Value is null or competition.Track.Rating.Value >= 0)
             return;
 
-        _log.Warning("👎 Track {TrackName} received negative rating {Rating:F2}, marking as bad track", competition.Track.FullName, rating);
+        _log.Warning("👎 Track {TrackName} received negative rating {Rating:F2}, marking as bad track", competition.Track.FullName, competition.Track.Rating?.Value);
         await _mediator.Publish(new BadTrack(competition, competition.Track));
     }
 

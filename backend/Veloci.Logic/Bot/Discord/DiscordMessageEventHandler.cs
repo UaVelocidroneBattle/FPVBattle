@@ -1,4 +1,4 @@
-﻿using Hangfire;
+using Hangfire;
 using MediatR;
 using Serilog;
 using Veloci.Data.Domain;
@@ -25,7 +25,8 @@ public class DiscordMessageEventHandler :
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
     INotificationHandler<TrackRestart>,
-    INotificationHandler<AddedToWhitelist>
+    INotificationHandler<AddedToWhitelist>,
+    INotificationHandler<VoteReminder>
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<DiscordMessageEventHandler>();
 
@@ -266,5 +267,30 @@ public class DiscordMessageEventHandler :
     {
         var message = _messageComposer.AddedToWhitelist(notification.PilotName);
         await _generalMessenger.SendMessageAsync(message);
+    }
+
+    public async Task Handle(VoteReminder notification, CancellationToken cancellationToken)
+    {
+        var cupId = notification.Competition.CupId;
+
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            Log.Warning("No Discord bot configured for cup {CupId}, skipping vote reminder", cupId);
+            return;
+        }
+
+        var messageText = _chatMessages.GetRandomByType(ChatMessageType.VoteReminder);
+        
+        if (messageText is null)
+        {
+            Log.Warning("No vote reminder message available for cup {CupId}", cupId);
+            return;
+        }
+
+        // Check if we have a poll message ID to reply to
+        // Note: Telegram uses int, Discord uses ulong for message IDs
+        // For Discord polls, we'll need to store the Discord poll message ID separately
+        // For now, just send a regular message since the poll message ID might be from Telegram
+        await bot.SendMessageAsync(messageText.Text);
     }
 }

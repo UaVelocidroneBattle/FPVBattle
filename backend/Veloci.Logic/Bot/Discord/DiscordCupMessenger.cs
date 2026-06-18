@@ -85,4 +85,68 @@ public class DiscordCupMessenger : IDiscordCupMessenger
             }
         }
     }
+
+    public async Task<ulong?> SendPollToCupAsync(string cupId, BotPoll poll)
+    {
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            _log.Warning("Cup {CupId} does not have Discord channel configured, skipping poll creation", cupId);
+            return null;
+        }
+
+        try
+        {
+            var pollMessageId = await bot.SendPollAsync(poll);
+            _log.Debug("Sent poll to cup {CupId} Discord channel, message ID: {PollId}", cupId, pollMessageId);
+            return pollMessageId;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to send poll to cup {CupId} Discord channel", cupId);
+            return null;
+        }
+    }
+
+    public async Task<DiscordPollResult?> StopPollInCupAsync(string cupId, ulong pollMessageId)
+    {
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            _log.Warning("Cup {CupId} does not have Discord channel configured, skipping poll stop", cupId);
+            return null;
+        }
+
+        try
+        {
+            var result = await bot.StopPollAsync(pollMessageId);
+            _log.Debug("Stopped poll {PollId} in cup {CupId} Discord channel", pollMessageId, cupId);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to stop poll {PollId} in cup {CupId} Discord channel", pollMessageId, cupId);
+            return null;
+        }
+    }
+
+    public async Task<ulong?> SendReplyToCupAsync(string cupId, string message, ulong replyToMessageId)
+    {
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot))
+        {
+            _log.Warning("Cup {CupId} does not have Discord channel configured, skipping reply", cupId);
+            return null;
+        }
+
+        try
+        {
+            var messageId = await bot.SendReplyAsync(message, replyToMessageId);
+            _log.Debug("Sent reply to message {ReplyToId} in cup {CupId} Discord channel, message ID: {MessageId}",
+                replyToMessageId, cupId, messageId);
+            return messageId;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to send reply in cup {CupId} Discord channel", cupId);
+            return null;
+        }
+    }
 }
