@@ -5,8 +5,6 @@ using Discord.WebSocket;
 using Serilog;
 using Veloci.Logic.Helpers;
 
-using Poll = Discord.Poll;
-
 namespace Veloci.Logic.Bot.Discord;
 
 /// <summary>
@@ -249,7 +247,7 @@ public async Task EditMessageAsync(ulong messageId, string message)
                 try
                 {
                     var emoji = GetEmojiForOption(i);
-                    await message.AddReactionAsync(emoji);
+                    await message.AddReactionAsync(new Emoji(emoji));
                 }
                 catch (Exception ex)
                 {
@@ -298,10 +296,10 @@ public async Task EditMessageAsync(ulong messageId, string message)
             for (int i = 0; i < reactions.Count; i++)
             {
                 var emoji = GetEmojiForOption(i);
-                var reaction = reactions.FirstOrDefault(r => r.Key.ToString() == emoji.ToString());
+                var reaction = reactions.FirstOrDefault(r => r.Key.ToString() == emoji);
                 if (reaction.Key != null)
                 {
-                    results.OptionVoterCounts[emoji.ToString()] = reaction.ReactionCount - 1; // Subtract bot's reaction
+                    results.OptionVoterCounts[emoji] = reaction.ReactionCount - 1; // Subtract bot's reaction
                 }
             }
 
@@ -332,12 +330,7 @@ public async Task EditMessageAsync(ulong messageId, string message)
             _log.Debug("Sending Discord reply to message {MessageId} in channel {ChannelName}", replyToMessageId, _channelName);
 
             var reference = new MessageReference(replyToMessageId);
-            var requestOptions = new RequestOptions
-            {
-                MessageReference = reference
-            };
-            
-            var result = await _channel!.SendMessageAsync(message, requestOptions);
+            var result = await _channel!.SendMessageAsync(message, messageReference: reference);
 
             _log.Debug("Sent Discord reply to message {MessageId} in channel {ChannelName}, reply ID: {ReplyId}", 
                 replyToMessageId, _channelName, result.Id);
@@ -354,21 +347,21 @@ public async Task EditMessageAsync(ulong messageId, string message)
     /// <summary>
     /// Gets an emoji for a poll option index (0-9)
     /// </summary>
-    private static IEmoji GetEmojiForOption(int index)
+    private static string GetEmojiForOption(int index)
     {
         return index switch
         {
-            0 => new Emoji("1️⃣"),
-            1 => new Emoji("2️⃣"),
-            2 => new Emoji("3️⃣"),
-            3 => new Emoji("4️⃣"),
-            4 => new Emoji("5️⃣"),
-            5 => new Emoji("6️⃣"),
-            6 => new Emoji("7️⃣"),
-            7 => new Emoji("8️⃣"),
-            8 => new Emoji("9️⃣"),
-            9 => new Emoji("🔟"),
-            _ => new Emoji("❓")
+            0 => "1️⃣",
+            1 => "2️⃣",
+            2 => "3️⃣",
+            3 => "4️⃣",
+            4 => "5️⃣",
+            5 => "6️⃣",
+            6 => "7️⃣",
+            7 => "8️⃣",
+            8 => "9️⃣",
+            9 => "🔟",
+            _ => "❓"
         };
     }
 }
