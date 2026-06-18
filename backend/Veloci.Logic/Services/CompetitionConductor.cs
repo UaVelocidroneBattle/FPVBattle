@@ -319,11 +319,20 @@ public class CompetitionConductor
 
             if (discordPollResult is not null)
             {
-                var discordPoll = _discordMessageComposer.Poll(competition.Track.FullName);
+                // For emoji-based voting, map emoji to points
+                // 1️⃣=3, 2️⃣=2, 3️⃣=1, 4️⃣=-1, 5️⃣=-2
+                var emojiToPoints = new Dictionary<string, int>
+                {
+                    ["1️⃣"] = 3,
+                    ["2️⃣"] = 2,
+                    ["3️⃣"] = 1,
+                    ["4️⃣"] = -1,
+                    ["5️⃣"] = -2
+                };
+
                 var totalPoints = discordPollResult.OptionVoterCounts.Sum(kv =>
                 {
-                    var points = discordPoll.Options.FirstOrDefault(x => x.Text == kv.Key).Points;
-                    return kv.Value * points;
+                    return emojiToPoints.TryGetValue(kv.Key, out var points) ? kv.Value * points : 0;
                 });
 
                 double? discordRating = discordPollResult.TotalVoterCount == 0
@@ -334,7 +343,7 @@ public class CompetitionConductor
                     discordPollMessageId.Value, discordPollResult.TotalVoterCount, discordRating ?? 0);
 
                 // If we didn't have a Telegram rating or it failed, use Discord rating
-                if (competition.Track.Rating?.Value is null)
+                if (competition.Track.Rating?.Value.HasValue != true)
                 {
                     competition.Track.Rating ??= new TrackRating();
                     competition.Track.Rating.Value = discordRating;
@@ -360,7 +369,7 @@ public class CompetitionConductor
 
         await _competitions.SaveChangesAsync();
 
-        if (competition.Track.Rating?.Value is null or competition.Track.Rating.Value >= 0)
+        if (competition.Track.Rating?.Value is null || competition.Track.Rating.Value >= 0)
             return;
 
         _log.Warning("👎 Track {TrackName} received negative rating {Rating:F2}, marking as bad track", competition.Track.FullName, competition.Track.Rating?.Value);

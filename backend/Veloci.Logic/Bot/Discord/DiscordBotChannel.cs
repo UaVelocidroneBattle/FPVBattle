@@ -288,7 +288,7 @@ public async Task EditMessageAsync(ulong messageId, string message)
             var reactions = userMessage.Reactions;
             var results = new DiscordPollResult
             {
-                TotalVoterCount = reactions.Sum(r => r.ReactionCount - 1), // Subtract 1 for the bot's own reaction
+                TotalVoterCount = reactions.Sum(r => r.Value.ReactionCount - 1), // Subtract 1 for the bot's own reaction
                 IsCompleted = true
             };
 
@@ -299,7 +299,7 @@ public async Task EditMessageAsync(ulong messageId, string message)
                 var reaction = reactions.FirstOrDefault(r => r.Key.ToString() == emoji);
                 if (reaction.Key != null)
                 {
-                    results.OptionVoterCounts[emoji] = reaction.ReactionCount - 1; // Subtract bot's reaction
+                    results.OptionVoterCounts[emoji] = reaction.Value.ReactionCount - 1; // Subtract bot's reaction
                 }
             }
 
