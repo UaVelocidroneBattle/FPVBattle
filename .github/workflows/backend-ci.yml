@@ -1,0 +1,29 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  build-and-test:
+    name: Build and Test Backend
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore backend/Veloci.sln
+
+    - name: Build solution
+      run: dotnet build backend/Veloci.sln --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test backend/Veloci.Tests/Veloci.Tests.csproj --configuration Release --no-restore --verbosity normal
