@@ -1,4 +1,4 @@
-﻿using Hangfire;
+using Hangfire;
 using MediatR;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Notifications;
@@ -20,8 +20,7 @@ public class TelegramMessageEventHandler :
     INotificationHandler<PilotRenamed>,
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
-    INotificationHandler<TrackRestart>,
-    INotificationHandler<VoteReminder>
+    INotificationHandler<TrackRestart>
 {
     private readonly TelegramMessageComposer _messageComposer;
     private readonly ITelegramCupMessenger _cupMessenger;
@@ -154,11 +153,5 @@ public class TelegramMessageEventHandler :
     {
         var message = _messageComposer.RestartTrack();
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
-    }
-
-    public async Task Handle(VoteReminder notification, CancellationToken cancellationToken)
-    {
-        var messageText = _chatMessages.GetRandomByType(ChatMessageType.VoteReminder);
-        await _cupMessenger.SendReplyToCupAsync(notification.Competition.CupId, messageText.Text, notification.Competition.Track.Rating.PollMessageId);
     }
 }

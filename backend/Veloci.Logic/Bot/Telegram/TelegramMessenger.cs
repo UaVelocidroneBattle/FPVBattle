@@ -125,65 +125,6 @@ public class TelegramMessenger : ITelegramMessenger
         }
     }
 
-    public async Task<int?> SendPollAsync(string chatId, BotPoll poll)
-    {
-        if (!IsAvailable)
-        {
-            _log.Debug("Telegram not configured, skipping poll send to {ChatId}", chatId);
-            return null;
-        }
-
-        try
-        {
-            _log.Information("Sending Telegram poll to {ChatId}: {Question} with {OptionCount} options",
-                chatId, poll.Question, poll.Options.Count());
-
-            var message = await _client.SendPollAsync(
-                chatId: chatId,
-                question: poll.Question,
-                options: poll.Options.Select(x => x.Text));
-
-            _log.Information("Telegram poll sent successfully as message {MessageId} to {ChatId}",
-                message.MessageId, chatId);
-            return message.MessageId;
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Telegram. Failed to send a poll with question '{Question}' to {ChatId}",
-                poll.Question, chatId);
-            return null;
-        }
-    }
-
-    public async Task<Poll?> StopPollAsync(string chatId, int messageId)
-    {
-        if (!IsAvailable)
-        {
-            _log.Debug("Telegram not configured, skipping poll stop in {ChatId}", chatId);
-            return null;
-        }
-
-        try
-        {
-            _log.Information("Stopping Telegram poll with message ID {MessageId} in {ChatId}", messageId, chatId);
-            var result = await _client.StopPollAsync(chatId, messageId);
-
-            if (result != null)
-            {
-                _log.Information("Telegram poll {MessageId} stopped successfully with {VoterCount} total votes in {ChatId}",
-                    messageId, result.TotalVoterCount, chatId);
-            }
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Telegram. Failed to stop the poll with message ID {MessageId} in {ChatId}",
-                messageId, chatId);
-            return null;
-        }
-    }
-
     public async Task RemoveMessageAsync(string chatId, int messageId)
     {
         if (!IsAvailable)

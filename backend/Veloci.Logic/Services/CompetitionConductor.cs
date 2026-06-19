@@ -6,7 +6,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
 using Veloci.Logic.API.Dto;
-using Veloci.Logic.Bot.Telegram;
+using Veloci.Logic.Bot.Discord;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.QuadOfTheDay;
 using Veloci.Logic.Notifications;
@@ -25,10 +25,10 @@ public class CompetitionConductor
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly CompetitionService _competitionService;
-    private readonly TelegramMessageComposer _messageComposer;
+    private readonly DiscordMessageComposer _discordMessageComposer;
     private readonly ImageService _imageService;
     private readonly ICupService _cupService;
-    private readonly ITelegramCupMessenger _telegramCupMessenger;
+    private readonly IDiscordCupMessenger _discordCupMessenger;
     private readonly TrackQueueService _trackQueueService;
     private readonly QuadOfTheDayService _quadOfTheDayService;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
@@ -37,14 +37,14 @@ public class CompetitionConductor
         IRepository<Competition> competitions,
         RaceResultsConverter resultsConverter,
         CompetitionService competitionService,
-        TelegramMessageComposer messageComposer,
+        DiscordMessageComposer discordMessageComposer,
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
         IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         ICupService cupService,
-        ITelegramCupMessenger telegramCupMessenger,
+        IDiscordCupMessenger discordCupMessenger,
         TrackQueueService trackQueueService,
         QuadOfTheDayService quadOfTheDayService,
         ILeaderboardCalculator leaderboardCalculator)
@@ -52,14 +52,14 @@ public class CompetitionConductor
         _competitions = competitions;
         _resultsConverter = resultsConverter;
         _competitionService = competitionService;
-        _messageComposer = messageComposer;
+        _discordMessageComposer = discordMessageComposer;
         _imageService = imageService;
         _trackService = trackService;
         _mediator = mediator;
         _pilots = pilots;
         _velocidrone = velocidrone;
         _cupService = cupService;
-        _telegramCupMessenger = telegramCupMessenger;
+        _discordCupMessenger = discordCupMessenger;
         _trackQueueService = trackQueueService;
         _quadOfTheDayService = quadOfTheDayService;
         _leaderboardCalculator = leaderboardCalculator;
@@ -177,8 +177,8 @@ public class CompetitionConductor
     {
         _log.Debug("Creating poll for track {TrackName} in cup {CupId}", track.FullName, competition.CupId);
 
-        var poll = _messageComposer.Poll(track.FullName);
-        var pollId = await _telegramCupMessenger.SendPollToCupAsync(competition.CupId, poll);
+        var poll = _discordMessageComposer.Poll(track.FullName);
+        var pollId = await _discordCupMessenger.SendPollToCupAsync(competition.CupId, poll);
 
         if (pollId is null)
         {
@@ -186,7 +186,7 @@ public class CompetitionConductor
             return;
         }
 
-        _log.Information("🗳️ Created poll {PollId} for track {TrackName}", pollId.Value, track.FullName);
+        _log.Information("🗳️ Created Discord poll {PollId} for track {TrackName}", pollId.Value, track.FullName);
 
         var rating = competition.Track.Rating;
 
@@ -196,7 +196,7 @@ public class CompetitionConductor
             competition.Track.Rating = rating;
         }
 
-        rating.PollMessageId = pollId.Value;
+        rating.PollMessageId = (long)pollId.Value;
     }
 
     public async Task StopAsync(string cupId)
@@ -250,7 +250,7 @@ public class CompetitionConductor
             return;
         }
 
-        var poll = _messageComposer.Poll(competition.Track.FullName);
+        var poll = _discordMessageComposer.Poll(competition.Track.FullName);
 
         if (competition.Track.Rating is null)
         {
@@ -258,27 +258,16 @@ public class CompetitionConductor
             return;
         }
 
-        _log.Information("Stopping poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
-        var telegramPoll = await _telegramCupMessenger.StopPollInCupAsync(cupId, competition.Track.Rating.PollMessageId);
+        _log.Information("Stopping Discord poll {PollId} for track {TrackName}", competition.Track.Rating.PollMessageId, competition.Track.FullName);
+        await _discordCupMessenger.StopPollInCupAsync(cupId, (ulong)competition.Track.Rating.PollMessageId);
 
-        if (telegramPoll is null)
-        {
-            _log.Error("Poll {PollId} is already stopped", competition.Track.Rating.PollMessageId);
-            return;
-        }
+        // For Discord emoji-based polls, we can't easily get vote counts
+        // So we'll set a default rating or skip the rating calculation
+        // TODO: Implement Discord poll vote counting by fetching reactions
+        double? rating = null;
 
-        var totalPoints = telegramPoll.Options.Sum(option =>
-        {
-            var points = poll.Options.FirstOrDefault(x => x.Text == option.Text).Points;
-            return option.VoterCount * points;
-        });
-
-        double? rating = telegramPoll.TotalVoterCount == 0
-            ? null
-            : totalPoints / (double)telegramPoll.TotalVoterCount;
-
-        _log.Information("Poll {PollId} voting completed: {VoterCount} voters, calculated rating: {Rating:F2}",
-            competition.Track.Rating.PollMessageId, telegramPoll.TotalVoterCount, rating ?? 0);
+        _log.Information("Discord poll {PollId} stopped for track {TrackName}, rating calculation not yet implemented",
+            competition.Track.Rating.PollMessageId, competition.Track.FullName);
 
         competition.Track.Rating.Value = rating;
         await _competitions.SaveChangesAsync();

@@ -1,8 +1,9 @@
-﻿using Hangfire;
+using Hangfire;
 using MediatR;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Bot;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services;
@@ -25,7 +26,8 @@ public class DiscordMessageEventHandler :
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
     INotificationHandler<TrackRestart>,
-    INotificationHandler<AddedToWhitelist>
+    INotificationHandler<AddedToWhitelist>,
+    INotificationHandler<VoteReminder>
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<DiscordMessageEventHandler>();
 
@@ -266,5 +268,17 @@ public class DiscordMessageEventHandler :
     {
         var message = _messageComposer.AddedToWhitelist(notification.PilotName);
         await _generalMessenger.SendMessageAsync(message);
+    }
+
+    public async Task Handle(VoteReminder notification, CancellationToken cancellationToken)
+    {
+        var message = _chatMessages.GetRandomByType(ChatMessageType.VoteReminder);
+
+        if (message is null)
+        {
+            return;
+        }
+
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message.Text);
     }
 }
