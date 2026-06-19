@@ -110,18 +110,18 @@ public class Competition
 
     public bool IsPilotAtLocalRank(Pilot pilot, int rank)
     {
-        return CompetitionResults.GetByLocalRank(rank)?.Pilot.Id == pilot.Id;
+        return CompetitionResults.GetByPilotId(pilot.Id)?.LocalRank == rank;
     }
 
     public CompetitionResults? GetSlowest()
     {
         return CompetitionResults
-            .OrderBy(res => res.LocalRank)
-            .LastOrDefault();
+            .OrderByDescending(res => res.TrackTime)
+            .FirstOrDefault();
     }
 }
 
-public static class IQueryableCompetitionExtensions
+public static class QueryableCompetitionExtensions
 {
     /// <param name="query">Source query</param>
     extension(IQueryable<Competition> query)

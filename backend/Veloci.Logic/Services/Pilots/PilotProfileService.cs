@@ -19,23 +19,31 @@ public class PilotProfileService : IPilotProfileService
     private readonly IRepository<Pilot> _pilots;
     private readonly IEnumerable<IAchievement> _allAchievements;
     private readonly RatingService _ratingService;
+    private readonly ICupService _cupService;
 
     public PilotProfileService(
         IRepository<Pilot> pilots,
         IServiceProvider serviceProvider,
-        RatingService ratingService)
+        RatingService ratingService,
+        ICupService cupService)
     {
         _pilots = pilots;
         _ratingService = ratingService;
+        _cupService = cupService;
         _allAchievements = serviceProvider.GetServices<IAchievement>();
     }
 
     public async Task<PilotProfileModel> GetPilotProfileAsync(string pilotName, CancellationToken ct)
     {
+        var openClassCupOptions = _cupService.GetCupOptions(CupIds.OpenClass);
+
         var pilot = await _pilots.GetAll()
             .Include(p => p.DayStreakFreezes)
             .ByName(pilotName)
             .SingleAsync(ct);
+
+        var pilotLeague = pilot.GetCurrentLeague(CupIds.OpenClass)
+            ?? (openClassCupOptions.Leagues.Enabled ? openClassCupOptions.Leagues.OthersName : null);
 
         return new PilotProfileModel
         {
@@ -49,11 +57,15 @@ public class PilotProfileService : IPilotProfileService
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
             GlobalRating = await _ratingService.GetPilotRankAsync(CupIds.OpenClass, pilot.Id),
+            League = pilotLeague,
+            LeagueColor = string.IsNullOrEmpty(pilotLeague)
+                ? null
+                : openClassCupOptions.Leagues.Definitions.FirstOrDefault(x => x.Name == pilotLeague)?.Color,
             RatingHistory = await _ratingService.GetPilotRatingHistoryAsync(CupIds.OpenClass, pilot.Id)
         };
     }
 
-    private PilotAchievementModel CreatePilotAchievementModel(IAchievement achievement, Pilot pilot)
+    private static PilotAchievementModel CreatePilotAchievementModel(IAchievement achievement, Pilot pilot)
     {
         var pa = pilot.Achievements.FirstOrDefault(a => a.Name == achievement.Name);
 

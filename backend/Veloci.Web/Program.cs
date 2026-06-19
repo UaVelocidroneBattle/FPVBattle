@@ -24,10 +24,18 @@ startup.Configure(app);
 try
 {
     await DefaultInit.InitializeAsync(builder.Configuration, app);
+}
+catch (Exception ex)
+{
+    Log.Warning(ex, "Initialization skipped — no storage available (expected during OpenAPI document generation)");
+}
+
+try
+{
     Log.Information("Application started.");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Error(ex, "Failed to start application");
+    Log.Fatal(ex, "Failed to run application");
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Veloci.Data.Domain;
 using Veloci.Logic.Features.Leagues.Services;
 
 namespace Veloci.Web.Controllers.Rating;
@@ -22,19 +23,28 @@ public class RatingController : ControllerBase
         if (ratings.Count == 0)
             return NotFound();
 
+        var previousRatings = await _ratingService.GetPreviousRatingsForCupAsync(cupId);
+        var currentPilotIds = ratings.Select(r => r.PilotId).ToHashSet();
+
         return new RatingModel
         {
             CalculatedOn = ratings[0].CalculatedOn,
-            Ratings = ratings.Select(r => new PilotRatingModel
-            {
-                PilotId = r.PilotId,
-                PilotName = r.Pilot.Name,
-                Country = r.Pilot.Country,
-                AverageGapPercent = r.AverageGapPercent,
-                AverageGapChange = r.AverageGapChange,
-                Rank = r.Rank,
-                RankChange = r.RankChange,
-            }).ToList()
+            Ratings = ratings.Select(ToPilotRatingModel).ToList(),
+            DroppedOutPilots = previousRatings
+                .Where(r => !currentPilotIds.Contains(r.PilotId))
+                .Select(ToPilotRatingModel)
+                .ToList()
         };
     }
+
+    private static PilotRatingModel ToPilotRatingModel(PilotPaceRating r) => new()
+    {
+        PilotId = r.PilotId,
+        PilotName = r.Pilot.Name,
+        Country = r.Pilot.Country,
+        AverageGapPercent = r.AverageGapPercent,
+        AverageGapChange = r.AverageGapChange,
+        Rank = r.Rank,
+        RankChange = r.RankChange,
+    };
 }

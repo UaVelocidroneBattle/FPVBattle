@@ -23,8 +23,23 @@ public class RatingService
         if (lastDate is null)
             return [];
 
+        return await GetRatingsForCupAsync(cupId, lastDate.Value);
+    }
+
+    public async Task<IList<PilotPaceRating>> GetPreviousRatingsForCupAsync(string cupId)
+    {
+        var previousDate = await GetLastCalculationDateAsync(cupId, 1);
+
+        if (previousDate is null)
+            return [];
+
+        return await GetRatingsForCupAsync(cupId, previousDate.Value);
+    }
+
+    public async Task<IList<PilotPaceRating>> GetRatingsForCupAsync(string cupId, DateTime date)
+    {
         return await _ratings
-            .GetAll(r => r.CupId == cupId && r.CalculatedOn == lastDate.Value)
+            .GetAll(r => r.CupId == cupId && r.CalculatedOn == date)
             .OrderBy(r => r.Rank)
             .Include(r => r.Pilot)
             .ToListAsync();
@@ -58,26 +73,14 @@ public class RatingService
             .ToListAsync();
     }
 
-    public async Task<List<int>> GetRankedPilotIdsAsync(string cupId)
-    {
-        var lastCalculationDate = await GetLastCalculationDateAsync(cupId);
-
-        if (lastCalculationDate is null)
-            return [];
-
-        return await _ratings
-            .GetAll(r => r.CupId == cupId && r.CalculatedOn == lastCalculationDate.Value)
-            .OrderBy(r => r.Rank)
-            .Select(x => x.PilotId)
-            .ToListAsync();
-    }
-
-    private async Task<DateTime?> GetLastCalculationDateAsync(string cupId)
+    private async Task<DateTime?> GetLastCalculationDateAsync(string cupId, int skip = 0)
     {
         return await _ratings
             .GetAll(r => r.CupId == cupId)
-            .OrderByDescending(r => r.CalculatedOn)
             .Select(r => (DateTime?)r.CalculatedOn)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .Skip(skip)
             .FirstOrDefaultAsync();
     }
 }

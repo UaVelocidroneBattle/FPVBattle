@@ -4,6 +4,7 @@ public class RatingModel
 {
     public DateTime CalculatedOn { get; set; }
     public IList<PilotRatingModel> Ratings { get; set; }
+    public IList<PilotRatingModel> DroppedOutPilots { get; set; } = [];
 }
 
 public class PilotRatingModel

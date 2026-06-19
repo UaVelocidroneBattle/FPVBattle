@@ -83,8 +83,12 @@ function GlobalRatingPage() {
             <div>
                 <h2 className="text-xl font-semibold text-white mb-1">Global Rating</h2>
                 {data && (
-                    <p className="text-slate-400 text-sm">
-                        Last update: {formatDate(data.calculatedOn)}
+                    <p className="text-slate-400 text-sm flex items-center gap-2">
+                        <span>Last update: {formatDate(data.calculatedOn)}</span>
+                        <span className="text-slate-600">·</span>
+                        <span className="text-emerald-400">new: {data.ratings.filter(p => p.rankChange === null).length}</span>
+                        <span className="text-slate-600">·</span>
+                        <span className="text-red-400">dropped: {data.droppedOutPilots.length}</span>
                     </p>
                 )}
             </div>
@@ -100,18 +104,35 @@ function GlobalRatingPage() {
             )}
 
             {loadingState === "Loaded" && data && (
-                <div className="overflow-hidden -mx-6 sm:mx-0">
-                    <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
-                        <div className="w-8 flex-shrink-0" />
-                        <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>
-                        <div className="flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500">Gap</div>
+                <>
+                    <div className="overflow-hidden -mx-6 sm:mx-0">
+                        <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
+                            <div className="w-8 flex-shrink-0" />
+                            <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>
+                            <div className="flex-shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500">Gap</div>
+                        </div>
+                        <ul className="divide-y divide-slate-700/50">
+                            {data.ratings.map((pilot) => (
+                                <RatingRow key={pilot.pilotId} pilot={pilot} />
+                            ))}
+                        </ul>
                     </div>
-                    <ul className="divide-y divide-slate-700/50">
-                        {data.ratings.map((pilot) => (
-                            <RatingRow key={pilot.pilotId} pilot={pilot} />
-                        ))}
-                    </ul>
-                </div>
+
+                    {data.droppedOutPilots.length > 0 && (
+                        <div className="pt-8">
+                            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
+                                Dropped out
+                            </h3>
+                            <ul className="divide-y divide-slate-700/50 -mx-6 sm:mx-0">
+                                {data.droppedOutPilots.map((pilot) => (
+                                    <li key={pilot.pilotId} className="px-3 py-3">
+                                        <PilotWithAvatar name={pilot.pilotName} countryCode={pilot.country} />
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

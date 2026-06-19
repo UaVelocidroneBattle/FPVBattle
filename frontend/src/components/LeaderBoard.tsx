@@ -34,7 +34,7 @@ function ResultRow({ result, index }: { result: SeasonResult; index: number }) {
     return (
         <li className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}>
             <div className="grid grid-cols-[2.5rem_1fr_2rem_4rem] items-center gap-6">
-                <span className={`text-right text-sm tabular-nums ${rankStyle(result.rank)}`}>
+                <span className={`text-right text-sm tabular-nums ${rankStyle(result.rank ?? 0)}`}>
                     {String(result.rank).padStart(2, "0")}
                 </span>
                 <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />

@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Frontend (Vite)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "frontend",
+      "port": 5173
+    },
+    {
+      "name": "Backend (HTTP)",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Veloci.Web", "--launch-profile", "http"],
+      "cwd": "backend",
+      "port": 5056
+    },
+    {
+      "name": "Backend (HTTPS)",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Veloci.Web", "--launch-profile", "https"],
+      "cwd": "backend",
+      "port": 7284
+    }
+  ]
+}

@@ -1,11 +1,12 @@
-import { LeagueLeaderboard } from "../api/client";
+import { LeagueLeaderboardModel } from "../api/client";
 import { convertMsToSec } from "../utils/utils";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
 
 interface CurrentLeaderboardProps {
-    leaderboard: LeagueLeaderboard[];
+    leaderboard: LeagueLeaderboardModel[];
     leagueColors?: Map<string, string>;
+    flat?: boolean;
 }
 
 const COLS = "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]";
@@ -29,13 +30,49 @@ function ColumnHeaders() {
     );
 }
 
-function CurrentLeaderboard({ leaderboard, leagueColors }: CurrentLeaderboardProps) {
+function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: CurrentLeaderboardProps) {
     const isEmpty = !leaderboard?.length || leaderboard.every(g => !g.results?.length);
 
     if (isEmpty) {
         return (
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 px-4 py-8 text-slate-400 text-sm">
                 No results yet
+            </div>
+        );
+    }
+
+    if (flat) {
+        const results = leaderboard
+            .flatMap(g => (g.results ?? []).map(r => ({ ...r, league: g.league ?? null })))
+            .sort((a, b) => (a.trackTime ?? 0) - (b.trackTime ?? 0));
+
+        return (
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+                <ColumnHeaders />
+                <ul>
+                    {results.map((result, index) => {
+                        const leagueColor = (result.league && leagueColors?.get(result.league)) || '#34d399';
+                        return (
+                            <li
+                                key={`${result.playerName}-${index}`}
+                                className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
+                                style={{ borderLeftColor: leagueColor }}
+                            >
+                                <div className={`grid ${COLS} items-center gap-6`}>
+                                    <span className={`text-right text-sm tabular-nums ${rankStyle(index + 1)}`}>
+                                        {String(index + 1).padStart(2, "0")}
+                                    </span>
+                                    <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                    <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
+                                    <CountryFlag countryCode={result.country} className="text-sm" />
+                                    <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
+                                        {convertMsToSec(result.trackTime ?? 0)}
+                                    </div>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
             </div>
         );
     }
@@ -68,14 +105,14 @@ function CurrentLeaderboard({ leaderboard, leagueColors }: CurrentLeaderboardPro
                                         className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
                                     >
                                         <div className={`grid ${COLS} items-center gap-6`}>
-                                            <span className={`text-right text-sm tabular-nums ${rankStyle(result.localRank)}`}>
-                                                {String(result.localRank).padStart(2, "0")}
+                                            <span className={`text-right text-sm tabular-nums ${rankStyle(result.localRank ?? 0)}`}>
+                                                {String(result.localRank ?? 0).padStart(2, "0")}
                                             </span>
                                             <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
                                             <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
                                             <CountryFlag countryCode={result.country} className="text-sm" />
                                             <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
-                                                {convertMsToSec(result.trackTime)}
+                                                {convertMsToSec(result.trackTime ?? 0)}
                                             </div>
                                         </div>
                                     </li>

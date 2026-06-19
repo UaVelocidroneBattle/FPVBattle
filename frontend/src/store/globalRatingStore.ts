@@ -15,6 +15,7 @@ export interface PilotRatingModel {
 export interface GlobalRatingData {
     calculatedOn: string;
     ratings: PilotRatingModel[];
+    droppedOutPilots: PilotRatingModel[];
 }
 
 interface GlobalRatingState {

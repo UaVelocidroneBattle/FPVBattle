@@ -28,7 +28,7 @@ public class QuadOfTheDayService
             return;
 
         var eligible = competition.CompetitionResults
-            .Where(r => r.ModelName == competition.QuadOfTheDay.Name)
+            .Where(r => string.Equals(r.ModelName, competition.QuadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         if (eligible.Count == 0)
@@ -46,7 +46,7 @@ public class QuadOfTheDayService
     }
 
     /// <summary>
-    /// Punishment strategy. Pilots get only 1 point if used not quad of the day
+    /// Punishment strategy. Pilots get only 1 point if used not a quad of the day
     /// </summary>
     public void PunishNonQuadOfTheDayPilots(Competition competition)
     {
@@ -54,7 +54,7 @@ public class QuadOfTheDayService
             return;
 
         var penalized = competition.CompetitionResults
-            .Where(r => r.ModelName != competition.QuadOfTheDay.Name)
+            .Where(r => !string.Equals(r.ModelName, competition.QuadOfTheDay.Name, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         if (penalized.Count == 0)
