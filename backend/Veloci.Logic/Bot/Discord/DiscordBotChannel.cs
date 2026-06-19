@@ -241,8 +241,8 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
             var message = await _channel!.SendMessageAsync(pollMessage);
             
-            // Add reactions for each option
-            for (int i = 0; i < Math.Min(poll.Options.Count, 10); i++)
+            // Add reactions for each option (exactly 5 options)
+            for (int i = 0; i < poll.Options.Count; i++)
             {
                 try
                 {
@@ -292,14 +292,18 @@ public async Task EditMessageAsync(ulong messageId, string message)
                 IsCompleted = true
             };
 
-            // Map each reaction to option vote counts
-            for (int i = 0; i < reactions.Count; i++)
+            // Map each reaction to option vote counts by matching emoji
+            for (int i = 0; i < 5; i++) // Exactly 5 poll options
             {
-                var emoji = GetEmojiForOption(i);
-                var reaction = reactions.FirstOrDefault(r => r.Key.ToString() == emoji);
+                var expectedEmoji = GetEmojiForOption(i);
+                var reaction = reactions.FirstOrDefault(r => r.Key.ToString() == expectedEmoji);
                 if (reaction.Key != null)
                 {
-                    results.OptionVoterCounts[emoji] = reaction.Value.ReactionCount - 1; // Subtract bot's reaction
+                    results.OptionVoterCounts[expectedEmoji] = reaction.Value.ReactionCount - 1; // Subtract bot's reaction
+                }
+                else
+                {
+                    results.OptionVoterCounts[expectedEmoji] = 0; // No votes for this option
                 }
             }
 
@@ -345,7 +349,13 @@ public async Task EditMessageAsync(ulong messageId, string message)
     }
 
     /// <summary>
-    /// Gets an emoji for a poll option index (0-9)
+    /// Gets an emoji for a poll option index (0-4)
+    /// Matches the 5 voting options from BotPoll:
+    /// 0 = "One of the best" → 1️⃣ → 3 points
+    /// 1 = "Like it" → 2️⃣ → 2 points
+    /// 2 = "It's okay" → 3️⃣ → 1 point
+    /// 3 = "Not great" → 4️⃣ → -1 points
+    /// 4 = "Terrible" → 5️⃣ → -2 points
     /// </summary>
     private static string GetEmojiForOption(int index)
     {
@@ -356,12 +366,7 @@ public async Task EditMessageAsync(ulong messageId, string message)
             2 => "3️⃣",
             3 => "4️⃣",
             4 => "5️⃣",
-            5 => "6️⃣",
-            6 => "7️⃣",
-            7 => "8️⃣",
-            8 => "9️⃣",
-            9 => "🔟",
-            _ => "❓"
+            _ => throw new ArgumentOutOfRangeException(nameof(index), "Only 5 poll options are supported (0-4)")
         };
     }
 }
