@@ -1,6 +1,4 @@
 using Discord;
-using Discord.Net;
-using Discord.Rest;
 using Discord.WebSocket;
 using Serilog;
 using Veloci.Logic.Helpers;
