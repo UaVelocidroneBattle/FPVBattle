@@ -75,7 +75,8 @@ public class CompetitionsController : ControllerBase
                 LocalRank = r.LocalRank,
                 GlobalRank = r.GlobalRank,
                 ModelName = r.ModelName,
-                Country = r.Pilot.Country
+                Country = r.Pilot.Country,
+                Points = r.Points
             }).ToList()
         };
 

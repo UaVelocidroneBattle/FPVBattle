@@ -24,6 +24,7 @@ public class LeaderboardResultModel
     public int GlobalRank { get; set; }
     public string? ModelName { get; set; }
     public required string Country { get; set; }
+    public int? Points { get; set; }
 }
 
 public class CompetitionModel
