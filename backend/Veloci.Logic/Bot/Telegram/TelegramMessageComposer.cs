@@ -45,27 +45,6 @@ public class TelegramMessageComposer
                $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
     }
 
-    public BotPoll Poll(string trackName)
-    {
-        var question = $"Оцініть трек {trackName}{Environment.NewLine}{Environment.NewLine}" +
-               $"Не забувайте оцінювати треки!";
-
-        var options = new List<BotPollOption>
-        {
-            new (3, "Один із кращих"),
-            new (2, "Подобається"),
-            new (1, "Нормальний"),
-            new (-1, "Не дуже"),
-            new (-2, "Лайно")
-        };
-
-        return new BotPoll
-        {
-            Question = question,
-            Options = options
-        };
-    }
-
     public string BadTrackRating()
     {
         return "😔 Бачу трек не сподобався. Більше його не буде";
