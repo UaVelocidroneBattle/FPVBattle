@@ -1,6 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 using Serilog;
+using Veloci.Logic.Bot;
 using Veloci.Logic.Helpers;
 
 namespace Veloci.Logic.Bot.Discord;
@@ -218,5 +219,90 @@ public async Task EditMessageAsync(ulong messageId, string message)
         {
             _log.Error(ex, "Failed to send image {ImageName} to channel {ChannelName}", imageName, _channelName);
         }
+    }
+
+    public async Task<ulong?> SendPollAsync(BotPoll poll)
+    {
+        if (_client is null)
+            return null;
+
+        try
+        {
+            EnsureChannelResolved();
+
+            _log.Information("Sending Discord poll to channel {ChannelName}: {Question} with {OptionCount} options",
+                _channelName, poll.Question, poll.Options.Count);
+
+            // Discord poll creation using the REST API approach
+            // Create poll options as emoji-based voting or use Discord's native poll feature
+            var pollMessage = $"{poll.Question}\n\n" +
+                              string.Join("\n", poll.Options.Select((opt, idx) => $"{GetEmojiForIndex(idx)} {opt.Text}"));
+
+            var result = await _channel!.SendMessageAsync(pollMessage);
+
+            // Add reactions for voting
+            for (int i = 0; i < poll.Options.Count && i < 10; i++)
+            {
+                var emoji = GetEmojiForIndex(i);
+                await result.AddReactionAsync(new Emoji(emoji));
+            }
+
+            _log.Information("Sent Discord poll to channel {ChannelName}, message ID: {MessageId}", _channelName, result.Id);
+            return result.Id;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to send poll to channel {ChannelName}", _channelName);
+            return null;
+        }
+    }
+
+    public async Task StopPollAsync(ulong messageId)
+    {
+        if (_client is null)
+            return;
+
+        try
+        {
+            EnsureChannelResolved();
+
+            _log.Information("Stopping Discord poll with message ID {MessageId} in channel {ChannelName}", messageId, _channelName);
+
+            var message = await _channel!.GetMessageAsync(messageId);
+            if (message is null)
+            {
+                _log.Warning("Poll message {MessageId} not found in channel {ChannelName}", messageId, _channelName);
+                return;
+            }
+
+            // For emoji-based polls, we can't really "stop" them, but we can remove the message
+            // or edit it to indicate it's closed
+            await message.ModifyAsync(m => m.Content = $"🔴 Poll Closed: {message.Content}");
+
+            _log.Information("Discord poll {MessageId} stopped in channel {ChannelName}", messageId, _channelName);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to stop poll {MessageId} in channel {ChannelName}", messageId, _channelName);
+        }
+    }
+
+    private string GetEmojiForIndex(int index)
+    {
+        // Return number emojis for voting
+        return index switch
+        {
+            0 => "1️⃣",
+            1 => "2️⃣",
+            2 => "3️⃣",
+            3 => "4️⃣",
+            4 => "5️⃣",
+            5 => "6️⃣",
+            6 => "7️⃣",
+            7 => "8️⃣",
+            8 => "9️⃣",
+            9 => "🔟",
+            _ => "❓"
+        };
     }
 }

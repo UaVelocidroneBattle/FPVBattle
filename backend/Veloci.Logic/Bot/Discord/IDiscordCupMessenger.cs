@@ -1,3 +1,5 @@
+using Veloci.Logic.Bot;
+
 namespace Veloci.Logic.Bot.Discord;
 
 /// <summary>
@@ -39,4 +41,18 @@ public interface IDiscordCupMessenger
     /// <param name="image">Image bytes</param>
     /// <param name="imageName">Image file name</param>
     Task SendImageToCupAsync(string cupId, byte[] image, string imageName);
+
+    /// <summary>
+    /// Sends a poll to a specific cup that has Discord configured
+    /// </summary>
+    /// <param name="cupId">Cup identifier to send to</param>
+    /// <param name="poll">Poll to send</param>
+    Task<ulong?> SendPollToCupAsync(string cupId, BotPoll poll);
+
+    /// <summary>
+    /// Stops an active poll in a specific cup
+    /// </summary>
+    /// <param name="cupId">Cup identifier</param>
+    /// <param name="pollMessageId">Message ID of the poll to stop</param>
+    Task StopPollInCupAsync(string cupId, ulong pollMessageId);
 }

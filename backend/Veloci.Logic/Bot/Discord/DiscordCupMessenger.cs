@@ -1,4 +1,5 @@
 using Serilog;
+using Veloci.Logic.Bot;
 using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Logic.Bot.Discord;
@@ -42,6 +43,41 @@ public class DiscordCupMessenger : IDiscordCupMessenger
     public Task SendImageToCupAsync(string cupId, byte[] image, string imageName)
     {
         return SendToCupsAsync([cupId], bot => bot.SendImageAsync(image, imageName));
+    }
+
+    public async Task<ulong?> SendPollToCupAsync(string cupId, BotPoll poll)
+    {
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot) || bot is null)
+        {
+            _log.Warning("Cup {CupId} does not have Discord channel configured, skipping poll creation", cupId);
+            return null;
+        }
+
+        var pollId = await bot.SendPollAsync(poll);
+
+        if (pollId == null) return null;
+
+        _log.Debug("Sent poll to cup {CupId} Discord channel, message ID: {PollId}", cupId, pollId);
+        return pollId;
+    }
+
+    public async Task StopPollInCupAsync(string cupId, ulong pollMessageId)
+    {
+        if (!_botFactory.TryGetBotForCup(cupId, out var bot) || bot is null)
+        {
+            _log.Warning("Cup {CupId} does not have Discord channel configured, skipping poll stop", cupId);
+            return;
+        }
+
+        try
+        {
+            await bot.StopPollAsync(pollMessageId);
+            _log.Debug("Stopped poll {PollId} in cup {CupId} Discord channel", pollMessageId, cupId);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to stop poll {PollId} in cup {CupId} Discord channel", pollMessageId, cupId);
+        }
     }
 
     private async Task SendToCupsAsync(IEnumerable<string> cupIds, Func<IDiscordBot, Task> sendAction)

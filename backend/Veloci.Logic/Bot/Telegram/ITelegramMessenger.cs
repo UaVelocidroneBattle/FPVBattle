@@ -47,22 +47,6 @@ public interface ITelegramMessenger
     Task SendPhotoAsync(string chatId, Stream file, string? caption = null);
 
     /// <summary>
-    /// Sends a poll to the specified chat
-    /// </summary>
-    /// <param name="chatId">Target chat ID</param>
-    /// <param name="poll">Poll configuration</param>
-    /// <returns>Message ID of the poll, or null if failed</returns>
-    Task<int?> SendPollAsync(string chatId, BotPoll poll);
-
-    /// <summary>
-    /// Stops an active poll
-    /// </summary>
-    /// <param name="chatId">Chat containing the poll</param>
-    /// <param name="messageId">Poll message ID</param>
-    /// <returns>Poll results, or null if failed</returns>
-    Task<Poll?> StopPollAsync(string chatId, int messageId);
-
-    /// <summary>
     /// Removes a message from a chat
     /// </summary>
     /// <param name="chatId">Target chat ID</param>
