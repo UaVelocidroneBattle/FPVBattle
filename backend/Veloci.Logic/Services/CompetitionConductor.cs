@@ -25,7 +25,6 @@ public class CompetitionConductor
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly CompetitionService _competitionService;
-    private readonly TelegramMessageComposer _messageComposer;
     private readonly DiscordMessageComposer _discordMessageComposer;
     private readonly ImageService _imageService;
     private readonly ICupService _cupService;
@@ -38,7 +37,6 @@ public class CompetitionConductor
         IRepository<Competition> competitions,
         RaceResultsConverter resultsConverter,
         CompetitionService competitionService,
-        TelegramMessageComposer messageComposer,
         DiscordMessageComposer discordMessageComposer,
         ImageService imageService,
         TrackService trackService,
@@ -54,7 +52,6 @@ public class CompetitionConductor
         _competitions = competitions;
         _resultsConverter = resultsConverter;
         _competitionService = competitionService;
-        _messageComposer = messageComposer;
         _discordMessageComposer = discordMessageComposer;
         _imageService = imageService;
         _trackService = trackService;
