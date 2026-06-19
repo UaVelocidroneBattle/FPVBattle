@@ -275,11 +275,17 @@ public async Task EditMessageAsync(ulong messageId, string message)
                 return;
             }
 
-            // For emoji-based polls, we can't really "stop" them, but we can remove the message
-            // or edit it to indicate it's closed
-            await message.ModifyAsync(m => m.Content = $"🔴 Poll Closed: {message.Content}");
-
-            _log.Information("Discord poll {MessageId} stopped in channel {ChannelName}", messageId, _channelName);
+            // For emoji-based polls, we can't really "stop" them, but we can edit the message
+            // to indicate it's closed
+            if (message is IUserMessage userMessage)
+            {
+                await userMessage.ModifyAsync(m => m.Content = $"🔴 Poll Closed: {message.Content}");
+                _log.Information("Discord poll {MessageId} stopped in channel {ChannelName}", messageId, _channelName);
+            }
+            else
+            {
+                _log.Warning("Poll message {MessageId} is not a user message, cannot stop it", messageId);
+            }
         }
         catch (Exception ex)
         {
