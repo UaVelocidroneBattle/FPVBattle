@@ -289,7 +289,7 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     private string GetEmojiForIndex(int index)
     {
-        // Return number emojis for voting
+        // Return number emojis for voting (1️⃣ through 5️⃣ for the 5 rating options)
         return index switch
         {
             0 => "1️⃣",
@@ -297,11 +297,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
             2 => "3️⃣",
             3 => "4️⃣",
             4 => "5️⃣",
-            5 => "6️⃣",
-            6 => "7️⃣",
-            7 => "8️⃣",
-            8 => "9️⃣",
-            9 => "🔟",
             _ => "❓"
         };
     }
