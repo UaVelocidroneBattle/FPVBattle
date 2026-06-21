@@ -26,8 +26,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
     INotificationHandler<TrackRestart>,
-    INotificationHandler<AddedToWhitelist>,
-    INotificationHandler<VoteReminder>
+    INotificationHandler<AddedToWhitelist>
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<DiscordMessageEventHandler>();
 
@@ -88,7 +87,35 @@ public class DiscordMessageEventHandler :
         }
 
         await _competitions.SaveChangesAsync(cancellationToken);
+        await CreatePoll(track, notification.Competition);
+        await _competitions.SaveChangesAsync(cancellationToken);
         await bot.ChangeChannelTopicAsync(notification.Track.FullName);
+    }
+
+    private async Task CreatePoll(Track track, Competition competition)
+    {
+        Log.Debug("Creating poll for track {TrackName} in cup {CupId}", track.FullName, competition.CupId);
+
+        var poll = _messageComposer.Poll(track.Name);
+        var pollId = await _cupMessenger.SendPollToCupAsync(competition.CupId, poll);
+
+        if (pollId is null)
+        {
+            Log.Warning("Failed to create poll for track {TrackName}", track.FullName);
+            return;
+        }
+
+        Log.Information("🗳️ Created Discord poll {PollId} for track {TrackName}", pollId.Value, track.FullName);
+
+        var rating = competition.Track.Rating;
+
+        if (rating is null)
+        {
+            rating = new TrackRating();
+            competition.Track.Rating = rating;
+        }
+
+        rating.PollMessageId = pollId.Value;
     }
 
     public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
@@ -270,15 +297,4 @@ public class DiscordMessageEventHandler :
         await _generalMessenger.SendMessageAsync(message);
     }
 
-    public async Task Handle(VoteReminder notification, CancellationToken cancellationToken)
-    {
-        var message = _chatMessages.GetRandomByType(ChatMessageType.VoteReminder);
-
-        if (message is null)
-        {
-            return;
-        }
-
-        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message.Text);
-    }
 }

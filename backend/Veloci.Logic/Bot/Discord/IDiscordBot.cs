@@ -9,5 +9,5 @@ public interface IDiscordBot
     Task ChangeChannelTopicAsync(string message);
     Task SendImageAsync(byte[] imageBytes, string imageName);
     Task<ulong?> SendPollAsync(BotPoll poll);
-    Task StopPollAsync(ulong messageId);
+    Task<BotPollResults?> StopPollAsync(ulong messageId);
 }

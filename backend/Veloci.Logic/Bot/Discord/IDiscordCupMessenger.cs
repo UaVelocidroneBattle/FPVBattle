@@ -50,9 +50,9 @@ public interface IDiscordCupMessenger
     Task<ulong?> SendPollToCupAsync(string cupId, BotPoll poll);
 
     /// <summary>
-    /// Stops an active poll in a specific cup
+    /// Stops an active poll in a specific cup and returns the vote results
     /// </summary>
     /// <param name="cupId">Cup identifier</param>
     /// <param name="pollMessageId">Message ID of the poll to stop</param>
-    Task StopPollInCupAsync(string cupId, ulong pollMessageId);
+    Task<BotPollResults?> StopPollInCupAsync(string cupId, ulong pollMessageId);
 }

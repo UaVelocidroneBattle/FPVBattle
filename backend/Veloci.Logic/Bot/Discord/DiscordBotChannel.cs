@@ -65,9 +65,6 @@ public class DiscordBotChannel : IDiscordBot
 
     public async Task<ulong?> SendMessageAsync(string message)
     {
-        if (_client is null)
-            return null;
-
         try
         {
             EnsureChannelResolved();
@@ -98,9 +95,6 @@ public class DiscordBotChannel : IDiscordBot
 
 public async Task EditMessageAsync(ulong messageId, string message)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -123,9 +117,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task SendMessageInThreadAsync(ulong messageId, string threadName, string message)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -159,9 +150,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task ArchiveThreadAsync(string threadName)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -183,9 +171,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task ChangeChannelTopicAsync(string message)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -201,9 +186,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task SendImageAsync(byte[] imageBytes, string imageName)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -223,9 +205,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task<ulong?> SendPollAsync(BotPoll poll)
     {
-        if (_client is null)
-            return null;
-
         try
         {
             EnsureChannelResolved();
@@ -233,19 +212,16 @@ public async Task EditMessageAsync(ulong messageId, string message)
             _log.Information("Sending Discord poll to channel {ChannelName}: {Question} with {OptionCount} options",
                 _channelName, poll.Question, poll.Options.Count);
 
-            // Discord poll creation using the REST API approach
-            // Create poll options as emoji-based voting or use Discord's native poll feature
-            var pollMessage = $"{poll.Question}\n\n" +
-                              string.Join("\n", poll.Options.Select((opt, idx) => $"{GetEmojiForIndex(idx)} {opt.Text}"));
-
-            var result = await _channel!.SendMessageAsync(pollMessage);
-
-            // Add reactions for voting
-            for (int i = 0; i < poll.Options.Count && i < 10; i++)
+            var pollProperties = new PollProperties
             {
-                var emoji = GetEmojiForIndex(i);
-                await result.AddReactionAsync(new Emoji(emoji));
-            }
+                Question = new PollMediaProperties { Text = poll.Question },
+                Answers = poll.Options.Select(opt => new PollMediaProperties { Text = opt.Text }).ToList(),
+                Duration = 24,
+                AllowMultiselect = false,
+                LayoutType = PollLayout.Default
+            };
+
+            var result = await _channel!.SendMessageAsync(poll: pollProperties);
 
             _log.Information("Sent Discord poll to channel {ChannelName}, message ID: {MessageId}", _channelName, result.Id);
             return result.Id;
@@ -257,53 +233,47 @@ public async Task EditMessageAsync(ulong messageId, string message)
         }
     }
 
-    public async Task StopPollAsync(ulong messageId)
+    public async Task<BotPollResults?> StopPollAsync(ulong messageId)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
 
-            _log.Information("Stopping Discord poll with message ID {MessageId} in channel {ChannelName}", messageId, _channelName);
+            _log.Information("Stopping Discord poll {MessageId} in channel {ChannelName}", messageId, _channelName);
 
             var message = await _channel!.GetMessageAsync(messageId);
-            if (message is null)
+
+            if (message is not IUserMessage userMessage)
             {
-                _log.Warning("Poll message {MessageId} not found in channel {ChannelName}", messageId, _channelName);
-                return;
+                _log.Warning("Poll message {MessageId} not found or is not a user message in channel {ChannelName}", messageId, _channelName);
+                return null;
             }
 
-            // For emoji-based polls, we can't really "stop" them, but we can edit the message
-            // to indicate it's closed
-            if (message is IUserMessage userMessage)
+            await userMessage.EndPollAsync(null);
+
+            var updatedMessage = await _channel.GetMessageAsync(messageId) as IUserMessage;
+            var pollResults = updatedMessage?.Poll?.Results;
+
+            if (pollResults is null)
             {
-                await userMessage.ModifyAsync(m => m.Content = $"🔴 Poll Closed: {message.Content}");
-                _log.Information("Discord poll {MessageId} stopped in channel {ChannelName}", messageId, _channelName);
+                _log.Warning("No poll results available for message {MessageId} after ending poll", messageId);
+                return null;
             }
-            else
-            {
-                _log.Warning("Poll message {MessageId} is not a user message, cannot stop it", messageId);
-            }
+
+            var voteCounts = pollResults.Value.AnswerCounts
+                .OrderBy(a => a.AnswerId)
+                .Select(a => (int)a.Count)
+                .ToList();
+
+            _log.Information("Discord poll {MessageId} ended with vote counts: {Counts}",
+                messageId, string.Join(", ", voteCounts));
+
+            return new BotPollResults { VoteCounts = voteCounts };
         }
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to stop poll {MessageId} in channel {ChannelName}", messageId, _channelName);
+            return null;
         }
-    }
-
-    private string GetEmojiForIndex(int index)
-    {
-        // Return number emojis for voting (1️⃣ through 5️⃣ for the 5 rating options)
-        return index switch
-        {
-            0 => "1️⃣",
-            1 => "2️⃣",
-            2 => "3️⃣",
-            3 => "4️⃣",
-            4 => "5️⃣",
-            _ => "❓"
-        };
     }
 }

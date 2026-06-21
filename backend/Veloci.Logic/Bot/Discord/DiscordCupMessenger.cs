@@ -61,22 +61,24 @@ public class DiscordCupMessenger : IDiscordCupMessenger
         return pollId;
     }
 
-    public async Task StopPollInCupAsync(string cupId, ulong pollMessageId)
+    public async Task<BotPollResults?> StopPollInCupAsync(string cupId, ulong pollMessageId)
     {
         if (!_botFactory.TryGetBotForCup(cupId, out var bot) || bot is null)
         {
             _log.Warning("Cup {CupId} does not have Discord channel configured, skipping poll stop", cupId);
-            return;
+            return null;
         }
 
         try
         {
-            await bot.StopPollAsync(pollMessageId);
+            var results = await bot.StopPollAsync(pollMessageId);
             _log.Debug("Stopped poll {PollId} in cup {CupId} Discord channel", pollMessageId, cupId);
+            return results;
         }
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to stop poll {PollId} in cup {CupId} Discord channel", pollMessageId, cupId);
+            return null;
         }
     }
 

@@ -27,14 +27,5 @@ public class DiscordChatMessages : ChatMessages
         Messages.Add(new ChatMessage(ChatMessageType.OnlyOneFlew, "🪦 Legends say there used to be more than one pilot here..."));
         Messages.Add(new ChatMessage(ChatMessageType.OnlyOneFlew, "🫡 Someone had to step up. Thank you, lone pilot."));
         Messages.Add(new ChatMessage(ChatMessageType.OnlyOneFlew, "😌 At least one person wasn't lazy. The rest seem to be chilling."));
-
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "👌 Don't forget to rate the track"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Rating tracks matters 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "So, how was the track? 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Your opinion matters 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Rate the track if you haven't yet 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Go vote 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Got 10 seconds for a quick survey? 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "🧐 Rating the track is no harder than liking something on TikTok. Give it a try."));
     }
 }

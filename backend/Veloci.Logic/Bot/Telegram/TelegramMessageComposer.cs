@@ -23,7 +23,7 @@ public class TelegramMessageComposer
 
         if (track.Rating?.Value is not null)
         {
-            rating = $"Попередній рейтинг: *{Math.Round(track.Rating.Value.Value, 1):F1}*/3{Environment.NewLine}{Environment.NewLine}";
+            rating = $"Попередній рейтинг: *{Math.Round(track.Rating.Value.Value, 1):F1}*{Environment.NewLine}{Environment.NewLine}";
         }
 
         var flownPilotsText = pilotsFlownOnTrack.Count != 0 ?

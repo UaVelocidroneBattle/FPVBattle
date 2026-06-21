@@ -23,7 +23,7 @@ public class DiscordMessageComposer
 
         if (track.Rating?.Value is not null)
         {
-            rating = $"Previous rating: **{Math.Round(track.Rating.Value.Value, 1):F1}**/3{Environment.NewLine}{Environment.NewLine}";
+            rating = $"Previous rating: **{Math.Round(track.Rating.Value.Value, 1):F1}**{Environment.NewLine}{Environment.NewLine}";
         }
 
         var flownPilotsText = pilotsFlownOnTrack.Count != 0 ?
@@ -46,16 +46,15 @@ public class DiscordMessageComposer
 
     public BotPoll Poll(string trackName)
     {
-        var question = $"Rate the track {trackName}{Environment.NewLine}{Environment.NewLine}" +
-               $"Don't forget to rate the tracks!";
+        var question = $"Rate the track - {trackName}";
 
-        var options = new List<BotPollOption>
+        var options = new List<PollOption>
         {
-            new (3, "One of the best"),
-            new (2, "Like it"),
-            new (1, "It's okay"),
-            new (-1, "Not great"),
-            new (-2, "Terrible")
+            new (5, "⭐⭐⭐⭐⭐ - One of the best"),
+            new (4, "⭐⭐⭐⭐ - Like it"),
+            new (3, "⭐⭐⭐ - It's okay"),
+            new (2, "⭐⭐ - Nah"),
+            new (1, "⭐ - Piece of shit")
         };
 
         return new BotPoll
