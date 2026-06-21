@@ -7,9 +7,11 @@ interface CurrentLeaderboardProps {
     leaderboard: LeagueLeaderboardModel[];
     leagueColors?: Map<string, string>;
     flat?: boolean;
+    isEnded?: boolean;
 }
 
-const COLS = "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]";
+const BASE_COLS = "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]";
+const ENDED_COLS = "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[2.5rem_1fr_2rem_5rem_3.5rem]";
 
 function rankStyle(localRank: number): string {
     if (localRank === 1) return "font-bold text-yellow-500";
@@ -18,20 +20,23 @@ function rankStyle(localRank: number): string {
     return "font-medium text-slate-500";
 }
 
-function ColumnHeaders() {
+function ColumnHeaders({ isEnded }: { isEnded: boolean }) {
+    const cols = isEnded ? ENDED_COLS : BASE_COLS;
     return (
-        <div className={`px-4 py-2 border-b border-slate-700 grid ${COLS} gap-6`}>
+        <div className={`px-4 py-2 border-b border-slate-700 grid ${cols} gap-6`}>
             <div className="text-xs font-medium text-slate-500 text-right">#</div>
             <div className="text-xs font-medium text-slate-500">Pilot</div>
             <div className="hidden md:block text-xs font-medium text-slate-500">Quad</div>
             <div />
             <div className="text-xs font-medium text-slate-500 text-right">Time</div>
+            {isEnded && <div className="text-xs font-medium text-slate-500 text-right">Pts</div>}
         </div>
     );
 }
 
-function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: CurrentLeaderboardProps) {
+function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded = false }: CurrentLeaderboardProps) {
     const isEmpty = !leaderboard?.length || leaderboard.every(g => !g.results?.length);
+    const cols = isEnded ? ENDED_COLS : BASE_COLS;
 
     if (isEmpty) {
         return (
@@ -48,7 +53,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: Current
 
         return (
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
-                <ColumnHeaders />
+                <ColumnHeaders isEnded={isEnded} />
                 <ul>
                     {results.map((result, index) => {
                         const leagueColor = (result.league && leagueColors?.get(result.league)) || '#34d399';
@@ -58,7 +63,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: Current
                                 className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
                                 style={{ borderLeftColor: leagueColor }}
                             >
-                                <div className={`grid ${COLS} items-center gap-6`}>
+                                <div className={`grid ${cols} items-center gap-6`}>
                                     <span className={`text-right text-sm tabular-nums ${rankStyle(index + 1)}`}>
                                         {String(index + 1).padStart(2, "0")}
                                     </span>
@@ -68,6 +73,11 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: Current
                                     <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
                                         {convertMsToSec(result.trackTime ?? 0)}
                                     </div>
+                                    {isEnded && (
+                                        <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
+                                            {result.points ?? "—"}
+                                        </div>
+                                    )}
                                 </div>
                             </li>
                         );
@@ -97,14 +107,14 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: Current
                         <div className="px-4 py-6 text-slate-500 text-sm text-center">No results</div>
                     ) : (
                         <>
-                            <ColumnHeaders />
+                            <ColumnHeaders isEnded={isEnded} />
                             <ul>
                                 {group.results.map((result, index) => (
                                     <li
                                         key={`${result.playerName}-${result.localRank}`}
                                         className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
                                     >
-                                        <div className={`grid ${COLS} items-center gap-6`}>
+                                        <div className={`grid ${cols} items-center gap-6`}>
                                             <span className={`text-right text-sm tabular-nums ${rankStyle(result.localRank ?? 0)}`}>
                                                 {String(result.localRank ?? 0).padStart(2, "0")}
                                             </span>
@@ -114,6 +124,11 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false }: Current
                                             <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
                                                 {convertMsToSec(result.trackTime ?? 0)}
                                             </div>
+                                            {isEnded && (
+                                                <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
+                                                    {result.points ?? "—"}
+                                                </div>
+                                            )}
                                         </div>
                                     </li>
                                 ))}

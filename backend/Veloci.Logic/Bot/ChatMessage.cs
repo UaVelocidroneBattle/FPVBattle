@@ -16,6 +16,5 @@ public enum ChatMessageType
 {
     NobodyFlying,
     FirstResult,
-    OnlyOneFlew,
-    VoteReminder
+    OnlyOneFlew
 }

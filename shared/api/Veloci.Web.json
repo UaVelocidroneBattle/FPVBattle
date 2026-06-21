@@ -433,6 +433,10 @@
           },
           "country": {
             "type": "string"
+          },
+          "points": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

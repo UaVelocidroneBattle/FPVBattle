@@ -33,15 +33,5 @@ public class TelegramChatMessages : ChatMessages
         Messages.Add(new ChatMessage(ChatMessageType.OnlyOneFlew, "🪦 Легенди кажуть, колись тут літало більше одного пілота..."));
         Messages.Add(new ChatMessage(ChatMessageType.OnlyOneFlew, "🫡 Хтось мусив взяти відповідальність. Дякуємо, єдиний пілот."));
         Messages.Add(new ChatMessage(ChatMessageType.OnlyOneFlew, "😌 Ну хоч одному не лінь. Інші, схоже, чілять"));
-
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "👌 Не забудь оцінити трек"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Оцінювати треки важливо 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Ну як тобі трек? 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Твоя думка важлива 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Оціни трек, якщо ще ні 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Йди голосуй 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Чи є у вас 10 секунд на невеличке опитування? 👆"));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "🧐 Оцінити трек не важче, ніж в TikTok лайкнути. Спробуй."));
-        Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "🧠 Навіть твоє пасивне «нормальний» — це теж фідбек."));
     }
 }

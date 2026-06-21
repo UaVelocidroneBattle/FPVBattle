@@ -33,6 +33,7 @@ export type LeaderboardResultModel = {
     globalRank?: number;
     modelName?: null | string;
     country: string;
+    points?: number;
 };
 
 export type LeagueDescriptor = {

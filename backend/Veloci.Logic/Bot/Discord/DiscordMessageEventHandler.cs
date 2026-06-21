@@ -1,8 +1,9 @@
-﻿using Hangfire;
+using Hangfire;
 using MediatR;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Bot;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services;
@@ -86,7 +87,35 @@ public class DiscordMessageEventHandler :
         }
 
         await _competitions.SaveChangesAsync(cancellationToken);
+        await CreatePoll(track, notification.Competition);
+        await _competitions.SaveChangesAsync(cancellationToken);
         await bot.ChangeChannelTopicAsync(notification.Track.FullName);
+    }
+
+    private async Task CreatePoll(Track track, Competition competition)
+    {
+        Log.Debug("Creating poll for track {TrackName} in cup {CupId}", track.FullName, competition.CupId);
+
+        var poll = _messageComposer.Poll(track.Name);
+        var pollId = await _cupMessenger.SendPollToCupAsync(competition.CupId, poll);
+
+        if (pollId is null)
+        {
+            Log.Warning("Failed to create poll for track {TrackName}", track.FullName);
+            return;
+        }
+
+        Log.Information("🗳️ Created Discord poll {PollId} for track {TrackName}", pollId.Value, track.FullName);
+
+        var rating = competition.Track.Rating;
+
+        if (rating is null)
+        {
+            rating = new TrackRating();
+            competition.Track.Rating = rating;
+        }
+
+        rating.PollMessageId = pollId.Value;
     }
 
     public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
@@ -267,4 +296,5 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.AddedToWhitelist(notification.PilotName);
         await _generalMessenger.SendMessageAsync(message);
     }
+
 }

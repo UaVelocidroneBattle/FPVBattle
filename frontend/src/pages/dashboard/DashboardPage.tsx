@@ -95,7 +95,7 @@ function PageDashboard({ cupId }: DashboardPageProps) {
                             </button>
                         )}
                     </div>
-                    <CurrentLeaderboard leaderboard={dashboard.leaderboard} leagueColors={leagueColors} flat={flat} />
+                    <CurrentLeaderboard leaderboard={dashboard.leaderboard} leagueColors={leagueColors} flat={flat} isEnded={dashboard.competition?.state === 1} />
                 </div>
 
                 <div className="flex flex-col gap-3">

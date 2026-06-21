@@ -50,49 +50,6 @@ public class TelegramCupMessenger : ITelegramCupMessenger
         return SendToCupsAsync([cupId], channelId => _messenger.SendPhotoAsync(channelId, file, caption));
     }
 
-    public async Task<int?> SendPollToCupAsync(string cupId, BotPoll poll)
-    {
-        var channelId = _cupService.GetTelegramChannelId(cupId);
-
-        if (string.IsNullOrEmpty(channelId))
-        {
-            _log.Warning("Cup {CupId} does not have Telegram channel configured, skipping poll creation", cupId);
-            return null;
-        }
-
-        var pollId = await _messenger.SendPollAsync(channelId, poll);
-
-        if (pollId == null) return null;
-
-        _log.Debug("Sent poll to cup {CupId} Telegram channel {ChannelId}, message ID: {PollId}", cupId, channelId, pollId);
-        return pollId;
-    }
-
-    public async Task<Poll?> StopPollInCupAsync(string cupId, int pollMessageId)
-    {
-        var channelId = _cupService.GetTelegramChannelId(cupId);
-
-        if (string.IsNullOrEmpty(channelId))
-        {
-            _log.Warning("Cup {CupId} does not have Telegram channel configured, skipping poll stop", cupId);
-            return null;
-        }
-
-        try
-        {
-            var poll = await _messenger.StopPollAsync(channelId, pollMessageId);
-            _log.Debug("Stopped poll {PollId} in cup {CupId} Telegram channel {ChannelId}",
-                pollMessageId, cupId, channelId);
-            return poll;
-        }
-        catch (Exception ex)
-        {
-            _log.Error(ex, "Failed to stop poll {PollId} in cup {CupId} Telegram channel",
-                pollMessageId, cupId);
-            return null;
-        }
-    }
-
     public async Task<int?> SendReplyToCupAsync(string cupId, string message, int replyToMessageId)
     {
         var channelId = _cupService.GetTelegramChannelId(cupId);

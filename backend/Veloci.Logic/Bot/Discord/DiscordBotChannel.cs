@@ -1,6 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 using Serilog;
+using Veloci.Logic.Bot;
 using Veloci.Logic.Helpers;
 
 namespace Veloci.Logic.Bot.Discord;
@@ -64,9 +65,6 @@ public class DiscordBotChannel : IDiscordBot
 
     public async Task<ulong?> SendMessageAsync(string message)
     {
-        if (_client is null)
-            return null;
-
         try
         {
             EnsureChannelResolved();
@@ -97,9 +95,6 @@ public class DiscordBotChannel : IDiscordBot
 
 public async Task EditMessageAsync(ulong messageId, string message)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -122,9 +117,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task SendMessageInThreadAsync(ulong messageId, string threadName, string message)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -158,9 +150,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task ArchiveThreadAsync(string threadName)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -182,9 +171,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task ChangeChannelTopicAsync(string message)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -200,9 +186,6 @@ public async Task EditMessageAsync(ulong messageId, string message)
 
     public async Task SendImageAsync(byte[] imageBytes, string imageName)
     {
-        if (_client is null)
-            return;
-
         try
         {
             EnsureChannelResolved();
@@ -217,6 +200,80 @@ public async Task EditMessageAsync(ulong messageId, string message)
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to send image {ImageName} to channel {ChannelName}", imageName, _channelName);
+        }
+    }
+
+    public async Task<ulong?> SendPollAsync(BotPoll poll)
+    {
+        try
+        {
+            EnsureChannelResolved();
+
+            _log.Information("Sending Discord poll to channel {ChannelName}: {Question} with {OptionCount} options",
+                _channelName, poll.Question, poll.Options.Count);
+
+            var pollProperties = new PollProperties
+            {
+                Question = new PollMediaProperties { Text = poll.Question },
+                Answers = poll.Options.Select(opt => new PollMediaProperties { Text = opt.Text }).ToList(),
+                Duration = 24,
+                AllowMultiselect = false,
+                LayoutType = PollLayout.Default
+            };
+
+            var result = await _channel!.SendMessageAsync(poll: pollProperties);
+
+            _log.Information("Sent Discord poll to channel {ChannelName}, message ID: {MessageId}", _channelName, result.Id);
+            return result.Id;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to send poll to channel {ChannelName}", _channelName);
+            return null;
+        }
+    }
+
+    public async Task<BotPollResults?> StopPollAsync(ulong messageId)
+    {
+        try
+        {
+            EnsureChannelResolved();
+
+            _log.Information("Stopping Discord poll {MessageId} in channel {ChannelName}", messageId, _channelName);
+
+            var message = await _channel!.GetMessageAsync(messageId);
+
+            if (message is not IUserMessage userMessage)
+            {
+                _log.Warning("Poll message {MessageId} not found or is not a user message in channel {ChannelName}", messageId, _channelName);
+                return null;
+            }
+
+            await userMessage.EndPollAsync(null);
+
+            var updatedMessage = await _channel.GetMessageAsync(messageId) as IUserMessage;
+            var pollResults = updatedMessage?.Poll?.Results;
+
+            if (pollResults is null)
+            {
+                _log.Warning("No poll results available for message {MessageId} after ending poll", messageId);
+                return null;
+            }
+
+            var voteCounts = pollResults.Value.AnswerCounts
+                .OrderBy(a => a.AnswerId)
+                .Select(a => (int)a.Count)
+                .ToList();
+
+            _log.Information("Discord poll {MessageId} ended with vote counts: {Counts}",
+                messageId, string.Join(", ", voteCounts));
+
+            return new BotPollResults { VoteCounts = voteCounts };
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to stop poll {MessageId} in channel {ChannelName}", messageId, _channelName);
+            return null;
         }
     }
 }
