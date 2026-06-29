@@ -123,12 +123,15 @@ public class PilotService
         var today = DateTime.UtcNow.Date;
         var yesterday = today.AddDays(-1);
 
-        var pilots = await _deltas.GetAll()
-            .Include(d => d.Pilot)
-            .ThenInclude(p => p.DayStreakFreezes)
-            .Where(d => d.Date >= yesterday && d.Date < today)
-            .Select(d => d.Pilot)
+        var pilotIds = await _deltas.GetAll()
+            .Where(d => d.Date >= yesterday && d.Date < today.AddMinutes(2))
+            .Select(d => d.PilotId)
             .Distinct()
+            .ToListAsync();
+
+        var pilots = await _pilots.GetAll()
+            .Include(p => p.DayStreakFreezes)
+            .Where(p => pilotIds.Contains(p.Id))
             .ToListAsync();
 
         foreach (var pilot in pilots)
