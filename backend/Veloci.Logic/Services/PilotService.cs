@@ -90,11 +90,12 @@ public class PilotService
     public async Task DayStreakPotentialLoseNotificationAsync()
     {
         var today = DateTime.UtcNow.Date;
+        var todayStart = today.AddMinutes(2);
         var tomorrow = today.AddDays(1);
 
         var participatedPilotIds = await _deltas
             .GetAll()
-            .Where(d => d.Date >= today && d.Date < tomorrow)
+            .Where(d => d.Date >= todayStart && d.Date < tomorrow)
             .Select(d => d.PilotId)
             .Distinct()
             .ToListAsync();
