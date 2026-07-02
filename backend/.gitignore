@@ -8,8 +8,6 @@ riderModule.iml
 *.user
 *.pubxml
 *.DotSettings.user
-Veloci.Web/DB/*.db
-Veloci.Web/DB/*.db-shm
-Veloci.Web/DB/*.db-wal
+Veloci.Web/DB/
 appsettings.Development.json
 .mcp.json

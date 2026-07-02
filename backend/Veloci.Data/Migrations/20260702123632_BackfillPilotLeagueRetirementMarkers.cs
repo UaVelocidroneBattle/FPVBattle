@@ -14,8 +14,11 @@ namespace Veloci.Data.Migrations
             // existed: the old code flipped their last record to Historical without adding a
             // replacement, so date-based league lookups (used by leaderboards) kept resolving
             // to their last league forever. Any (PilotId, CupId) pair with no Current record at
-            // all is exactly that broken state - add the missing "no league" marker for it,
-            // dated now since the actual retirement date was never recorded.
+            // all is exactly that broken state - add the missing "no league" marker for it.
+            // Dated to the start of the current month rather than "now": league updates only
+            // ever run via the monthly "7 0 1 * *" job, so the real (unrecorded) retirement date
+            // was always the 1st - and season leaderboards filter league lookups by
+            // "Date <= start of season month", which a "now" date can fall outside of.
             migrationBuilder.Sql("""
                 INSERT INTO PilotLeagues (Id, PilotId, CupId, Date, League, Status)
                 SELECT
@@ -25,7 +28,7 @@ namespace Veloci.Data.Migrations
                         hex(randomblob(6))),
                     PilotId,
                     CupId,
-                    datetime('now'),
+                    datetime('now', 'start of month'),
                     NULL,
                     1
                 FROM PilotLeagues
