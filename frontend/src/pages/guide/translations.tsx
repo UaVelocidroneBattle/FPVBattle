@@ -91,7 +91,7 @@ export const translations: Record<Language, RulesContent> = {
                     <li><span className="font-bold text-slate-300">SILVER</span> — 15 місць</li>
                     <li><span className="font-bold text-amber-600">BRONZE</span> — всі інші пілоти</li>
                 </ul>
-                <p className="mt-3">У кожної ліги свій окремий лідерборд, медалі за призові місця і нарахування очок. Для пілотів, які не потрапили до Global Rating і не були розподілені в жодну лігу, — окремий лідерборд <span className="font-bold text-slate-400">OTHERS</span>.</p>
+                <p className="mt-3">У кожної ліги свій окремий лідерборд, медалі за призові місця і нарахування очок. Для пілотів, які не потрапили до Global Rating і не були розподілені в жодну лігу, — окремий лідерборд <span className="font-bold text-slate-400">UNRANKED</span>.</p>
             </>,
             'Після завершення сезону в кінці кожного місяця відбуватиметься перерозподіл пілотів по лігах знову-таки на основі Global Rating.',
             ' Органічний спосіб перейти у вищу лігу — ставати швидшим і підніматися вище в Global Rating. Але бувають ситуації, коли пілот тримає свій темп упродовж усього сезону, проте в його лігу потрапляють кілька більш швидких пілотів — через ліміт місць такий пілот може «зіскочити» в нижчу лігу. І навпаки: якщо більш швидкі пілоти «вилетять» з Global Rating, такий пілот може зайняти їхнє місце у вищій лізі.',
@@ -166,7 +166,7 @@ export const translations: Record<Language, RulesContent> = {
                     <li><span className="font-bold text-slate-300">SILVER</span> — 15 spots</li>
                     <li><span className="font-bold text-amber-600">BRONZE</span> — all remaining pilots</li>
                 </ul>
-                <p className="mt-3">Each league has its own separate leaderboard, medals for top placements, and point scoring. Pilots who are not in the Global Rating and were not assigned to any league have a separate <span className="font-bold text-slate-400">OTHERS</span> leaderboard.</p>
+                <p className="mt-3">Each league has its own separate leaderboard, medals for top placements, and point scoring. Pilots who are not in the Global Rating and were not assigned to any league have a separate <span className="font-bold text-slate-400">UNRANKED</span> leaderboard.</p>
             </>,
             'At the end of each season pilots are redistributed across leagues again based on Global Rating.',
             'The natural way to move up is to get faster and climb higher in the Global Rating. However, situations arise where a pilot maintains their pace throughout the season but several faster pilots join their league — due to seat limits, that pilot may drop to a lower league. Conversely, if faster pilots fall out of the Global Rating, that pilot may take their spot in a higher league.',
