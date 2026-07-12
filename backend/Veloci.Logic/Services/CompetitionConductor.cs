@@ -180,7 +180,6 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _leaderboardCalculator.GetLeaderboard(competition);
-        _quadOfTheDayService.PunishNonQuadOfTheDayPilots(competition);
 
         Log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
