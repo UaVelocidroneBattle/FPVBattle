@@ -42,11 +42,11 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             .ToList();
 
         if (!leaguesEnabled)
-            return RankFlat(bestDeltas);
+            return RankFlat(bestDeltas, competition.QuadOfTheDay);
 
         return bestDeltas
             .GroupBy(d => d.Pilot.GetCurrentLeague(competition.CupId, competition.StartedOn))
-            .SelectMany(leagueGroup => RankFlat(leagueGroup.ToList()))
+            .SelectMany(leagueGroup => RankFlat(leagueGroup.ToList(), competition.QuadOfTheDay))
             .ToList();
     }
 
@@ -62,19 +62,36 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             .MinBy(x => x.TrackTime) ?? fastest;
     }
 
-    private List<CompetitionResults> RankFlat(List<TrackTimeDelta> deltas)
+    /// <summary>
+    /// Ranks pilots by absolute finish time, but spreads points based on rank among pilots who
+    /// flew the quad of the day (if any). Pilots who didn't fly it always score 1 point, so a
+    /// non-QOD pilot finishing ahead of QOD pilots can no longer take a higher-value points slot.
+    /// </summary>
+    private List<CompetitionResults> RankFlat(List<TrackTimeDelta> deltas, QuadModel? quadOfTheDay)
     {
+        var qodPosition = 0;
+
         return deltas
-            .Select((x, i) => new CompetitionResults
+            .Select((x, i) =>
             {
-                CompetitionId = x.CompetitionId,
-                PilotId = x.PilotId,
-                Pilot = x.Pilot,
-                TrackTime = x.TrackTime,
-                LocalRank = i + 1,
-                GlobalRank = x.Rank,
-                Points = _pointsCalculator.PointsByPosition(i + 1),
-                ModelName = x.ModelName
+                var usedQuadOfTheDay = quadOfTheDay is null ||
+                    string.Equals(x.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase);
+
+                var points = usedQuadOfTheDay
+                    ? _pointsCalculator.PointsByPosition(++qodPosition)
+                    : 1;
+
+                return new CompetitionResults
+                {
+                    CompetitionId = x.CompetitionId,
+                    PilotId = x.PilotId,
+                    Pilot = x.Pilot,
+                    TrackTime = x.TrackTime,
+                    LocalRank = i + 1,
+                    GlobalRank = x.Rank,
+                    Points = points,
+                    ModelName = x.ModelName
+                };
             })
             .ToList();
     }
