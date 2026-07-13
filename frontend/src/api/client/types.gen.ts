@@ -43,6 +43,13 @@ export type LeagueDescriptor = {
     color?: null | string;
 };
 
+export type LeagueDescriptorModel = {
+    name: string;
+    size?: number;
+    order?: number;
+    color?: null | string;
+};
+
 export type LeagueLeaderboardModel = {
     league?: null | string;
     results: Array<LeaderboardResultModel>;
@@ -57,6 +64,12 @@ export type LeagueOptions = {
 export type LeagueSeasonLeaderboard = {
     league?: null | string;
     results: Array<SeasonResult>;
+};
+
+export type LeagueSettingsModel = {
+    enabled?: boolean;
+    othersName?: null | string;
+    descriptors?: Array<LeagueDescriptorModel>;
 };
 
 export type PilotAchievementModel = {
@@ -96,6 +109,7 @@ export type PilotRatingModel = {
     averageGapChange?: null | string;
     rank?: number;
     rankChange?: number;
+    league?: null | string;
 };
 
 export type PilotResult = {
@@ -108,6 +122,7 @@ export type RatingModel = {
     calculatedOn?: string;
     ratings?: Array<PilotRatingModel>;
     droppedOutPilots?: Array<PilotRatingModel>;
+    leagueSettings?: LeagueSettingsModel;
 };
 
 export type SeasonResult = {

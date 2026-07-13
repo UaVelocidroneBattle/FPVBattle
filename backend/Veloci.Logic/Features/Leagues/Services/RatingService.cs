@@ -42,6 +42,7 @@ public class RatingService
             .GetAll(r => r.CupId == cupId && r.CalculatedOn == date)
             .OrderBy(r => r.Rank)
             .Include(r => r.Pilot)
+            .ThenInclude(p => p.Leagues)
             .ToListAsync();
     }
 

@@ -462,6 +462,31 @@
           }
         }
       },
+      "LeagueDescriptorModel": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "color": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "LeagueLeaderboardModel": {
         "required": [
           "results"
@@ -515,6 +540,26 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SeasonResult"
+            }
+          }
+        }
+      },
+      "LeagueSettingsModel": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "othersName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "descriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeagueDescriptorModel"
             }
           }
         }
@@ -686,6 +731,12 @@
           "rankChange": {
             "type": "integer",
             "format": "int32"
+          },
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -729,6 +780,9 @@
             "items": {
               "$ref": "#/components/schemas/PilotRatingModel"
             }
+          },
+          "leagueSettings": {
+            "$ref": "#/components/schemas/LeagueSettingsModel"
           }
         }
       },

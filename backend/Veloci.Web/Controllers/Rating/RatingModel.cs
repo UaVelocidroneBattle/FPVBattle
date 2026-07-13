@@ -5,6 +5,7 @@ public class RatingModel
     public DateTime CalculatedOn { get; set; }
     public IList<PilotRatingModel> Ratings { get; set; }
     public IList<PilotRatingModel> DroppedOutPilots { get; set; } = [];
+    public LeagueSettingsModel LeagueSettings { get; set; } = new();
 }
 
 public class PilotRatingModel
@@ -16,4 +17,20 @@ public class PilotRatingModel
     public double? AverageGapChange { get; set; }
     public int Rank { get; set; }
     public int? RankChange { get; set; }
+    public string? League { get; set; }
+}
+
+public class LeagueSettingsModel
+{
+    public bool Enabled { get; set; }
+    public string? OthersName { get; set; }
+    public List<LeagueDescriptorModel> Descriptors { get; set; } = [];
+}
+
+public class LeagueDescriptorModel
+{
+    public required string Name { get; set; }
+    public int Size { get; set; }
+    public int Order { get; set; }
+    public string? Color { get; set; }
 }
