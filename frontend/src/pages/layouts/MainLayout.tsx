@@ -45,8 +45,9 @@ function LayoutMain() {
                     </Link>
 
                     {/* Desktop nav */}
-                    <nav className="hidden sm:flex items-center gap-8">
-                        <NavLink to="/" end className={navLinkClass}>Open Class</NavLink>
+                    <nav className="hidden lg:flex items-center gap-8">
+                        <NavLink to="/" end className={navLinkClass}>Home</NavLink>
+                        <NavLink to="/open" className={navLinkClass}>Open Class</NavLink>
                         <NavLink to="/whoop" className={navLinkClass}>Whoop Class</NavLink>
                         <NavLink to="/guide" className={navLinkClass}>Guide</NavLink>
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
@@ -56,7 +57,7 @@ function LayoutMain() {
 
                     {/* Mobile hamburger */}
                     <button
-                        className="sm:hidden text-slate-300 hover:text-emerald-400 transition-colors"
+                        className="lg:hidden text-slate-300 hover:text-emerald-400 transition-colors"
                         onClick={() => setMobileMenuOpen(open => !open)}
                         aria-label="Toggle menu"
                     >
@@ -65,8 +66,9 @@ function LayoutMain() {
 
                     {/* Mobile dropdown */}
                     {mobileMenuOpen && (
-                        <nav className="sm:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
-                            <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
+                        <nav className="lg:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
+                            <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Home</NavLink>
+                            <NavLink to="/open" className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
                             <NavLink to="/whoop" className={navLinkClass} onClick={closeMobileMenu}>Whoop Class</NavLink>
                             <NavLink to="/guide" className={navLinkClass} onClick={closeMobileMenu}>Guide</NavLink>
                             <NavLink to="/statistics" className={navLinkClass} onClick={closeMobileMenu}>Statistics</NavLink>

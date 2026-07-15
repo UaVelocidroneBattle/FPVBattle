@@ -14,6 +14,12 @@ export type CompetitionModel = {
 
 export type CompetitionState = number;
 
+export type CountryPilotsModel = {
+    country?: string;
+    countryCode?: string;
+    pilots?: number;
+};
+
 export type DashboardModel = {
     competition?: null | CompetitionModel;
     leaderboard: Array<LeagueLeaderboardModel>;
@@ -24,6 +30,13 @@ export type DayStreakLeaderboardRow = {
     pilotName: string;
     dayStreak?: number;
     maxStreak?: number;
+};
+
+export type LandingDataModel = {
+    totalPilots?: number;
+    totalCountries?: number;
+    dailyActivePilots?: number;
+    countryPilots?: Array<CountryPilotsModel>;
 };
 
 export type LeaderboardResultModel = {
@@ -197,6 +210,22 @@ export type GetApiPilotsProfileResponses = {
 };
 
 export type GetApiPilotsProfileResponse = GetApiPilotsProfileResponses[keyof GetApiPilotsProfileResponses];
+
+export type GetApiLandingGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/landing/get';
+};
+
+export type GetApiLandingGetResponses = {
+    /**
+     * OK
+     */
+    200: LandingDataModel;
+};
+
+export type GetApiLandingGetResponse = GetApiLandingGetResponses[keyof GetApiLandingGetResponses];
 
 export type GetApiResultsForPilotData = {
     body?: never;

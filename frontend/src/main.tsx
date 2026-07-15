@@ -20,6 +20,7 @@ import DayStreaksPage from './pages/statistics/daystreaks/DayStreaksPage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
+import LandingPage from './pages/landing/LandingPage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -28,7 +29,8 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path='/'>
           <Route element={<MainLayout />}>
-            <Route index element={<DashboardPage cupId="open-class" />} />
+            <Route index element={<LandingPage />} />
+            <Route path='open' element={<DashboardPage cupId="open-class" />} />
             <Route path='whoop' element={<DashboardPage cupId="whoop-class" />} />
             <Route path='guide' element={<RulesLayout />}>
               <Route index element={<Navigate to="getting-started" replace />} />

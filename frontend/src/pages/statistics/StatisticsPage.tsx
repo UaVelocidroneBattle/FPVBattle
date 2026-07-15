@@ -4,9 +4,6 @@ import SideMenu from "./SideMenu";
 const PageStatistics: React.FC = () => {
     return <>
         <div className="flex flex-col flex-1">
-            <h2 className="text-3xl font-bold text-slate-200 mb-2">Statistics</h2>
-            <p className="text-slate-400 mb-8">Analyze pilot performance and competition data</p>
-
             <div className="flex flex-col lg:flex-row gap-8 flex-1">
                 <SideMenu />
 

@@ -129,4 +129,19 @@ public class TextHelperTests
 
         string.Join("\n", result).Should().Be(LeaderboardText);
     }
+
+    [Theory]
+    [InlineData("UA", "Ukraine")]
+    [InlineData("PL", "Poland")]
+    [InlineData("de", "Germany")]
+    public void country_name_resolves_alpha2_code(string code, string expected)
+    {
+        TextHelper.CountryName(code).Should().Be(expected);
+    }
+
+    [Fact]
+    public void country_name_falls_back_to_code_when_unknown()
+    {
+        TextHelper.CountryName("XX").Should().Be("XX");
+    }
 }

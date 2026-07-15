@@ -131,6 +131,35 @@
         }
       }
     },
+    "/api/landing/get": {
+      "get": {
+        "tags": [
+          "Landing"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingDataModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingDataModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingDataModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/results/ForPilot": {
       "get": {
         "tags": [
@@ -353,6 +382,21 @@
       "CompetitionState": {
         "type": "integer"
       },
+      "CountryPilotsModel": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "pilots": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "DashboardModel": {
         "required": [
           "leaderboard",
@@ -400,6 +444,29 @@
           "maxStreak": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "LandingDataModel": {
+        "type": "object",
+        "properties": {
+          "totalPilots": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCountries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dailyActivePilots": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "countryPilots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountryPilotsModel"
+            }
           }
         }
       },
@@ -820,6 +887,9 @@
     },
     {
       "name": "Pilots"
+    },
+    {
+      "name": "Landing"
     },
     {
       "name": "PilotResults"

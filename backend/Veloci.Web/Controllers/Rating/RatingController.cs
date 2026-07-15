@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Leagues.Services;
@@ -9,22 +10,45 @@ namespace Veloci.Web.Controllers.Rating;
 [Route("/api/ratings/[action]")]
 public class RatingController : ControllerBase
 {
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
+
     private readonly RatingService _ratingService;
     private readonly ICupService _cupService;
+    private readonly IMemoryCache _cache;
 
-    public RatingController(RatingService ratingService, ICupService cupService)
+    public RatingController(RatingService ratingService, ICupService cupService, IMemoryCache cache)
     {
         _ratingService = ratingService;
         _cupService = cupService;
+        _cache = cache;
     }
 
     [HttpGet("/api/ratings/get")]
     public async Task<ActionResult<RatingModel>> GetRating([FromQuery] string cupId)
     {
+        var cacheKey = $"rating-{cupId}";
+
+        if (_cache.TryGetValue(cacheKey, out RatingModel? cached))
+            return cached!;
+
+        var model = await BuildRatingModelAsync(cupId);
+
+        // Empty results are not cached: cupId is user input, and caching misses
+        // would let arbitrary values flood the cache.
+        if (model is null)
+            return NotFound();
+
+        _cache.Set(cacheKey, model, CacheDuration);
+
+        return model;
+    }
+
+    private async Task<RatingModel?> BuildRatingModelAsync(string cupId)
+    {
         var ratings = await _ratingService.GetRatingsForCupAsync(cupId);
 
         if (ratings.Count == 0)
-            return NotFound();
+            return null;
 
         var leagueOptions = _cupService.GetCupOptions(cupId).Leagues;
         var previousRatings = await _ratingService.GetPreviousRatingsForCupAsync(cupId);

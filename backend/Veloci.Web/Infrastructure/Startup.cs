@@ -83,6 +83,8 @@ public class Startup
 
         services.AddDatabaseDeveloperPageExceptionFilter();
 
+        services.AddMemoryCache();
+
         services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
 

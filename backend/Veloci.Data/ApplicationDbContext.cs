@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext
 
         builder.Entity<Competition>().ToTable("Competitions");
         builder.Entity<Competition>().Property(c => c.CupId).HasMaxLength(64).IsRequired().HasDefaultValue("open-class");
+        builder.Entity<Competition>().HasIndex(c => c.StartedOn);
 
         builder.Entity<Track>().ToTable("Tracks");
 
