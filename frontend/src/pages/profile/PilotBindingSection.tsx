@@ -3,13 +3,11 @@ import { Link } from "react-router-dom";
 import { getApiProfilePilotLookup } from "@/api/client";
 import type { PilotLookupModel, ProfileModel } from "@/api/client";
 import { useProfileStore } from "@/store/profileStore";
+import CountryFlag from "@/components/ui/CountryFlag";
+import { formatDate } from "@/lib/utils";
 
 interface PilotBindingSectionProps {
     profile: ProfileModel;
-}
-
-function formatDate(date: string | null | undefined) {
-    return date ? new Date(date).toLocaleDateString() : "—";
 }
 
 function LinkedPilotCard({ profile }: { profile: ProfileModel }) {
@@ -17,29 +15,15 @@ function LinkedPilotCard({ profile }: { profile: ProfileModel }) {
 
     return (
         <div>
-            <div className="flex items-baseline gap-3">
+            <div className="flex items-center gap-3">
+                <CountryFlag countryCode={pilot.country} />
                 <Link
                     to={`/statistics/profile/${encodeURIComponent(pilot.name)}`}
                     className="text-lg font-semibold text-emerald-400 hover:underline"
                 >
                     {pilot.name}
                 </Link>
-                <span className="text-sm text-slate-400">{pilot.country}</span>
             </div>
-            <dl className="mt-3 grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-3">
-                <div>
-                    <dt className="text-slate-400">Day streak</dt>
-                    <dd>{pilot.dayStreak}</dd>
-                </div>
-                <div>
-                    <dt className="text-slate-400">Race days</dt>
-                    <dd>{pilot.totalRaceDays}</dd>
-                </div>
-                <div>
-                    <dt className="text-slate-400">Last race</dt>
-                    <dd>{formatDate(pilot.lastRaceDate)}</dd>
-                </div>
-            </dl>
             <p className="mt-4 text-xs text-slate-500">
                 Linked accounts cannot be changed here — contact an admin if this is not you.
             </p>
@@ -52,19 +36,21 @@ function PendingClaimCard({ profile }: { profile: ProfileModel }) {
 
     if (claim.isExpired) {
         return (
-            <div className="mb-4 rounded-lg border border-amber-700/50 bg-amber-950/30 p-4 text-sm">
-                Your claim for <span className="font-semibold">{claim.pilotName}</span> expired before a
+            <div className="mb-4 border border-amber-700/50 bg-amber-950/30 p-4 text-sm">
+                Your claim for{" "}
+                <span className="font-semibold text-emerald-400">{claim.pilotName}</span> expired before a
                 verification race was flown. You can claim again below.
             </div>
         );
     }
 
     return (
-        <div className="rounded-lg border border-emerald-700/50 bg-emerald-950/30 p-4 text-sm">
+        <div className="border border-emerald-700/50 bg-emerald-950/30 p-4 text-sm">
             <p>
-                Almost there! To verify that <span className="font-semibold">{claim.pilotName}</span> is you,
-                fly the current daily track in Velocidrone. Your account will be linked automatically as soon
-                as your result appears.
+                Almost there! To verify that{" "}
+                <span className="font-semibold text-emerald-400">{claim.pilotName}</span> is you, fly the
+                daily track in any class. Your account will be linked automatically as soon as your result
+                appears.
             </p>
             <p className="mt-2 text-slate-400">
                 The claim expires on {new Date(claim.expiresAt).toLocaleString()}.
@@ -104,7 +90,8 @@ function ClaimForm() {
     return (
         <div>
             <p className="text-sm text-slate-400">
-                Enter your Velocidrone nickname to link your account with your pilot.
+                Enter your Velocidrone name to link your account with your pilot. The name is case
+                sensitive, so type it exactly as it is in the Velocidrone.
             </p>
 
             <div className="mt-3 flex gap-2">
@@ -115,20 +102,20 @@ function ClaimForm() {
                         setLookup(null);
                     }}
                     onKeyDown={(e) => e.key === "Enter" && search()}
-                    placeholder="Velocidrone nickname"
-                    className="w-full max-w-xs rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                    placeholder="Velocidrone name"
+                    className="w-full max-w-xs border border-slate-600 bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
                 />
                 <button
                     onClick={search}
                     disabled={!pilotName.trim() || searching}
-                    className="rounded-lg border border-slate-600 px-4 text-sm transition-colors hover:border-emerald-400 hover:text-emerald-400 disabled:opacity-50 disabled:hover:border-slate-600 disabled:hover:text-inherit"
+                    className="border border-slate-600 px-4 text-sm transition-colors hover:border-emerald-400 hover:text-emerald-400 disabled:opacity-50 disabled:hover:border-slate-600 disabled:hover:text-inherit"
                 >
                     Find
                 </button>
             </div>
 
             {lookup && (
-                <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900 p-4 text-sm">
+                <div className="mt-4 border border-slate-700 bg-slate-900 p-4 text-sm">
                     {lookup.found ? (
                         lookup.alreadyLinked ? (
                             <p className="text-red-400">
@@ -137,12 +124,18 @@ function ClaimForm() {
                             </p>
                         ) : (
                             <>
-                                <p>
-                                    Found <span className="font-semibold text-emerald-400">{lookup.name}</span>{" "}
-                                    ({lookup.country}) — {lookup.totalRaceDays} race days, last race{" "}
-                                    {formatDate(lookup.lastRaceDate)}.
-                                </p>
-                                <p className="mt-2 text-slate-400">
+                                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                                    Found
+                                </h3>
+                                <div className="mt-2 flex items-center gap-3">
+                                    <CountryFlag countryCode={lookup.country ?? ""} />
+                                    <span className="font-semibold text-emerald-400">{lookup.name}</span>
+                                    <div className="h-4 w-px bg-slate-600" />
+                                    <span className="text-slate-400">
+                                        last race: {formatDate(lookup.lastRaceDate)}
+                                    </span>
+                                </div>
+                                <p className="mt-3 text-slate-400">
                                     To confirm this pilot is you, you will need to fly the current daily track
                                     after claiming.
                                 </p>
@@ -150,13 +143,17 @@ function ClaimForm() {
                         )
                     ) : (
                         <>
-                            <p>
-                                No pilot named <span className="font-semibold">{pilotName.trim()}</span> has
+                            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                                Not found
+                            </h3>
+                            <p className="mt-2">
+                                No pilot named{" "}
+                                <span className="font-semibold text-emerald-400">{pilotName.trim()}</span> has
                                 raced with us yet.
                             </p>
-                            <p className="mt-2 text-slate-400">
-                                Claim the name and fly the current daily track in Velocidrone — your pilot will
-                                be created and linked automatically after your first race.
+                            <p className="mt-3 text-slate-400">
+                                Claim the name and fly the daily track in Velocidrone. Your pilot will be
+                                created and linked automatically as soon as your first result appears.
                             </p>
                         </>
                     )}
@@ -164,7 +161,7 @@ function ClaimForm() {
                     {(!lookup.found || !lookup.alreadyLinked) && (
                         <button
                             onClick={claim}
-                            className="mt-3 rounded-lg border border-emerald-500 px-4 py-2 text-emerald-400 transition-colors hover:bg-emerald-500/10"
+                            className="mt-5 border border-emerald-500 px-4 py-2 text-emerald-400 transition-colors hover:bg-emerald-500/10"
                         >
                             This is me
                         </button>

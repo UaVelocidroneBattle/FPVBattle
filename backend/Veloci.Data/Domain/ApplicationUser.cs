@@ -19,6 +19,12 @@ public class ApplicationUser : IdentityUser
     public string? Locale { get; set; }
 
     /// <summary>
+    /// When the account was registered. The initializer covers every creation
+    /// path (Google sign-in, Identity UI); EF overwrites it when loading.
+    /// </summary>
+    public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
     /// The Velocidrone pilot this account is linked to. A unique index guarantees
     /// a pilot cannot be claimed by two accounts.
     /// </summary>

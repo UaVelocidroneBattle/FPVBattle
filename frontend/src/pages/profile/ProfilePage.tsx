@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
+import { Spinner } from "@/components/ui/spinner";
 import PilotBindingSection from "./PilotBindingSection";
 
 /**
@@ -19,18 +20,15 @@ function ProfilePage() {
     }, [user]);
 
     if (!user) {
-        return (
-            <p className="mt-8 text-center text-slate-400">
-                {authState === "Loading" ? "Loading…" : "Sign in to view your profile."}
-            </p>
-        );
+        if (authState === "Loading") return <Spinner />;
+        return <p className="mt-8 text-center text-slate-400">Sign in to view your profile.</p>;
     }
 
     return (
         <div className="mx-auto w-full max-w-2xl">
-            <h1 className="mb-6 text-2xl font-bold">Profile</h1>
+            <h1 className="mb-6 text-2xl font-bold text-white">Profile</h1>
 
-            <section className="rounded-lg border border-slate-700 bg-slate-900/60 p-5">
+            <section className="border border-slate-700 bg-slate-800/50 p-6 backdrop-blur-sm">
                 <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
                     Account
                 </h2>
@@ -38,16 +36,16 @@ function ProfilePage() {
                 <p className="text-sm text-slate-400">{profile?.email ?? user.email}</p>
             </section>
 
-            <section className="mt-6 rounded-lg border border-slate-700 bg-slate-900/60 p-5">
+            <section className="mt-6 border border-slate-700 bg-slate-800/50 p-6 backdrop-blur-sm">
                 <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
                     My Velocidrone pilot
                 </h2>
                 {profile ? (
                     <PilotBindingSection profile={profile} />
+                ) : profileState === "Error" ? (
+                    <p className="text-sm text-red-400">Failed to load the profile.</p>
                 ) : (
-                    <p className="text-sm text-slate-400">
-                        {profileState === "Error" ? "Failed to load the profile." : "Loading…"}
-                    </p>
+                    <Spinner />
                 )}
             </section>
         </div>
