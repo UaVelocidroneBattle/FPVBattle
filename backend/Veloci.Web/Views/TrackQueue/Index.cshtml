@@ -5,84 +5,92 @@
     ViewData["Title"] = "Track Queue";
 }
 
-<h1>Track Queue</h1>
-
 @if (TempData["Error"] is string error)
 {
     <div class="alert alert-danger">@error</div>
 }
 
-<div class="mb-4">
-    <h5>Add Track</h5>
-    <form asp-action="Add" method="post" class="d-flex gap-2 align-items-end flex-wrap">
-        <div>
-            <label class="form-label mb-1">Cup</label>
-            <select name="cupId" class="form-select w-auto" required>
-                @foreach (var cup in Model.Cups)
-                {
-                    <option value="@cup.CupId">@cup.CupName</option>
-                }
-            </select>
-        </div>
-        <div>
-            <label class="form-label mb-1">Track Name</label>
-            <input type="text" name="trackName" class="form-control" placeholder="Exact track name" required />
-        </div>
-        <div>
-            <label class="form-label mb-1">Schedule Date <span class="text-muted">(optional)</span></label>
-            <input type="date" name="scheduleOn" class="form-control" />
-        </div>
-        <div>
-            <label class="form-label mb-1">Quad <span class="text-muted">(optional)</span></label>
-            <select name="quadId" class="form-select w-auto">
-                <option value="">— any —</option>
-                @foreach (var quad in Model.Quads)
-                {
-                    <option value="@quad.Id">@quad.Name</option>
-                }
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Add to Queue</button>
-    </form>
-</div>
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Queue a Track</h2>
+    </header>
+    <div class="panel-body">
+        <form asp-action="Add" method="post" class="d-flex gap-2 align-items-end flex-wrap">
+            <div>
+                <label class="form-label mb-1">Cup</label>
+                <select name="cupId" class="form-select w-auto" required>
+                    @foreach (var cup in Model.Cups)
+                    {
+                        <option value="@cup.CupId">@cup.CupName</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label mb-1">Track Name</label>
+                <input type="text" name="trackName" class="form-control" placeholder="Exact track name" required />
+            </div>
+            <div>
+                <label class="form-label mb-1">Schedule Date <span class="text-muted">(optional)</span></label>
+                <input type="date" name="scheduleOn" class="form-control" />
+            </div>
+            <div>
+                <label class="form-label mb-1">Quad <span class="text-muted">(optional)</span></label>
+                <select name="quadId" class="form-select w-auto">
+                    <option value="">— any —</option>
+                    @foreach (var quad in Model.Quads)
+                    {
+                        <option value="@quad.Id">@quad.Name</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Add to Queue</button>
+        </form>
+    </div>
+</section>
 
 @foreach (var cup in Model.Cups)
 {
-    <h4 class="mt-4">@cup.CupName</h4>
-
-    @if (cup.Tracks.Count == 0)
-    {
-        <p class="text-muted">No tracks in the queue for this cup.</p>
-    }
-    else
-    {
-        <table class="table table-bordered w-auto">
-            <thead>
-                <tr>
-                    <th>Track</th>
-                    <th>Quad</th>
-                    <th>Scheduled On</th>
-                    <th>Added On</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var entry in cup.Tracks)
-                {
-                    <tr>
-                        <td>@entry.Track.Name</td>
-                        <td>@(entry.Quad?.Name ?? "—")</td>
-                        <td>@(entry.ScheduledOn?.ToString("yyyy-MM-dd") ?? "—")</td>
-                        <td>@entry.AddedOn.ToString("yyyy-MM-dd")</td>
-                        <td>
-                            <form asp-action="Remove" method="post">
-                                <input type="hidden" name="id" value="@entry.Id" />
-                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
+    <section class="panel">
+        <header class="panel-head">
+            <h2 class="panel-title">@cup.CupName</h2>
+            <span class="panel-count">@cup.Tracks.Count</span>
+        </header>
+        @if (cup.Tracks.Count == 0)
+        {
+            <div class="panel-body text-muted">No tracks in the queue for this cup.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Track</th>
+                            <th>Quad</th>
+                            <th>Scheduled On</th>
+                            <th>Added On</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in cup.Tracks)
+                        {
+                            <tr>
+                                <td class="mono">@entry.Track.Name</td>
+                                <td>@(entry.Quad?.Name ?? "—")</td>
+                                <td>@(entry.ScheduledOn?.ToString("yyyy-MM-dd") ?? "—")</td>
+                                <td>@entry.AddedOn.ToString("yyyy-MM-dd")</td>
+                                <td class="text-end">
+                                    <form asp-action="Remove" method="post">
+                                        <input type="hidden" name="id" value="@entry.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 }

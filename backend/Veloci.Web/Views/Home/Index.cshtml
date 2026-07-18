@@ -1,14 +1,32 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Flight Control";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-
-    <div class="mt-4">
-        <h3>Development Tools</h3>
-        <a href="@Url.Action("Connect", "Patreon")" class="btn btn-primary">Connect Patreon</a>
-        <small class="form-text text-muted">Configure Patreon OAuth integration (Development only)</small>
-    </div>
+<div class="tile-grid">
+    <a class="tile" asp-controller="TrackQueue" asp-action="Index">
+        <h3>Track Queue</h3>
+        <p>Queue and schedule tracks for each cup's daily competition.</p>
+    </a>
+    <a class="tile" asp-controller="Whitelist" asp-action="Index">
+        <h3>Whitelist</h3>
+        <p>Manage which pilots are on the whitelist.</p>
+    </a>
+    <a class="tile" asp-controller="UserPilots" asp-action="Index">
+        <h3>User Pilots</h3>
+        <p>Link web accounts to their Velocidrone pilots.</p>
+    </a>
+    <a class="tile" asp-controller="PilotClaims" asp-action="Index">
+        <h3>Pilot Claims</h3>
+        <p>Review, approve, or delete pending fly-to-verify claims.</p>
+    </a>
 </div>
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Development</h2>
+    </header>
+    <div class="panel-body">
+        <a href="@Url.Action("Connect", "Patreon")" class="btn btn-primary">Connect Patreon</a>
+        <small class="d-block mt-2 text-muted">Configure Patreon OAuth integration (development only).</small>
+    </div>
+</section>

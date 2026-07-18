@@ -4,47 +4,57 @@
     ViewData["Title"] = "Whitelist";
 }
 
-<h1>Whitelist</h1>
-
 @if (TempData["Error"] is string error)
 {
     <div class="alert alert-danger">@error</div>
 }
 
-<div class="mb-4">
-    <h5>Add Pilot</h5>
-    <form asp-action="Add" method="post" class="d-flex gap-2">
-        <input type="text" name="pilotName" class="form-control w-auto" placeholder="Pilot name" required />
-        <button type="submit" class="btn btn-primary">Add</button>
-    </form>
-</div>
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Add Pilot</h2>
+    </header>
+    <div class="panel-body">
+        <form asp-action="Add" method="post" class="d-flex gap-2">
+            <input type="text" name="pilotName" class="form-control w-auto" placeholder="Pilot name" required />
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+    </div>
+</section>
 
-@if (Model.Count == 0)
-{
-    <p class="text-muted">No pilots on the whitelist.</p>
-}
-else
-{
-    <table class="table table-bordered w-auto">
-        <thead>
-            <tr>
-                <th>Pilot</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var pilot in Model)
-            {
-                <tr>
-                    <td>@pilot</td>
-                    <td>
-                        <form asp-action="Remove" method="post">
-                            <input type="hidden" name="pilotName" value="@pilot" />
-                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Whitelisted Pilots</h2>
+        <span class="panel-count">@Model.Count</span>
+    </header>
+    @if (Model.Count == 0)
+    {
+        <div class="panel-body text-muted">No pilots on the whitelist.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pilot</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pilot in Model)
+                    {
+                        <tr>
+                            <td class="mono">@pilot</td>
+                            <td class="text-end">
+                                <form asp-action="Remove" method="post">
+                                    <input type="hidden" name="pilotName" value="@pilot" />
+                                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
