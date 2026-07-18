@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { FaTelegramPlane } from "react-icons/fa";
 import { SiDiscord, SiInstagram } from "react-icons/si";
 import { TbBrandPatreonFilled } from "react-icons/tb";
 import logo from "/logo.svg";
+import AuthControls from "@/components/auth/AuthControls";
+import { useAuthStore } from "@/store/authStore";
 
 /**
  * Defines main layout that is applied to all top level pages
@@ -36,6 +38,11 @@ function LayoutMain() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const closeMobileMenu = () => setMobileMenuOpen(false);
 
+    useEffect(() => {
+        const { restore } = useAuthStore.getState();
+        restore();
+    }, []);
+
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 pb-8 flex flex-col">
             <div className="max-w-[1800px] w-full p-4 flex flex-col flex-1 mx-auto">
@@ -53,6 +60,8 @@ function LayoutMain() {
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
                         <div className="w-px h-5 bg-slate-600" />
                         <SocialLinks />
+                        <div className="w-px h-5 bg-slate-600" />
+                        <AuthControls />
                     </nav>
 
                     {/* Mobile hamburger */}
@@ -73,6 +82,7 @@ function LayoutMain() {
                             <NavLink to="/guide" className={navLinkClass} onClick={closeMobileMenu}>Guide</NavLink>
                             <NavLink to="/statistics" className={navLinkClass} onClick={closeMobileMenu}>Statistics</NavLink>
                             <SocialLinks />
+                            <AuthControls />
                         </nav>
                     )}
                 </header>

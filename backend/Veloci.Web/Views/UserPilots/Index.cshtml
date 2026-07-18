@@ -1,0 +1,77 @@
+@using Veloci.Web.Controllers.UserPilots
+@model UserPilotsViewModel
+
+@{
+    ViewData["Title"] = "User Pilots";
+}
+
+<h1>User–Pilot Connections</h1>
+
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="mb-4">
+    <h5>Link User to Pilot</h5>
+    @if (!Model.UnlinkedUsers.Any())
+    {
+        <p class="text-muted">All users are already linked to a pilot.</p>
+    }
+    else
+    {
+        <form asp-action="Link" method="post" class="d-flex gap-2 align-items-end flex-wrap">
+            <div>
+                <label class="form-label mb-1">User</label>
+                <select name="userId" class="form-select w-auto" required>
+                    @foreach (var user in Model.UnlinkedUsers)
+                    {
+                        <option value="@user.UserId">@user.Email</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label mb-1">Pilot Name <span class="text-muted">(exact, case sensitive)</span></label>
+                <input type="text" name="pilotName" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Link</button>
+        </form>
+    }
+</div>
+
+@if (Model.Users.Count == 0)
+{
+    <p class="text-muted">No users registered yet.</p>
+}
+else
+{
+    <table class="table table-bordered w-auto">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Display Name</th>
+                <th>Pilot</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>@(user.DisplayName ?? "—")</td>
+                    <td>@(user.PilotName ?? "—")</td>
+                    <td>
+                        @if (user.PilotName is not null)
+                        {
+                            <form asp-action="Unlink" method="post">
+                                <input type="hidden" name="userId" value="@user.UserId" />
+                                <button type="submit" class="btn btn-sm btn-danger">Unlink</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

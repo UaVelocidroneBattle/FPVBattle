@@ -3,3 +3,4 @@ export * from "./dashboardStore";
 export * from "./selectedPilotsStore";
 export * from "./pilotsStore";
 export * from "./pilotProfileStore";
+export * from "./authStore";

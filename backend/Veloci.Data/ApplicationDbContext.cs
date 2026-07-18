@@ -4,7 +4,7 @@ using Veloci.Data.Domain;
 
 namespace Veloci.Data;
 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -14,6 +14,25 @@ public class ApplicationDbContext : IdentityDbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<ApplicationUser>().Property(u => u.DisplayName).HasMaxLength(256);
+        builder.Entity<ApplicationUser>().Property(u => u.Locale).HasMaxLength(16);
+        builder.Entity<ApplicationUser>().HasIndex(u => u.PilotId).IsUnique();
+        builder.Entity<ApplicationUser>()
+            .HasOne(u => u.Pilot)
+            .WithMany()
+            .HasForeignKey(u => u.PilotId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<PilotClaim>().ToTable("PilotClaims");
+        builder.Entity<PilotClaim>().HasKey(c => c.Id);
+        builder.Entity<PilotClaim>().Property(c => c.PilotName).HasMaxLength(128).IsRequired();
+        builder.Entity<PilotClaim>().HasIndex(c => c.UserId).IsUnique();
+        builder.Entity<PilotClaim>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Competition>().ToTable("Competitions");
         builder.Entity<Competition>().Property(c => c.CupId).HasMaxLength(64).IsRequired().HasDefaultValue("open-class");
@@ -88,6 +107,17 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<PilotLeague>().Property(p => p.CupId).HasMaxLength(64).IsRequired();
         builder.Entity<PilotLeague>().Property(p => p.League).HasMaxLength(64);
         builder.Entity<PilotLeague>().HasIndex(p => new { p.PilotId, p.CupId });
+
+        builder.Entity<RefreshToken>().ToTable("RefreshTokens");
+        builder.Entity<RefreshToken>().HasKey(t => t.Id);
+        builder.Entity<RefreshToken>().Property(t => t.TokenHash).HasMaxLength(128).IsRequired();
+        builder.Entity<RefreshToken>().HasIndex(t => t.TokenHash).IsUnique();
+        builder.Entity<RefreshToken>().HasIndex(t => t.UserId);
+        builder.Entity<RefreshToken>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<QuadModel>().ToTable("QuadModels");
         builder.Entity<QuadModel>().HasKey(p => p.Id);

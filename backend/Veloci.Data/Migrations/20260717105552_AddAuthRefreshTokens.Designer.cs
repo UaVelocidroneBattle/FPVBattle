@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veloci.Data;
 
 #nullable disable
 
-namespace Veloci.Web.Data.Migrations
+namespace Veloci.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260717105552_AddAuthRefreshTokens")]
+    partial class AddAuthRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,20 +168,12 @@ namespace Veloci.Web.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DisplayName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Locale")
-                        .HasMaxLength(16)
-                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -203,9 +198,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("PilotId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
@@ -224,9 +216,6 @@ namespace Veloci.Web.Data.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("PilotId")
-                        .IsUnique();
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -516,35 +505,6 @@ namespace Veloci.Web.Data.Migrations
                     b.HasIndex("PilotId");
 
                     b.ToTable("PilotAchievements", (string)null);
-                });
-
-            modelBuilder.Entity("Veloci.Data.Domain.PilotClaim", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ExpiresOn")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PilotName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("PilotClaims", (string)null);
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.PilotLeague", b =>
@@ -996,16 +956,6 @@ namespace Veloci.Web.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.ApplicationUser", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
-                        .WithMany()
-                        .HasForeignKey("PilotId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Pilot");
-                });
-
             modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.TrackResults", "CurrentResults")
@@ -1088,15 +1038,6 @@ namespace Veloci.Web.Data.Migrations
                         .HasForeignKey("PilotId");
 
                     b.Navigation("Pilot");
-                });
-
-            modelBuilder.Entity("Veloci.Data.Domain.PilotClaim", b =>
-                {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.PilotLeague", b =>

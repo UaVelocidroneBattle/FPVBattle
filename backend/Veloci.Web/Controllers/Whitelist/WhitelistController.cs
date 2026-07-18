@@ -3,7 +3,7 @@ using Veloci.Logic.Services;
 
 namespace Veloci.Web.Controllers.Whitelist;
 
-public class WhitelistController : Controller
+public class WhitelistController : AdminControllerBase
 {
     private readonly IWhiteListService _whiteListService;
 
