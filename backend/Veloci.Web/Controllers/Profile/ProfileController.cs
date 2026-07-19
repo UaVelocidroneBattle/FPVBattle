@@ -13,6 +13,8 @@ namespace Veloci.Web.Controllers.Profile;
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class ProfileController : ControllerBase
 {
+    private static readonly Serilog.ILogger Log = Serilog.Log.ForContext<ProfileController>();
+
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly PilotBindingService _bindingService;
     private readonly IRepository<Pilot> _pilots;
@@ -102,6 +104,31 @@ public class ProfileController : ControllerBase
 
         await _bindingService.CancelClaimAsync(user);
         return await BuildProfileAsync(user);
+    }
+
+    /// <summary>
+    /// Permanently deletes the account: profile data, sign-in methods, sessions
+    /// and pending claims. The linked pilot and their race history are kept.
+    /// </summary>
+    [HttpDelete("account")]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user is null)
+            return Unauthorized();
+
+        var deletion = await _userManager.DeleteAsync(user);
+
+        if (!deletion.Succeeded)
+        {
+            Log.Error("Failed to delete account {UserId}: {Errors}",
+                user.Id, string.Join("; ", deletion.Errors.Select(e => e.Description)));
+            return Problem("Failed to delete the account", statusCode: StatusCodes.Status500InternalServerError);
+        }
+
+        Log.Information("Deleted account {UserId} on user request", user.Id);
+        return NoContent();
     }
 
     private async Task<ProfileModel> BuildProfileAsync(ApplicationUser user)

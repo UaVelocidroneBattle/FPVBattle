@@ -298,6 +298,20 @@ export type PostApiProfileClaimResponses = {
 
 export type PostApiProfileClaimResponse = PostApiProfileClaimResponses[keyof PostApiProfileClaimResponses];
 
+export type DeleteApiProfileAccountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/profile/account';
+};
+
+export type DeleteApiProfileAccountResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiPilotsAllData = {
     body?: never;
     path?: never;

@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 import { Spinner } from "@/components/ui/spinner";
 import PilotBindingSection from "./PilotBindingSection";
+import DeleteAccountSection from "./DeleteAccountSection";
 
 /**
  * The signed-in user's own profile: account details from Google
@@ -47,6 +48,13 @@ function ProfilePage() {
                 ) : (
                     <Spinner />
                 )}
+            </section>
+
+            <section className="mt-6 border border-slate-700 bg-slate-800/50 p-6 backdrop-blur-sm">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-red-400/80">
+                    Danger zone
+                </h2>
+                <DeleteAccountSection />
             </section>
         </div>
     );

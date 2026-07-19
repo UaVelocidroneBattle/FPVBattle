@@ -198,6 +198,18 @@
         }
       }
     },
+    "/api/profile/account": {
+      "delete": {
+        "tags": [
+          "Profile"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/pilots/All": {
       "get": {
         "tags": [
