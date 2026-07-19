@@ -24,9 +24,15 @@ function LinkedPilotCard({ profile }: { profile: ProfileModel }) {
                     {pilot.name}
                 </Link>
             </div>
-            <p className="mt-4 text-xs text-slate-500">
-                Linked accounts cannot be changed here — contact an admin if this is not you.
-            </p>
+            <ul className="mt-4 list-disc space-y-1 pl-4 text-xs text-slate-500">
+                <li>
+                    To change your pilot name or country flag, update your Velocidrone profile —
+                    we sync this information automatically.
+                </li>
+                <li>
+                    Linked pilot cannot be changed here — contact us if this is not you.
+                </li>
+            </ul>
         </div>
     );
 }
