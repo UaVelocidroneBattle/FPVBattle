@@ -235,11 +235,6 @@ public class DiscordMessageComposer
         return "🔁️ Hands off the controllers everyone, we're **changing the track**";
     }
 
-    public string AddedToWhitelist(string pilotName)
-    {
-        return $"✅  **{pilotName}** added to whitelist";
-    }
-
     #region Private
 
     private string TimeUpdate(TrackTimeDelta delta)
