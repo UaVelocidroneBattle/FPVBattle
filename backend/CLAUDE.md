@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-VelocidroneBot backend follows a **Vertical Slices Architecture** within a **Modular Monolith** structure. This approach organizes code by business features rather than technical layers.
+FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular Monolith** structure. This approach organizes code by business features rather than technical layers.
 
 ### Core Architecture Principles
 - **Vertical Slices**: Each feature is self-contained with its own models, services, and handlers
