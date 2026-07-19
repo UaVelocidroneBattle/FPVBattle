@@ -70,22 +70,40 @@ function ClaimForm() {
     const [pilotName, setPilotName] = useState("");
     const [lookup, setLookup] = useState<PilotLookupModel | null>(null);
     const [searching, setSearching] = useState(false);
+    const [claiming, setClaiming] = useState(false);
+    const [lookupFailed, setLookupFailed] = useState(false);
 
     const search = async () => {
         const name = pilotName.trim();
         if (!name || searching) return;
 
         setSearching(true);
+        setLookupFailed(false);
         useProfileStore.getState().clearClaimError();
         try {
             const response = await getApiProfilePilotLookup({ query: { pilotName: name } });
-            setLookup(response.data ?? null);
+            if (response.data) {
+                setLookup(response.data);
+            } else {
+                setLookupFailed(true);
+            }
+        } catch {
+            setLookupFailed(true);
         } finally {
             setSearching(false);
         }
     };
 
-    const claim = () => useProfileStore.getState().claimPilot(pilotName.trim());
+    const claim = async () => {
+        if (claiming) return;
+
+        setClaiming(true);
+        try {
+            await useProfileStore.getState().claimPilot(pilotName.trim());
+        } finally {
+            setClaiming(false);
+        }
+    };
 
     return (
         <div>
@@ -100,8 +118,10 @@ function ClaimForm() {
                     onChange={(e) => {
                         setPilotName(e.target.value);
                         setLookup(null);
+                        setLookupFailed(false);
                     }}
                     onKeyDown={(e) => e.key === "Enter" && search()}
+                    maxLength={128}
                     placeholder="Velocidrone name"
                     className="w-full max-w-xs border border-slate-600 bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
                 />
@@ -161,12 +181,19 @@ function ClaimForm() {
                     {(!lookup.found || !lookup.alreadyLinked) && (
                         <button
                             onClick={claim}
-                            className="mt-5 border border-emerald-500 px-4 py-2 text-emerald-400 transition-colors hover:bg-emerald-500/10"
+                            disabled={claiming}
+                            className="mt-5 border border-emerald-500 px-4 py-2 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50 disabled:hover:bg-transparent"
                         >
                             This is me
                         </button>
                     )}
                 </div>
+            )}
+
+            {lookupFailed && (
+                <p className="mt-3 text-sm text-red-400">
+                    Could not check the name right now. Please try again.
+                </p>
             )}
 
             {claimError && <p className="mt-3 text-sm text-red-400">{claimError}</p>}

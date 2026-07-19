@@ -78,6 +78,9 @@ public class ProfileController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.PilotName))
             return BadRequest("Pilot name is required");
 
+        if (request.PilotName.Trim().Length > 128)
+            return BadRequest("Pilot name is too long");
+
         var result = await _bindingService.ClaimAsync(user, request.PilotName);
 
         return result switch
