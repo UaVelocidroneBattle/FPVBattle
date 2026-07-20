@@ -7,7 +7,7 @@ using Veloci.Logic.Services.Tracks;
 
 namespace Veloci.Web.Controllers.TrackQueue;
 
-public class TrackQueueController : Controller
+public class TrackQueueController : AdminControllerBase
 {
     private readonly TrackQueueService _trackQueueService;
     private readonly ICupService _cupService;

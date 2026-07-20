@@ -1,0 +1,92 @@
+@using Veloci.Web.Controllers.PilotClaims
+@model PilotClaimsViewModel
+
+@{
+    ViewData["Title"] = "Pilot Claims";
+}
+
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Pending Claims</h2>
+        <span class="panel-count">@Model.Claims.Count</span>
+    </header>
+    @if (Model.Claims.Count == 0)
+    {
+        <div class="panel-body text-muted">There are no pending claims.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Name</th>
+                        <th>Claimed Pilot</th>
+                        <th>Created</th>
+                        <th>Expires</th>
+                        <th>Status</th>
+                        <th>Pilot</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var claim in Model.Claims)
+                    {
+                        <tr>
+                            <td class="mono">@claim.UserEmail</td>
+                            <td>@(claim.UserName ?? "—")</td>
+                            <td class="mono">@claim.PilotName</td>
+                            <td>@claim.CreatedOn.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@claim.ExpiresOn.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                @if (claim.IsExpired)
+                                {
+                                    <span class="badge bg-secondary">Expired</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!claim.PilotExists)
+                                {
+                                    <span class="text-muted">no results yet</span>
+                                }
+                                else if (claim.PilotLinked)
+                                {
+                                    <span class="text-danger">linked to another user</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success">available</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    @if (claim.CanApprove)
+                                    {
+                                        <form asp-action="Approve" method="post">
+                                            <input type="hidden" name="claimId" value="@claim.ClaimId" />
+                                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                        </form>
+                                    }
+                                    <form asp-action="Delete" method="post">
+                                        <input type="hidden" name="claimId" value="@claim.ClaimId" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

@@ -15,11 +15,14 @@ using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
+using Veloci.Data.Domain;
 using Veloci.Hangfire.Metrics;
 using Veloci.Logic.API.Options;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
+using Veloci.Logic.Features.Auth;
+using Veloci.Logic.Features.PilotBinding;
 using Veloci.Logic.Notifications;
 using ModelContextProtocol.AspNetCore;
 using Veloci.Logic.Services;
@@ -85,8 +88,11 @@ public class Startup
 
         services.AddMemoryCache();
 
-        services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
+
+        services.AddAuthFeature(Configuration);
+        services.AddPilotBinding();
 
         services
             .AddControllersWithViews()
@@ -214,6 +220,7 @@ public class Startup
 
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllerRoute(

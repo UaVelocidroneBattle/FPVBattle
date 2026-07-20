@@ -25,8 +25,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<PilotRenamed>,
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
-    INotificationHandler<TrackRestart>,
-    INotificationHandler<AddedToWhitelist>
+    INotificationHandler<TrackRestart>
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<DiscordMessageEventHandler>();
 
@@ -289,12 +288,6 @@ public class DiscordMessageEventHandler :
     {
         var message = _messageComposer.RestartTrack();
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
-    }
-
-    public async Task Handle(AddedToWhitelist notification, CancellationToken cancellationToken)
-    {
-        var message = _messageComposer.AddedToWhitelist(notification.PilotName);
-        await _generalMessenger.SendMessageAsync(message);
     }
 
 }

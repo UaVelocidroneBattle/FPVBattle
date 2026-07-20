@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { type Language } from '@/hooks/useLanguage';
 
 export function link(href: string, label: string): ReactNode {
@@ -6,6 +7,14 @@ export function link(href: string, label: string): ReactNode {
         <a href={href} className="text-emerald-400 hover:text-emerald-300 transition-colors" target="_blank" rel="noopener noreferrer">
             {label}
         </a>
+    );
+}
+
+export function internalLink(to: string, label: string): ReactNode {
+    return (
+        <Link to={to} className="text-emerald-400 hover:text-emerald-300 transition-colors">
+            {label}
+        </Link>
     );
 }
 
@@ -51,7 +60,7 @@ export const translations: Record<Language, RulesContent> = {
         gettingStartedTitle: 'Як почати',
         steps: [
             <>Завантажуємо Velocidrone з {link('https://www.velocidrone.com/shop', 'офіційного сайту')}</>,
-            <>Перевіряємо, щоб у вашому акаунті Velocidrone був встановлений український прапор. Це можна переглянути й змінити (за потреби) у вашому {link('https://www.velocidrone.com/profile', 'профілі')}</>,
+            <>Реєструємось на сайті через Google-акаунт і прив'язуємо свого пілота: відкриваємо {internalLink('/profile', 'профіль')}, вказуємо свій нік у Velocidrone та літаємо денний трек, щоб підтвердити, що це ви</>,
             <>Вмикаємо автоматичну публікацію результатів у налаштуваннях симулятора:<br /><span className="text-slate-400">{'Options → Main Settings → Auto Leaderbord Time Update: Yes'}</span></>,
             'Обираємо один з режимів: Nemesis або Single Player',
             'Обираємо Game type: Single Class – Three Laps Race',
@@ -123,10 +132,7 @@ export const translations: Record<Language, RulesContent> = {
         gettingStartedTitle: 'Getting Started',
         steps: [
             <>Download Velocidrone from the {link('https://www.velocidrone.com/shop', 'official website')}</>,
-            <>
-                <p>For Ukrainians: make sure the Ukrainian flag is selected in your Velocidrone account. You can check and change it (if needed) in your {link('https://www.velocidrone.com/profile', 'profile')}.</p>
-                <p className="mt-2">For others: you need to join our {link('https://discord.gg/FrpC2WV8Cw', 'Discord')} and provide your Velocidrone pilot name so we can add you.</p>
-            </>,
+            <>Sign up with your Google account and link your pilot: open your {internalLink('/profile', 'profile')}, claim your Velocidrone pilot name, then fly the daily track to confirm it's you</>,
             <>Enable automatic result publishing in the simulator settings:<br /><span className="text-slate-400">{'Options → Main Settings → Auto Leaderbord Time Update: Yes'}</span></>,
             'Select one of the modes: Nemesis or Single Player',
             'Select Game type: Single Class – Three Laps Race',
