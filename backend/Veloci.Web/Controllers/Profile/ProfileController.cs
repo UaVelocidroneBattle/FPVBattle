@@ -51,6 +51,9 @@ public class ProfileController : ControllerBase
 
         var pilot = await _bindingService.FindPilotByNameAsync(pilotName);
 
+        Log.Information("User {UserId} looked up pilot {PilotName}: {LookupResult}",
+            _userManager.GetUserId(User), pilotName, pilot is null ? "not found" : "found");
+
         if (pilot is null)
             return new PilotLookupModel { Found = false };
 
@@ -84,6 +87,10 @@ public class ProfileController : ControllerBase
             return BadRequest("Pilot name is too long");
 
         var result = await _bindingService.ClaimAsync(user, request.PilotName);
+
+        if (result is not ClaimPilotResult.Claimed)
+            Log.Warning("Rejected claim from user {UserId} for pilot {PilotName}: {Reason}",
+                user.Id, request.PilotName, result);
 
         return result switch
         {
