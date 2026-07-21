@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { DashboardModel } from "@/api/client";
+import { CompetitionOverviewModel } from "@/api/client";
 
 interface ICurrentCompetitionProps {
     cupId: string;
-    dashboard: DashboardModel;
+    overview: CompetitionOverviewModel;
     selectedDate: string | null;
     onDateChange: (date: string | null) => void;
 }
@@ -35,7 +35,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     );
 }
 
-function CurrentCompetition({ cupId, dashboard, selectedDate, onDateChange }: ICurrentCompetitionProps) {
+function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICurrentCompetitionProps) {
     const [copied, setCopied] = useState(false);
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +61,7 @@ function CurrentCompetition({ cupId, dashboard, selectedDate, onDateChange }: IC
                 {getClassLabel(cupId)}
             </span>
 
-            {dashboard.competition == null ? (
+            {overview.competition == null ? (
                 <>
                     <Separator />
                     <span className="text-sm text-slate-400">Nothing scheduled</span>
@@ -72,13 +72,13 @@ function CurrentCompetition({ cupId, dashboard, selectedDate, onDateChange }: IC
 
                     <Field label="Track">
                         <span>
-                            <span className="text-slate-400">{dashboard.competition.mapName} - </span>
+                            <span className="text-slate-400">{overview.competition.mapName} - </span>
                             <button
-                                onClick={() => copyTrackName(dashboard.competition!.trackName)}
+                                onClick={() => copyTrackName(overview.competition!.trackName)}
                                 className="inline-flex items-center gap-1.5 text-white hover:text-emerald-400 transition-colors group"
                                 title="Copy track name"
                             >
-                                {dashboard.competition.trackName}
+                                {overview.competition.trackName}
                                 {copied
                                     ? <Check className="h-4 w-4 text-emerald-400 shrink-0" />
                                     : <Copy className="h-4 w-4 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
@@ -90,8 +90,8 @@ function CurrentCompetition({ cupId, dashboard, selectedDate, onDateChange }: IC
                     <Separator />
 
                     <Field label="Quad">
-                        <span className={dashboard.competition.quadOfTheDay ? "text-white" : "text-slate-500"}>
-                            {dashboard.competition.quadOfTheDay ?? "—"}
+                        <span className={overview.competition.quadOfTheDay ? "text-white" : "text-slate-500"}>
+                            {overview.competition.quadOfTheDay ?? "—"}
                         </span>
                     </Field>
 
@@ -105,7 +105,7 @@ function CurrentCompetition({ cupId, dashboard, selectedDate, onDateChange }: IC
 
                     <Link
                         className="text-sm text-slate-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5"
-                        to={`https://www.velocidrone.com/leaderboard/${dashboard.competition.mapId}/${dashboard.competition.trackId}/All`}
+                        to={`https://www.velocidrone.com/leaderboard/${overview.competition.mapId}/${overview.competition.trackId}/All`}
                         target="_blank"
                     >
                         Velocidrone leaderboard

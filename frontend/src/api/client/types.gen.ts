@@ -22,6 +22,12 @@ export type CompetitionModel = {
     leagues?: LeagueOptions;
 };
 
+export type CompetitionOverviewModel = {
+    competition?: null | CompetitionModel;
+    leaderboard: Array<LeagueLeaderboardModel>;
+    seasonLeaderboard: Array<LeagueSeasonLeaderboard>;
+};
+
 export type CompetitionState = number;
 
 export type CountryPilotsModel = {
@@ -34,12 +40,6 @@ export type CurrentUserModel = {
     id: string;
     email: string;
     displayName: string;
-};
-
-export type DashboardModel = {
-    competition?: null | CompetitionModel;
-    leaderboard: Array<LeagueLeaderboardModel>;
-    seasonLeaderboard: Array<LeagueSeasonLeaderboard>;
 };
 
 export type DayStreakLeaderboardRow = {
@@ -412,24 +412,24 @@ export type GetApiCompetitionsCurrentResponses = {
 
 export type GetApiCompetitionsCurrentResponse = GetApiCompetitionsCurrentResponses[keyof GetApiCompetitionsCurrentResponses];
 
-export type GetApiDashboardData = {
+export type GetApiCompetitionsOverviewData = {
     body?: never;
     path?: never;
     query?: {
         cupId?: string;
         date?: string;
     };
-    url: '/api/dashboard';
+    url: '/api/competitions/overview';
 };
 
-export type GetApiDashboardResponses = {
+export type GetApiCompetitionsOverviewResponses = {
     /**
      * OK
      */
-    200: DashboardModel;
+    200: CompetitionOverviewModel;
 };
 
-export type GetApiDashboardResponse = GetApiDashboardResponses[keyof GetApiDashboardResponses];
+export type GetApiCompetitionsOverviewResponse = GetApiCompetitionsOverviewResponses[keyof GetApiCompetitionsOverviewResponses];
 
 export type PostApiAuthGoogleData = {
     body: GoogleSignInRequest;

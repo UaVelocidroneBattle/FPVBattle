@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getDashboardStore } from "@/store/dashboardStore";
+import { getCompetitionStore } from "@/store/competitionStore";
 
 const DATE_PARAM = "date";
 
 /**
- * Syncs the dashboard's selected date with the URL search param:
+ * Syncs the competition page's selected date with the URL search param:
  *
  * 1. Store is the single source of truth for the selected date
  * 2. URL param overrides store on mount (for sharing/bookmarking)
@@ -14,14 +14,14 @@ const DATE_PARAM = "date";
  */
 export function useUrlDateSync(cupId: string) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const useStore = getDashboardStore(cupId);
+  const useStore = getCompetitionStore(cupId);
 
   const selectedDate = useStore((state) => state.selectedDate);
 
   // Effect 1: URL → Store (on mount / when URL date changes)
   useEffect(() => {
     const urlDate = searchParams.get(DATE_PARAM);
-    const { selectDate, selectedDate: currentDate } = getDashboardStore(cupId).getState();
+    const { selectDate, selectedDate: currentDate } = getCompetitionStore(cupId).getState();
 
     if (urlDate && urlDate !== currentDate) {
       selectDate(urlDate);
@@ -31,7 +31,7 @@ export function useUrlDateSync(cupId: string) {
   // Effect 2: Store → URL (for sharing/bookmarking)
   // Always replace — date is filter state, not page navigation.
   // Pushing would add history entries on every date change, requiring extra
-  // back-button presses to leave the dashboard.
+  // back-button presses to leave the competition page.
   useEffect(() => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);

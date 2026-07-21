@@ -3,7 +3,7 @@ using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Web.Controllers.Competitions;
 
-public class DashboardModel
+public class CompetitionOverviewModel
 {
     public CompetitionModel? Competition { get; set; }
     public required List<LeagueLeaderboardModel> Leaderboard { get; set; }

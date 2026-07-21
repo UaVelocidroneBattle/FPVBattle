@@ -8,6 +8,13 @@ interface CurrentLeaderboardProps {
     leagueColors?: Map<string, string>;
     flat?: boolean;
     isEnded?: boolean;
+    /** The signed-in user's linked pilot name, ordinally matched to highlight their row. */
+    highlightPilotName?: string | null;
+}
+
+function rowHighlightClass(isHighlighted: boolean, isEvenRow: boolean): string {
+    if (isHighlighted) return "bg-emerald-500/10 border-y border-emerald-400/40";
+    return isEvenRow ? "bg-slate-700/20" : "";
 }
 
 const BASE_COLS = "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]";
@@ -34,7 +41,7 @@ function ColumnHeaders({ isEnded }: { isEnded: boolean }) {
     );
 }
 
-function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded = false }: CurrentLeaderboardProps) {
+function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded = false, highlightPilotName }: CurrentLeaderboardProps) {
     const isEmpty = !leaderboard?.length || leaderboard.every(g => !g.results?.length);
     const cols = isEnded ? ENDED_COLS : BASE_COLS;
 
@@ -57,10 +64,11 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                 <ul>
                     {results.map((result, index) => {
                         const leagueColor = (result.league && leagueColors?.get(result.league)) || '#34d399';
+                        const isHighlighted = result.playerName === highlightPilotName;
                         return (
                             <li
                                 key={`${result.playerName}-${index}`}
-                                className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
+                                className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
                                 style={{ borderLeftColor: leagueColor }}
                             >
                                 <div className={`grid ${cols} items-center gap-6`}>
@@ -109,29 +117,32 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                         <>
                             <ColumnHeaders isEnded={isEnded} />
                             <ul>
-                                {group.results.map((result, index) => (
-                                    <li
-                                        key={`${result.playerName}-${result.localRank}`}
-                                        className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}
-                                    >
-                                        <div className={`grid ${cols} items-center gap-6`}>
-                                            <span className={`text-right text-sm tabular-nums ${rankStyle(result.localRank ?? 0)}`}>
-                                                {String(result.localRank ?? 0).padStart(2, "0")}
-                                            </span>
-                                            <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
-                                            <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
-                                            <CountryFlag countryCode={result.country} className="text-sm" />
-                                            <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
-                                                {convertMsToSec(result.trackTime ?? 0)}
-                                            </div>
-                                            {isEnded && (
-                                                <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
-                                                    {result.points ?? "—"}
+                                {group.results.map((result, index) => {
+                                    const isHighlighted = result.playerName === highlightPilotName;
+                                    return (
+                                        <li
+                                            key={`${result.playerName}-${result.localRank}`}
+                                            className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
+                                        >
+                                            <div className={`grid ${cols} items-center gap-6`}>
+                                                <span className={`text-right text-sm tabular-nums ${rankStyle(result.localRank ?? 0)}`}>
+                                                    {String(result.localRank ?? 0).padStart(2, "0")}
+                                                </span>
+                                                <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                                <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
+                                                <CountryFlag countryCode={result.country} className="text-sm" />
+                                                <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
+                                                    {convertMsToSec(result.trackTime ?? 0)}
                                                 </div>
-                                            )}
-                                        </div>
-                                    </li>
-                                ))}
+                                                {isEnded && (
+                                                    <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
+                                                        {result.points ?? "—"}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </>
                     )}

@@ -7,6 +7,7 @@ import { TbBrandPatreonFilled } from "react-icons/tb";
 import logo from "/logo.svg";
 import AuthControls from "@/components/auth/AuthControls";
 import { useAuthStore } from "@/store/authStore";
+import { useProfileStore } from "@/store/profileStore";
 
 /**
  * Defines main layout that is applied to all top level pages
@@ -37,11 +38,18 @@ function SocialLinks() {
 function LayoutMain() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const closeMobileMenu = () => setMobileMenuOpen(false);
+    const user = useAuthStore((state) => state.user);
 
     useEffect(() => {
         const { restore } = useAuthStore.getState();
         restore();
     }, []);
+
+    // The linked pilot is needed app-wide (e.g. to highlight the user's own
+    // results in leaderboards), so it's fetched here rather than per-page.
+    useEffect(() => {
+        if (user) useProfileStore.getState().fetchProfile();
+    }, [user]);
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 pb-8 flex flex-col">

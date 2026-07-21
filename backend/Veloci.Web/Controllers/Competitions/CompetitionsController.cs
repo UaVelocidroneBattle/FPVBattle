@@ -28,8 +28,8 @@ public class CompetitionsController : ControllerBase
         return competitions;
     }
 
-    [HttpGet("/api/dashboard")]
-    public async Task<DashboardModel?> Dashboard([FromQuery] string? cupId = null, [FromQuery] DateOnly? date = null)
+    [HttpGet("/api/competitions/overview")]
+    public async Task<CompetitionOverviewModel?> Overview([FromQuery] string? cupId = null, [FromQuery] DateOnly? date = null)
     {
         // Default to first enabled cup if not specified
         cupId ??= _cupService.GetEnabledCupIds().FirstOrDefault() ?? CupIds.OpenClass;
@@ -44,14 +44,14 @@ public class CompetitionsController : ControllerBase
 
         var cupOptions = _cupService.GetCupOptions(cupId);
 
-        var dashboardModel = new DashboardModel
+        var overview = new CompetitionOverviewModel
         {
             Competition = ToCompetitionModel(competition, cupOptions),
             Leaderboard = GetLeaderboard(competition),
             SeasonLeaderboard = await GetSeasonLeaderboardAsync(cupId, date)
         };
 
-        return dashboardModel;
+        return overview;
     }
 
     private List<LeagueLeaderboardModel> GetLeaderboard(Competition? competition)

@@ -1,24 +1,24 @@
 import { create, type UseBoundStore, type StoreApi } from 'zustand';
 import api from '../api/api';
-import { DashboardModel } from '../api/client';
+import { CompetitionOverviewModel } from '../api/client';
 import { LoadingStates } from '../lib/loadingStates';
 
-export interface DashboardState {
+export interface CompetitionState {
   state: LoadingStates;
-  data: DashboardModel | null;
+  data: CompetitionOverviewModel | null;
   selectedDate: string | null;
 }
 
-export interface DashboardActions {
+export interface CompetitionActions {
   fetch: () => Promise<void>;
   refresh: () => Promise<void>;
   selectDate: (date: string | null) => void;
 }
 
-export type DashboardStore = DashboardState & DashboardActions;
+export type CompetitionStore = CompetitionState & CompetitionActions;
 
-function createDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardStore>> {
-  return create<DashboardStore>()((set, get) => ({
+function createCompetitionStore(cupId: string): UseBoundStore<StoreApi<CompetitionStore>> {
+  return create<CompetitionStore>()((set, get) => ({
     state: 'Idle',
     data: null,
     selectedDate: null,
@@ -27,7 +27,7 @@ function createDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardSt
 
       set({ state: 'Loading' });
       try {
-        const response = await api.getDashboard(cupId, get().selectedDate ?? undefined);
+        const response = await api.getCompetitionOverview(cupId, get().selectedDate ?? undefined);
         set({ state: 'Loaded', data: response.data });
       } catch {
         set({ state: 'Error', data: null });
@@ -37,7 +37,7 @@ function createDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardSt
       if (get().state === 'Loading') return;
 
       try {
-        const response = await api.getDashboard(cupId, get().selectedDate ?? undefined);
+        const response = await api.getCompetitionOverview(cupId, get().selectedDate ?? undefined);
         set({ state: 'Loaded', data: response.data });
       } catch {
         // Keep existing data on refresh failure — only initial load shows error state
@@ -49,11 +49,11 @@ function createDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardSt
   }));
 }
 
-const storeCache = new Map<string, UseBoundStore<StoreApi<DashboardStore>>>();
+const storeCache = new Map<string, UseBoundStore<StoreApi<CompetitionStore>>>();
 
-export function getDashboardStore(cupId: string): UseBoundStore<StoreApi<DashboardStore>> {
+export function getCompetitionStore(cupId: string): UseBoundStore<StoreApi<CompetitionStore>> {
   if (!storeCache.has(cupId)) {
-    storeCache.set(cupId, createDashboardStore(cupId));
+    storeCache.set(cupId, createCompetitionStore(cupId));
   }
   return storeCache.get(cupId)!;
 }
