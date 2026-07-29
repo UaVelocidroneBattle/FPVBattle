@@ -85,7 +85,7 @@ public class PaceRatingCalculator
             {
                 PilotId = g.Key,
                 CupId = cupId,
-                AverageGapPercent = g.Average(x => x.Gap),
+                AverageGapPercent = AverageGapExcludingWorstDays(g.Select(x => x.Gap)),
                 CalculatedOn = today
             })
             .OrderBy(r => r.AverageGapPercent)
@@ -140,6 +140,14 @@ public class PaceRatingCalculator
 
     private static double GapPercent(int pilotTime, double referenceTime)
         => (pilotTime - referenceTime) / referenceTime * 100.0;
+
+    private double AverageGapExcludingWorstDays(IEnumerable<double> gaps)
+    {
+        var orderedGaps = gaps.OrderBy(g => g).ToList();
+        var daysToDrop = Math.Min(_settings.DropWorstDaysCount, orderedGaps.Count - 1);
+
+        return orderedGaps.Take(orderedGaps.Count - daysToDrop).Average();
+    }
 
     private record PilotStats(int PilotId, double Gap);
 }
