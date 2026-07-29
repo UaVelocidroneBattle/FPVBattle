@@ -208,7 +208,8 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.SeasonResults(notification.Results);
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
-        await _cupMessenger.SendImageToCupAsync(notification.CupId, notification.Image, notification.ImageName);
+        // disabled for now
+        // await _cupMessenger.SendImageToCupAsync(notification.CupId, notification.Image, notification.ImageName);
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)

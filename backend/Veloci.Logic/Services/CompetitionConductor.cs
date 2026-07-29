@@ -321,10 +321,10 @@ public class CompetitionConductor
         Log.Information("Season {SeasonName} for cup {CupId} completed with {ResultCount} participants. Winners: {Winners}",
             seasonName, cupId, totalCount, string.Join(", ", (IEnumerable<string>)winners));
 
-        var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
-        Log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
+        // var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
+        // Log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
 
-        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, image, "winners.png"));
+        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, Image: null, "winners.png"));
         Log.Information("Season {SeasonName} finalization completed for cup {CupId}", seasonName, cupId);
     }
 
