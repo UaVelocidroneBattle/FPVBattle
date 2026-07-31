@@ -208,6 +208,38 @@ a {
     margin: 0;
 }
 
+.table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+}
+
+.table-toolbar #userSearch {
+    max-width: 280px;
+}
+
+.table-toolbar .form-check {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.form-check-label {
+    font-size: 0.86rem;
+    color: var(--muted);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.form-check-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(244, 88, 28, 0.15);
+}
+
 /* --- Home tiles ---------------------------------------------------------- */
 
 .tile-grid {
@@ -277,6 +309,44 @@ a {
     letter-spacing: 0.08em;
     color: var(--muted);
     white-space: nowrap;
+}
+
+.table thead th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 1.4rem;
+}
+
+.table thead th[data-sort]:hover {
+    color: var(--ink);
+}
+
+.table thead th[data-sort]::after {
+    content: "";
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    opacity: 0.35;
+}
+
+.table thead th[data-sort]:not([aria-sort])::after {
+    border-top-color: var(--muted);
+    margin-top: 2px;
+}
+
+.table thead th[aria-sort="ascending"]::after {
+    border-bottom-color: var(--accent);
+    margin-top: -2px;
+    opacity: 1;
+}
+
+.table thead th[aria-sort="descending"]::after {
+    border-top-color: var(--accent);
+    margin-top: 2px;
+    opacity: 1;
 }
 
 .table tbody tr:last-child > * {
@@ -358,6 +428,45 @@ a {
     color: #fff;
 }
 
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--muted);
+}
+
+.btn-icon:hover,
+.btn-icon:focus,
+.btn-icon[aria-expanded="true"] {
+    background: var(--cloud);
+    color: var(--ink);
+}
+
+.dropdown-menu {
+    padding: 6px;
+    border-color: var(--line);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(20, 24, 29, 0.1);
+}
+
+.dropdown-item {
+    padding: 0.45rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
+}
+
+.dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:focus {
+    background: var(--danger-bg);
+    color: var(--danger) !important;
+}
+
 .btn-link-quiet {
     padding: 0;
     border: 0;
@@ -370,6 +479,36 @@ a {
 .btn-link-quiet:hover {
     color: var(--accent-dark);
     text-decoration: underline;
+}
+
+/* --- Bootstrap overrides: modals ------------------------------------------ */
+
+.modal-content {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--line);
+}
+
+.modal-title {
+    font-size: 1rem;
+    font-weight: 650;
+}
+
+.btn-secondary {
+    background: var(--cloud);
+    border-color: transparent;
+    color: var(--ink);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background: var(--line);
+    border-color: transparent;
+    color: var(--ink);
 }
 
 /* --- Bootstrap overrides: badges & alerts ---------------------------------- */

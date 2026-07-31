@@ -42,8 +42,8 @@
                             <td class="mono">@claim.UserEmail</td>
                             <td>@(claim.UserName ?? "—")</td>
                             <td class="mono">@claim.PilotName</td>
-                            <td>@claim.CreatedOn.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@claim.ExpiresOn.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@claim.CreatedOn.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@claim.ExpiresOn.ToString("dd.MM.yyyy HH:mm")</td>
                             <td>
                                 @if (claim.IsExpired)
                                 {

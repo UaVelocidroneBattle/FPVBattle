@@ -261,6 +261,14 @@ Controllers/
 - Frontend consumes generated TypeScript client
 - Keep API models separate from domain models
 
+## Admin Pages (Razor Views)
+
+The admin dashboard (`Veloci.Web/Views/**`, e.g. Users, Pilot Claims, Track Queue) is server-rendered Razor/Bootstrap 5, not React.
+
+- **Date format**: always European `dd.MM.yyyy` (add `HH:mm` when time matters), e.g. `@entity.CreatedOn.ToString("dd.MM.yyyy HH:mm")`. Never `yyyy-MM-dd` or culture-default `ToString()`/`ToShortDateString()`.
+- Shared styling lives in `wwwroot/css/site.css` (design tokens under `:root`); reuse existing classes (`.panel`, `.table`, `.btn-icon`, `.dropdown-menu`, etc.) instead of inline styles.
+- Row-level actions beyond a single primary action go into a `.btn-icon` kebab-menu `.dropdown` (see `Views/UserPilots/Index.cshtml`) rather than a row of buttons.
+
 ## Service Registration
 
 ### Feature-Based Registration
