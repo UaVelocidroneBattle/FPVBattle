@@ -59,6 +59,13 @@ a {
     width: 100%;
 }
 
+/* Data-dense pages (wide tables) opt into this via ViewData["ContentClass"]
+   so their panels can use the full window width instead of the standard
+   reading-width cap. */
+.content.content-wide {
+    max-width: none;
+}
+
 /* --- Sidebar ------------------------------------------------------------ */
 
 .sidebar {
@@ -355,6 +362,23 @@ a {
 
 .table tbody tr:hover > * {
     background: #f8fafb;
+}
+
+/* Fixed layout keeps the table pinned to the panel's full width instead of
+   shrinking/growing (and scrolling) with each row's content — column widths
+   come from a <colgroup> and long values wrap instead of forcing overflow. */
+.table-fixed {
+    table-layout: fixed;
+}
+
+.table-fixed td {
+    overflow-wrap: anywhere;
+}
+
+.table-fixed th:last-child,
+.table-fixed td:last-child {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
 /* --- Bootstrap overrides: forms & buttons --------------------------------- */
