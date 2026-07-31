@@ -20,7 +20,6 @@ public class CompetitionConductor
 
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
-    private readonly IRepository<Pilot> _pilots;
     private readonly TrackService _trackService;
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
@@ -39,7 +38,6 @@ public class CompetitionConductor
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
-        IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         ICupService cupService,
         IDiscordCupMessenger discordCupMessenger,
@@ -53,7 +51,6 @@ public class CompetitionConductor
         _imageService = imageService;
         _trackService = trackService;
         _mediator = mediator;
-        _pilots = pilots;
         _velocidrone = velocidrone;
         _cupService = cupService;
         _discordCupMessenger = discordCupMessenger;
@@ -142,28 +139,11 @@ public class CompetitionConductor
 
         await _competitions.AddAsync(competition);
 
-        var pilotsFlownOnTrack = await GetPilotsFlownOnTrackAsync(trackResults);
-        Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} with {PilotCount} existing pilots on track {TrackName}", competition.Id, cupId, pilotsFlownOnTrack.Count, track.Name);
+        Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} on track {TrackName}", competition.Id, cupId, track.Name);
 
-        await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack, cupOptions));
+        await _mediator.Publish(new CompetitionStarted(competition, track, cupOptions));
 
         Log.Information("Competition {CompetitionId} setup completed successfully for cup {CupId}", competition.Id, cupId);
-    }
-
-    private async Task<IList<string>> GetPilotsFlownOnTrackAsync(TrackResults trackResults)
-    {
-        var userIds = trackResults.Times
-            .Where(t => t.UserId.HasValue)
-            .Select(t => t.UserId!.Value)
-            .ToList();
-
-        var names = await _pilots
-            .GetAll(p => userIds.Contains(p.Id))
-            .Select(p => p.Name)
-            .ToListAsync();
-
-        names.Sort();
-        return names;
     }
 
     public async Task StopAsync(string cupId)

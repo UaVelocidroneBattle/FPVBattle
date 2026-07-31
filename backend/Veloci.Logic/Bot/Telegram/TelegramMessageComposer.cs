@@ -17,7 +17,7 @@ public class TelegramMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack, string? quadOfTheDay)
+    public string StartCompetition(Track track, string? quadOfTheDay)
     {
         var rating = string.Empty;
 
@@ -25,10 +25,6 @@ public class TelegramMessageComposer
         {
             rating = $"Попередній рейтинг: *{Math.Round(track.Rating.Value.Value, 1):F1}*{Environment.NewLine}{Environment.NewLine}";
         }
-
-        var flownPilotsText = pilotsFlownOnTrack.Count != 0 ?
-            $"Трек вже літали:{Environment.NewLine}*{string.Join(", ", pilotsFlownOnTrack)}*{Environment.NewLine}" :
-            $"Трек ще ніхто з вас не літав.{Environment.NewLine}";
 
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
@@ -41,7 +37,6 @@ public class TelegramMessageComposer
                $"{quadOfTheDayText}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
-               $"{flownPilotsText}{Environment.NewLine}" +
                $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
     }
 
