@@ -2,7 +2,7 @@
 @model UserPilotsViewModel
 
 @{
-    ViewData["Title"] = "User Pilots";
+    ViewData["Title"] = "Users";
 }
 
 @if (TempData["Error"] is string error)
@@ -12,39 +12,8 @@
 
 <section class="panel">
     <header class="panel-head">
-        <h2 class="panel-title">Link User to Pilot</h2>
-    </header>
-    <div class="panel-body">
-        @if (!Model.UnlinkedUsers.Any())
-        {
-            <span class="text-muted">All users are already linked to a pilot.</span>
-        }
-        else
-        {
-            <form asp-action="Link" method="post" class="d-flex gap-2 align-items-end flex-wrap">
-                <div>
-                    <label class="form-label mb-1">User</label>
-                    <select name="userId" class="form-select w-auto" required>
-                        @foreach (var user in Model.UnlinkedUsers)
-                        {
-                            <option value="@user.UserId">@user.Email</option>
-                        }
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label mb-1">Pilot Name <span class="text-muted">(exact, case sensitive)</span></label>
-                    <input type="text" name="pilotName" class="form-control" required />
-                </div>
-                <button type="submit" class="btn btn-primary">Link</button>
-            </form>
-        }
-    </div>
-</section>
-
-<section class="panel">
-    <header class="panel-head">
-        <h2 class="panel-title">Connections</h2>
-        <span class="panel-count">@Model.Users.Count</span>
+        <h2 class="panel-title">Users</h2>
+        <span class="panel-count" id="usersCount">@Model.Users.Count</span>
     </header>
     @if (Model.Users.Count == 0)
     {
@@ -52,36 +21,207 @@
     }
     else
     {
+        <div class="table-toolbar">
+            <input type="search" id="userSearch" class="form-control form-control-sm" placeholder="Search by email, name or pilot…" />
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="unlinkedOnlyFilter" />
+                <label class="form-check-label" for="unlinkedOnlyFilter">Show only unlinked users</label>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table">
+            <table class="table" id="usersTable">
                 <thead>
                     <tr>
-                        <th>Email</th>
-                        <th>Display Name</th>
-                        <th>Pilot</th>
+                        <th data-sort="email">Email</th>
+                        <th data-sort="displayName">Display Name</th>
+                        <th data-sort="pilotName">Pilot</th>
+                        <th data-sort="country">Country</th>
+                        <th data-sort="dayStreak" data-sort-type="number">Day Streak</th>
+                        <th data-sort="freezies" data-sort-type="number">Freezies</th>
+                        <th data-sort="registeredOn">Registered</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var user in Model.Users)
                     {
-                        <tr>
+                        <tr data-email="@user.Email.ToLowerInvariant()"
+                            data-display-name="@(user.DisplayName?.ToLowerInvariant() ?? "")"
+                            data-pilot-name="@(user.PilotName?.ToLowerInvariant() ?? "")"
+                            data-linked="@(user.PilotName is not null ? "true" : "false")"
+                            data-country="@(user.CountryName?.ToLowerInvariant() ?? "")"
+                            data-day-streak="@(user.DayStreak ?? -1)"
+                            data-freezies="@(user.Freezies ?? -1)"
+                            data-registered-on="@user.RegisteredOn.ToString("s")">
                             <td class="mono">@user.Email</td>
                             <td>@(user.DisplayName ?? "—")</td>
                             <td class="mono">@(user.PilotName ?? "—")</td>
+                            <td>@(user.CountryName ?? "—")</td>
+                            <td class="mono">@(user.DayStreak?.ToString() ?? "—")</td>
+                            <td class="mono">@(user.Freezies?.ToString() ?? "—")</td>
+                            <td class="mono">@user.RegisteredOn.ToString("dd.MM.yyyy HH:mm")</td>
                             <td class="text-end">
-                                @if (user.PilotName is not null)
-                                {
-                                    <form asp-action="Unlink" method="post">
-                                        <input type="hidden" name="userId" value="@user.UserId" />
-                                        <button type="submit" class="btn btn-sm btn-danger">Unlink</button>
-                                    </form>
-                                }
+                                <div class="dropdown">
+                                    <button type="button" class="btn-icon" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Actions">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <circle cx="8" cy="2.5" r="1.5" />
+                                            <circle cx="8" cy="8" r="1.5" />
+                                            <circle cx="8" cy="13.5" r="1.5" />
+                                        </svg>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        @if (user.PilotName is null)
+                                        {
+                                            <li>
+                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#linkModal" data-user-id="@user.UserId">
+                                                    Link a pilot
+                                                </button>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addFreeziesModal" data-user-id="@user.UserId">
+                                                    Add freezies
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <form asp-action="Unlink" method="post" onsubmit="return confirm('Are you sure?');">
+                                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                                    <button type="submit" class="dropdown-item text-danger">Unlink user from pilot</button>
+                                                </form>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                     }
+                    <tr id="usersNoMatch" class="d-none">
+                        <td colspan="8" class="text-center text-muted">No users match your search.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     }
 </section>
+
+<div class="modal fade" id="linkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Link" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Link a Pilot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label mb-1">Pilot <span class="text-muted">(exact, case sensitive)</span></label>
+                    <input type="text" name="pilotName" id="linkModalPilotName" class="form-control" required />
+                </div>
+                <input type="hidden" name="userId" id="linkModalUserId" />
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addFreeziesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AddFreezies" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Freezies</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label mb-1">Freezies amount</label>
+                    <input type="number" name="amount" id="addFreeziesModalAmount" class="form-control" min="1" value="1" required />
+                </div>
+                <input type="hidden" name="userId" id="addFreeziesModalUserId" />
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('linkModal').addEventListener('show.bs.modal', function (event) {
+            document.getElementById('linkModalUserId').value = event.relatedTarget.dataset.userId;
+            document.getElementById('linkModalPilotName').value = '';
+        });
+
+        document.getElementById('addFreeziesModal').addEventListener('show.bs.modal', function (event) {
+            document.getElementById('addFreeziesModalUserId').value = event.relatedTarget.dataset.userId;
+            document.getElementById('addFreeziesModalAmount').value = 1;
+        });
+
+        const usersTable = document.getElementById('usersTable');
+        if (usersTable) {
+            const searchInput = document.getElementById('userSearch');
+            const unlinkedOnlyFilter = document.getElementById('unlinkedOnlyFilter');
+            const rows = Array.from(usersTable.querySelectorAll('tbody tr[data-email]'));
+            const noMatchRow = document.getElementById('usersNoMatch');
+            const countLabel = document.getElementById('usersCount');
+
+            function applyFilters() {
+                const term = searchInput.value.trim().toLowerCase();
+                const onlyUnlinked = unlinkedOnlyFilter.checked;
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const matchesSearch = !term
+                        || row.dataset.email.includes(term)
+                        || row.dataset.displayName.includes(term)
+                        || row.dataset.pilotName.includes(term);
+                    const matchesLinkFilter = !onlyUnlinked || row.dataset.linked === 'false';
+                    const visible = matchesSearch && matchesLinkFilter;
+
+                    row.classList.toggle('d-none', !visible);
+                    if (visible) visibleCount++;
+                });
+
+                noMatchRow.classList.toggle('d-none', visibleCount > 0);
+                countLabel.textContent = visibleCount;
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+            unlinkedOnlyFilter.addEventListener('change', applyFilters);
+
+            const tbody = usersTable.querySelector('tbody');
+            const sortableHeaders = usersTable.querySelectorAll('th[data-sort]');
+            let currentSort = { key: null, dir: 1 };
+
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const key = header.dataset.sort;
+                    const isNumber = header.dataset.sortType === 'number';
+
+                    currentSort.dir = currentSort.key === key ? -currentSort.dir : 1;
+                    currentSort.key = key;
+
+                    sortableHeaders.forEach(h => h.removeAttribute('aria-sort'));
+                    header.setAttribute('aria-sort', currentSort.dir === 1 ? 'ascending' : 'descending');
+
+                    const sorted = [...rows].sort((a, b) => {
+                        const valueA = a.dataset[key];
+                        const valueB = b.dataset[key];
+                        const cmp = isNumber
+                            ? parseFloat(valueA) - parseFloat(valueB)
+                            : valueA.localeCompare(valueB);
+
+                        return cmp * currentSort.dir;
+                    });
+
+                    sorted.forEach(row => tbody.insertBefore(row, noMatchRow));
+                });
+            });
+        }
+    </script>
+}

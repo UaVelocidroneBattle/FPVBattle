@@ -78,8 +78,8 @@
                             <tr>
                                 <td class="mono">@entry.Track.Name</td>
                                 <td>@(entry.Quad?.Name ?? "—")</td>
-                                <td>@(entry.ScheduledOn?.ToString("yyyy-MM-dd") ?? "—")</td>
-                                <td>@entry.AddedOn.ToString("yyyy-MM-dd")</td>
+                                <td>@(entry.ScheduledOn?.ToString("dd.MM.yyyy") ?? "—")</td>
+                                <td>@entry.AddedOn.ToString("dd.MM.yyyy")</td>
                                 <td class="text-end">
                                     <form asp-action="Remove" method="post">
                                         <input type="hidden" name="id" value="@entry.Id" />

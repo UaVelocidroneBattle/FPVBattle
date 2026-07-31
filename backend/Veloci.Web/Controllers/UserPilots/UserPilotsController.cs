@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.PilotBinding.Services;
+using Veloci.Logic.Helpers;
 
 namespace Veloci.Web.Controllers.UserPilots;
 
@@ -21,6 +22,7 @@ public class UserPilotsController : AdminControllerBase
     {
         var users = await _users.GetAll()
             .Include(u => u.Pilot)
+            .ThenInclude(p => p.DayStreakFreezes)
             .OrderBy(u => u.Email)
             .ToListAsync();
 
@@ -29,7 +31,11 @@ public class UserPilotsController : AdminControllerBase
             UserId = u.Id,
             Email = u.Email ?? string.Empty,
             DisplayName = u.DisplayName,
-            PilotName = u.Pilot?.Name
+            RegisteredOn = u.CreatedOn,
+            PilotName = u.Pilot?.Name,
+            CountryName = u.Pilot is null ? null : TextHelper.CountryName(u.Pilot.Country),
+            DayStreak = u.Pilot?.DayStreak,
+            Freezies = u.Pilot?.DayStreakFreezeCount
         }).ToList();
 
         return View(new UserPilotsViewModel { Users = rows });
@@ -64,6 +70,35 @@ public class UserPilotsController : AdminControllerBase
                        ?? throw new InvalidOperationException("User not found");
 
             await _bindingService.UnlinkAsync(user);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddFreezies(string userId, int amount)
+    {
+        try
+        {
+            var user = await _users.FindAsync(userId)
+                       ?? throw new InvalidOperationException("User not found");
+            var pilot = user.Pilot
+                        ?? throw new InvalidOperationException("User is not linked to a pilot");
+
+            if (amount <= 0)
+                throw new InvalidOperationException("Freezies amount must be greater than zero");
+
+            var today = DateTime.Today;
+            for (var i = 0; i < amount; i++)
+            {
+                pilot.DayStreakFreezes.Add(new DayStreakFreeze(today));
+            }
+
+            await _users.SaveChangesAsync();
         }
         catch (Exception ex)
         {
