@@ -200,20 +200,6 @@ export type SeasonResult = {
     country: string;
 };
 
-export type GetApiMigrationCalculatePilotPropertiesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/migration/CalculatePilotProperties';
-};
-
-export type GetApiMigrationCalculatePilotPropertiesResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
 export type GetApiRatingsGetData = {
     body?: never;
     path?: never;
@@ -345,6 +331,20 @@ export type GetApiPilotsProfileResponses = {
 };
 
 export type GetApiPilotsProfileResponse = GetApiPilotsProfileResponses[keyof GetApiPilotsProfileResponses];
+
+export type GetApiMigrationCalculatePilotPropertiesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/migration/CalculatePilotProperties';
+};
+
+export type GetApiMigrationCalculatePilotPropertiesResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetApiLandingGetData = {
     body?: never;

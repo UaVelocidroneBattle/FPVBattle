@@ -5,18 +5,6 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/migration/CalculatePilotProperties": {
-      "get": {
-        "tags": [
-          "Migration"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/ratings/get": {
       "get": {
         "tags": [
@@ -282,6 +270,18 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/migration/CalculatePilotProperties": {
+      "get": {
+        "tags": [
+          "Migration"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -1395,9 +1395,6 @@
   },
   "tags": [
     {
-      "name": "Migration"
-    },
-    {
       "name": "Rating"
     },
     {
@@ -1405,6 +1402,9 @@
     },
     {
       "name": "Pilots"
+    },
+    {
+      "name": "Migration"
     },
     {
       "name": "Landing"

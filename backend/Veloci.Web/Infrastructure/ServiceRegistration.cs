@@ -11,7 +11,7 @@ using Veloci.Logic.Features.Leagues;
 using Veloci.Logic.Features.QuadOfTheDay;
 using Veloci.Logic.Services.Pilots;
 using Veloci.Logic.Services.Tracks;
-using Veloci.Web.Controllers.Heatmap;
+using Veloci.Web.Controllers.Api.Heatmap;
 
 namespace Veloci.Web.Infrastructure;
 

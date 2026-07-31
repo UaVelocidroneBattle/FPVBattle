@@ -26,7 +26,7 @@
             <a class="side-link @Active("TrackQueue")" asp-controller="TrackQueue" asp-action="Index">Track Queue</a>
 
             <div class="nav-label">Pilots</div>
-            <a class="side-link @Active("UserPilots")" asp-controller="UserPilots" asp-action="Index">Users</a>
+            <a class="side-link @Active("Users")" asp-controller="Users" asp-action="Index">Users</a>
             <a class="side-link @Active("PilotClaims")" asp-controller="PilotClaims" asp-action="Index">Pilot Claims</a>
 
             <div class="nav-label">System</div>
@@ -38,7 +38,7 @@
             <h1>@ViewData["Title"]</h1>
             <partial name="_LoginPartial"/>
         </header>
-        <main role="main" class="content">
+        <main role="main" class="content @ViewData["ContentClass"]">
             @RenderBody()
         </main>
     </div>
