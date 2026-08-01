@@ -19,10 +19,17 @@ namespace Veloci.Data.Migrations
             // ever run via the monthly "7 0 1 * *" job, so the real (unrecorded) retirement date
             // was always the 1st - and season leaderboards filter league lookups by
             // "Date <= start of season month", which a "now" date can fall outside of.
+            // upper(...) matters: hex() is uppercase already, but the '89ab' variant nibble
+            // literal isn't, so an unwrapped/lower()-wrapped expression can end up mixed- or
+            // fully-lowercase. Microsoft.Data.Sqlite's default Guid parameter binding renders
+            // uppercase text, and SQLite's TEXT comparison is case-sensitive - a lowercase Id
+            // here is readable via SELECT but permanently unreachable by EF Core's UPDATE/DELETE
+            // (see NormalizePilotLeagueIdCasing, which had to clean up rows this produced when
+            // it still said lower(...)).
             migrationBuilder.Sql("""
                 INSERT INTO PilotLeagues (Id, PilotId, CupId, Date, League, Status)
                 SELECT
-                    lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' ||
+                    upper(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' ||
                         substr(hex(randomblob(2)), 2) || '-' ||
                         substr('89ab', 1 + (abs(random()) % 4), 1) || substr(hex(randomblob(2)), 2) || '-' ||
                         hex(randomblob(6))),
