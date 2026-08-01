@@ -1,3 +1,4 @@
+using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -32,6 +33,9 @@ public class LeagueService
         _mediator = mediator;
     }
 
+    private const int MaxConcurrencyRetries = 3;
+
+    [DisableConcurrentExecution("UpdatePilotLeagues", 60)]
     public async Task UpdatePilotLeaguesAsync()
     {
         var cupIds = _cupService.GetEnabledCupIds();
@@ -45,8 +49,38 @@ public class LeagueService
                 continue;
             }
 
-            await _paceRatingCalculator.CalculateForCupAsync(cupId);
-            await UpdatePilotLeaguesAsync(cupId);
+            // A conflict on one cup shouldn't take down every other cup's league update, and
+            // shouldn't be given up on after a single attempt either - reload the entries EF
+            // flagged as conflicting and retry, so the update actually lands instead of the
+            // job just moving on. UpdatePilotLeaguesAsync(cupId) is safe to re-run: pilots
+            // already migrated to their target league are no-ops via the League == league check.
+            for (var attempt = 1; attempt <= MaxConcurrencyRetries; attempt++)
+            {
+                try
+                {
+                    await _paceRatingCalculator.CalculateForCupAsync(cupId);
+                    await UpdatePilotLeaguesAsync(cupId);
+                    break;
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    if (attempt == MaxConcurrencyRetries)
+                    {
+                        Log.Error(ex, "Giving up on league update for cup {CupId} after {Attempts} attempts", cupId, attempt);
+                        break;
+                    }
+
+                    Log.Warning(ex, "Concurrency conflict updating leagues for cup {CupId}, reloading and retrying (attempt {Attempt}/{MaxAttempts})",
+                        cupId, attempt, MaxConcurrencyRetries);
+
+                    foreach (var entry in ex.Entries)
+                    {
+                        await entry.ReloadAsync();
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(attempt * 2));
+                }
+            }
         }
     }
 
