@@ -108,6 +108,7 @@ public class PaceRatingCalculator
         Log.Information("Cup {CupId}: storing {RatingCount} pilot ratings", cupId, ratings.Count);
 
         await _ratings.AddRangeAsync(ratings);
+        await _ratings.SaveChangesAsync();
     }
 
     private IEnumerable<PilotStats> ComputeCompetitionStats(Competition competition)

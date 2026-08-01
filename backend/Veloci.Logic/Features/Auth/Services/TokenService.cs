@@ -39,6 +39,7 @@ public class TokenService
             CreatedOn = DateTime.UtcNow,
             ExpiresOn = DateTime.UtcNow.AddDays(options.RefreshTokenLifetimeDays)
         });
+        await _refreshTokens.SaveChangesAsync();
 
         return new AuthTokensModel
         {
@@ -60,6 +61,7 @@ public class TokenService
     {
         token.RevokedOn = DateTime.UtcNow;
         await _refreshTokens.UpdateAsync(token);
+        await _refreshTokens.SaveChangesAsync();
     }
 
     private string CreateAccessToken(ApplicationUser user, DateTime expiresAt)

@@ -29,24 +29,38 @@ public class Repository<T> : IRepository<T> where T : class
         return DbSet.FindAsync(id);
     }
 
+    /// <summary>
+    /// Stages the entry for insertion. Does not persist - call <see cref="SaveChangesAsync()"/>
+    /// explicitly once all changes for the unit of work are staged.
+    /// </summary>
     public virtual async Task AddAsync(T entry)
     {
         await DbSet.AddAsync(entry);
-        await SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Stages the entries for insertion. Does not persist - call <see cref="SaveChangesAsync()"/>
+    /// explicitly once all changes for the unit of work are staged.
+    /// </summary>
     public virtual async Task AddRangeAsync(IEnumerable<T> entries)
     {
         await DbSet.AddRangeAsync(entries);
-        await SaveChangesAsync();
     }
 
-    public virtual async Task UpdateAsync(T entry)
+    /// <summary>
+    /// Stages the entry for update. Does not persist - call <see cref="SaveChangesAsync()"/>
+    /// explicitly once all changes for the unit of work are staged.
+    /// </summary>
+    public virtual Task UpdateAsync(T entry)
     {
         DbSet.Update(entry);
-        await DbContext.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Stages the entry for removal. Does not persist - call <see cref="SaveChangesAsync()"/>
+    /// explicitly once all changes for the unit of work are staged.
+    /// </summary>
     public virtual async Task RemoveAsync(object id)
     {
         var dbEntry = await FindAsync(id);
@@ -56,7 +70,6 @@ public class Repository<T> : IRepository<T> where T : class
 
         CheckIfDetached(dbEntry);
         DbSet.Remove(dbEntry);
-        await DbContext.SaveChangesAsync();
     }
 
     public async Task SaveChangesAsync(CancellationToken ct)

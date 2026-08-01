@@ -74,6 +74,7 @@ public class TrackQueueService
         };
 
         await _trackQueue.AddAsync(queuedTrack);
+        await _trackQueue.SaveChangesAsync();
 
         Log.Information("✅ Track '{TrackName}' (ID: {TrackId}) queued for cup {CupId}, scheduled on {ScheduledOn}",
             dbTrack.Name, dbTrack.TrackId, cupId, (object?)scheduleOn ?? "next available date");
@@ -130,6 +131,7 @@ public class TrackQueueService
     {
         Log.Information("Removing queued track {Id} from queue", id);
         await _trackQueue.RemoveAsync(id);
+        await _trackQueue.SaveChangesAsync();
     }
 
     private bool AlreadyScheduledOnTheDate(string cupId, DateTime date)

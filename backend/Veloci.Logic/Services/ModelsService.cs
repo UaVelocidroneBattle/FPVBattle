@@ -39,7 +39,10 @@ public class ModelsService
         }
 
         if (newModels.Count > 0)
+        {
             await _quadModels.AddRangeAsync(newModels);
+            await _quadModels.SaveChangesAsync();
+        }
     }
 
     public async Task<int?> GetQuadClassAsync(string quadName)

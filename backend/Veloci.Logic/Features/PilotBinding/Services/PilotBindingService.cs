@@ -83,11 +83,10 @@ public class PilotBindingService
         claim.CreatedOn = DateTime.UtcNow;
         claim.ExpiresOn = claim.CreatedOn + ClaimLifetime;
 
-        // AddAsync saves immediately, so the claim must be fully populated by now
         if (isNew)
             await _claims.AddAsync(claim);
-        else
-            await _claims.SaveChangesAsync();
+
+        await _claims.SaveChangesAsync();
 
         Log.Information("User {UserId} claimed pilot {PilotName}, awaiting verification race until {ExpiresOn}",
             user.Id, claim.PilotName, claim.ExpiresOn);
@@ -116,6 +115,7 @@ public class PilotBindingService
             return;
 
         await _claims.RemoveAsync(claim.Id);
+        await _claims.SaveChangesAsync();
         Log.Information("User {UserId} cancelled the claim for pilot {PilotName}", user.Id, claim.PilotName);
     }
 
@@ -137,7 +137,10 @@ public class PilotBindingService
         var claim = await GetClaimAsync(user);
 
         if (claim is not null)
+        {
             await _claims.RemoveAsync(claim.Id);
+            await _claims.SaveChangesAsync();
+        }
 
         Log.Information("Manually linked user {UserId} to pilot {PilotName} ({PilotId})", user.Id, pilot.Name, pilot.Id);
     }
@@ -163,6 +166,7 @@ public class PilotBindingService
     public async Task DeleteClaimAsync(PilotClaim claim)
     {
         await _claims.RemoveAsync(claim.Id);
+        await _claims.SaveChangesAsync();
         Log.Information("Deleted claim of user {UserId} for pilot {PilotName}", claim.UserId, claim.PilotName);
     }
 
@@ -191,6 +195,7 @@ public class PilotBindingService
         if (await IsPilotLinkedAsync(pilot.Id))
         {
             await _claims.RemoveAsync(claim.Id);
+            await _claims.SaveChangesAsync(ct);
             Log.Warning("Removed claim of user {UserId} for pilot {PilotName}: the pilot is already linked to another account",
                 claim.UserId, pilot.Name);
             return;
@@ -201,12 +206,13 @@ public class PilotBindingService
         if (user is null || user.PilotId is not null)
         {
             await _claims.RemoveAsync(claim.Id);
+            await _claims.SaveChangesAsync(ct);
             return;
         }
 
         user.PilotId = pilot.Id;
-        await _users.SaveChangesAsync(ct);
         await _claims.RemoveAsync(claim.Id);
+        await _users.SaveChangesAsync(ct);
 
         Log.Information("Linked user {UserId} to pilot {PilotName} ({PilotId}) after a verified race",
             user.Id, pilot.Name, pilot.Id);

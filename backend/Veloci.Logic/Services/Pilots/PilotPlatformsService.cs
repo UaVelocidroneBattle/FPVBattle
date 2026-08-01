@@ -27,6 +27,7 @@ public class PilotPlatformsService
             };
 
             await _pilotPlatforms.AddAsync(newAccount);
+            await _pilotPlatforms.SaveChangesAsync();
             return;
         }
 

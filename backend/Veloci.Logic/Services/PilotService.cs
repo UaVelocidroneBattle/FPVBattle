@@ -53,6 +53,7 @@ public class PilotService
             };
 
             await _pilots.AddAsync(newPilot);
+            await _pilots.SaveChangesAsync();
             await _mediator.Publish(new NewPilot(newPilot, cupId));
             return;
         }

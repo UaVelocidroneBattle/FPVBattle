@@ -88,6 +88,7 @@ public class PatreonSyncJob
         if (newSupporters.Any())
         {
             await _supportersRepository.AddRangeAsync(newSupporters);
+            await _supportersRepository.SaveChangesAsync(ct);
             _log.Information("Added {Count} new supporters", newSupporters.Count);
 
             // Send notifications for new supporters

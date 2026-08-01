@@ -138,6 +138,7 @@ public class CompetitionConductor
         competition.QuadOfTheDay = quad;
 
         await _competitions.AddAsync(competition);
+        await _competitions.SaveChangesAsync();
 
         Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} on track {TrackName}", competition.Id, cupId, track.Name);
 
