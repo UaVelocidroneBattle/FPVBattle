@@ -6,6 +6,7 @@ import { SiDiscord, SiInstagram } from "react-icons/si";
 import { TbBrandPatreonFilled } from "react-icons/tb";
 import logo from "/logo.svg";
 import AuthControls from "@/components/auth/AuthControls";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 
@@ -39,6 +40,8 @@ function LayoutMain() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const closeMobileMenu = () => setMobileMenuOpen(false);
     const user = useAuthStore((state) => state.user);
+
+    usePageMeta();
 
     useEffect(() => {
         const { restore } = useAuthStore.getState();

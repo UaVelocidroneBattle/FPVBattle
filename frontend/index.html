@@ -4,7 +4,25 @@
     <meta charset="UTF-8" />
     <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FPV Battle</title>
+
+    <!--
+      Defaults for crawlers and link-preview bots, which read this static HTML
+      and never run the app. usePageMeta() overrides title/description/canonical
+      per route once React mounts.
+    -->
+    <title>FPV Battle — Daily Velocidrone Competitions &amp; Leaderboards</title>
+    <meta name="description" content="FPV Battle runs daily Velocidrone racing competitions. A new track every day, live leaderboards, global rating, day streaks and achievements for sim pilots." />
+    <link rel="canonical" href="https://ua-velocidrone.fun/" />
+    <meta name="theme-color" content="#243665" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FPV Battle" />
+    <meta property="og:title" content="FPV Battle — Daily Velocidrone Competitions &amp; Leaderboards" />
+    <meta property="og:description" content="FPV Battle runs daily Velocidrone racing competitions. A new track every day, live leaderboards, global rating, day streaks and achievements for sim pilots." />
+    <meta property="og:url" content="https://ua-velocidrone.fun/" />
+    <meta property="og:image" content="https://ua-velocidrone.fun/web-app-manifest-512x512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
@@ -12,6 +30,43 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
+
+    <!--
+      Structured data. `sameAs` tells Google that this site and the Patreon /
+      Discord / Telegram / Instagram profiles are the same organisation, which
+      is what links the branded "FPV Battle" query back to this domain.
+    -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://ua-velocidrone.fun/#organization",
+          "name": "FPV Battle",
+          "url": "https://ua-velocidrone.fun/",
+          "logo": "https://ua-velocidrone.fun/web-app-manifest-512x512.png",
+          "description": "Daily Velocidrone racing competitions with leaderboards, global rating, day streaks and achievements.",
+          "sameAs": [
+            "https://patreon.com/FPVBattle",
+            "https://discord.gg/FrpC2WV8Cw",
+            "https://t.me/fpv_velocidrone_ua",
+            "https://www.instagram.com/fpv_battle/",
+            "https://github.com/UaVelocidroneBattle/FPVBattle"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://ua-velocidrone.fun/#website",
+          "name": "FPV Battle",
+          "alternateName": "FPVBattle",
+          "url": "https://ua-velocidrone.fun/",
+          "inLanguage": "en",
+          "publisher": { "@id": "https://ua-velocidrone.fun/#organization" }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
