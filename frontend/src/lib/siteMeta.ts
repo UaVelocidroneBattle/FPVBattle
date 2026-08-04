@@ -5,7 +5,7 @@
  * `index.html` (canonical, og:url, og:image, JSON-LD), `public/robots.txt`
  * and `public/sitemap.xml` — those are static files the app never touches.
  */
-export const SITE_URL = 'https://ua-velocidrone.fun';
+export const SITE_URL = 'https://fpv-battle.fun';
 
 /** Appended to every title except the landing page, so the brand is in each search result. */
 const BRAND_SUFFIX = ' | FPV Battle';

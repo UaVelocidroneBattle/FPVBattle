@@ -36,7 +36,7 @@ public class DiscordMessageComposer
                $"{rating}" +
                $"{quadOfTheDayText}" +
                $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
-               $"👾 Instructions, statistics and more here:{Environment.NewLine}https://ua-velocidrone.fun/{Environment.NewLine}⠀";
+               $"👾 Instructions, statistics and more here:{Environment.NewLine}https://fpv-battle.fun/{Environment.NewLine}⠀";
     }
 
     public BotPoll Poll(string trackName)

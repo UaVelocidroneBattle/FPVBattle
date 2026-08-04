@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /profile
 
-Sitemap: https://ua-velocidrone.fun/sitemap.xml
+Sitemap: https://fpv-battle.fun/sitemap.xml

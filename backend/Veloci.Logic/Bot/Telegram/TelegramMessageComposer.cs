@@ -37,7 +37,7 @@ public class TelegramMessageComposer
                $"{quadOfTheDayText}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
-               $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://ua-velocidrone.fun/*{Environment.NewLine}";
+               $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://fpv-battle.fun/*{Environment.NewLine}";
     }
 
     public string BadTrackRating()
