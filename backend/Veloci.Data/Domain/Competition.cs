@@ -147,6 +147,16 @@ public static class QueryableCompetitionExtensions
         }
 
         /// <summary>
+        /// Filters competitions that have been closed, i.e. the ones whose final
+        /// <see cref="Competition.CompetitionResults"/> have been calculated
+        /// </summary>
+        /// <returns></returns>
+        public IQueryable<Competition> Closed()
+        {
+            return query.Where(comp => comp.State == CompetitionState.Closed);
+        }
+
+        /// <summary>
         /// Filters competitions by cup ID
         /// </summary>
         /// <param name="cupId">Cup identifier (e.g., "open-class", "whoop")</param>

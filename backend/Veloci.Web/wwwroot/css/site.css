@@ -22,6 +22,20 @@
     --danger-bg: #fbeaea;
     --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+
+    /* Chart series. The ORDER is the colourblind-safety mechanism, not decoration:
+       these eight were validated as a sequence, so slots must be handed out in
+       order and never cycled or re-sorted. A series takes its slot from the
+       entity's own position (a cup's order in configuration), never from its rank
+       in the current view, so filtering never repaints the survivors. */
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --series-6: #008300;
+    --series-7: #4a3aa7;
+    --series-8: #e34948;
 }
 
 html {
@@ -245,6 +259,144 @@ a {
 .form-check-input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 0.2rem rgba(244, 88, 28, 0.15);
+}
+
+/* --- Charts ---------------------------------------------------------------- */
+
+/* Segmented time-range picker. Built from radio inputs so the selected range is
+   exposed to assistive tech; the inputs themselves are visually replaced by their
+   labels. Sits in a .table-toolbar row above the chart it scopes. */
+.range-picker {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.range-picker input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.range-picker label {
+    margin: 0;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    background: var(--paper);
+    cursor: pointer;
+    user-select: none;
+    border-left: 1px solid var(--line);
+    transition: background 0.12s, color 0.12s;
+}
+
+.range-picker label:first-of-type {
+    border-left: 0;
+}
+
+.range-picker label:hover {
+    background: var(--cloud);
+    color: var(--ink);
+}
+
+.range-picker input:checked + label {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.range-picker input:focus-visible + label {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* Fixed height keeps the canvas from growing without bound while Chart.js
+   measures its container on resize. */
+.chart-frame {
+    position: relative;
+    height: 380px;
+    padding: 18px 20px;
+}
+
+/* While a new range loads, the previous render stays put and only fades, so the
+   panel keeps its height and the reader never watches the layout jump. */
+.chart-frame.is-loading {
+    opacity: 0.5;
+    transition: opacity 0.12s;
+}
+
+.chart-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: var(--muted);
+}
+
+/* The accessible fallback for the chart: the same numbers as a table. */
+.chart-table-toggle {
+    border-top: 1px solid var(--line);
+}
+
+.chart-table-toggle > summary {
+    padding: 12px 20px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+}
+
+.chart-table-toggle > summary::-webkit-details-marker {
+    display: none;
+}
+
+.chart-table-toggle > summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform 0.12s;
+}
+
+.chart-table-toggle[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.chart-table-toggle > summary:hover {
+    color: var(--ink);
+}
+
+/* Long histories scroll inside the panel rather than stretching the page. */
+.chart-table-scroll {
+    max-height: 420px;
+    overflow-y: auto;
+    border-top: 1px solid var(--line);
+}
+
+/* The header rides along so the series a column belongs to stays readable
+   however far down the history you scroll. It needs an opaque background of
+   its own (the .table override makes cells transparent) and draws its bottom
+   rule as an inset shadow — a real border would be dropped by the collapsed
+   border model once the header detaches. */
+.chart-table-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--paper);
+    box-shadow: inset 0 -1px 0 var(--line);
+}
+
+/* A short stroke of the series colour next to the column heading, so the table
+   carries series identity the same way the legend does. */
+.series-key {
+    display: inline-block;
+    width: 12px;
+    height: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 1px;
 }
 
 /* --- Home tiles ---------------------------------------------------------- */
