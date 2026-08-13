@@ -138,7 +138,7 @@ public class LeaderboardCalculator : ILeaderboardCalculator
         var pilotResults = await _competitions
             .GetAll(comp => comp.StartedOn >= from && comp.StartedOn <= to)
             .ForCup(cupId)
-            .Where(comp => comp.State != CompetitionState.Cancelled)
+            .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)
             .GroupBy(result => result.PilotId)
             .Select(group => new

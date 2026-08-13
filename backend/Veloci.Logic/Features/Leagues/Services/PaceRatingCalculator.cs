@@ -69,7 +69,7 @@ public class PaceRatingCalculator
         var competitions = await _competitions.GetAll()
             .ForCup(cupId)
             .Where(c => c.StartedOn >= since)
-            .Where(c => c.State == CompetitionState.Closed)
+            .Closed()
             .Include(c => c.CompetitionResults)
             .Include(c => c.QuadOfTheDay)
             .ToListAsync();

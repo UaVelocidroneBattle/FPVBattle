@@ -78,7 +78,8 @@ public class QuadOfTheDayService
     private async Task<bool> LastCompetitionWasQuadOfTheDayAsync(string cupId)
     {
         var lastCompetition = await _competitions
-            .GetAll(c => c.State == CompetitionState.Closed)
+            .GetAll()
+            .Closed()
             .ForCup(cupId)
             .OrderByDescending(c => c.StartedOn)
             .FirstOrDefaultAsync();
