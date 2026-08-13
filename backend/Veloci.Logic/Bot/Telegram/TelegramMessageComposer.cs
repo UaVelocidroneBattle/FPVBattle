@@ -49,7 +49,7 @@ public class TelegramMessageComposer
         {
             var header = showHeaders ? $"*{l.League.ToUpper()}*{Environment.NewLine}{Environment.NewLine}" : string.Empty;
             var rows = TempLeaderboardRows(l.Results);
-            return $"{header}`{TelegramMarkdown.EscapeCodeText(string.Join(Environment.NewLine, rows))}`";
+            return $"{header}`{TelegramMarkdown.Escape(string.Join(Environment.NewLine, rows))}`";
         });
 
         return $"🧐 Проміжні результати:{Environment.NewLine}{Environment.NewLine}" +
@@ -70,7 +70,7 @@ public class TelegramMessageComposer
         });
 
         return $"🏆 Результати дня{Environment.NewLine}" +
-               $"Трек: *{TelegramMarkdown.EscapeUserText(trackName)}*{Environment.NewLine}{Environment.NewLine}" +
+               $"Трек: *{TelegramMarkdown.Escape(trackName)}*{Environment.NewLine}{Environment.NewLine}" +
                $"{string.Join($"{Environment.NewLine}{Environment.NewLine}", sections)}";
     }
 
@@ -113,12 +113,12 @@ public class TelegramMessageComposer
                $"З іншого боку, це гарний привід обігнати самого себе і подивитись на свій прогрес.{Environment.NewLine}{Environment.NewLine}" +
                $"👎 *{model.TracksSkipped} треків* були настільки ганебні, що довелось їх одразу замінити.{Environment.NewLine}{Environment.NewLine}" +
                $"👍 Але ваш улюблений трек року:{Environment.NewLine}" +
-               $"*{TelegramMarkdown.EscapeUserText(model.FavoriteTrack)}*{Environment.NewLine}" +
+               $"*{TelegramMarkdown.Escape(model.FavoriteTrack)}*{Environment.NewLine}" +
                $"Це переможець за вашими голосами!";
 
-        var mostFrequentPilot = TelegramMarkdown.EscapeUserText(model.PilotWhoCameTheMost.name);
-        var rarestPilot = TelegramMarkdown.EscapeUserText(model.PilotWhoCameTheLeast.name);
-        var goldenPilot = TelegramMarkdown.EscapeUserText(model.PilotWithTheMostGoldenMedal.name);
+        var mostFrequentPilot = TelegramMarkdown.Escape(model.PilotWhoCameTheMost.name);
+        var rarestPilot = TelegramMarkdown.Escape(model.PilotWhoCameTheLeast.name);
+        var goldenPilot = TelegramMarkdown.Escape(model.PilotWithTheMostGoldenMedal.name);
 
         var second = $"👥 В минулому році тут з'являлись імена *{model.TotalPilotCount}* пілотів.{Environment.NewLine}{Environment.NewLine}" +
                      $"🥷 *Чемпіон відвідувань: {mostFrequentPilot}.* Цей відчайдух пролетів *{model.PilotWhoCameTheMost.count} треків* за рік!{Environment.NewLine}" +
@@ -131,7 +131,7 @@ public class TelegramMessageComposer
 
         foreach (var pilot in model.Top3Pilots)
         {
-            third += $"*{TelegramMarkdown.EscapeUserText(pilot.Key)}* - *{pilot.Value}* балів{Environment.NewLine}";
+            third += $"*{TelegramMarkdown.Escape(pilot.Key)}* - *{pilot.Value}* балів{Environment.NewLine}";
         }
 
         third += $"{Environment.NewLine}Непогано, авжеж? Дякуємо, що продовжуєте літати і стаєте ще швидшими! 🚀";
@@ -161,12 +161,12 @@ public class TelegramMessageComposer
 
     public string NewPilot(Pilot pilot)
     {
-        return $"🎉 Вітаємо нового пілота {TextHelper.CountryFlagWithSpace(pilot.Country)}*{TelegramMarkdown.EscapeUserText(pilot.Name)}*";
+        return $"🎉 Вітаємо нового пілота {TextHelper.CountryFlagWithSpace(pilot.Country)}*{TelegramMarkdown.Escape(pilot.Name)}*";
     }
 
     public string PilotRenamed(string oldName, string newName)
     {
-        return $"✏️ Пілот *{TelegramMarkdown.EscapeUserText(oldName)}* перейменувався на *{TelegramMarkdown.EscapeUserText(newName)}*";
+        return $"✏️ Пілот *{TelegramMarkdown.Escape(oldName)}* перейменувався на *{TelegramMarkdown.Escape(newName)}*";
     }
 
     public string EndOfSeasonStatistics(EndOfSeasonStatisticsDto statistics)
@@ -181,7 +181,7 @@ public class TelegramMessageComposer
 
     public string FreezieAdded(string pilotName)
     {
-        return $"❄️ *{TelegramMarkdown.EscapeUserText(pilotName)}* отримав додатковий freezie";
+        return $"❄️ *{TelegramMarkdown.Escape(pilotName)}* отримав додатковий freezie";
     }
 
     public string RestartTrack()
@@ -196,24 +196,24 @@ public class TelegramMessageComposer
     /// characters cannot break the message it is placed into.
     /// </summary>
     private static string PilotName(string name) =>
-        TelegramMarkdown.EscapeUserText(TextHelper.Trim(name, PilotNameMaxLength));
+        TelegramMarkdown.Escape(TextHelper.Trim(name, PilotNameMaxLength));
 
     /// <summary>
     /// Formats a track as a bold "map - `track`" heading, with both names escaped.
     /// </summary>
     private static string TrackHeading(Track track) =>
-        $"*{TelegramMarkdown.EscapeUserText(track.Map.Name)} - `{TelegramMarkdown.EscapeCodeText(track.Name)}`*";
+        $"*{TelegramMarkdown.Escape(track.Map.Name)} - `{TelegramMarkdown.Escape(track.Name)}`*";
 
     private static string QuadOfTheDayText(string? quadOfTheDay) =>
         quadOfTheDay is null
             ? string.Empty
-            : $"⚠️ Квад дня: *{TelegramMarkdown.EscapeUserText(quadOfTheDay)}*{Environment.NewLine}{Environment.NewLine}";
+            : $"⚠️ Квад дня: *{TelegramMarkdown.Escape(quadOfTheDay)}*{Environment.NewLine}{Environment.NewLine}";
 
     private string TimeUpdate(TrackTimeDelta delta)
     {
         var timeChangePart = delta.TimeChange.HasValue ? $" ({TrackTimeConverter.MsToSec(delta.TimeChange.Value)}s)" : string.Empty;
         var rankOldPart = delta.RankOld.HasValue ? $" (#{delta.RankOld})" : string.Empty;
-        var modelPart = delta.ModelName is not null ? $" / {TelegramMarkdown.EscapeUserText(delta.ModelName)}" : string.Empty;
+        var modelPart = delta.ModelName is not null ? $" / {TelegramMarkdown.Escape(delta.ModelName)}" : string.Empty;
         var flag = TextHelper.CountryFlagWithSpace(delta.Country);
 
         return $"{flag}*{PilotName(delta.Pilot.Name)}*{modelPart}{Environment.NewLine}" +
@@ -291,9 +291,9 @@ public class TelegramMessageComposer
         {
             var line = update switch
             {
-                { OldLeague: null } => $"▫️ {TelegramMarkdown.EscapeUserText(update.PilotName)} → *{update.NewLeague?.ToUpper()}*",
-                { NewLeague: null } => $"▫️ {TelegramMarkdown.EscapeUserText(update.PilotName)} покидає *{update.OldLeague?.ToUpper()}*",
-                _ => $"▫️ {TelegramMarkdown.EscapeUserText(update.PilotName)} *{update.OldLeague?.ToUpper()}* → *{update.NewLeague?.ToUpper()}*"
+                { OldLeague: null } => $"▫️ {TelegramMarkdown.Escape(update.PilotName)} → *{update.NewLeague?.ToUpper()}*",
+                { NewLeague: null } => $"▫️ {TelegramMarkdown.Escape(update.PilotName)} покидає *{update.OldLeague?.ToUpper()}*",
+                _ => $"▫️ {TelegramMarkdown.Escape(update.PilotName)} *{update.OldLeague?.ToUpper()}* → *{update.NewLeague?.ToUpper()}*"
             };
 
             sb.AppendLine(line);

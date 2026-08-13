@@ -6,26 +6,19 @@ namespace Veloci.Logic.Bot.Telegram;
 /// MarkdownV2 escaping for Telegram messages.
 ///
 /// A composed message mixes markup we write ourselves (<c>*bold*</c>, <c>`code`</c>) with values
-/// supplied by pilots, such as pilot, track and quad names. The two need opposite treatment, so
-/// escaping happens in two passes over disjoint character sets:
+/// supplied by pilots, such as pilot, track and quad names. Composers escape the values with
+/// <see cref="Escape"/>; the messenger escapes the finished message with
+/// <see cref="EscapeComposedMessage"/> just before sending.
 ///
-/// <list type="bullet">
-/// <item><see cref="EscapeUserText"/> and <see cref="EscapeCodeText"/> are applied by the composers
-/// to every user-supplied value, and escape the reserved characters we use as markup. Without this,
-/// a name like <c>kim*tendo</c> leaves a bold entity unterminated and Telegram rejects the whole
-/// message.</item>
-/// <item><see cref="EscapeMessage"/> is applied by the messenger to the finished message, and
-/// escapes the remaining reserved characters, which never carry meaning for us.</item>
-/// </list>
-///
-/// Because the sets are disjoint, a value is never escaped twice.
+/// The two cover disjoint character sets — between them every reserved character is escaped
+/// exactly once, and no value is escaped twice. Composers never need the second method.
 /// </summary>
 public static class TelegramMarkdown
 {
     /// <summary>
     /// Reserved characters our composers use as markup, plus the escape character itself.
-    /// Escaped in user-supplied values only — escaping them message-wide would strip the
-    /// formatting we intend.
+    /// Escaped in supplied values only — escaping them message-wide would strip the formatting
+    /// we intend.
     /// </summary>
     private const string MarkupCharacters = @"*`[]~>|{}=\";
 
@@ -35,25 +28,17 @@ public static class TelegramMarkdown
     private const string LiteralCharacters = ".!-+_()#";
 
     /// <summary>
-    /// The only characters that carry meaning inside a code entity.
+    /// Escapes a value coming from outside the codebase, so that it cannot break the markup of
+    /// the message it is placed into. Safe in every position, including inside a code entity,
+    /// where Telegram consumes the backslashes just the same.
     /// </summary>
-    private const string CodeCharacters = @"`\";
+    public static string Escape(string text) => Escape(text, MarkupCharacters);
 
     /// <summary>
-    /// Escapes a finished message, leaving our own markup intact.
+    /// Escapes a finished message, leaving our own markup intact. Called by the messenger on the
+    /// way out — composers want <see cref="Escape"/> instead.
     /// </summary>
-    public static string EscapeMessage(string message) => Escape(message, LiteralCharacters);
-
-    /// <summary>
-    /// Escapes a user-supplied value interpolated into regular text or markup.
-    /// </summary>
-    public static string EscapeUserText(string text) => Escape(text, MarkupCharacters);
-
-    /// <summary>
-    /// Escapes text interpolated inside a <c>`code`</c> entity, where our markup characters are
-    /// already literal and escaping them would show stray backslashes.
-    /// </summary>
-    public static string EscapeCodeText(string text) => Escape(text, CodeCharacters);
+    public static string EscapeComposedMessage(string message) => Escape(message, LiteralCharacters);
 
     private static string Escape(string text, string charactersToEscape)
     {

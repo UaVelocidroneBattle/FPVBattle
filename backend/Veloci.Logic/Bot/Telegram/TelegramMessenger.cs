@@ -30,7 +30,7 @@ public class TelegramMessenger : ITelegramMessenger
 
             await _client.SendTextMessageAsync(
                 chatId: chatId,
-                text: TelegramMarkdown.EscapeMessage(message),
+                text: TelegramMarkdown.EscapeComposedMessage(message),
                 parseMode: ParseMode.MarkdownV2);
 
             _log.Debug("Telegram message sent successfully with {MessageLength} characters to {ChatId}",
@@ -53,7 +53,7 @@ public class TelegramMessenger : ITelegramMessenger
                 chatId: chatId,
                 replyToMessageId: replyToMessageId,
                 parseMode: ParseMode.MarkdownV2,
-                text: TelegramMarkdown.EscapeMessage(message));
+                text: TelegramMarkdown.EscapeComposedMessage(message));
 
             _log.Debug("Telegram reply sent successfully as message {ReplyMessageId}", result.MessageId);
             return result.MessageId;
@@ -73,7 +73,7 @@ public class TelegramMessenger : ITelegramMessenger
             return;
         }
 
-        var escapedCaption = caption is not null ? TelegramMarkdown.EscapeMessage(caption) : null;
+        var escapedCaption = caption is not null ? TelegramMarkdown.EscapeComposedMessage(caption) : null;
 
         try
         {
@@ -104,7 +104,7 @@ public class TelegramMessenger : ITelegramMessenger
 
         file.Position = 0; // Weird fix. It throws an exception without
 
-        var escapedCaption = caption is not null ? TelegramMarkdown.EscapeMessage(caption) : null;
+        var escapedCaption = caption is not null ? TelegramMarkdown.EscapeComposedMessage(caption) : null;
 
         try
         {

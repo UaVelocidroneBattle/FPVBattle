@@ -5,10 +5,32 @@ namespace Veloci.Tests;
 
 public class TelegramMarkdownTests
 {
-    [Fact]
-    public void EscapeMessage_KeepsOurOwnMarkupIntact()
+    [Theory]
+    [InlineData("kim*tendo", "kim\\*tendo")]
+    [InlineData("a`b", "a\\`b")]
+    [InlineData("a[b]c", "a\\[b\\]c")]
+    [InlineData("a~b", "a\\~b")]
+    [InlineData("a|b", "a\\|b")]
+    [InlineData("a{b}c", "a\\{b\\}c")]
+    [InlineData("a>b", "a\\>b")]
+    [InlineData("a=b", "a\\=b")]
+    [InlineData("a\\b", "a\\\\b")]
+    public void Escape_EscapesCharactersWeUseAsMarkup(string text, string expected)
     {
-        TelegramMarkdown.EscapeMessage("*bold* and `code`")
+        TelegramMarkdown.Escape(text).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Escape_LeavesTheRestToTheMessagePass()
+    {
+        // The two passes cover disjoint sets, so a value is never escaped twice.
+        TelegramMarkdown.Escape("fpv.rodriguez").Should().Be("fpv.rodriguez");
+    }
+
+    [Fact]
+    public void EscapeComposedMessage_KeepsOurOwnMarkupIntact()
+    {
+        TelegramMarkdown.EscapeComposedMessage("*bold* and `code`")
             .Should().Be("*bold* and `code`");
     }
 
@@ -20,37 +42,19 @@ public class TelegramMarkdownTests
     [InlineData("_Yui_", "\\_Yui\\_")]
     [InlineData("(note)", "\\(note\\)")]
     [InlineData("#tag", "\\#tag")]
-    public void EscapeMessage_EscapesCharactersWeNeverUseAsMarkup(string message, string expected)
+    public void EscapeComposedMessage_EscapesCharactersWeNeverUseAsMarkup(string message, string expected)
     {
-        TelegramMarkdown.EscapeMessage(message).Should().Be(expected);
-    }
-
-    [Theory]
-    [InlineData("kim*tendo", "kim\\*tendo")]
-    [InlineData("a`b", "a\\`b")]
-    [InlineData("a[b]c", "a\\[b\\]c")]
-    [InlineData("a~b", "a\\~b")]
-    [InlineData("a|b", "a\\|b")]
-    [InlineData("a{b}c", "a\\{b\\}c")]
-    [InlineData("a>b", "a\\>b")]
-    [InlineData("a=b", "a\\=b")]
-    [InlineData("a\\b", "a\\\\b")]
-    public void EscapeUserText_EscapesCharactersWeUseAsMarkup(string text, string expected)
-    {
-        TelegramMarkdown.EscapeUserText(text).Should().Be(expected);
+        TelegramMarkdown.EscapeComposedMessage(message).Should().Be(expected);
     }
 
     [Fact]
-    public void EscapeUserText_LeavesEscapingOfTheRestToTheMessagePass()
+    public void TheTwoPassesCoverEveryReservedCharacterExactlyOnce()
     {
-        // The two passes cover disjoint character sets, so a value is never escaped twice.
-        TelegramMarkdown.EscapeUserText("fpv.rodriguez").Should().Be("fpv.rodriguez");
-    }
+        const string reserved = @"_*[]()~`>#+-=|{}.!\";
 
-    [Fact]
-    public void EscapeCodeText_OnlyEscapesWhatBreaksACodeEntity()
-    {
-        TelegramMarkdown.EscapeCodeText("a*b`c\\d").Should().Be("a*b\\`c\\\\d");
+        var escaped = TelegramMarkdown.EscapeComposedMessage(TelegramMarkdown.Escape(reserved));
+
+        escaped.Should().Be(string.Concat(reserved.Select(c => $"\\{c}")));
     }
 
     [Fact]
@@ -58,9 +62,9 @@ public class TelegramMarkdownTests
     {
         // Regression: the pilot "kim*tendo⁶⁴" left a bold entity unterminated, and Telegram
         // rejected every monthly leaderboard that included them.
-        var composed = $"56 - *{TelegramMarkdown.EscapeUserText("kim*tendo⁶⁴")}* - 1 балів";
+        var composed = $"56 - *{TelegramMarkdown.Escape("kim*tendo⁶⁴")}* - 1 балів";
 
-        TelegramMarkdown.EscapeMessage(composed)
+        TelegramMarkdown.EscapeComposedMessage(composed)
             .Should().Be("56 \\- *kim\\*tendo⁶⁴* \\- 1 балів");
     }
 }
