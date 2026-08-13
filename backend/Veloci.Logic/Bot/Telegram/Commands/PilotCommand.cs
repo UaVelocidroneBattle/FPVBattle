@@ -40,7 +40,7 @@ public class PilotCommand : ITelegramCommand
             ? profile.LastRaceDate.Value.ToString("dd MMM yyyy")
             : "-";
 
-        return $"👤 *{pilot.Name}*{Environment.NewLine}{Environment.NewLine}" +
+        return $"👤 *{TelegramMarkdown.Escape(pilot.Name)}*{Environment.NewLine}{Environment.NewLine}" +
                $"Last race date: *{lastRaceDateText}*{Environment.NewLine}" +
                $"Day streak: *{pilot.DayStreak}*{Environment.NewLine}" +
                $"Max day streak: *{pilot.MaxDayStreak}*{Environment.NewLine}" +

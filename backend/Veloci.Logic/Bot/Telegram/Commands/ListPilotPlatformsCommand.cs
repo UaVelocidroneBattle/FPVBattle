@@ -30,11 +30,11 @@ public class ListPilotPlatformsCommand : ITelegramCommand
 
         foreach (var pilot in pilots)
         {
-            result.AppendLine($"*{pilot.Name}*:");
+            result.AppendLine($"*{TelegramMarkdown.Escape(pilot.Name)}*:");
 
             foreach (var account in pilot.PlatformAccounts)
             {
-                result.AppendLine($" - {account.PlatformName}: {account.Username}");
+                result.AppendLine($" - {account.PlatformName}: {TelegramMarkdown.Escape(account.Username)}");
             }
 
             result.AppendLine();

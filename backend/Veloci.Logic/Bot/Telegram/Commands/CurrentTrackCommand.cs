@@ -38,12 +38,14 @@ public class CurrentTrackCommand : ITelegramCommand
         if (competition is null)
             return "(No track)";
 
-        var trackName = $"*{competition.Track.Map.Name} - `{competition.Track.Name}`*";
+        var trackName = $"*{TelegramMarkdown.Escape(competition.Track.Map.Name)} - " +
+                        $"`{TelegramMarkdown.Escape(competition.Track.Name)}`*";
 
         if (competition.QuadOfTheDay is null)
             return trackName;
 
-        return $"{trackName}{Environment.NewLine}{Environment.NewLine}⚠️ Квад дня: *{competition.QuadOfTheDay.Name}*";
+        return $"{trackName}{Environment.NewLine}{Environment.NewLine}" +
+               $"⚠️ Квад дня: *{TelegramMarkdown.Escape(competition.QuadOfTheDay.Name)}*";
     }
 
     public bool RemoveMessageAfterDelay => false;
