@@ -30,7 +30,7 @@ public class TelegramMessenger : ITelegramMessenger
 
             await _client.SendTextMessageAsync(
                 chatId: chatId,
-                text: EscapeMarkdownV2(message),
+                text: TelegramMarkdown.EscapeMessage(message),
                 parseMode: ParseMode.MarkdownV2);
 
             _log.Debug("Telegram message sent successfully with {MessageLength} characters to {ChatId}",
@@ -53,7 +53,7 @@ public class TelegramMessenger : ITelegramMessenger
                 chatId: chatId,
                 replyToMessageId: replyToMessageId,
                 parseMode: ParseMode.MarkdownV2,
-                text: EscapeMarkdownV2(message));
+                text: TelegramMarkdown.EscapeMessage(message));
 
             _log.Debug("Telegram reply sent successfully as message {ReplyMessageId}", result.MessageId);
             return result.MessageId;
@@ -73,7 +73,7 @@ public class TelegramMessenger : ITelegramMessenger
             return;
         }
 
-        var escapedCaption = caption is not null ? EscapeMarkdownV2(caption) : null;
+        var escapedCaption = caption is not null ? TelegramMarkdown.EscapeMessage(caption) : null;
 
         try
         {
@@ -104,7 +104,7 @@ public class TelegramMessenger : ITelegramMessenger
 
         file.Position = 0; // Weird fix. It throws an exception without
 
-        var escapedCaption = caption is not null ? EscapeMarkdownV2(caption) : null;
+        var escapedCaption = caption is not null ? TelegramMarkdown.EscapeMessage(caption) : null;
 
         try
         {
@@ -144,17 +144,4 @@ public class TelegramMessenger : ITelegramMessenger
             _log.Error(ex, "Telegram. Failed to remove message {MessageId} from chat {ChatId}", messageId, chatId);
         }
     }
-
-    /// <summary>
-    /// Escapes special characters for Telegram MarkdownV2 format
-    /// </summary>
-    private static string EscapeMarkdownV2(string message) => message
-        .Replace(".", "\\.")
-        .Replace("!", "\\!")
-        .Replace("-", "\\-")
-        .Replace("+", "\\+")
-        .Replace("_", "\\_")
-        .Replace(")", "\\)")
-        .Replace("(", "\\(")
-        .Replace("#", "\\#");
 }

@@ -29,8 +29,8 @@ public class ListPatreonSupportersCommand : ITelegramCommand
 
         foreach (var supporter in ordered)
         {
-            var pilotName = supporter.Pilot?.Name ?? "Unlinked";
-            result.AppendLine($"*{supporter.Name}* ({supporter.TierName}) / Pilot: *{pilotName}*");
+            var pilotName = TelegramMarkdown.EscapeUserText(supporter.Pilot?.Name ?? "Unlinked");
+            result.AppendLine($"*{TelegramMarkdown.EscapeUserText(supporter.Name)}* ({supporter.TierName}) / Pilot: *{pilotName}*");
         }
 
         return result.ToString();
