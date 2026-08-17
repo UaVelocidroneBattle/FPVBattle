@@ -21,6 +21,7 @@ import PilotPerformancePage from './pages/statistics/performance/PilotPerformanc
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
+import LegacyRatingRedirect from './pages/statistics/global-rating/LegacyRatingRedirect.tsx'
 import LandingPage from './pages/landing/LandingPage.tsx'
 import ProfilePage from './pages/profile/ProfilePage.tsx'
 import { registerAuthInterceptor } from './api/authInterceptor.ts'
@@ -35,8 +36,9 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<MainLayout />}>
             <Route index element={<LandingPage />} />
             <Route path='profile' element={<ProfilePage />} />
-            <Route path='open' element={<CompetitionPage cupId="open-class" />} />
-            <Route path='whoop' element={<CompetitionPage cupId="whoop-class" />} />
+            {/* Paths used before cup ids became the URL. */}
+            <Route path='open' element={<Navigate to="/open-class" replace />} />
+            <Route path='whoop' element={<Navigate to="/whoop-class" replace />} />
             <Route path='guide' element={<RulesLayout />}>
               <Route index element={<Navigate to="getting-started" replace />} />
               <Route path="getting-started" element={<GettingStartedPage />} />
@@ -49,15 +51,24 @@ createRoot(document.getElementById('root')!).render(
               <Route path="achievements" element={<AchievementsPage />} />
               <Route path="support" element={<SupportPage />} />
             </Route>
+            {/* The rating keeps the statistics sidebar but not its URL prefix.
+                Without a cup the page redirects to the first configured one. */}
+            <Route element={<StatisticsPage />}>
+              <Route path='global-rating/:cupId?' element={<GlobalRatingPage />} />
+            </Route>
             <Route path='statistics' element={<StatisticsPage />} >
-              <Route index element={<Navigate to="global-rating" replace />} />
-              <Route path="global-rating" element={<GlobalRatingPage />} />
+              <Route index element={<Navigate to="/global-rating" replace />} />
+              {/* Where the rating used to live. */}
+              <Route path="global-rating/:cupId?" element={<LegacyRatingRedirect />} />
               <Route path="profile/:pilot?" element={<PilotProfilePage />} />
               <Route path="daystreaks" element={<DayStreaksPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />
               <Route path="performance" element={<PilotPerformancePage />} />
             </Route>
+            {/* A cup id is its own URL, e.g. /open-class. Keep last: it matches
+                anything the routes above did not. */}
+            <Route path=':cupId' element={<CompetitionPage />} />
           </Route>
         </Route>
       </Routes>

@@ -517,6 +517,44 @@
         }
       }
     },
+    "/api/cups/get": {
+      "get": {
+        "tags": [
+          "Cups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CupModel"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CupModel"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CupModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/competitions/current": {
       "get": {
         "tags": [
@@ -887,6 +925,21 @@
           "pilots": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "CupModel": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -1622,6 +1675,9 @@
     },
     {
       "name": "DayStreak"
+    },
+    {
+      "name": "Cups"
     },
     {
       "name": "Competitions"

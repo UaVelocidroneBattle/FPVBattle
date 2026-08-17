@@ -6,6 +6,7 @@ import { SiDiscord, SiInstagram } from "react-icons/si";
 import { TbBrandPatreonFilled } from "react-icons/tb";
 import logo from "/logo.svg";
 import AuthControls from "@/components/auth/AuthControls";
+import { useCups } from "@/hooks/useCups";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
@@ -40,6 +41,7 @@ function LayoutMain() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const closeMobileMenu = () => setMobileMenuOpen(false);
     const user = useAuthStore((state) => state.user);
+    const { cups } = useCups();
 
     usePageMeta();
 
@@ -65,8 +67,9 @@ function LayoutMain() {
                     {/* Desktop nav */}
                     <nav className="hidden lg:flex items-center gap-8">
                         <NavLink to="/" end className={navLinkClass}>Home</NavLink>
-                        <NavLink to="/open" className={navLinkClass}>Open Class</NavLink>
-                        <NavLink to="/whoop" className={navLinkClass}>Whoop Class</NavLink>
+                        {cups.map(cup => (
+                            <NavLink key={cup.id} to={`/${cup.id}`} className={navLinkClass}>{cup.name}</NavLink>
+                        ))}
                         <NavLink to="/guide" className={navLinkClass}>Guide</NavLink>
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
                         <div className="w-px h-5 bg-slate-600" />
@@ -88,8 +91,9 @@ function LayoutMain() {
                     {mobileMenuOpen && (
                         <nav className="lg:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
                             <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Home</NavLink>
-                            <NavLink to="/open" className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
-                            <NavLink to="/whoop" className={navLinkClass} onClick={closeMobileMenu}>Whoop Class</NavLink>
+                            {cups.map(cup => (
+                                <NavLink key={cup.id} to={`/${cup.id}`} className={navLinkClass} onClick={closeMobileMenu}>{cup.name}</NavLink>
+                            ))}
                             <NavLink to="/guide" className={navLinkClass} onClick={closeMobileMenu}>Guide</NavLink>
                             <NavLink to="/statistics" className={navLinkClass} onClick={closeMobileMenu}>Statistics</NavLink>
                             <SocialLinks />

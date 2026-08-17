@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Navigate, useParams } from 'react-router-dom';
 import LeaderBoard from '../../components/LeaderBoard';
 import { getCompetitionStore } from '../../store/competitionStore';
 import { useShallow } from 'zustand/shallow';
@@ -7,16 +8,12 @@ import CurrentLeaderboard from '@/components/CurrentLeaderBoard';
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { Error } from "@/components/ui/error.tsx";
 import { useUrlDateSync } from './useUrlDateSync';
-import { useAuthStore } from '@/store/authStore';
-import { useProfileStore } from '@/store/profileStore';
+import { useCups } from '@/hooks/useCups';
+import { useHighlightedPilot } from '@/hooks/useHighlightedPilot';
 
 const TEN_MINUTES = 10 * 60 * 1000;
 
-interface CompetitionPageProps {
-    cupId: string;
-}
-
-function CompetitionPage({ cupId }: CompetitionPageProps) {
+function CupCompetition({ cupId }: { cupId: string }) {
     const useStore = getCompetitionStore(cupId);
 
     useUrlDateSync(cupId);
@@ -46,9 +43,7 @@ function CompetitionPage({ cupId }: CompetitionPageProps) {
 
     const [flat, setFlat] = useState(false);
 
-    const user = useAuthStore((state) => state.user);
-    const linkedPilotName = useProfileStore((state) => state.profile?.pilot?.name);
-    const highlightPilotName = user && linkedPilotName ? linkedPilotName : null;
+    const highlightPilotName = useHighlightedPilot();
 
     if (state == 'Loading') {
         return <><Spinner /></>
@@ -117,6 +112,29 @@ function CompetitionPage({ cupId }: CompetitionPageProps) {
             </div>
         </div>
     );
+}
+
+function CompetitionPage() {
+    const { cupId } = useParams();
+    const { loadingState, findCup } = useCups();
+
+    if (loadingState === "Error") {
+        return <Error />;
+    }
+
+    if (loadingState !== "Loaded") {
+        return <Spinner />;
+    }
+
+    const cup = findCup(cupId);
+
+    // This route matches any unclaimed path, so anything that is not a cup
+    // belongs on the landing page.
+    if (!cup) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <CupCompetition key={cup.id} cupId={cup.id} />;
 }
 
 export default CompetitionPage;

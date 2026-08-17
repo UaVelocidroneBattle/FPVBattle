@@ -36,6 +36,11 @@ export type CountryPilotsModel = {
     pilots?: number;
 };
 
+export type CupModel = {
+    id: string;
+    name: string;
+};
+
 export type CupParticipationModel = {
     cupId: string;
     cupName: string;
@@ -470,6 +475,22 @@ export type GetApiDaystreakLeaderboardResponses = {
 };
 
 export type GetApiDaystreakLeaderboardResponse = GetApiDaystreakLeaderboardResponses[keyof GetApiDaystreakLeaderboardResponses];
+
+export type GetApiCupsGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/cups/get';
+};
+
+export type GetApiCupsGetResponses = {
+    /**
+     * OK
+     */
+    200: Array<CupModel>;
+};
+
+export type GetApiCupsGetResponse = GetApiCupsGetResponses[keyof GetApiCupsGetResponses];
 
 export type GetApiCompetitionsCurrentData = {
     body?: never;

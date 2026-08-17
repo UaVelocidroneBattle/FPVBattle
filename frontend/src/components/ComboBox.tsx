@@ -27,12 +27,15 @@ interface ComboBoxProps<TItem> {
     getKey: (item: TItem) => string;
     onSelect: (item: TItem) => void;
     value: TItem | null;
+    /** Richer rendering of an item, e.g. with a flag. Defaults to its label. */
+    renderLabel?: (item: TItem) => React.ReactNode;
 }
 
-const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect }: ComboBoxProps<T>) => {
+const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect, renderLabel }: ComboBoxProps<T>) => {
     const [open, setOpen] = React.useState(false)
 
-    const caption = value ? getLabel(value) : defaultCaption;
+    const render = renderLabel ?? getLabel;
+    const caption = value ? render(value) : defaultCaption;
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -66,10 +69,10 @@ const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect
                                     <Check
                                         className={cn(
                                             "mr-2 h-4 w-4 text-emerald-400",
-                                            value === getLabel(item) ? "opacity-100" : "opacity-0"
+                                            value !== null && getKey(value) === getKey(item) ? "opacity-100" : "opacity-0"
                                         )}
                                     />
-                                    {getLabel(item)}
+                                    {render(item)}
                                 </CommandItem>
                             ))}
                         </CommandGroup>
