@@ -36,6 +36,12 @@ export type CountryPilotsModel = {
     pilots?: number;
 };
 
+export type CupParticipationModel = {
+    cupId: string;
+    cupName: string;
+    counts: Array<number>;
+};
+
 export type CurrentUserModel = {
     id: string;
     email: string;
@@ -114,6 +120,16 @@ export type LinkedPilotModel = {
     lastRaceDate?: null | string;
 };
 
+export type NewPilotsCountModel = {
+    months: Array<string>;
+    counts: Array<number>;
+};
+
+export type ParticipationModel = {
+    days: Array<string>;
+    series: Array<CupParticipationModel>;
+};
+
 export type PendingClaimModel = {
     pilotName: string;
     expiresAt: string;
@@ -175,6 +191,11 @@ export type PilotResult = {
     trackTime: number;
 };
 
+export type PilotsCountModel = {
+    days: Array<string>;
+    totals: Array<number>;
+};
+
 export type ProfileModel = {
     displayName: string;
     email: string;
@@ -199,6 +220,60 @@ export type SeasonResult = {
     rank?: number;
     country: string;
 };
+
+export type GetApiPilotStatisticsCountData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/pilot-statistics/Count';
+};
+
+export type GetApiPilotStatisticsCountResponses = {
+    /**
+     * OK
+     */
+    200: PilotsCountModel;
+};
+
+export type GetApiPilotStatisticsCountResponse = GetApiPilotStatisticsCountResponses[keyof GetApiPilotStatisticsCountResponses];
+
+export type GetApiPilotStatisticsNewPilotsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        months?: number;
+    };
+    url: '/api/pilot-statistics/NewPilots';
+};
+
+export type GetApiPilotStatisticsNewPilotsResponses = {
+    /**
+     * OK
+     */
+    200: NewPilotsCountModel;
+};
+
+export type GetApiPilotStatisticsNewPilotsResponse = GetApiPilotStatisticsNewPilotsResponses[keyof GetApiPilotStatisticsNewPilotsResponses];
+
+export type GetApiPilotStatisticsParticipationData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/pilot-statistics/Participation';
+};
+
+export type GetApiPilotStatisticsParticipationResponses = {
+    /**
+     * OK
+     */
+    200: ParticipationModel;
+};
+
+export type GetApiPilotStatisticsParticipationResponse = GetApiPilotStatisticsParticipationResponses[keyof GetApiPilotStatisticsParticipationResponses];
 
 export type GetApiRatingsGetData = {
     body?: never;

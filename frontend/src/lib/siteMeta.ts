@@ -119,6 +119,11 @@ const PAGE_META: Record<string, PageMeta> = {
             'Every Velocidrone track used in the FPV Battle daily competition, with the results and fastest times recorded on each one.',
     },
     '/statistics/pilots': {
+        title: `Pilot Numbers${BRAND_SUFFIX}`,
+        description:
+            'How the FPV Battle pilot community is growing — total Velocidrone pilots over time, new pilots each month and daily participation.',
+    },
+    '/statistics/performance': {
         title: `Pilot Comparison${BRAND_SUFFIX}`,
         description:
             'Compare Velocidrone pilots head to head across their FPV Battle results, ratings and day streaks.',

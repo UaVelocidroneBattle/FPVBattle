@@ -1,5 +1,5 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
-import { PartialTheme } from '@nivo/theming';
+import { chartTheme, seriesColors } from '@/lib/chartTheme';
 import PilotsChartProps from './PilotChartProps';
 import AbsoluteChartTooltip from './AbsoluteChartTooltip';
 
@@ -33,43 +33,13 @@ const PilotsChartAbsolute = ({ pilots, results }: PilotsChartProps) => {
         <h2>No data</h2>
     </>
 
-    const theme: PartialTheme = {
-        text: { fill: 'rgba(203, 213, 225, 0.5)' },
-        crosshair: {
-            line: {
-                stroke: 'rgba(203, 213, 225, 0.5)',
-                strokeWidth: 1
-            }
-        },
-        grid: {
-            line: {
-                stroke: '#94a3b8',
-                strokeWidth: 1,
-                strokeOpacity: 0.2
-            }
-        },
-        axis: {
-            domain: { line: { stroke: 'rgba(203, 213, 225, 0.5)' } },
-            ticks: {
-                line: { stroke: 'rgba(203, 213, 225, 0.5)' },
-                text: { fill: 'rgba(203, 213, 225, 0.5)' },
-            },
-            legend: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
-        },
-        legends: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
-    };
-
-
     return (
         <ResponsiveLine
             data={filteredData}
-            theme={theme}
+            theme={chartTheme}
             margin={{ top: 20, right: 20, bottom: 100, left: 50 }}
             areaOpacity={0.3}
-            colors={[
-                'rgb(97, 205, 187)',
-                'rgb(244, 117, 96)'
-            ]}
+            colors={seriesColors}
             curve="monotoneX"
             tooltip={({ point }) => (
                 <AbsoluteChartTooltip

@@ -1,4 +1,4 @@
-import { UserRound, ChartNoAxesCombined, Trophy, Flame } from "lucide-react";
+import { UserRound, ChartNoAxesCombined, Trophy, Flame, Users } from "lucide-react";
 import SideMenuItem from "../../components/ui/SideMenuItem";
 
 const SideMenu = () => {
@@ -16,7 +16,10 @@ const SideMenu = () => {
                         <SideMenuItem to="daystreaks" icon={Flame} label="Day Streaks" />
                     </li>
                     <li className="hidden sm:flex flex-1 lg:flex-none">
-                        <SideMenuItem to="pilots" icon={ChartNoAxesCombined} label="Pilot stats" />
+                        <SideMenuItem to="pilots" icon={Users} label="Pilots" />
+                    </li>
+                    <li className="hidden sm:flex flex-1 lg:flex-none">
+                        <SideMenuItem to="performance" icon={ChartNoAxesCombined} label="Pilot performance" />
                     </li>
                 </ul>
             </nav>

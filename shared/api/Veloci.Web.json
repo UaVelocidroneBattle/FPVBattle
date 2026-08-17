@@ -5,6 +5,123 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/pilot-statistics/Count": {
+      "get": {
+        "tags": [
+          "PilotStatistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotsCountModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotsCountModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotsCountModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pilot-statistics/NewPilots": {
+      "get": {
+        "tags": [
+          "PilotStatistics"
+        ],
+        "parameters": [
+          {
+            "name": "months",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewPilotsCountModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewPilotsCountModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewPilotsCountModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pilot-statistics/Participation": {
+      "get": {
+        "tags": [
+          "PilotStatistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ratings/get": {
       "get": {
         "tags": [
@@ -773,6 +890,29 @@
           }
         }
       },
+      "CupParticipationModel": {
+        "required": [
+          "cupId",
+          "cupName",
+          "counts"
+        ],
+        "type": "object",
+        "properties": {
+          "cupId": {
+            "type": "string"
+          },
+          "cupName": {
+            "type": "string"
+          },
+          "counts": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
       "CurrentUserModel": {
         "required": [
           "id",
@@ -1043,6 +1183,49 @@
           }
         }
       },
+      "NewPilotsCountModel": {
+        "required": [
+          "months",
+          "counts"
+        ],
+        "type": "object",
+        "properties": {
+          "months": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "counts": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "ParticipationModel": {
+        "required": [
+          "days",
+          "series"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CupParticipationModel"
+            }
+          }
+        }
+      },
       "PendingClaimModel": {
         "required": [
           "pilotName",
@@ -1298,6 +1481,28 @@
           }
         }
       },
+      "PilotsCountModel": {
+        "required": [
+          "days",
+          "totals"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
       "ProfileModel": {
         "required": [
           "displayName",
@@ -1394,6 +1599,9 @@
     }
   },
   "tags": [
+    {
+      "name": "PilotStatistics"
+    },
     {
       "name": "Rating"
     },

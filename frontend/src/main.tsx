@@ -17,6 +17,7 @@ import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
 import CompetitionPage from './pages/competition/CompetitionPage.tsx'
 import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
 import DayStreaksPage from './pages/statistics/daystreaks/DayStreaksPage.tsx'
+import PilotPerformancePage from './pages/statistics/performance/PilotPerformancePage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
@@ -55,6 +56,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="daystreaks" element={<DayStreaksPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />
+              <Route path="performance" element={<PilotPerformancePage />} />
             </Route>
           </Route>
         </Route>

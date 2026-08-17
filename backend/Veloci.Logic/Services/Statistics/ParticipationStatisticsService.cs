@@ -47,7 +47,7 @@ public class ParticipationStatisticsService
             .GroupBy(comp => (comp.CupId, Day: comp.StartedOn.Date))
             .ToDictionary(group => group.Key, group => group.Sum(comp => comp.PilotCount));
 
-        var days = DaySpine(
+        var days = DateSpine.Days(
             from: pilotsPerCupPerDay.Keys.Min(key => key.Day),
             to: pilotsPerCupPerDay.Keys.Max(key => key.Day));
 
@@ -78,17 +78,5 @@ public class ParticipationStatisticsService
         var today = DateTime.Today;
 
         return competitions.InRange(from: today.AddDays(1 - lastDays.Value), to: today.AddDays(1));
-    }
-
-    /// <summary>
-    /// Every calendar day in <c>[from, to]</c>, so that days without a competition
-    /// take up their share of the horizontal axis instead of being collapsed away.
-    /// </summary>
-    private static List<DateTime> DaySpine(DateTime from, DateTime to)
-    {
-        return Enumerable
-            .Range(0, (to - from).Days + 1)
-            .Select(offset => from.AddDays(offset))
-            .ToList();
     }
 }
