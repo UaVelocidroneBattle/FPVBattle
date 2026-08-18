@@ -26,7 +26,7 @@ export function countryOptionsOf(pilots: { country: string | null }[]): CountryO
 
 function CountryLabel({ option }: { option: CountryOption }) {
     return (
-        <span className="flex items-center gap-2 truncate">
+        <span className="flex items-center gap-1.5 truncate">
             {option.code && <CountryFlag countryCode={option.code} className="rounded-sm" />}
             {option.name}
         </span>
@@ -37,13 +37,20 @@ interface CountryFilterProps {
     options: CountryOption[];
     value: CountryOption;
     onChange: (option: CountryOption) => void;
+    /** Follows the type around it: "sm" among a leaderboard's controls, "md" beside a page title. */
+    size?: "sm" | "md";
 }
 
-function CountryFilter({ options, value, onChange }: CountryFilterProps) {
+const textSizes = { sm: "text-xs", md: "text-sm" };
+
+/** A muted label, then the selection as plain text — no input box to draw the eye. */
+function CountryFilter({ options, value, onChange, size = "sm" }: CountryFilterProps) {
     return (
-        <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400">By country</span>
+        <div className="flex items-center gap-3">
+            <span className={`${textSizes[size]} text-slate-400`}>By country</span>
             <ComboBox
+                variant="inline"
+                triggerClassName={textSizes[size]}
                 defaultCaption={ALL_COUNTRIES.name}
                 items={options}
                 getKey={option => option.code ?? "all"}
