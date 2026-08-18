@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-VelocidroneBot backend follows a **Vertical Slices Architecture** within a **Modular Monolith** structure. This approach organizes code by business features rather than technical layers.
+FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular Monolith** structure. This approach organizes code by business features rather than technical layers.
 
 ### Core Architecture Principles
 - **Vertical Slices**: Each feature is self-contained with its own models, services, and handlers
@@ -260,6 +260,14 @@ Controllers/
 - API specification auto-generated to `shared/api/Veloci.Web.json`
 - Frontend consumes generated TypeScript client
 - Keep API models separate from domain models
+
+## Admin Pages (Razor Views)
+
+The admin dashboard (`Veloci.Web/Views/**`, e.g. Users, Pilot Claims, Track Queue) is server-rendered Razor/Bootstrap 5, not React.
+
+- **Date format**: always European `dd.MM.yyyy` (add `HH:mm` when time matters), e.g. `@entity.CreatedOn.ToString("dd.MM.yyyy HH:mm")`. Never `yyyy-MM-dd` or culture-default `ToString()`/`ToShortDateString()`.
+- Shared styling lives in `wwwroot/css/site.css` (design tokens under `:root`); reuse existing classes (`.panel`, `.table`, `.btn-icon`, `.dropdown-menu`, etc.) instead of inline styles.
+- Row-level actions beyond a single primary action go into a `.btn-icon` kebab-menu `.dropdown` (see `Views/UserPilots/Index.cshtml`) rather than a row of buttons.
 
 ## Service Registration
 

@@ -1,4 +1,5 @@
 using System.Text;
+using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Patreon.Models;
 
 namespace Veloci.Logic.Features.Patreon.Services;
@@ -16,7 +17,7 @@ public static class TelegramMessageGenerator
     {
         var messageIndex = Math.Abs(supporterName.GetHashCode()) % WelcomeMessages.Length;
         var template = WelcomeMessages[messageIndex];
-        var formattedName = $"*{supporterName}*";
+        var formattedName = $"*{TelegramMarkdown.Escape(supporterName)}*";
         var formattedTier = string.IsNullOrEmpty(tierName) ? "Patreon" : tierName;
 
         return string.Format(template, formattedName, formattedTier);
@@ -28,7 +29,7 @@ public static class TelegramMessageGenerator
 
         foreach (var entry in accrued.OrderByDescending(x => x.FreeziesAccrued))
         {
-            message.Append($"*{entry.PilotName}*: {entry.FreeziesAccrued} фрізів\n");
+            message.Append($"*{TelegramMarkdown.Escape(entry.PilotName)}*: {entry.FreeziesAccrued} фрізів\n");
         }
 
         message.Append("\nВикористовуйте з розумом!\n");

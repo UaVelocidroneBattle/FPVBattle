@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+
+Sitemap: https://fpv-battle.fun/sitemap.xml

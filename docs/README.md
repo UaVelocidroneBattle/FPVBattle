@@ -1,4 +1,4 @@
-# VelocidroneBot Documentation
+# FPV Battle Documentation
 
 This directory contains all project documentation including architectural decision records.
 

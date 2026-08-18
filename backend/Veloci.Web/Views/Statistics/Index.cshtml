@@ -1,0 +1,257 @@
+@using Veloci.Web.Controllers.Admin.Statistics
+@model ParticipationViewModel
+
+@{
+    ViewData["Title"] = "Participation";
+    ViewData["ContentClass"] = "content-wide";
+}
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Pilots per day</h2>
+        <span class="panel-count" id="participationRangeLabel"></span>
+    </header>
+
+    <div class="table-toolbar">
+        <div class="range-picker" role="group" aria-label="Time range">
+            @foreach (var range in Model.Ranges)
+            {
+                <input type="radio" name="participationRange" id="range-@range.Key" value="@range.Key"
+                       checked="@(range.Key == Model.SelectedRange.Key)"/>
+                <label for="range-@range.Key">@range.Label</label>
+            }
+        </div>
+    </div>
+
+    <div class="chart-frame" id="participationFrame">
+        <canvas id="participationChart" aria-label="Number of pilots who flew each day, one line per class. The same numbers are available in the data table below."></canvas>
+        <p class="chart-empty" id="participationEmpty" hidden>No competitions were closed in this period.</p>
+    </div>
+
+    <details class="chart-table-toggle">
+        <summary>Show data table</summary>
+        <div class="chart-table-scroll">
+            <table class="table" id="participationTable">
+                <thead>
+                    <tr id="participationTableHead">
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </details>
+
+    <script id="participationData" type="application/json">@Html.Raw(Model.ChartJson)</script>
+</section>
+
+@section Scripts {
+    <script src="~/lib/chart.js/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            const canvas = document.getElementById('participationChart');
+            if (!canvas) return;
+
+            const dataUrl = '@Url.Action("Participation")';
+            const selectedRange = '@Model.SelectedRange.Key';
+            // Canvas can't use CSS, so the chart reads the same design tokens the rest of
+            // the skin is built from rather than repeating their values here.
+            const styles = getComputedStyle(document.documentElement);
+            const token = name => styles.getPropertyValue(name).trim();
+
+            const INK = token('--ink');
+            const MUTED = token('--muted');
+            const LINE = token('--line');
+            const PAPER = token('--paper');
+
+            // A cup takes its colour slot from its position in the configuration, so its
+            // colour never shifts as ranges change.
+            const SERIES_COLOR_COUNT = 8;
+            const seriesColor = index => token(`--series-${(index % SERIES_COLOR_COUNT) + 1}`);
+
+            const formatDate = iso => {
+                const [year, month, day] = iso.split('-');
+                return `${day}.${month}.${year}`;
+            };
+
+            // Each range is fetched once; switching back to one already seen is free.
+            const cache = { [selectedRange]: JSON.parse(document.getElementById('participationData').textContent) };
+
+            const fetchRange = async range => {
+                if (!cache[range]) {
+                    const response = await fetch(`${dataUrl}?range=${encodeURIComponent(range)}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+                    cache[range] = await response.json();
+                }
+
+                return cache[range];
+            };
+
+            // A hairline at the hovered day, so the reader aims at a date rather than a 2px line.
+            const crosshair = {
+                id: 'crosshair',
+                afterDatasetsDraw(chart) {
+                    const active = chart.tooltip?.getActiveElements() ?? [];
+                    if (active.length === 0) return;
+
+                    const x = active[0].element.x;
+                    const { top, bottom } = chart.chartArea;
+                    const ctx = chart.ctx;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, top);
+                    ctx.lineTo(x, bottom);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = LINE;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            };
+
+            const chart = new Chart(canvas, {
+                type: 'line',
+                plugins: [crosshair],
+                data: { labels: [], datasets: [] },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    elements: {
+                        line: { borderWidth: 2, borderJoinStyle: 'round', borderCapStyle: 'round', tension: 0.2 },
+                        point: { radius: 0, hoverRadius: 4, hoverBorderWidth: 2, hoverBorderColor: PAPER }
+                    },
+                    plugins: {
+                        legend: {
+                            align: 'end',
+                            labels: { usePointStyle: true, pointStyle: 'line', color: MUTED, boxWidth: 24 }
+                        },
+                        tooltip: {
+                            backgroundColor: INK,
+                            padding: 10,
+                            usePointStyle: true,
+                            boxPadding: 4,
+                            callbacks: {
+                                title: items => formatDate(items[0].label),
+                                // Values lead, labels follow.
+                                label: item => ` ${item.formattedValue} — ${item.dataset.label}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { color: LINE },
+                            ticks: {
+                                color: MUTED,
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 8,
+                                callback(value) { return formatDate(this.getLabelForValue(value)); }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: LINE },
+                            border: { display: false },
+                            ticks: { color: MUTED, precision: 0 },
+                            title: { display: true, text: 'Pilots', color: MUTED }
+                        }
+                    }
+                }
+            });
+
+            const frame = document.getElementById('participationFrame');
+            const empty = document.getElementById('participationEmpty');
+            const rangeLabel = document.getElementById('participationRangeLabel');
+            const tableToggle = document.querySelector('.chart-table-toggle');
+            const tableHead = document.getElementById('participationTableHead');
+            const tableBody = document.querySelector('#participationTable tbody');
+            let current = null;
+
+            // Rendering a year of rows is only worth it once the reader asks for the table.
+            const renderTable = data => {
+                tableHead.replaceChildren(tableHead.firstElementChild);
+                data.series.forEach((cup, index) => {
+                    const th = document.createElement('th');
+                    const key = document.createElement('span');
+                    key.className = 'series-key';
+                    key.style.background = seriesColor(index);
+                    th.append(key, document.createTextNode(cup.name));
+                    tableHead.append(th);
+                });
+
+                const rows = document.createDocumentFragment();
+
+                data.days.forEach((day, index) => {
+                    const tr = document.createElement('tr');
+                    const date = document.createElement('td');
+                    date.className = 'mono';
+                    date.textContent = formatDate(day);
+                    tr.append(date);
+
+                    data.series.forEach(cup => {
+                        const td = document.createElement('td');
+                        td.className = 'mono';
+                        td.textContent = cup.counts[index] ?? '—';
+                        tr.append(td);
+                    });
+
+                    rows.append(tr);
+                });
+
+                tableBody.replaceChildren(rows);
+            };
+
+            const draw = data => {
+                current = data;
+
+                empty.hidden = data.days.length > 0;
+                canvas.hidden = data.days.length === 0;
+
+                chart.data.labels = data.days;
+                chart.data.datasets = data.series.map((cup, index) => ({
+                    label: cup.name,
+                    data: cup.counts,
+                    borderColor: seriesColor(index),
+                    backgroundColor: seriesColor(index),
+                    spanGaps: true
+                }));
+                chart.update();
+
+                rangeLabel.textContent = data.days.length === 1 ? '1 day' : `${data.days.length} days`;
+
+                if (tableToggle.open) renderTable(data);
+            };
+
+            const show = async range => {
+                // The previous render stays on screen, dimmed, so the panel never jumps.
+                frame.classList.add('is-loading');
+
+                try {
+                    draw(await fetchRange(range));
+
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('range', range);
+                    history.replaceState(null, '', url);
+                } catch (error) {
+                    rangeLabel.textContent = 'Could not load this range';
+                    console.error('Failed to load participation data', error);
+                } finally {
+                    frame.classList.remove('is-loading');
+                }
+            };
+
+            tableToggle.addEventListener('toggle', () => {
+                if (tableToggle.open) renderTable(current);
+            });
+
+            document.querySelectorAll('input[name="participationRange"]').forEach(input => {
+                input.addEventListener('change', () => show(input.value));
+            });
+
+            draw(cache[selectedRange]);
+        })();
+    </script>
+}

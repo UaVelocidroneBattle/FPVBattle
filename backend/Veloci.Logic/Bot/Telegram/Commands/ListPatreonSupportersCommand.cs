@@ -25,11 +25,12 @@ public class ListPatreonSupportersCommand : ITelegramCommand
             return "No Patreon supporters found.";
 
         var result = new StringBuilder();
+        var ordered = supporters.OrderBy(s => s.Pilot == null);
 
-        foreach (var supporter in supporters)
+        foreach (var supporter in ordered)
         {
-            var pilotName = supporter.Pilot?.Name ?? "Unlinked";
-            result.AppendLine($"*{supporter.Name}* ({supporter.TierName}) / Pilot: *{pilotName}*");
+            var pilotName = TelegramMarkdown.Escape(supporter.Pilot?.Name ?? "Unlinked");
+            result.AppendLine($"*{TelegramMarkdown.Escape(supporter.Name)}* ({supporter.TierName}) / Pilot: *{pilotName}*");
         }
 
         return result.ToString();

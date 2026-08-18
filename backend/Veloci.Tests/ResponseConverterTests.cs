@@ -84,7 +84,7 @@ public class ResponseConverterTests
         var third = times[2];
         third.PlayerName.Should().Be("FPV FPV");
         third.LocalRank.Should().Be(3);
-        third.GlobalRank.Should().Be(4); // Sarah (NL) was #3 globally; FPV FPV retains original API rank
+        third.GlobalRank.Should().Be(4); // Sarah (1003, unregistered) was #3 globally; FPV FPV retains original API rank
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public class ResponseConverterTests
     }
 
     [Fact]
-    public async Task blacklisted_country_is_excluded_even_when_pilot_is_whitelisted()
+    public async Task blacklisted_country_is_excluded_even_for_registered_pilot()
     {
         var json = /*language:json*/"""
                                     [
@@ -199,11 +199,93 @@ public class ResponseConverterTests
         var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
         data.Should().NotBeNull();
 
-        var converter = CreateConverter(whitelistedPilots: ["RU_PILOT"], blacklistedCountries: ["RU"]);
+        var converter = CreateConverter(blacklistedCountries: ["RU"]);
         var times = await converter.ConvertTrackTimesAsync(data!, []);
 
         times.Should().HaveCount(1);
         times[0].PlayerName.Should().Be("SWEEPER");
+    }
+
+    [Fact]
+    public async Task pilot_with_active_claim_is_included_before_pilot_exists()
+    {
+        var json = /*language:json*/"""
+                                    [
+                                        {
+                                          "lap_time": "56.055",
+                                          "playername": "NEWCOMER",
+                                          "model_name": "5inch",
+                                          "country": "NL",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 9999
+                                        }
+                                    ]
+                                    """;
+        var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
+
+        var converter = CreateConverter(claims: [ActiveClaim("NEWCOMER")]);
+        var times = await converter.ConvertTrackTimesAsync(data!, []);
+
+        times.Should().HaveCount(1);
+        times[0].PlayerName.Should().Be("NEWCOMER");
+    }
+
+    [Fact]
+    public async Task claimed_pilot_name_match_is_case_sensitive()
+    {
+        var json = /*language:json*/"""
+                                    [
+                                        {
+                                          "lap_time": "56.055",
+                                          "playername": "NEWCOMER",
+                                          "model_name": "5inch",
+                                          "country": "NL",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 9999
+                                        }
+                                    ]
+                                    """;
+        var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
+
+        var converter = CreateConverter(claims: [ActiveClaim("newcomer")]);
+        var times = await converter.ConvertTrackTimesAsync(data!, []);
+
+        times.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task expired_claim_is_ignored()
+    {
+        var json = /*language:json*/"""
+                                    [
+                                        {
+                                          "lap_time": "56.055",
+                                          "playername": "NEWCOMER",
+                                          "model_name": "5inch",
+                                          "country": "NL",
+                                          "sim_version": "1.0.0",
+                                          "device_type": 1,
+                                          "created_at": "2026-01-01T10:00:00Z",
+                                          "updated_at": "2026-01-01T10:00:00Z",
+                                          "user_id": 9999
+                                        }
+                                    ]
+                                    """;
+        var data = JsonSerializer.Deserialize<List<TrackTimeDto>>(json);
+        data.Should().NotBeNull();
+
+        var converter = CreateConverter(claims: [ExpiredClaim("NEWCOMER")]);
+        var times = await converter.ConvertTrackTimesAsync(data!, []);
+
+        times.Should().BeEmpty();
     }
 
     [Fact]
@@ -324,7 +406,8 @@ public class ResponseConverterTests
     }
 
     private static RaceResultsConverter CreateConverter(
-        string[] whitelistedPilots = null!,
+        int[] pilotIds = null!,
+        PilotClaim[] claims = null!,
         string[] blacklistedCountries = null!,
         QuadModel[] quadModels = null!)
     {
@@ -332,48 +415,103 @@ public class ResponseConverterTests
         {
             CountriesBlackList = blacklistedCountries?.ToList() ?? []
         });
+
+        // Sarah (1003) is intentionally not registered — tests rely on unknown pilots being filtered out
+        var pilots = (pilotIds ?? [1001, 1002, 1004]).Select(id => new Pilot { Id = id });
+
         return new RaceResultsConverter(
-            new FakeWhiteListService(whitelistedPilots ?? []),
-            new FakeQuadModelRepository(quadModels ?? []),
+            new FakeRepository<QuadModel>(quadModels ?? []),
+            new FakeRepository<Pilot>(pilots),
+            new FakeRepository<PilotClaim>(claims ?? []),
             options);
     }
 
-    private sealed class FakeWhiteListService : IWhiteListService
+    private static PilotClaim ActiveClaim(string pilotName) => new()
     {
-        private readonly IReadOnlySet<string> _whitelistedPilots;
+        PilotName = pilotName,
+        ExpiresOn = DateTime.UtcNow.AddHours(1)
+    };
 
-        public FakeWhiteListService(IEnumerable<string> whitelistedPilots)
+    private static PilotClaim ExpiredClaim(string pilotName) => new()
+    {
+        PilotName = pilotName,
+        ExpiresOn = DateTime.UtcNow.AddHours(-1)
+    };
+
+    private sealed class FakeRepository<T> : IRepository<T> where T : class
+    {
+        private readonly IQueryable<T> _items;
+
+        public FakeRepository(IEnumerable<T> items)
         {
-            _whitelistedPilots = new HashSet<string>(whitelistedPilots);
+            _items = new TestAsyncEnumerable<T>(items);
         }
 
-        public Task AddToWhiteListAsync(string pilotName) => throw new NotImplementedException();
+        public IQueryable<T> GetAll() => _items;
 
-        public Task RemoveFromWhiteListAsync(string pilotName) => throw new NotImplementedException();
+        public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate) => _items.Where(predicate);
 
-        public Task<IReadOnlySet<string>> GetWhitelistAsync()
-            => Task.FromResult(_whitelistedPilots);
-    }
-
-    private sealed class FakeQuadModelRepository : IRepository<QuadModel>
-    {
-        private readonly List<QuadModel> _models;
-
-        public FakeQuadModelRepository(IEnumerable<QuadModel> models)
-        {
-            _models = models.ToList();
-        }
-
-        public IQueryable<QuadModel> GetAll() => _models.AsQueryable();
-
-        public IQueryable<QuadModel> GetAll(Expression<Func<QuadModel, bool>> predicate) => _models.AsQueryable().Where(predicate);
-
-        public ValueTask<QuadModel?> FindAsync(object id) => throw new NotImplementedException();
-        public Task AddAsync(QuadModel entry) => throw new NotImplementedException();
-        public Task AddRangeAsync(IEnumerable<QuadModel> entries) => throw new NotImplementedException();
-        public Task UpdateAsync(QuadModel entry) => throw new NotImplementedException();
+        public ValueTask<T?> FindAsync(object id) => throw new NotImplementedException();
+        public Task AddAsync(T entry) => throw new NotImplementedException();
+        public Task AddRangeAsync(IEnumerable<T> entries) => throw new NotImplementedException();
+        public Task UpdateAsync(T entry) => throw new NotImplementedException();
         public Task RemoveAsync(object id) => throw new NotImplementedException();
         public Task SaveChangesAsync() => throw new NotImplementedException();
         public Task SaveChangesAsync(CancellationToken ct) => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Wraps an in-memory collection so EF Core async operators (ToListAsync, ToHashSetAsync)
+    /// work against the fake repositories.
+    /// </summary>
+    private sealed class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
+    {
+        public TestAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable) { }
+
+        public TestAsyncEnumerable(Expression expression) : base(expression) { }
+
+        IQueryProvider IQueryable.Provider => new TestAsyncQueryProvider<T>(this);
+
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            => new TestAsyncEnumerator<T>(((IEnumerable<T>)this).GetEnumerator());
+    }
+
+    private sealed class TestAsyncQueryProvider<T> : IQueryProvider
+    {
+        private readonly IQueryProvider _inner;
+
+        public TestAsyncQueryProvider(IQueryProvider inner)
+        {
+            _inner = inner;
+        }
+
+        public IQueryable CreateQuery(Expression expression) => CreateQuery<T>(expression);
+
+        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+            => new TestAsyncEnumerable<TElement>(expression);
+
+        public object? Execute(Expression expression) => _inner.Execute(expression);
+
+        public TResult Execute<TResult>(Expression expression) => _inner.Execute<TResult>(expression);
+    }
+
+    private sealed class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
+    {
+        private readonly IEnumerator<T> _inner;
+
+        public TestAsyncEnumerator(IEnumerator<T> inner)
+        {
+            _inner = inner;
+        }
+
+        public T Current => _inner.Current;
+
+        public ValueTask<bool> MoveNextAsync() => ValueTask.FromResult(_inner.MoveNext());
+
+        public ValueTask DisposeAsync()
+        {
+            _inner.Dispose();
+            return ValueTask.CompletedTask;
+        }
     }
 }

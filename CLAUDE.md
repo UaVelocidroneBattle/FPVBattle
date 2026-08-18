@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VelocidroneBot is a Discord and Telegram bot for Velocidrone drone racing competitions. The project consists of:
+FPV Battle is a competition service for Velocidrone drone racing — a web dashboard with admin tools plus Telegram and Discord bots. The project consists of:
 
 - **Backend**: ASP.NET Core 10.0 modular monolith using vertical slices architecture, with Entity Framework, Hangfire background jobs, and bot services
 - **Frontend**: React + TypeScript dashboard with Vite, Zustand state management, and TailwindCSS
@@ -16,13 +16,17 @@ Throughout the day, the bot checks results, tracks everyone's progress, and send
 
 To encourage people to fly every day, the bot also calculates "daystreaks." A daystreak is the number of consecutive days a pilot has flown without missing a day. Occasionally, a pilot can earn a "freezie," which is an item used to save their daystreak if they are unable to fly.
 
+### User Accounts
+
+The web dashboard supports user accounts with Google sign-in (JWT access tokens plus rotating refresh tokens). A user links their account to their Velocidrone pilot through a fly-to-verify claim: they claim a pilot name, and the link completes automatically once that pilot posts a result on the daily track. Users can permanently delete their account from the profile page — deletion removes personal data (email, profile, sign-in methods, sessions), while the pilot and race history remain as community competition data.
+
 ## Development Principles
 
 - Always favour most readable and elegant solutions. Developers should be proud of the code. It should be maintainable and literate.
 
 ## Code Quality Standards
 
-VelocidroneBot maintains **enterprise-grade quality standards** across all code layers. When implementing features or fixing issues:
+FPV Battle maintains **enterprise-grade quality standards** across all code layers. When implementing features or fixing issues:
 
 ### Quality-First Approach
 - **Never settle for "quick fixes"** - always refactor to maintainable, professional solutions

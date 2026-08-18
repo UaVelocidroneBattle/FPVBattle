@@ -8,6 +8,8 @@ import CountryFlag from "@/components/ui/CountryFlag";
 interface LeaderBoardProps {
     leaderboard: LeagueSeasonLeaderboard[];
     leagueColors?: Map<string, string>;
+    /** The signed-in user's linked pilot name, ordinally matched to highlight their row. */
+    highlightPilotName?: string | null;
 }
 
 const PAGE_SIZE = 25;
@@ -30,9 +32,13 @@ function ColumnHeaders() {
     );
 }
 
-function ResultRow({ result, index }: { result: SeasonResult; index: number }) {
+function ResultRow({ result, index, isHighlighted }: { result: SeasonResult; index: number; isHighlighted: boolean }) {
     return (
-        <li className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${index % 2 === 0 ? "bg-slate-700/20" : ""}`}>
+        <li
+            className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${
+                isHighlighted ? "bg-emerald-500/10 border-y border-emerald-400/40" : index % 2 === 0 ? "bg-slate-700/20" : ""
+            }`}
+        >
             <div className="grid grid-cols-[2.5rem_1fr_2rem_4rem] items-center gap-6">
                 <span className={`text-right text-sm tabular-nums ${rankStyle(result.rank ?? 0)}`}>
                     {String(result.rank).padStart(2, "0")}
@@ -45,7 +51,7 @@ function ResultRow({ result, index }: { result: SeasonResult; index: number }) {
     );
 }
 
-function LeagueGroup({ group, hasLeagues, leagueColors }: { group: LeagueSeasonLeaderboard; hasLeagues: boolean; leagueColors?: Map<string, string> }) {
+function LeagueGroup({ group, hasLeagues, leagueColors, highlightPilotName }: { group: LeagueSeasonLeaderboard; hasLeagues: boolean; leagueColors?: Map<string, string>; highlightPilotName?: string | null }) {
     const [showMore, setShowMore] = useState(false);
     const first = group.results?.slice(0, PAGE_SIZE) ?? [];
     const rest = group.results?.slice(PAGE_SIZE) ?? [];
@@ -69,10 +75,10 @@ function LeagueGroup({ group, hasLeagues, leagueColors }: { group: LeagueSeasonL
                     <ColumnHeaders />
                     <ul>
                         {first.map((result, index) => (
-                            <ResultRow key={result.playerName} result={result} index={index} />
+                            <ResultRow key={result.playerName} result={result} index={index} isHighlighted={result.playerName === highlightPilotName} />
                         ))}
                         {showMore && rest.map((result, index) => (
-                            <ResultRow key={result.playerName} result={result} index={index + PAGE_SIZE} />
+                            <ResultRow key={result.playerName} result={result} index={index + PAGE_SIZE} isHighlighted={result.playerName === highlightPilotName} />
                         ))}
                     </ul>
                 </>
@@ -91,7 +97,7 @@ function LeagueGroup({ group, hasLeagues, leagueColors }: { group: LeagueSeasonL
     );
 }
 
-function LeaderBoard({ leaderboard, leagueColors }: LeaderBoardProps) {
+function LeaderBoard({ leaderboard, leagueColors, highlightPilotName }: LeaderBoardProps) {
     if (!leaderboard) return <Spinner />;
     if (!leaderboard.length || leaderboard.every(g => !g.results?.length)) {
         return (
@@ -106,7 +112,7 @@ function LeaderBoard({ leaderboard, leagueColors }: LeaderBoardProps) {
     return (
         <div className={hasLeagues ? "flex flex-col gap-6" : ""}>
             {leaderboard.map(group => (
-                <LeagueGroup key={group.league ?? 'all'} group={group} hasLeagues={hasLeagues} leagueColors={leagueColors} />
+                <LeagueGroup key={group.league ?? 'all'} group={group} hasLeagues={hasLeagues} leagueColors={leagueColors} highlightPilotName={highlightPilotName} />
             ))}
         </div>
     );

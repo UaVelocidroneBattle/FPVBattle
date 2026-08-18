@@ -10,8 +10,9 @@ using Veloci.Logic.Features.Achievements;
 using Veloci.Logic.Features.Leagues;
 using Veloci.Logic.Features.QuadOfTheDay;
 using Veloci.Logic.Services.Pilots;
+using Veloci.Logic.Services.Statistics;
 using Veloci.Logic.Services.Tracks;
-using Veloci.Web.Controllers.Heatmap;
+using Veloci.Web.Controllers.Api.Heatmap;
 
 namespace Veloci.Web.Infrastructure;
 
@@ -38,10 +39,10 @@ public static class ServiceRegistration
         services.AddScoped<IPilotProfileService, PilotProfileService>();
         services.AddScoped<PilotPlatformsService>();
         services.AddScoped<PointsCalculator>();
-        services.AddScoped<IWhiteListService, WhiteListService>();
         services.AddScoped<TrackQueueService>();
         services.AddScoped<ModelsService>();
         services.AddScoped<ILeaderboardCalculator, LeaderboardCalculator>();
+        services.AddScoped<ParticipationStatisticsService>();
 
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);

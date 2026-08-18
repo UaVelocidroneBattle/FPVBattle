@@ -1,6 +1,8 @@
 import { create } from "zustand";
-import { client } from "../api/client";
+import { client, LeagueSettingsModel } from "../api/client";
 import { LoadingStates } from "../lib/loadingStates";
+
+export type { LeagueSettingsModel, LeagueDescriptorModel } from "../api/client";
 
 export interface PilotRatingModel {
     pilotId: number;
@@ -10,12 +12,14 @@ export interface PilotRatingModel {
     averageGapChange: number | null;
     rank: number;
     rankChange: number | null;
+    league: string | null;
 }
 
 export interface GlobalRatingData {
     calculatedOn: string;
     ratings: PilotRatingModel[];
     droppedOutPilots: PilotRatingModel[];
+    leagueSettings: LeagueSettingsModel;
 }
 
 interface GlobalRatingState {

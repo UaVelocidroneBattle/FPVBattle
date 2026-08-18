@@ -66,18 +66,18 @@ public static class AchievementsServiceExtensions
             // Whoop class achievements
             if (IsCupEnabled(CupIds.WhoopClass))
             {
-                 services
-                     .AddAchievement<ThirdPlaceInRace_Whoop_Achievement>()
-                     .AddAchievement<SecondPlaceInRace_Whoop_Achievement>()
-                     .AddAchievement<FirstPlaceInRace_Whoop_Achievement>();
-                //     .AddAchievement<ThirdInSeason_Whoop_Achievement>()
-                //     .AddAchievement<SecondInSeason_Whoop_Achievement>()
-                //     .AddAchievement<FirstInSeason_Whoop_Achievement>()
+                services
+                    .AddAchievement<ThirdPlaceInRace_Whoop_Achievement>()
+                    .AddAchievement<SecondPlaceInRace_Whoop_Achievement>()
+                    .AddAchievement<FirstPlaceInRace_Whoop_Achievement>()
+                    .AddAchievement<ThirdInSeason_Whoop_Achievement>()
+                    .AddAchievement<SecondInSeason_Whoop_Achievement>()
+                    .AddAchievement<FirstInSeason_Whoop_Achievement>();
             }
 
             // Others
             services
-                //.AddAchievement<LastInRaceAchievement>()
+                .AddAchievement<LastInRaceAchievement>()
                 .AddAchievement<BiggestDayStreakAchievement>()
                 .AddAchievement<GlobalFirstPlaceAchievement>()
                 .AddAchievement<EarlyBirdAchievement>()

@@ -61,7 +61,7 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
     {
-        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.PilotsFlownOnTrack, notification.Competition.QuadOfTheDay?.Name);
+        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.Competition.QuadOfTheDay?.Name);
         await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, startCompetitionMessage);
     }
 
@@ -76,8 +76,9 @@ public class TelegramMessageEventHandler :
         var message = _messageComposer.SeasonResults(notification.Results);
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
-        var imageStream = new MemoryStream(notification.Image);
-        await _cupMessenger.SendPhotoToCupAsync(notification.CupId, imageStream);
+        // disabled for now
+        // var imageStream = new MemoryStream(notification.Image);
+        // await _cupMessenger.SendPhotoToCupAsync(notification.CupId, imageStream);
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)

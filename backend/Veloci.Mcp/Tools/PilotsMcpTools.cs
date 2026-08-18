@@ -18,15 +18,18 @@ public class PilotsMcpTools
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static readonly ILogger Log = Serilog.Log.ForContext<PilotsMcpTools>();
     private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<TrackTimeDelta> _deltas;
     private readonly IPilotProfileService _pilotProfileService;
     private readonly IMediator _mediator;
 
     public PilotsMcpTools(
         IRepository<Pilot> pilots,
+        IRepository<TrackTimeDelta> deltas,
         IPilotProfileService pilotProfileService,
         IMediator mediator)
     {
         _pilots = pilots;
+        _deltas = deltas;
         _pilotProfileService = pilotProfileService;
         _mediator = mediator;
     }
@@ -70,6 +73,90 @@ public class PilotsMcpTools
         Log.Information("Retrieved profile for pilot {PilotName}", pilotName);
 
         return profile;
+    }
+
+    [McpServerTool]
+    [Description("Recalculate the current day streak for a pilot based on their actual delta history. Walks back from yesterday until a day with no activity is found. Returns the recalculated value without saving it.")]
+    public async Task<string> RecalculateDayStreak(
+        [Description("The name of the pilot")] string pilotName)
+    {
+        Log.Information("Recalculating day streak for pilot {PilotName}", pilotName);
+
+        if (string.IsNullOrEmpty(pilotName))
+            throw new ArgumentException("'pilotName' cannot be null or empty.");
+
+        var pilot = await _pilots
+            .GetAll()
+            .ByName(pilotName)
+            .FirstOrDefaultAsync();
+
+        if (pilot is null)
+        {
+            Log.Warning("Pilot {PilotName} not found", pilotName);
+            throw new Exception("Pilot not found");
+        }
+
+        var deltaDates = await _deltas.GetAll()
+            .Where(d => d.PilotId == pilot.Id)
+            .Select(d => d.Date)
+            .ToListAsync();
+
+        // Shift each date back by 2 minutes to absorb the midnight race condition:
+        // deltas created at ~00:00 UTC belong to the previous competition day.
+        var daysWithActivity = deltaDates
+            .Select(d => d.AddMinutes(-2).Date)
+            .ToHashSet();
+
+        var streak = 0;
+        var day = DateTime.UtcNow.Date.AddDays(-1);
+
+        while (daysWithActivity.Contains(day))
+        {
+            streak++;
+            day = day.AddDays(-1);
+        }
+
+        Log.Information("Recalculated day streak for {PilotName}: {Streak} (stored: {Stored})", pilotName, streak, pilot.DayStreak);
+
+        return $"Recalculated streak: {streak} (currently stored: {pilot.DayStreak})";
+    }
+
+    [McpServerTool]
+    [Description("Set the day streak value for a pilot. Use to correct streak after a data issue.")]
+    public async Task<string> SetDayStreak(
+        [Description("The name of the pilot")] string pilotName,
+        [Description("The day streak value to set")] int dayStreak)
+    {
+        Log.Information("Setting day streak for pilot {PilotName} to {DayStreak}", pilotName, dayStreak);
+
+        if (string.IsNullOrEmpty(pilotName))
+            throw new ArgumentException("'pilotName' cannot be null or empty.");
+
+        if (dayStreak < 0)
+            throw new ArgumentException("'dayStreak' cannot be negative.");
+
+        var pilot = await _pilots
+            .GetAll()
+            .ByName(pilotName)
+            .FirstOrDefaultAsync();
+
+        if (pilot is null)
+        {
+            Log.Warning("Pilot {PilotName} not found", pilotName);
+            throw new Exception("Pilot not found");
+        }
+
+        var previous = pilot.DayStreak;
+        pilot.DayStreak = dayStreak;
+
+        if (dayStreak > pilot.MaxDayStreak)
+            pilot.MaxDayStreak = dayStreak;
+
+        await _pilots.SaveChangesAsync();
+
+        Log.Information("Day streak for pilot {PilotName} updated from {Previous} to {DayStreak}", pilotName, previous, dayStreak);
+
+        return $"Day streak for {pilot.Name} updated from {previous} to {dayStreak}";
     }
 
     [McpServerTool]

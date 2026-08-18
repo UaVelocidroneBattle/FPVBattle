@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { FaTelegramPlane } from "react-icons/fa";
 import { SiDiscord, SiInstagram } from "react-icons/si";
 import { TbBrandPatreonFilled } from "react-icons/tb";
 import logo from "/logo.svg";
+import AuthControls from "@/components/auth/AuthControls";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { useAuthStore } from "@/store/authStore";
+import { useProfileStore } from "@/store/profileStore";
 
 /**
  * Defines main layout that is applied to all top level pages
@@ -35,6 +39,20 @@ function SocialLinks() {
 function LayoutMain() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const closeMobileMenu = () => setMobileMenuOpen(false);
+    const user = useAuthStore((state) => state.user);
+
+    usePageMeta();
+
+    useEffect(() => {
+        const { restore } = useAuthStore.getState();
+        restore();
+    }, []);
+
+    // The linked pilot is needed app-wide (e.g. to highlight the user's own
+    // results in leaderboards), so it's fetched here rather than per-page.
+    useEffect(() => {
+        if (user) useProfileStore.getState().fetchProfile();
+    }, [user]);
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 pb-8 flex flex-col">
@@ -45,18 +63,21 @@ function LayoutMain() {
                     </Link>
 
                     {/* Desktop nav */}
-                    <nav className="hidden sm:flex items-center gap-8">
-                        <NavLink to="/" end className={navLinkClass}>Open Class</NavLink>
+                    <nav className="hidden lg:flex items-center gap-8">
+                        <NavLink to="/" end className={navLinkClass}>Home</NavLink>
+                        <NavLink to="/open" className={navLinkClass}>Open Class</NavLink>
                         <NavLink to="/whoop" className={navLinkClass}>Whoop Class</NavLink>
                         <NavLink to="/guide" className={navLinkClass}>Guide</NavLink>
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
                         <div className="w-px h-5 bg-slate-600" />
                         <SocialLinks />
+                        <div className="w-px h-5 bg-slate-600" />
+                        <AuthControls />
                     </nav>
 
                     {/* Mobile hamburger */}
                     <button
-                        className="sm:hidden text-slate-300 hover:text-emerald-400 transition-colors"
+                        className="lg:hidden text-slate-300 hover:text-emerald-400 transition-colors"
                         onClick={() => setMobileMenuOpen(open => !open)}
                         aria-label="Toggle menu"
                     >
@@ -65,12 +86,14 @@ function LayoutMain() {
 
                     {/* Mobile dropdown */}
                     {mobileMenuOpen && (
-                        <nav className="sm:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
-                            <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
+                        <nav className="lg:hidden absolute top-16 left-0 right-0 z-10 bg-slate-900 border-t border-slate-700 px-6 py-4 flex flex-col gap-5">
+                            <NavLink to="/" end className={navLinkClass} onClick={closeMobileMenu}>Home</NavLink>
+                            <NavLink to="/open" className={navLinkClass} onClick={closeMobileMenu}>Open Class</NavLink>
                             <NavLink to="/whoop" className={navLinkClass} onClick={closeMobileMenu}>Whoop Class</NavLink>
                             <NavLink to="/guide" className={navLinkClass} onClick={closeMobileMenu}>Guide</NavLink>
                             <NavLink to="/statistics" className={navLinkClass} onClick={closeMobileMenu}>Statistics</NavLink>
                             <SocialLinks />
+                            <AuthControls />
                         </nav>
                     )}
                 </header>

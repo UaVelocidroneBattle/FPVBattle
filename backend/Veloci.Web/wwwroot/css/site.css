@@ -1,22 +1,791 @@
+/* ==========================================================================
+   Veloci Race Control — admin panel skin on top of Bootstrap 5
+   Tokens: carbon sidebar, cloud content, paper panels, one gate-orange accent.
+   Data (names, emails, titles) is set in mono — the OSD/telemetry signature.
+   ========================================================================== */
+
+:root {
+    --carbon: #14181d;
+    --carbon-2: #1f2630;
+    --cloud: #f2f4f6;
+    --paper: #ffffff;
+    --ink: #1b2129;
+    --muted: #67717d;
+    --line: #e4e8ec;
+    --accent: #f4581c;
+    --accent-dark: #cf4310;
+    --ok: #1f9d55;
+    --ok-bg: #e5f5ec;
+    --warn: #a97e05;
+    --warn-bg: #fbf3d8;
+    --danger: #cf4444;
+    --danger-bg: #fbeaea;
+    --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+
+    /* Chart series. The ORDER is the colourblind-safety mechanism, not decoration:
+       these eight were validated as a sequence, so slots must be handed out in
+       order and never cycled or re-sorted. A series takes its slot from the
+       entity's own position (a cup's order in configuration), never from its rank
+       in the current view, so filtering never repaints the survivors. */
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --series-6: #008300;
+    --series-7: #4a3aa7;
+    --series-8: #e34948;
+}
+
 html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    font-size: 15px;
 }
 
 body {
-  margin-bottom: 60px;
+    background: var(--cloud);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--accent-dark);
+}
+
+/* --- App frame ---------------------------------------------------------- */
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    padding: 28px;
+    max-width: 1160px;
+    width: 100%;
+}
+
+/* Data-dense pages (wide tables) opt into this via ViewData["ContentClass"]
+   so their panels can use the full window width instead of the standard
+   reading-width cap. */
+.content.content-wide {
+    max-width: none;
+}
+
+/* --- Sidebar ------------------------------------------------------------ */
+
+.sidebar {
+    width: 236px;
+    flex-shrink: 0;
+    background: var(--carbon);
+    padding: 22px 14px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.brand {
+    display: block;
+    padding: 2px 10px 18px;
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+    text-decoration: none;
+}
+
+.brand:hover {
+    color: #fff;
+}
+
+.brand span {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.34em;
+    color: var(--accent);
+}
+
+.nav-label {
+    padding: 16px 10px 5px;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #5b6570;
+}
+
+.side-link {
+    display: block;
+    padding: 7px 10px;
+    margin: 1px 0;
+    border-left: 2px solid transparent;
+    border-radius: 0 8px 8px 0;
+    color: #c2c9d1;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.side-link:hover {
+    background: var(--carbon-2);
+    color: #fff;
+}
+
+.side-link.active {
+    background: var(--carbon-2);
+    border-left-color: var(--accent);
+    color: #fff;
+}
+
+/* --- Top bar ------------------------------------------------------------ */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 28px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.user-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-chip {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.user-chip:hover {
+    color: var(--ink);
+}
+
+/* --- Panels ------------------------------------------------------------- */
+
+.panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 22px;
+    overflow: hidden;
+}
+
+.panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+}
+
+.panel-title {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+}
+
+.panel-count {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.panel-body {
+    padding: 18px 20px;
+}
+
+.panel .table-responsive {
+    margin: 0;
+}
+
+.table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+}
+
+.table-toolbar #userSearch {
+    max-width: 280px;
+}
+
+.table-toolbar .form-check {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.form-check-label {
+    font-size: 0.86rem;
+    color: var(--muted);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.form-check-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(244, 88, 28, 0.15);
+}
+
+/* --- Charts ---------------------------------------------------------------- */
+
+/* Segmented time-range picker. Built from radio inputs so the selected range is
+   exposed to assistive tech; the inputs themselves are visually replaced by their
+   labels. Sits in a .table-toolbar row above the chart it scopes. */
+.range-picker {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.range-picker input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.range-picker label {
+    margin: 0;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    background: var(--paper);
+    cursor: pointer;
+    user-select: none;
+    border-left: 1px solid var(--line);
+    transition: background 0.12s, color 0.12s;
+}
+
+.range-picker label:first-of-type {
+    border-left: 0;
+}
+
+.range-picker label:hover {
+    background: var(--cloud);
+    color: var(--ink);
+}
+
+.range-picker input:checked + label {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.range-picker input:focus-visible + label {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* Fixed height keeps the canvas from growing without bound while Chart.js
+   measures its container on resize. */
+.chart-frame {
+    position: relative;
+    height: 380px;
+    padding: 18px 20px;
+}
+
+/* While a new range loads, the previous render stays put and only fades, so the
+   panel keeps its height and the reader never watches the layout jump. */
+.chart-frame.is-loading {
+    opacity: 0.5;
+    transition: opacity 0.12s;
+}
+
+.chart-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: var(--muted);
+}
+
+/* The accessible fallback for the chart: the same numbers as a table. */
+.chart-table-toggle {
+    border-top: 1px solid var(--line);
+}
+
+.chart-table-toggle > summary {
+    padding: 12px 20px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+}
+
+.chart-table-toggle > summary::-webkit-details-marker {
+    display: none;
+}
+
+.chart-table-toggle > summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform 0.12s;
+}
+
+.chart-table-toggle[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.chart-table-toggle > summary:hover {
+    color: var(--ink);
+}
+
+/* Long histories scroll inside the panel rather than stretching the page. */
+.chart-table-scroll {
+    max-height: 420px;
+    overflow-y: auto;
+    border-top: 1px solid var(--line);
+}
+
+/* The header rides along so the series a column belongs to stays readable
+   however far down the history you scroll. It needs an opaque background of
+   its own (the .table override makes cells transparent) and draws its bottom
+   rule as an inset shadow — a real border would be dropped by the collapsed
+   border model once the header detaches. */
+.chart-table-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--paper);
+    box-shadow: inset 0 -1px 0 var(--line);
+}
+
+/* A short stroke of the series colour next to the column heading, so the table
+   carries series identity the same way the legend does. */
+.series-key {
+    display: inline-block;
+    width: 12px;
+    height: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 1px;
+}
+
+/* --- Home tiles ---------------------------------------------------------- */
+
+.tile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.tile {
+    display: block;
+    padding: 18px 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.tile:hover {
+    border-color: var(--accent);
+    color: var(--ink);
+    transform: translateY(-1px);
+}
+
+.tile h3 {
+    margin: 0 0 6px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.tile p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+/* --- Data & type helpers -------------------------------------------------- */
+
+.mono {
+    font-family: var(--mono);
+    font-size: 0.92em;
+}
+
+/* --- Bootstrap overrides: tables ----------------------------------------- */
+
+.table {
+    margin-bottom: 0;
+    color: var(--ink);
+}
+
+.table > :not(caption) > * > * {
+    padding: 0.65rem 1.25rem;
+    background: transparent;
+    border-bottom: 1px solid var(--line);
+    box-shadow: none;
+}
+
+.table thead th {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.table thead th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 1.4rem;
+}
+
+.table thead th[data-sort]:hover {
+    color: var(--ink);
+}
+
+.table thead th[data-sort]::after {
+    content: "";
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    opacity: 0.35;
+}
+
+.table thead th[data-sort]:not([aria-sort])::after {
+    border-top-color: var(--muted);
+    margin-top: 2px;
+}
+
+.table thead th[aria-sort="ascending"]::after {
+    border-bottom-color: var(--accent);
+    margin-top: -2px;
+    opacity: 1;
+}
+
+.table thead th[aria-sort="descending"]::after {
+    border-top-color: var(--accent);
+    margin-top: 2px;
+    opacity: 1;
+}
+
+.table tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+.table tbody tr:hover > * {
+    background: #f8fafb;
+}
+
+/* Fixed layout keeps the table pinned to the panel's full width instead of
+   shrinking/growing (and scrolling) with each row's content — column widths
+   come from a <colgroup> and long values wrap instead of forcing overflow. */
+.table-fixed {
+    table-layout: fixed;
+}
+
+.table-fixed td {
+    overflow-wrap: anywhere;
+}
+
+.table-fixed th:last-child,
+.table-fixed td:last-child {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* --- Bootstrap overrides: forms & buttons --------------------------------- */
+
+.form-label {
+    margin-bottom: 0.3rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.form-control,
+.form-select {
+    border-color: var(--line);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(244, 88, 28, 0.15);
+}
+
+.btn {
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 550;
+}
+
+.btn:focus,
+.btn:active:focus {
+    box-shadow: 0 0 0 0.2rem rgba(244, 88, 28, 0.25);
+}
+
+.btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background: var(--accent-dark) !important;
+    border-color: var(--accent-dark) !important;
+}
+
+.btn-danger {
+    background: var(--danger-bg);
+    border-color: transparent;
+    color: var(--danger);
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+
+.btn-success {
+    background: var(--ok-bg);
+    border-color: transparent;
+    color: var(--ok);
+}
+
+.btn-success:hover,
+.btn-success:focus {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: #fff;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--muted);
+}
+
+.btn-icon:hover,
+.btn-icon:focus,
+.btn-icon[aria-expanded="true"] {
+    background: var(--cloud);
+    color: var(--ink);
+}
+
+.dropdown-menu {
+    padding: 6px;
+    border-color: var(--line);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(20, 24, 29, 0.1);
+}
+
+.dropdown-item {
+    padding: 0.45rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
+}
+
+.dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:focus {
+    background: var(--danger-bg);
+    color: var(--danger) !important;
+}
+
+.btn-link-quiet {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 0.84rem;
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.btn-link-quiet:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
+}
+
+/* --- Bootstrap overrides: modals ------------------------------------------ */
+
+.modal-content {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--line);
+}
+
+.modal-title {
+    font-size: 1rem;
+    font-weight: 650;
+}
+
+.btn-secondary {
+    background: var(--cloud);
+    border-color: transparent;
+    color: var(--ink);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background: var(--line);
+    border-color: transparent;
+    color: var(--ink);
+}
+
+/* --- Bootstrap overrides: badges & alerts ---------------------------------- */
+
+.badge {
+    padding: 0.32em 0.7em;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.badge.bg-success {
+    background: var(--ok-bg) !important;
+    color: var(--ok);
+}
+
+.badge.bg-secondary {
+    background: #eceff2 !important;
+    color: var(--muted);
+}
+
+.alert-danger {
+    background: var(--danger-bg);
+    border: 0;
+    border-left: 3px solid var(--danger);
+    border-radius: 8px;
+    color: var(--danger);
+}
+
+.text-success {
+    color: var(--ok) !important;
+}
+
+.text-danger {
+    color: var(--danger) !important;
+}
+
+/* --- Accessibility -------------------------------------------------------- */
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
+
+/* --- Responsive ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+    .app {
+        display: block;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px;
+        width: 100%;
+        height: auto;
+        position: static;
+        padding: 10px 12px;
+    }
+
+    .brand {
+        padding: 4px 10px;
+        margin-right: 6px;
+    }
+
+    .brand span {
+        display: none;
+    }
+
+    .nav-label {
+        display: none;
+    }
+
+    .side-link {
+        padding: 6px 10px;
+        border-left: 0;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .side-link.active {
+        border-left: 0;
+        box-shadow: inset 0 -2px 0 var(--accent);
+    }
+
+    .topbar {
+        padding: 12px 16px;
+    }
+
+    .content {
+        padding: 16px;
+    }
 }

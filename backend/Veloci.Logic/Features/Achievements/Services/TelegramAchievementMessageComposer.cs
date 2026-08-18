@@ -1,5 +1,6 @@
 using System.Text;
 using Veloci.Data.Domain;
+using Veloci.Logic.Bot.Telegram;
 
 namespace Veloci.Logic.Features.Achievements.Services;
 
@@ -9,17 +10,17 @@ public class TelegramAchievementMessageComposer
     {
         return pilot.DayStreak switch
         {
-            10 or 20 => $"🎉 *{pilot.Name}* має вже *{pilot.DayStreak}* day streak",
-            50 => $"🎉 *{pilot.Name}* досягнув *{pilot.DayStreak}* day streak",
-            75 => $"🎉 *{pilot.Name}* тримає *{pilot.DayStreak}* day streak",
-            100 => $"🎉 *{pilot.Name}* подолав *{pilot.DayStreak}* day streak",
-            150 => $"🎉 *{pilot.Name}* перетнув *{pilot.DayStreak}* day streak",
-            200 => $"🎉 *{pilot.Name}* має неймовірні *{pilot.DayStreak}* day streak",
-            250 => $"🎉 *{pilot.Name}* має вже *{pilot.DayStreak}* day streak",
-            300 => $"🎉 *{pilot.Name}* досягнув вражаючих *{pilot.DayStreak}* day streak",
-            365 => $"🎉 *{pilot.Name}* відзначає *{pilot.DayStreak}* day streak. Цілий рік!",
-            500 => $"🎉 *{pilot.Name}* подолав *{pilot.DayStreak}* day streak. Це вау!",
-            1000 => $"🎉 *{pilot.Name}* має вражаючі *{pilot.DayStreak}* day streak",
+            10 or 20 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* має вже *{pilot.DayStreak}* day streak",
+            50 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* досягнув *{pilot.DayStreak}* day streak",
+            75 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* тримає *{pilot.DayStreak}* day streak",
+            100 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* подолав *{pilot.DayStreak}* day streak",
+            150 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* перетнув *{pilot.DayStreak}* day streak",
+            200 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* має неймовірні *{pilot.DayStreak}* day streak",
+            250 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* має вже *{pilot.DayStreak}* day streak",
+            300 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* досягнув вражаючих *{pilot.DayStreak}* day streak",
+            365 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* відзначає *{pilot.DayStreak}* day streak. Цілий рік!",
+            500 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* подолав *{pilot.DayStreak}* day streak. Це вау!",
+            1000 => $"🎉 *{TelegramMarkdown.Escape(pilot.Name)}* має вражаючі *{pilot.DayStreak}* day streak",
             _ => string.Empty
         };
     }
@@ -36,7 +37,7 @@ public class TelegramAchievementMessageComposer
         foreach (var result in results)
         {
             message.AppendLine(
-                $"*{result.Pilot.Name}* → 🎖 {result.Achievement.Title} ({result.Achievement.Description})");
+                $"*{TelegramMarkdown.Escape(result.Pilot.Name)}* → 🎖 {result.Achievement.Title} ({result.Achievement.Description})");
         }
 
         return message.ToString();

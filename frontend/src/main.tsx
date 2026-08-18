@@ -14,13 +14,17 @@ import GlobalRatingGuidePage from './pages/guide/GlobalRatingPage.tsx'
 import LeaguesPage from './pages/guide/LeaguesPage.tsx'
 import SupportPage from './pages/guide/SupportPage.tsx'
 import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
-import DashboardPage from './pages/dashboard/DashboardPage.tsx'
+import CompetitionPage from './pages/competition/CompetitionPage.tsx'
 import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
 import DayStreaksPage from './pages/statistics/daystreaks/DayStreaksPage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
+import LandingPage from './pages/landing/LandingPage.tsx'
+import ProfilePage from './pages/profile/ProfilePage.tsx'
+import { registerAuthInterceptor } from './api/authInterceptor.ts'
 
+registerAuthInterceptor()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -28,8 +32,10 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path='/'>
           <Route element={<MainLayout />}>
-            <Route index element={<DashboardPage cupId="open-class" />} />
-            <Route path='whoop' element={<DashboardPage cupId="whoop-class" />} />
+            <Route index element={<LandingPage />} />
+            <Route path='profile' element={<ProfilePage />} />
+            <Route path='open' element={<CompetitionPage cupId="open-class" />} />
+            <Route path='whoop' element={<CompetitionPage cupId="whoop-class" />} />
             <Route path='guide' element={<RulesLayout />}>
               <Route index element={<Navigate to="getting-started" replace />} />
               <Route path="getting-started" element={<GettingStartedPage />} />

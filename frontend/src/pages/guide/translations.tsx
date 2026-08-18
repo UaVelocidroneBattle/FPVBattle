@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { type Language } from '@/hooks/useLanguage';
 
 export function link(href: string, label: string): ReactNode {
@@ -6,6 +7,14 @@ export function link(href: string, label: string): ReactNode {
         <a href={href} className="text-emerald-400 hover:text-emerald-300 transition-colors" target="_blank" rel="noopener noreferrer">
             {label}
         </a>
+    );
+}
+
+export function internalLink(to: string, label: string): ReactNode {
+    return (
+        <Link to={to} className="text-emerald-400 hover:text-emerald-300 transition-colors">
+            {label}
+        </Link>
     );
 }
 
@@ -51,7 +60,7 @@ export const translations: Record<Language, RulesContent> = {
         gettingStartedTitle: 'Як почати',
         steps: [
             <>Завантажуємо Velocidrone з {link('https://www.velocidrone.com/shop', 'офіційного сайту')}</>,
-            <>Перевіряємо, щоб у вашому акаунті Velocidrone був встановлений український прапор. Це можна переглянути й змінити (за потреби) у вашому {link('https://www.velocidrone.com/profile', 'профілі')}</>,
+            <>Реєструємось на сайті через Google-акаунт і прив'язуємо свого пілота: відкриваємо {internalLink('/profile', 'профіль')}, вказуємо свій нік у Velocidrone та літаємо денний трек, щоб підтвердити, що це ви</>,
             <>Вмикаємо автоматичну публікацію результатів у налаштуваннях симулятора:<br /><span className="text-slate-400">{'Options → Main Settings → Auto Leaderbord Time Update: Yes'}</span></>,
             'Обираємо один з режимів: Nemesis або Single Player',
             'Обираємо Game type: Single Class – Three Laps Race',
@@ -91,7 +100,7 @@ export const translations: Record<Language, RulesContent> = {
                     <li><span className="font-bold text-slate-300">SILVER</span> — 15 місць</li>
                     <li><span className="font-bold text-amber-600">BRONZE</span> — всі інші пілоти</li>
                 </ul>
-                <p className="mt-3">У кожної ліги свій окремий лідерборд, медалі за призові місця і нарахування очок. Для пілотів, які не потрапили до Global Rating і не були розподілені в жодну лігу, — окремий лідерборд <span className="font-bold text-slate-400">OTHERS</span>.</p>
+                <p className="mt-3">У кожної ліги свій окремий лідерборд, медалі за призові місця і нарахування очок. Для пілотів, які не потрапили до Global Rating і не були розподілені в жодну лігу, — окремий лідерборд <span className="font-bold text-slate-400">UNRANKED</span>.</p>
             </>,
             'Після завершення сезону в кінці кожного місяця відбуватиметься перерозподіл пілотів по лігах знову-таки на основі Global Rating.',
             ' Органічний спосіб перейти у вищу лігу — ставати швидшим і підніматися вище в Global Rating. Але бувають ситуації, коли пілот тримає свій темп упродовж усього сезону, проте в його лігу потрапляють кілька більш швидких пілотів — через ліміт місць такий пілот може «зіскочити» в нижчу лігу. І навпаки: якщо більш швидкі пілоти «вилетять» з Global Rating, такий пілот може зайняти їхнє місце у вищій лізі.',
@@ -123,10 +132,7 @@ export const translations: Record<Language, RulesContent> = {
         gettingStartedTitle: 'Getting Started',
         steps: [
             <>Download Velocidrone from the {link('https://www.velocidrone.com/shop', 'official website')}</>,
-            <>
-                <p>For Ukrainians: make sure the Ukrainian flag is selected in your Velocidrone account. You can check and change it (if needed) in your {link('https://www.velocidrone.com/profile', 'profile')}.</p>
-                <p className="mt-2">For others: you need to join our {link('https://discord.gg/FrpC2WV8Cw', 'Discord')} and provide your Velocidrone pilot name so we can add you.</p>
-            </>,
+            <>Sign up with your Google account and link your pilot: open your {internalLink('/profile', 'profile')}, claim your Velocidrone pilot name, then fly the daily track to confirm it's you</>,
             <>Enable automatic result publishing in the simulator settings:<br /><span className="text-slate-400">{'Options → Main Settings → Auto Leaderbord Time Update: Yes'}</span></>,
             'Select one of the modes: Nemesis or Single Player',
             'Select Game type: Single Class – Three Laps Race',
@@ -166,7 +172,7 @@ export const translations: Record<Language, RulesContent> = {
                     <li><span className="font-bold text-slate-300">SILVER</span> — 15 spots</li>
                     <li><span className="font-bold text-amber-600">BRONZE</span> — all remaining pilots</li>
                 </ul>
-                <p className="mt-3">Each league has its own separate leaderboard, medals for top placements, and point scoring. Pilots who are not in the Global Rating and were not assigned to any league have a separate <span className="font-bold text-slate-400">OTHERS</span> leaderboard.</p>
+                <p className="mt-3">Each league has its own separate leaderboard, medals for top placements, and point scoring. Pilots who are not in the Global Rating and were not assigned to any league have a separate <span className="font-bold text-slate-400">UNRANKED</span> leaderboard.</p>
             </>,
             'At the end of each season pilots are redistributed across leagues again based on Global Rating.',
             'The natural way to move up is to get faster and climb higher in the Global Rating. However, situations arise where a pilot maintains their pace throughout the season but several faster pilots join their league — due to seat limits, that pilot may drop to a lower league. Conversely, if faster pilots fall out of the Global Rating, that pilot may take their spot in a higher league.',

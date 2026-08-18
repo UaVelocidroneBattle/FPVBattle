@@ -17,7 +17,7 @@ public class DiscordMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track, ICollection<string> pilotsFlownOnTrack, string? quadOfTheDay)
+    public string StartCompetition(Track track, string? quadOfTheDay)
     {
         var rating = string.Empty;
 
@@ -25,10 +25,6 @@ public class DiscordMessageComposer
         {
             rating = $"Previous rating: **{Math.Round(track.Rating.Value.Value, 1):F1}**{Environment.NewLine}{Environment.NewLine}";
         }
-
-        var flownPilotsText = pilotsFlownOnTrack.Count != 0 ?
-            $"Already flown this track:{Environment.NewLine}**{string.Join(", ", pilotsFlownOnTrack)}**{Environment.NewLine}" :
-            $"No one has flown this track yet.{Environment.NewLine}";
 
         var quadOfTheDayText = quadOfTheDay is null
             ? string.Empty
@@ -40,8 +36,7 @@ public class DiscordMessageComposer
                $"{rating}" +
                $"{quadOfTheDayText}" +
                $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
-               $"{flownPilotsText}{Environment.NewLine}" +
-               $"👾 Instructions, statistics and more here:{Environment.NewLine}https://ua-velocidrone.fun/{Environment.NewLine}⠀";
+               $"👾 Instructions, statistics and more here:{Environment.NewLine}https://fpv-battle.fun/{Environment.NewLine}⠀";
     }
 
     public BotPoll Poll(string trackName)
@@ -233,11 +228,6 @@ public class DiscordMessageComposer
     public string RestartTrack()
     {
         return "🔁️ Hands off the controllers everyone, we're **changing the track**";
-    }
-
-    public string AddedToWhitelist(string pilotName)
-    {
-        return $"✅  **{pilotName}** added to whitelist";
     }
 
     #region Private

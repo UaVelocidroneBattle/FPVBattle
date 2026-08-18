@@ -7,6 +7,5 @@ namespace Veloci.Logic.Notifications;
 public record CompetitionStarted(
     Competition Competition,
     Track Track,
-    IList<string> PilotsFlownOnTrack,
     CupOptions CupOptions
 ) : INotification;

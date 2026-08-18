@@ -25,8 +25,7 @@ public class DiscordMessageEventHandler :
     INotificationHandler<PilotRenamed>,
     INotificationHandler<EndOfSeasonStatisticsNotification>,
     INotificationHandler<FreezieAdded>,
-    INotificationHandler<TrackRestart>,
-    INotificationHandler<AddedToWhitelist>
+    INotificationHandler<TrackRestart>
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<DiscordMessageEventHandler>();
 
@@ -70,7 +69,7 @@ public class DiscordMessageEventHandler :
         }
 
         var track = notification.Track;
-        var startMessage = _messageComposer.StartCompetition(track, notification.PilotsFlownOnTrack, notification.Competition.QuadOfTheDay?.Name);
+        var startMessage = _messageComposer.StartCompetition(track, notification.Competition.QuadOfTheDay?.Name);
         await bot.SendMessageAsync(startMessage);
 
         var leagueNames = _cupService.GetCupOptions(cupId).Leagues.GetAllLeagueNames();
@@ -209,7 +208,8 @@ public class DiscordMessageEventHandler :
         var message = _messageComposer.SeasonResults(notification.Results);
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
 
-        await _cupMessenger.SendImageToCupAsync(notification.CupId, notification.Image, notification.ImageName);
+        // disabled for now
+        // await _cupMessenger.SendImageToCupAsync(notification.CupId, notification.Image, notification.ImageName);
     }
 
     public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
@@ -289,12 +289,6 @@ public class DiscordMessageEventHandler :
     {
         var message = _messageComposer.RestartTrack();
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
-    }
-
-    public async Task Handle(AddedToWhitelist notification, CancellationToken cancellationToken)
-    {
-        var message = _messageComposer.AddedToWhitelist(notification.PilotName);
-        await _generalMessenger.SendMessageAsync(message);
     }
 
 }

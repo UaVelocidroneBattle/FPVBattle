@@ -20,7 +20,6 @@ public class CompetitionConductor
 
     private readonly Velocidrone _velocidrone;
     private readonly IRepository<Competition> _competitions;
-    private readonly IRepository<Pilot> _pilots;
     private readonly TrackService _trackService;
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
@@ -39,7 +38,6 @@ public class CompetitionConductor
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
-        IRepository<Pilot> pilots,
         Velocidrone velocidrone,
         ICupService cupService,
         IDiscordCupMessenger discordCupMessenger,
@@ -53,7 +51,6 @@ public class CompetitionConductor
         _imageService = imageService;
         _trackService = trackService;
         _mediator = mediator;
-        _pilots = pilots;
         _velocidrone = velocidrone;
         _cupService = cupService;
         _discordCupMessenger = discordCupMessenger;
@@ -141,29 +138,13 @@ public class CompetitionConductor
         competition.QuadOfTheDay = quad;
 
         await _competitions.AddAsync(competition);
+        await _competitions.SaveChangesAsync();
 
-        var pilotsFlownOnTrack = await GetPilotsFlownOnTrackAsync(trackResults);
-        Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} with {PilotCount} existing pilots on track {TrackName}", competition.Id, cupId, pilotsFlownOnTrack.Count, track.Name);
+        Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} on track {TrackName}", competition.Id, cupId, track.Name);
 
-        await _mediator.Publish(new CompetitionStarted(competition, track, pilotsFlownOnTrack, cupOptions));
+        await _mediator.Publish(new CompetitionStarted(competition, track, cupOptions));
 
         Log.Information("Competition {CompetitionId} setup completed successfully for cup {CupId}", competition.Id, cupId);
-    }
-
-    private async Task<IList<string>> GetPilotsFlownOnTrackAsync(TrackResults trackResults)
-    {
-        var userIds = trackResults.Times
-            .Where(t => t.UserId.HasValue)
-            .Select(t => t.UserId!.Value)
-            .ToList();
-
-        var names = await _pilots
-            .GetAll(p => userIds.Contains(p.Id))
-            .Select(p => p.Name)
-            .ToListAsync();
-
-        names.Sort();
-        return names;
     }
 
     public async Task StopAsync(string cupId)
@@ -180,7 +161,6 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _leaderboardCalculator.GetLeaderboard(competition);
-        _quadOfTheDayService.PunishNonQuadOfTheDayPilots(competition);
 
         Log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
@@ -322,10 +302,10 @@ public class CompetitionConductor
         Log.Information("Season {SeasonName} for cup {CupId} completed with {ResultCount} participants. Winners: {Winners}",
             seasonName, cupId, totalCount, string.Join(", ", (IEnumerable<string>)winners));
 
-        var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
-        Log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
+        // var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
+        // Log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
 
-        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, image, "winners.png"));
+        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, Image: null, "winners.png"));
         Log.Information("Season {SeasonName} finalization completed for cup {CupId}", seasonName, cupId);
     }
 

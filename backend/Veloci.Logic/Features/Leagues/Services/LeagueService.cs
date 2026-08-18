@@ -1,3 +1,4 @@
+using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -32,6 +33,7 @@ public class LeagueService
         _mediator = mediator;
     }
 
+    [DisableConcurrentExecution("UpdatePilotLeagues", 60)]
     public async Task UpdatePilotLeaguesAsync()
     {
         var cupIds = _cupService.GetEnabledCupIds();
@@ -96,7 +98,7 @@ public class LeagueService
             .GetAll()
             .ForCup(cupId)
             .Active()
-            .Where(r => !distributedPilotIds.Contains(r.PilotId))
+            .Where(r => r.League != null && !distributedPilotIds.Contains(r.PilotId))
             .Include(r => r.Pilot)
             .ToListAsync();
 
@@ -104,6 +106,18 @@ public class LeagueService
         {
             Log.Information("Pilot {PilotId} retired from league {League}", record.PilotId, record.League);
             record.Status = LeagueRecordStatus.Historical;
+
+            // Records a dated "no league" marker, mirroring how a league change works, so that
+            // date-based lookups (e.g. leaderboards for past competitions) stop resolving to the
+            // pilot's last league once they've been retired from all leagues.
+            await _pilotLeagues.AddAsync(new PilotLeague
+            {
+                CupId = cupId,
+                PilotId = record.PilotId,
+                Date = DateTime.UtcNow,
+                League = null,
+                Status = LeagueRecordStatus.Current
+            });
 
             leagueUpdates.Add(new LeagueUpdateModel
             {

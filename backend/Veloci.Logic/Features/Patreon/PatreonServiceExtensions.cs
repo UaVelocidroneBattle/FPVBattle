@@ -31,7 +31,7 @@ public static class PatreonServiceExtensions
         {
             client.BaseAddress = new Uri("https://www.patreon.com/api/oauth2/v2/");
             client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("User-Agent", "VelocidroneBot/1.0");
+            client.DefaultRequestHeaders.Add("User-Agent", "FpvBattle/1.0");
         });
 
         // Configure HttpClient for PatreonController OAuth flow (used by PatreonTokenManager)
@@ -39,7 +39,7 @@ public static class PatreonServiceExtensions
         {
             client.BaseAddress = new Uri("https://www.patreon.com/api/oauth2/");
             client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("User-Agent", "VelocidroneBot/1.0");
+            client.DefaultRequestHeaders.Add("User-Agent", "FpvBattle/1.0");
         });
 
         return services;

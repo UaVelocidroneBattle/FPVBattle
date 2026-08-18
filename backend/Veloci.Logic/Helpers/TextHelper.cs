@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Veloci.Logic.Helpers;
 
 public static class TextHelper
@@ -14,6 +16,22 @@ public static class TextHelper
     {
         var flag = CountryFlag(countryCode);
         return flag.Length > 0 ? $"{flag} " : string.Empty;
+    }
+
+    /// <summary>
+    /// Resolves an ISO 3166-1 alpha-2 code to its English country name.
+    /// Falls back to the code itself when it is not recognized.
+    /// </summary>
+    public static string CountryName(string countryCode)
+    {
+        try
+        {
+            return new RegionInfo(countryCode).EnglishName;
+        }
+        catch (ArgumentException)
+        {
+            return countryCode;
+        }
     }
 
     public static string Trim(string text, int maxLength)

@@ -69,7 +69,7 @@ public class PaceRatingCalculator
         var competitions = await _competitions.GetAll()
             .ForCup(cupId)
             .Where(c => c.StartedOn >= since)
-            .Where(c => c.State == CompetitionState.Closed)
+            .Closed()
             .Include(c => c.CompetitionResults)
             .Include(c => c.QuadOfTheDay)
             .ToListAsync();
@@ -85,7 +85,7 @@ public class PaceRatingCalculator
             {
                 PilotId = g.Key,
                 CupId = cupId,
-                AverageGapPercent = g.Average(x => x.Gap),
+                AverageGapPercent = AverageGapExcludingWorstDays(g.Select(x => x.Gap)),
                 CalculatedOn = today
             })
             .OrderBy(r => r.AverageGapPercent)
@@ -108,6 +108,7 @@ public class PaceRatingCalculator
         Log.Information("Cup {CupId}: storing {RatingCount} pilot ratings", cupId, ratings.Count);
 
         await _ratings.AddRangeAsync(ratings);
+        await _ratings.SaveChangesAsync();
     }
 
     private IEnumerable<PilotStats> ComputeCompetitionStats(Competition competition)
@@ -140,6 +141,14 @@ public class PaceRatingCalculator
 
     private static double GapPercent(int pilotTime, double referenceTime)
         => (pilotTime - referenceTime) / referenceTime * 100.0;
+
+    private double AverageGapExcludingWorstDays(IEnumerable<double> gaps)
+    {
+        var orderedGaps = gaps.OrderBy(g => g).ToList();
+        var daysToDrop = Math.Min(_settings.DropWorstDaysCount, orderedGaps.Count - 1);
+
+        return orderedGaps.Take(orderedGaps.Count - daysToDrop).Average();
+    }
 
     private record PilotStats(int PilotId, double Gap);
 }

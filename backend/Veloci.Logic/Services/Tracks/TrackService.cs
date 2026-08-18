@@ -94,6 +94,7 @@ public class TrackService
         };
 
         await _tracks.AddAsync(track);
+        await _tracks.SaveChangesAsync();
         _log.Information("✨ Created new track {TrackName} (ID: {TrackId}) in map {MapName}", trackName, trackId, mapName);
 
         return track;
@@ -132,6 +133,7 @@ public class TrackService
         };
 
         await _maps.AddAsync(map);
+        await _maps.SaveChangesAsync();
         _log.Debug("Successfully created map {MapName}", name);
 
         return map;
