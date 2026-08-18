@@ -70,6 +70,12 @@ public class PilotsMcpTools
 
         var profile = await _pilotProfileService.GetPilotProfileAsync(pilotName, CancellationToken.None);
 
+        if (profile is null)
+        {
+            Log.Warning("Pilot {PilotName} not found", pilotName);
+            throw new Exception("Pilot not found");
+        }
+
         Log.Information("Retrieved profile for pilot {PilotName}", pilotName);
 
         return profile;

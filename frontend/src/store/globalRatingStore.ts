@@ -23,6 +23,8 @@ export interface GlobalRatingData {
 }
 
 interface GlobalRatingState {
+    /** Cup the currently held data belongs to. */
+    cupId: string | null;
     data: GlobalRatingData | null;
     loadingState: LoadingStates;
 }
@@ -34,14 +36,16 @@ interface GlobalRatingActions {
 type GlobalRatingStore = GlobalRatingState & GlobalRatingActions;
 
 export const useGlobalRatingStore = create<GlobalRatingStore>()((set, get) => ({
+    cupId: null,
     data: null,
     loadingState: "Idle",
 
     fetchRatings: async (cupId: string) => {
-        const { loadingState } = get();
-        if (loadingState === "Loading" || loadingState === "Loaded") return;
+        const { cupId: currentCupId, loadingState } = get();
+        const alreadyRequested = loadingState === "Loading" || loadingState === "Loaded";
+        if (cupId === currentCupId && alreadyRequested) return;
 
-        set({ loadingState: "Loading" });
+        set({ cupId, data: null, loadingState: "Loading" });
 
         try {
             const result = await client.get<GlobalRatingData, unknown, false>({
@@ -51,9 +55,13 @@ export const useGlobalRatingStore = create<GlobalRatingStore>()((set, get) => ({
 
             if (!result.data) throw new Error("No data");
 
+            // A quick cup switch can leave an earlier request in flight; its
+            // response must not overwrite the cup the user is now looking at.
+            if (get().cupId !== cupId) return;
+
             set({ data: result.data, loadingState: "Loaded" });
         } catch {
-            set({ loadingState: "Error" });
+            if (get().cupId === cupId) set({ loadingState: "Error" });
         }
     },
 }));

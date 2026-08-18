@@ -1,5 +1,5 @@
 import { ResponsiveLine, LineSeries } from '@nivo/line'
-import { PartialTheme } from '@nivo/theming';
+import { chartTheme } from '@/lib/chartTheme';
 import PilotsChartProps from './PilotChartProps';
 import RelativeChartTooltip from './RelativeChartTooltip';
 
@@ -88,37 +88,11 @@ const PilotsChartRelative = ({ pilots, results }: PilotsChartProps) => {
 
     // pilots[0] is reference, pilots[1] is compared pilot
 
-    const theme: PartialTheme = {
-        text: { fill: 'rgba(203, 213, 225, 0.5)' },
-        crosshair: {
-            line: {
-                stroke: 'rgba(203, 213, 225, 0.5)',
-                strokeWidth: 1
-            }
-        },
-        grid: {
-            line: {
-                stroke: '#94a3b8',
-                strokeWidth: 1,
-                strokeOpacity: 0.2
-            }
-        },
-        axis: {
-            domain: { line: { stroke: 'rgba(203, 213, 225, 0.5)' } },
-            ticks: {
-                line: { stroke: 'rgba(203, 213, 225, 0.5)' },
-                text: { fill: 'rgba(203, 213, 225, 0.5)' },
-            },
-            legend: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
-        },
-        legends: { text: { fill: 'rgba(203, 213, 225, 0.5)' } },
-    };
-
     return (
         <ResponsiveLine
             data={chartData}
             margin={{ top: 20, right: 20, bottom: 100, left: 50 }}
-            theme={theme}
+            theme={chartTheme}
             areaOpacity={0.3}
             colors={[
                 'rgb(97, 205, 187)',

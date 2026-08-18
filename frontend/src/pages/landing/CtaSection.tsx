@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { useCups } from '@/hooks/useCups';
 
 function CtaSection() {
+    const { cups } = useCups();
+
     return (
         <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 border-t-2 border-t-emerald-400 p-8 lg:p-10">
             <div className="grid lg:grid-cols-2 gap-10 items-center">
@@ -14,18 +17,15 @@ function CtaSection() {
                 <div className="flex flex-col sm:items-end">
                     <div className="flex flex-col gap-3 sm:inline-flex">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Link
-                                to="/open"
-                                className="text-center bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium px-6 py-3 transition-colors whitespace-nowrap"
-                            >
-                                Open Class leaderboard
-                            </Link>
-                            <Link
-                                to="/whoop"
-                                className="text-center bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium px-6 py-3 transition-colors whitespace-nowrap"
-                            >
-                                Whoop Class leaderboard
-                            </Link>
+                            {cups.map(cup => (
+                                <Link
+                                    key={cup.id}
+                                    to={`/${cup.id}`}
+                                    className="text-center bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-medium px-6 py-3 transition-colors whitespace-nowrap"
+                                >
+                                    {cup.name} leaderboard
+                                </Link>
+                            ))}
                         </div>
                         <Link
                             to="/guide"

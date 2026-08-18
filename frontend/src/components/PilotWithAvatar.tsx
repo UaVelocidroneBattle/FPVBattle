@@ -11,7 +11,7 @@ function PilotWithAvatar({ name, countryCode }: PilotWithAvatarProps) {
 
     return (
         <Link
-            to={`/statistics/profile/${encodeURIComponent(name)}`}
+            to={`/pilot/${encodeURIComponent(name)}`}
             className="flex items-center gap-3 group"
             title={`View ${name}'s profile`}
         >

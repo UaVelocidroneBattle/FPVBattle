@@ -11,7 +11,10 @@ namespace Veloci.Logic.Services.Pilots;
 
 public interface IPilotProfileService
 {
-    Task<PilotProfileModel> GetPilotProfileAsync(string pilotName, CancellationToken ct);
+    /// <summary>
+    /// Returns the profile of the pilot, or <c>null</c> when no pilot goes by that name.
+    /// </summary>
+    Task<PilotProfileModel?> GetPilotProfileAsync(string pilotName, CancellationToken ct);
 }
 
 public class PilotProfileService : IPilotProfileService
@@ -33,14 +36,17 @@ public class PilotProfileService : IPilotProfileService
         _allAchievements = serviceProvider.GetServices<IAchievement>();
     }
 
-    public async Task<PilotProfileModel> GetPilotProfileAsync(string pilotName, CancellationToken ct)
+    public async Task<PilotProfileModel?> GetPilotProfileAsync(string pilotName, CancellationToken ct)
     {
-        var openClassCupOptions = _cupService.GetCupOptions(CupIds.OpenClass);
-
         var pilot = await _pilots.GetAll()
             .Include(p => p.DayStreakFreezes)
             .ByName(pilotName)
-            .SingleAsync(ct);
+            .FirstOrDefaultAsync(ct);
+
+        if (pilot is null)
+            return null;
+
+        var openClassCupOptions = _cupService.GetCupOptions(CupIds.OpenClass);
 
         var pilotLeague = pilot.GetCurrentLeague(CupIds.OpenClass)
             ?? (openClassCupOptions.Leagues.Enabled ? openClassCupOptions.Leagues.OthersName : null);

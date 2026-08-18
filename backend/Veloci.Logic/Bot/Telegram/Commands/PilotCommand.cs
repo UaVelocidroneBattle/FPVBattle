@@ -10,6 +10,8 @@ namespace Veloci.Logic.Bot.Telegram.Commands;
 
 public class PilotCommand : ITelegramCommand
 {
+    private const string UnknownPilotReply = "Не знаю такого пілота 😕";
+
     private readonly IRepository<Pilot> _pilots;
     private readonly IPilotProfileService _pilotProfileService;
 
@@ -32,9 +34,12 @@ public class PilotCommand : ITelegramCommand
         var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)
-            return "Не знаю такого пілота 😕";
+            return UnknownPilotReply;
 
         var profile = await _pilotProfileService.GetPilotProfileAsync(pilot.Name, CancellationToken.None);
+
+        if (profile is null)
+            return UnknownPilotReply;
 
         var lastRaceDateText = profile.LastRaceDate.HasValue
             ? profile.LastRaceDate.Value.ToString("dd MMM yyyy")

@@ -30,12 +30,12 @@ const LANDING_META: PageMeta = {
 const PAGE_META: Record<string, PageMeta> = {
     '/': LANDING_META,
 
-    '/open': {
+    '/open-class': {
         title: `Open Class — Today's Track & Leaderboard${BRAND_SUFFIX}`,
         description:
             "Today's Open Class track on Velocidrone, with the live leaderboard, lap times and points for every pilot in the daily FPV Battle competition.",
     },
-    '/whoop': {
+    '/whoop-class': {
         title: `Whoop Class — Today's Track & Leaderboard${BRAND_SUFFIX}`,
         description:
             "Today's Whoop Class track on Velocidrone, with the live leaderboard, lap times and points for every pilot in the daily FPV Battle competition.",
@@ -103,7 +103,7 @@ const PAGE_META: Record<string, PageMeta> = {
         description:
             'Global rating, day streak standings, track history and pilot statistics from the FPV Battle daily Velocidrone competition.',
     },
-    '/statistics/global-rating': {
+    '/global-rating': {
         title: `Global Rating Leaderboard${BRAND_SUFFIX}`,
         description:
             'The full FPV Battle global rating leaderboard — every Velocidrone pilot ranked by their results across the daily competitions.',
@@ -119,11 +119,16 @@ const PAGE_META: Record<string, PageMeta> = {
             'Every Velocidrone track used in the FPV Battle daily competition, with the results and fastest times recorded on each one.',
     },
     '/statistics/pilots': {
+        title: `Pilot Numbers${BRAND_SUFFIX}`,
+        description:
+            'How the FPV Battle pilot community is growing — total Velocidrone pilots over time, new pilots each month and daily participation.',
+    },
+    '/statistics/performance': {
         title: `Pilot Comparison${BRAND_SUFFIX}`,
         description:
             'Compare Velocidrone pilots head to head across their FPV Battle results, ratings and day streaks.',
     },
-    '/statistics/profile': {
+    '/pilot': {
         title: `Pilot Profile${BRAND_SUFFIX}`,
         description:
             'Race history, day streak, achievements and results heatmap for a Velocidrone pilot competing in FPV Battle.',
@@ -137,7 +142,7 @@ function normalizePath(pathname: string): string {
 
 /**
  * Finds the deepest configured ancestor of `path`, so dynamic routes such as
- * '/statistics/profile/Jack' inherit their parent's metadata.
+ * '/pilot/Jack' inherit their parent's metadata.
  */
 function findAncestorMeta(path: string): PageMeta | undefined {
     const ancestors = Object.keys(PAGE_META)

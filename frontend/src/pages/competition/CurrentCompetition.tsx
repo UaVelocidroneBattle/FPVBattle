@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CompetitionOverviewModel } from "@/api/client";
+import { useCups } from "@/hooks/useCups";
 
 interface ICurrentCompetitionProps {
     cupId: string;
@@ -12,9 +13,6 @@ interface ICurrentCompetitionProps {
 
 const today = new Date().toISOString().split('T')[0];
 
-function getClassLabel(cupId: string): string {
-    return cupId === 'whoop-class' ? 'Whoop Class' : 'Open Class';
-}
 
 function getSeasonName(selectedDate: string | null): string {
     const date = selectedDate ? new Date(selectedDate + 'T00:00:00') : new Date();
@@ -37,6 +35,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICurrentCompetitionProps) {
     const [copied, setCopied] = useState(false);
+    const { findCup } = useCups();
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -58,7 +57,7 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
     return (
         <div className="px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-3 text-base">
             <span className="text-xs font-semibold uppercase tracking-wider bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 px-2.5 py-1 shrink-0 text-center">
-                {getClassLabel(cupId)}
+                {findCup(cupId)?.name}
             </span>
 
             {overview.competition == null ? (
