@@ -6,8 +6,8 @@ import { Spinner } from "@/components/ui/spinner";
 import PilotWithAvatar from "@/components/PilotWithAvatar";
 import { useCups } from "@/hooks/useCups";
 import { useHighlightedPilot } from "@/hooks/useHighlightedPilot";
-import CountryFilter, { countryOptionsOf } from "./CountryFilter";
-import { useUrlCountry } from "./useUrlCountry";
+import CountryFilter, { countryOptionsOf } from "@/components/CountryFilter";
+import { useUrlCountry } from "@/hooks/useUrlCountry";
 import { CupModel } from "@/store/cupsStore";
 import { formatDate } from "@/lib/utils";
 
@@ -265,7 +265,7 @@ function CupRating({ cup }: { cup: CupModel }) {
                 </div>
 
                 {loadingState === "Loaded" && data && (
-                    <CountryFilter options={countryOptions} value={country} onChange={setCountry} />
+                    <CountryFilter options={countryOptions} value={country} onChange={setCountry} size="md" />
                 )}
             </div>
 

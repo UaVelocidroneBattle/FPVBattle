@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { ALL_COUNTRIES, CountryOption } from "./CountryFilter";
+import { ALL_COUNTRIES, CountryOption } from "@/components/CountryFilter";
 
 const COUNTRY_PARAM = "country";
 
