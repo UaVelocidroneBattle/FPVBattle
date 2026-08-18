@@ -21,16 +21,16 @@ const SideMenu = () => {
                         </ul>
                     </li>
                     <li className="flex-1 lg:flex-none">
-                        <SideMenuItem to="/statistics/profile" icon={UserRound} label="Profile" />
+                        <SideMenuItem to="/pilot" icon={UserRound} label="Pilot profile" />
                     </li>
                     <li className="flex-1 lg:flex-none">
                         <SideMenuItem to="/statistics/daystreaks" icon={Flame} label="Day Streaks" />
                     </li>
                     <li className="hidden sm:flex flex-1 lg:flex-none">
-                        <SideMenuItem to="/statistics/pilots" icon={Users} label="Pilots" />
+                        <SideMenuItem to="/statistics/pilots" icon={Users} label="Pilot numbers" />
                     </li>
                     <li className="hidden sm:flex flex-1 lg:flex-none">
-                        <SideMenuItem to="/statistics/performance" icon={ChartNoAxesCombined} label="Pilot performance" />
+                        <SideMenuItem to="/statistics/performance" icon={ChartNoAxesCombined} label="Compare pilots" />
                     </li>
                 </ul>
             </nav>

@@ -18,7 +18,7 @@ function LinkedPilotCard({ profile }: { profile: ProfileModel }) {
             <div className="flex items-center gap-3">
                 <CountryFlag countryCode={pilot.country} />
                 <Link
-                    to={`/statistics/profile/${encodeURIComponent(pilot.name)}`}
+                    to={`/pilot/${encodeURIComponent(pilot.name)}`}
                     className="text-lg font-semibold text-emerald-400 hover:underline"
                 >
                     {pilot.name}

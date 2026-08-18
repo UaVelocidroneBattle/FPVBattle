@@ -128,7 +128,7 @@ const PAGE_META: Record<string, PageMeta> = {
         description:
             'Compare Velocidrone pilots head to head across their FPV Battle results, ratings and day streaks.',
     },
-    '/statistics/profile': {
+    '/pilot': {
         title: `Pilot Profile${BRAND_SUFFIX}`,
         description:
             'Race history, day streak, achievements and results heatmap for a Velocidrone pilot competing in FPV Battle.',
@@ -142,7 +142,7 @@ function normalizePath(pathname: string): string {
 
 /**
  * Finds the deepest configured ancestor of `path`, so dynamic routes such as
- * '/statistics/profile/Jack' inherit their parent's metadata.
+ * '/pilot/Jack' inherit their parent's metadata.
  */
 function findAncestorMeta(path: string): PageMeta | undefined {
     const ancestors = Object.keys(PAGE_META)

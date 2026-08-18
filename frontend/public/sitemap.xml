@@ -93,7 +93,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fpv-battle.fun/statistics/profile</loc>
+    <loc>https://fpv-battle.fun/pilot</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>

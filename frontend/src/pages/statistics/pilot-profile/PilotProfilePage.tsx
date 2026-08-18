@@ -38,7 +38,7 @@ function PilotProfilePage() {
     const loadingState = usePilotProfilePageLoadingState(pilot ?? null);
 
     const handlePilotSelect = (selected: string) => {
-        navigate(`/statistics/profile/${encodeURIComponent(selected)}`, { replace: !pilot });
+        navigate(`/pilot/${encodeURIComponent(selected)}`, { replace: !pilot });
     };
 
     if (pilotsState === 'Idle') return <></>;

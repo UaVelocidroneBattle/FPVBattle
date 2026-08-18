@@ -21,7 +21,7 @@ import PilotPerformancePage from './pages/statistics/performance/PilotPerformanc
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
-import LegacyRatingRedirect from './pages/statistics/global-rating/LegacyRatingRedirect.tsx'
+import LegacyRedirect from './pages/LegacyRedirect.tsx'
 import LandingPage from './pages/landing/LandingPage.tsx'
 import ProfilePage from './pages/profile/ProfilePage.tsx'
 import { registerAuthInterceptor } from './api/authInterceptor.ts'
@@ -51,16 +51,17 @@ createRoot(document.getElementById('root')!).render(
               <Route path="achievements" element={<AchievementsPage />} />
               <Route path="support" element={<SupportPage />} />
             </Route>
-            {/* The rating keeps the statistics sidebar but not its URL prefix.
-                Without a cup the page redirects to the first configured one. */}
+            {/* These keep the statistics sidebar but not its URL prefix. Without
+                a cup the rating redirects to the first configured one. */}
             <Route element={<StatisticsPage />}>
               <Route path='global-rating/:cupId?' element={<GlobalRatingPage />} />
+              <Route path='pilot/:pilot?' element={<PilotProfilePage />} />
             </Route>
             <Route path='statistics' element={<StatisticsPage />} >
               <Route index element={<Navigate to="/global-rating" replace />} />
-              {/* Where the rating used to live. */}
-              <Route path="global-rating/:cupId?" element={<LegacyRatingRedirect />} />
-              <Route path="profile/:pilot?" element={<PilotProfilePage />} />
+              {/* Where those two used to live. */}
+              <Route path="global-rating/:cupId?" element={<LegacyRedirect to="/global-rating" param="cupId" />} />
+              <Route path="profile/:pilot?" element={<LegacyRedirect to="/pilot" param="pilot" />} />
               <Route path="daystreaks" element={<DayStreaksPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />
