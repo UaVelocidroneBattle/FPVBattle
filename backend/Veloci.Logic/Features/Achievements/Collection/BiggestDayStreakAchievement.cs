@@ -24,16 +24,27 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
     public string Description => "Pilot with the biggest day streak";
     public string? CupId => null;
 
-    public async Task CheckAsync()
+    public async Task<Pilot?> CheckAsync()
     {
-        var pilotWithBiggestDayStreak = await _pilots
+        var topPilots = await _pilots
             .GetAll()
+            .Where(p => p.MaxDayStreak > 0)
             .OrderByDescending(p => p.MaxDayStreak)
-            .FirstOrDefaultAsync();
+            .Take(2)
+            .ToListAsync();
 
-        if (pilotWithBiggestDayStreak is null)
+        var leader = topPilots.FirstOrDefault();
+
+        if (leader is null)
         {
-            return;
+            return null;
+        }
+
+        // A top streak shared by several pilots has no single owner,
+        // so the title stays where it is until someone pulls strictly ahead.
+        if (topPilots.Count > 1 && topPilots[1].MaxDayStreak == leader.MaxDayStreak)
+        {
+            return null;
         }
 
         var currentAchievement = await _pilotAchievements
@@ -43,16 +54,18 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
 
         if (currentAchievement is null)
         {
-            pilotWithBiggestDayStreak.AddAchievement(this);
-            return;
+            leader.AddAchievement(this);
+            return leader;
         }
 
-        if (currentAchievement.Pilot.Name == pilotWithBiggestDayStreak.Name)
+        if (currentAchievement.Pilot.Name == leader.Name)
         {
-            return;
+            return null;
         }
 
-        currentAchievement.Pilot = pilotWithBiggestDayStreak;
-        currentAchievement.Date = DateTime.Now;
+        currentAchievement.Pilot = leader;
+        currentAchievement.Date = DateTime.UtcNow;
+
+        return leader;
     }
 }
