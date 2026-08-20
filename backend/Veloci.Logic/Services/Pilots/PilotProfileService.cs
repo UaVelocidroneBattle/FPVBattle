@@ -46,10 +46,12 @@ public class PilotProfileService : IPilotProfileService
         if (pilot is null)
             return null;
 
-        var openClassCupOptions = _cupService.GetCupOptions(CupIds.OpenClass);
+        var classRatings = new List<PilotClassRatingModel>();
 
-        var pilotLeague = pilot.GetCurrentLeague(CupIds.OpenClass)
-            ?? (openClassCupOptions.Leagues.Enabled ? openClassCupOptions.Leagues.OthersName : null);
+        foreach (var cupId in _cupService.GetEnabledCupIds())
+        {
+            classRatings.Add(await BuildClassRatingAsync(pilot, cupId));
+        }
 
         return new PilotProfileModel
         {
@@ -62,12 +64,27 @@ public class PilotProfileService : IPilotProfileService
             TotalRaceDays = pilot.TotalRaceDays,
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
-            GlobalRating = await _ratingService.GetPilotRankAsync(CupIds.OpenClass, pilot.Id),
-            League = pilotLeague,
-            LeagueColor = string.IsNullOrEmpty(pilotLeague)
+            ClassRatings = classRatings
+        };
+    }
+
+    private async Task<PilotClassRatingModel> BuildClassRatingAsync(Pilot pilot, string cupId)
+    {
+        var cupOptions = _cupService.GetCupOptions(cupId);
+
+        var league = pilot.GetCurrentLeague(cupId)
+            ?? (cupOptions.Leagues.Enabled ? cupOptions.Leagues.OthersName : null);
+
+        return new PilotClassRatingModel
+        {
+            CupId = cupId,
+            ClassName = cupOptions.Name,
+            GlobalRating = await _ratingService.GetPilotRankAsync(cupId, pilot.Id),
+            League = league,
+            LeagueColor = string.IsNullOrEmpty(league)
                 ? null
-                : openClassCupOptions.Leagues.Definitions.FirstOrDefault(x => x.Name == pilotLeague)?.Color,
-            RatingHistory = await _ratingService.GetPilotRatingHistoryAsync(CupIds.OpenClass, pilot.Id)
+                : cupOptions.Leagues.Definitions.FirstOrDefault(x => x.Name == league)?.Color,
+            RatingHistory = await _ratingService.GetPilotRatingHistoryAsync(cupId, pilot.Id)
         };
     }
 

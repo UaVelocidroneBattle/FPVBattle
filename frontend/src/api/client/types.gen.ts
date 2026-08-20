@@ -148,6 +148,15 @@ export type PilotAchievementModel = {
     description: string;
 };
 
+export type PilotClassRatingModel = {
+    cupId: string;
+    className: string;
+    globalRating?: number;
+    league?: null | string;
+    leagueColor?: null | string;
+    ratingHistory: Array<PilotRatingHistoryPoint>;
+};
+
 export type PilotLookupModel = {
     found: boolean;
     alreadyLinked?: boolean;
@@ -167,10 +176,7 @@ export type PilotProfileModel = {
     lastRaceDate?: null | string;
     firstRaceDate?: null | string;
     availableFreezes: number;
-    globalRating: number;
-    league?: null | string;
-    leagueColor?: null | string;
-    ratingHistory: Array<PilotRatingHistoryPoint>;
+    classRatings: Array<PilotClassRatingModel>;
 };
 
 export type PilotRatingHistoryPoint = {

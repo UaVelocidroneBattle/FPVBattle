@@ -1326,6 +1326,44 @@
           }
         }
       },
+      "PilotClassRatingModel": {
+        "required": [
+          "cupId",
+          "className",
+          "ratingHistory"
+        ],
+        "type": "object",
+        "properties": {
+          "cupId": {
+            "type": "string"
+          },
+          "className": {
+            "type": "string"
+          },
+          "globalRating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "leagueColor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ratingHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PilotRatingHistoryPoint"
+            }
+          }
+        }
+      },
       "PilotLookupModel": {
         "required": [
           "found"
@@ -1372,8 +1410,7 @@
           "achievements",
           "totalRaceDays",
           "availableFreezes",
-          "globalRating",
-          "ratingHistory"
+          "classRatings"
         ],
         "type": "object",
         "properties": {
@@ -1419,26 +1456,10 @@
             "type": "integer",
             "format": "int32"
           },
-          "globalRating": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "league": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "leagueColor": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "ratingHistory": {
+          "classRatings": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PilotRatingHistoryPoint"
+              "$ref": "#/components/schemas/PilotClassRatingModel"
             }
           }
         }
