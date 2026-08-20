@@ -56,6 +56,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<CompetitionResults>().ToTable("CompetitionResults");
         builder.Entity<CompetitionResults>().Property(c => c.ModelName).HasMaxLength(128);
+        builder.Entity<CompetitionResults>().Ignore(c => c.GapToLeaderPercent);
 
         builder.Entity<Pilot>().ToTable("Pilots");
         builder.Entity<Pilot>().HasKey(p => p.Id);

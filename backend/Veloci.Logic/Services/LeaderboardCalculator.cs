@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.Leagues;
 
 namespace Veloci.Logic.Services;
 
@@ -17,15 +19,18 @@ public class LeaderboardCalculator : ILeaderboardCalculator
     private readonly IRepository<Competition> _competitions;
     private readonly ICupService _cupService;
     private readonly PointsCalculator _pointsCalculator;
+    private readonly PaceRatingSettings _settings;
 
     public LeaderboardCalculator(
         IRepository<Competition> competitions,
         ICupService cupService,
-        PointsCalculator pointsCalculator)
+        PointsCalculator pointsCalculator,
+        IOptions<PaceRatingSettings> settings)
     {
         _competitions = competitions;
         _cupService = cupService;
         _pointsCalculator = pointsCalculator;
+        _settings = settings.Value;
     }
 
     /// <summary>
@@ -49,6 +54,29 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             .SelectMany(leagueGroup => RankFlat(leagueGroup.ToList(), competition.QuadOfTheDay))
             .ToList();
     }
+
+    private void ApplyGapToLeader(List<CompetitionResults> results)
+    {
+        var referenceTime = GetTopPilotsAverageTime(results.Select(r => r.TrackTime));
+
+        foreach (var result in results)
+            result.GapToLeaderPercent = referenceTime is null ? null : GapPercent(result.TrackTime, referenceTime.Value);
+    }
+
+    private double? GetTopPilotsAverageTime(IEnumerable<int> trackTimes)
+    {
+        var topTimes = trackTimes
+            .OrderBy(t => t)
+            .Take(_settings.TopPilotsForReference)
+            .ToList();
+
+        return topTimes.Count < _settings.TopPilotsForReference
+            ? null
+            : topTimes.Average();
+    }
+
+    private static double GapPercent(int pilotTime, double referenceTime)
+        => (pilotTime - referenceTime) / referenceTime * 100.0;
 
     private static TrackTimeDelta SelectBestDelta(IGrouping<int, TrackTimeDelta> pilotDeltas, QuadModel? quadOfTheDay)
     {
@@ -106,6 +134,8 @@ public class LeaderboardCalculator : ILeaderboardCalculator
         var leaderboard = competition.CompetitionResults is { Count: > 0 }
             ? competition.CompetitionResults
             : GetLeaderboard(competition);
+
+        ApplyGapToLeader(leaderboard);
 
         var othersName = cupOptions.Leagues.OthersName;
 

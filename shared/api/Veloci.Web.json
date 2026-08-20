@@ -1072,6 +1072,15 @@
           "points": {
             "type": "integer",
             "format": "int32"
+          },
+          "gapToLeaderPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         }
       },

@@ -1,7 +1,9 @@
+import { HelpCircle } from "lucide-react";
 import { LeaderboardResultModel, LeagueLeaderboardModel } from "../api/client";
 import { convertMsToSec } from "../utils/utils";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 /** A result of a filtered board keeps the position it held on the full one. */
 export interface LeaderboardResult extends LeaderboardResultModel {
@@ -32,10 +34,10 @@ function rowHighlightClass(isHighlighted: boolean, isEvenRow: boolean): string {
  * a pilot held before the board was filtered.
  */
 const COLUMNS = {
-    running: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]",
-    runningWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem] grid-cols-[4.5rem_1fr_2rem_5rem]",
-    ended: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[2.5rem_1fr_2rem_5rem_3.5rem]",
-    endedWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[4.5rem_1fr_2rem_5rem_3.5rem]",
+    running: "md:grid-cols-[2.5rem_1fr_auto_2rem_4rem_4.5rem] grid-cols-[2.5rem_1fr_2rem_4rem_4.5rem]",
+    runningWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_4rem_4.5rem] grid-cols-[4.5rem_1fr_2rem_4rem_4.5rem]",
+    ended: "md:grid-cols-[2.5rem_1fr_auto_2rem_4rem_4.5rem_2.5rem] grid-cols-[2.5rem_1fr_2rem_4rem_4.5rem_2.5rem]",
+    endedWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_4rem_4.5rem_2.5rem] grid-cols-[4.5rem_1fr_2rem_4rem_4.5rem_2.5rem]",
 };
 
 function columnsFor(isEnded: boolean, withOriginalRanks: boolean): string {
@@ -54,6 +56,35 @@ function rankStyle(localRank: number): string {
 }
 
 const formatRank = (rank: number) => String(rank).padStart(2, "0");
+
+/** Gap to the average time of the top pilots, e.g. "15.22%". Blank when there aren't enough pilots yet. */
+function formatGapToLeader(gapToLeaderPercent?: number | string | null): string {
+    if (gapToLeaderPercent == null) return "";
+    return `${Number(gapToLeaderPercent).toFixed(2)}%`;
+}
+
+function GtlHeaderLabel() {
+    return (
+        <span className="inline-flex items-center justify-end gap-1">
+            GTL
+            <Popover>
+                <PopoverTrigger
+                    aria-label="What does GTL mean?"
+                    className="inline-flex items-center justify-center rounded-full text-slate-500 hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400"
+                >
+                    <HelpCircle size={13} />
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64 bg-slate-800 border-slate-700 text-slate-300 text-sm">
+                    <p className="font-semibold text-slate-100 mb-1">Gap to Leader</p>
+                    <p>
+                        How far a pilot's time is from the pace-setting group, as a percentage of the average
+                        time of today's fastest three pilots.
+                    </p>
+                </PopoverContent>
+            </Popover>
+        </span>
+    );
+}
 
 /**
  * A filtered board is numbered from one again, with the position from the full
@@ -79,6 +110,9 @@ function ColumnHeaders({ isEnded, cols }: { isEnded: boolean; cols: string }) {
             <div className="hidden md:block text-xs font-medium text-slate-500">Quad</div>
             <div />
             <div className="text-xs font-medium text-slate-500 text-right">Time</div>
+            <div className="text-xs font-medium text-slate-500 text-right">
+                <GtlHeaderLabel />
+            </div>
             {isEnded && <div className="text-xs font-medium text-slate-500 text-right">Pts</div>}
         </div>
     );
@@ -121,6 +155,9 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                                     <CountryFlag countryCode={result.country} className="text-sm" />
                                     <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
                                         {convertMsToSec(result.trackTime ?? 0)}
+                                    </div>
+                                    <div className="text-sm font-semibold text-slate-400 tabular-nums text-right">
+                                        {formatGapToLeader(result.gapToLeaderPercent)}
                                     </div>
                                     {isEnded && (
                                         <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
@@ -172,6 +209,9 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                                                 <CountryFlag countryCode={result.country} className="text-sm" />
                                                 <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
                                                     {convertMsToSec(result.trackTime ?? 0)}
+                                                </div>
+                                                <div className="text-sm font-semibold text-slate-400 tabular-nums text-right">
+                                                    {formatGapToLeader(result.gapToLeaderPercent)}
                                                 </div>
                                                 {isEnded && (
                                                     <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
