@@ -78,6 +78,7 @@ export type LeaderboardResultModel = {
     modelName?: null | string;
     country: string;
     points?: number;
+    gapToLeaderPercent?: null | string;
 };
 
 export type LeagueDescriptor = {
