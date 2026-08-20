@@ -1,9 +1,8 @@
-import { HelpCircle } from "lucide-react";
 import { LeaderboardResultModel, LeagueLeaderboardModel } from "../api/client";
 import { convertMsToSec } from "../utils/utils";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** A result of a filtered board keeps the position it held on the full one. */
 export interface LeaderboardResult extends LeaderboardResultModel {
@@ -34,10 +33,10 @@ function rowHighlightClass(isHighlighted: boolean, isEvenRow: boolean): string {
  * a pilot held before the board was filtered.
  */
 const COLUMNS = {
-    running: "md:grid-cols-[2.5rem_1fr_auto_2rem_4rem_4.5rem] grid-cols-[2.5rem_1fr_2rem_4rem_4.5rem]",
-    runningWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_4rem_4.5rem] grid-cols-[4.5rem_1fr_2rem_4rem_4.5rem]",
-    ended: "md:grid-cols-[2.5rem_1fr_auto_2rem_4rem_4.5rem_2.5rem] grid-cols-[2.5rem_1fr_2rem_4rem_4.5rem_2.5rem]",
-    endedWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_4rem_4.5rem_2.5rem] grid-cols-[4.5rem_1fr_2rem_4rem_4.5rem_2.5rem]",
+    running: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]",
+    runningWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem] grid-cols-[4.5rem_1fr_2rem_5rem]",
+    ended: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[2.5rem_1fr_2rem_5rem_3.5rem]",
+    endedWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[4.5rem_1fr_2rem_5rem_3.5rem]",
 };
 
 function columnsFor(isEnded: boolean, withOriginalRanks: boolean): string {
@@ -57,32 +56,33 @@ function rankStyle(localRank: number): string {
 
 const formatRank = (rank: number) => String(rank).padStart(2, "0");
 
-/** Gap to the average time of the top pilots, e.g. "15.22%". Blank when there aren't enough pilots yet. */
-function formatGapToLeader(gapToLeaderPercent?: number | string | null): string {
-    if (gapToLeaderPercent == null) return "";
+/** Gap to the average time of the top pilots, e.g. "15.22%". Null when there aren't enough pilots yet. */
+function formatGapToLeader(gapToLeaderPercent?: number | string | null): string | null {
+    if (gapToLeaderPercent == null) return null;
     return `${Number(gapToLeaderPercent).toFixed(2)}%`;
 }
 
-function GtlHeaderLabel() {
+/** A pilot's finish time; hovering it reveals their gap to the leader, when there's enough data to know it. */
+function TimeCell({ trackTimeMs, gapToLeaderPercent }: { trackTimeMs: number; gapToLeaderPercent?: number | string | null }) {
+    const time = convertMsToSec(trackTimeMs);
+    const gap = formatGapToLeader(gapToLeaderPercent);
+
+    if (gap === null) {
+        return <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">{time}</div>;
+    }
+
     return (
-        <span className="inline-flex items-center justify-end gap-1">
-            GTL
-            <Popover>
-                <PopoverTrigger
-                    aria-label="What does GTL mean?"
-                    className="inline-flex items-center justify-center rounded-full text-slate-500 hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400"
-                >
-                    <HelpCircle size={13} />
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-64 bg-slate-800 border-slate-700 text-slate-300 text-sm">
-                    <p className="font-semibold text-slate-100 mb-1">Gap to Leader</p>
-                    <p>
-                        How far a pilot's time is from the pace-setting group, as a percentage of the average
-                        time of today's fastest three pilots.
-                    </p>
-                </PopoverContent>
-            </Popover>
-        </span>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <div className="text-sm font-semibold text-slate-200 tabular-nums text-right cursor-default">
+                    {time}
+                </div>
+            </TooltipTrigger>
+            <TooltipContent className="bg-slate-800 border-slate-700">
+                <span className="text-slate-400">Gap to leader:</span>{" "}
+                <span className="font-semibold text-slate-100 ml-1">{gap}</span>
+            </TooltipContent>
+        </Tooltip>
     );
 }
 
@@ -110,9 +110,6 @@ function ColumnHeaders({ isEnded, cols }: { isEnded: boolean; cols: string }) {
             <div className="hidden md:block text-xs font-medium text-slate-500">Quad</div>
             <div />
             <div className="text-xs font-medium text-slate-500 text-right">Time</div>
-            <div className="text-xs font-medium text-slate-500 text-right">
-                <GtlHeaderLabel />
-            </div>
             {isEnded && <div className="text-xs font-medium text-slate-500 text-right">Pts</div>}
         </div>
     );
@@ -136,98 +133,92 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
             .sort((a, b) => (a.trackTime ?? 0) - (b.trackTime ?? 0));
 
         return (
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
-                <ColumnHeaders isEnded={isEnded} cols={cols} />
-                <ul>
-                    {results.map((result, index) => {
-                        const leagueColor = (result.league && leagueColors?.get(result.league)) || '#34d399';
-                        const isHighlighted = result.playerName === highlightPilotName;
-                        return (
-                            <li
-                                key={`${result.playerName}-${index}`}
-                                className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
-                                style={{ borderLeftColor: leagueColor }}
-                            >
-                                <div className={`grid ${cols} items-center gap-6`}>
-                                    <Position rank={index + 1} originalRank={result.originalRank} />
-                                    <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
-                                    <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
-                                    <CountryFlag countryCode={result.country} className="text-sm" />
-                                    <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
-                                        {convertMsToSec(result.trackTime ?? 0)}
+            <TooltipProvider delayDuration={150}>
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+                    <ColumnHeaders isEnded={isEnded} cols={cols} />
+                    <ul>
+                        {results.map((result, index) => {
+                            const leagueColor = (result.league && leagueColors?.get(result.league)) || '#34d399';
+                            const isHighlighted = result.playerName === highlightPilotName;
+                            return (
+                                <li
+                                    key={`${result.playerName}-${index}`}
+                                    className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
+                                    style={{ borderLeftColor: leagueColor }}
+                                >
+                                    <div className={`grid ${cols} items-center gap-6`}>
+                                        <Position rank={index + 1} originalRank={result.originalRank} />
+                                        <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                        <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
+                                        <CountryFlag countryCode={result.country} className="text-sm" />
+                                        <TimeCell trackTimeMs={result.trackTime ?? 0} gapToLeaderPercent={result.gapToLeaderPercent} />
+                                        {isEnded && (
+                                            <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
+                                                {result.points ?? "—"}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="text-sm font-semibold text-slate-400 tabular-nums text-right">
-                                        {formatGapToLeader(result.gapToLeaderPercent)}
-                                    </div>
-                                    {isEnded && (
-                                        <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
-                                            {result.points ?? "—"}
-                                        </div>
-                                    )}
-                                </div>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            </TooltipProvider>
         );
     }
 
     const hasLeagues = leaderboard.length > 1;
 
     return (
-        <div className={hasLeagues ? "flex flex-col gap-6" : ""}>
-            {leaderboard.map(group => (
-                <div key={group.league ?? 'all'} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
-                    {hasLeagues && (
-                        <div className="px-4 py-2 border-b border-slate-700 bg-slate-700/20">
-                            <span
-                                className="text-xs font-semibold uppercase tracking-wider text-emerald-400"
-                                style={{ color: (group.league && leagueColors?.get(group.league)) || undefined }}
-                            >
-                                {group.league ?? "Others"}
-                            </span>
-                        </div>
-                    )}
-                    {!group.results?.length ? (
-                        <div className="px-4 py-6 text-slate-500 text-sm text-center">No results</div>
-                    ) : (
-                        <>
-                            <ColumnHeaders isEnded={isEnded} cols={cols} />
-                            <ul>
-                                {group.results.map((result, index) => {
-                                    const isHighlighted = result.playerName === highlightPilotName;
-                                    return (
-                                        <li
-                                            key={`${result.playerName}-${result.localRank}`}
-                                            className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
-                                        >
-                                            <div className={`grid ${cols} items-center gap-6`}>
-                                                <Position rank={result.localRank ?? 0} originalRank={result.originalRank} />
-                                                <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
-                                                <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
-                                                <CountryFlag countryCode={result.country} className="text-sm" />
-                                                <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">
-                                                    {convertMsToSec(result.trackTime ?? 0)}
+        <TooltipProvider delayDuration={150}>
+            <div className={hasLeagues ? "flex flex-col gap-6" : ""}>
+                {leaderboard.map(group => (
+                    <div key={group.league ?? 'all'} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+                        {hasLeagues && (
+                            <div className="px-4 py-2 border-b border-slate-700 bg-slate-700/20">
+                                <span
+                                    className="text-xs font-semibold uppercase tracking-wider text-emerald-400"
+                                    style={{ color: (group.league && leagueColors?.get(group.league)) || undefined }}
+                                >
+                                    {group.league ?? "Others"}
+                                </span>
+                            </div>
+                        )}
+                        {!group.results?.length ? (
+                            <div className="px-4 py-6 text-slate-500 text-sm text-center">No results</div>
+                        ) : (
+                            <>
+                                <ColumnHeaders isEnded={isEnded} cols={cols} />
+                                <ul>
+                                    {group.results.map((result, index) => {
+                                        const isHighlighted = result.playerName === highlightPilotName;
+                                        return (
+                                            <li
+                                                key={`${result.playerName}-${result.localRank}`}
+                                                className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
+                                            >
+                                                <div className={`grid ${cols} items-center gap-6`}>
+                                                    <Position rank={result.localRank ?? 0} originalRank={result.originalRank} />
+                                                    <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                                    <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
+                                                    <CountryFlag countryCode={result.country} className="text-sm" />
+                                                    <TimeCell trackTimeMs={result.trackTime ?? 0} gapToLeaderPercent={result.gapToLeaderPercent} />
+                                                    {isEnded && (
+                                                        <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
+                                                            {result.points ?? "—"}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <div className="text-sm font-semibold text-slate-400 tabular-nums text-right">
-                                                    {formatGapToLeader(result.gapToLeaderPercent)}
-                                                </div>
-                                                {isEnded && (
-                                                    <div className="text-sm font-semibold text-emerald-400 tabular-nums text-right">
-                                                        {result.points ?? "—"}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </>
-                    )}
-                </div>
-            ))}
-        </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </TooltipProvider>
     );
 }
 
