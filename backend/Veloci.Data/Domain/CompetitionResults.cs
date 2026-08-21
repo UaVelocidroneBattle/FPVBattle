@@ -32,4 +32,6 @@ public class CompetitionResults
     public int BonusPoints { get; set; }
 
     public string? ModelName { get; set; }
+
+    public double? GapToLeaderPercent { get; set; }
 }

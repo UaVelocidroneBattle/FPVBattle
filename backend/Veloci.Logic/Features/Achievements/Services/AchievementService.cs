@@ -154,18 +154,44 @@ public class AchievementService
         return checkResults;
     }
 
-    public async Task CheckGlobalsAsync()
+    public async Task CheckGlobalsAsync(CancellationToken cancellationToken)
     {
+        var results = new AchievementCheckResults();
         var achievements = GetAchievements<IGlobalAchievement>().ToList();
         Log.Information("Checking {GlobalAchievementCount} global achievements", achievements.Count);
 
         foreach (var achievement in achievements)
         {
             Log.Debug("Checking global achievement {AchievementName}", achievement.Name);
-            await achievement.CheckAsync();
+            var pilot = await achievement.CheckAsync();
+
+            if (pilot is null)
+            {
+                continue;
+            }
+
+            results.Add(new AchievementCheckResult(pilot, achievement));
         }
 
+        await SaveAndPublishAsync(results, cancellationToken);
+
         Log.Debug("Global achievement check completed");
+    }
+
+    private async Task SaveAndPublishAsync(AchievementCheckResults results, CancellationToken cancellationToken)
+    {
+        await _pilots.SaveChangesAsync(cancellationToken);
+
+        if (!results.Any())
+        {
+            Log.Debug("No achievements were triggered in this check");
+            return;
+        }
+
+        var uniquePilots = results.Select(r => r.Pilot.Name).Distinct().Count();
+        Log.Information("Achievement check completed: {TriggeredCount} achievements awarded to {PilotCount} pilots",
+            results.Count, uniquePilots);
+        await _mediator.Publish(new GotAchievements(results), cancellationToken);
     }
 
     private IEnumerable<T> GetAchievements<T>() where T : IAchievement
@@ -197,24 +223,7 @@ public class AchievementService
             }
         }
 
-        await _pilots.SaveChangesAsync(cancellationToken);
-
-        if (allResults.Any())
-        {
-            var uniquePilots = allResults.Select(r => r.Pilot.Name).Distinct().Count();
-            Log.Information("Achievement check completed: {TriggeredCount} achievements awarded to {PilotCount} pilots",
-                allResults.Count, uniquePilots);
-            await _mediator.Publish(new GotAchievements(allResults), cancellationToken);
-        }
-        else
-        {
-            Log.Debug("No achievements were triggered in this check");
-        }
-    }
-
-    public IAchievement GetAchievementByName(string name)
-    {
-        return _achievements.First(a => a.Name == name);
+        await SaveAndPublishAsync(allResults, cancellationToken);
     }
 }
 

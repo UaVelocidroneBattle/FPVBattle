@@ -21,7 +21,7 @@ function StreakRow({ row, rank }: { row: DayStreakLeaderboardRow; rank: number }
 
                 <div className="flex-1 min-w-0">
                     <Link
-                        to={`/statistics/profile/${encodeURIComponent(row.pilotName)}`}
+                        to={`/pilot/${encodeURIComponent(row.pilotName)}`}
                         className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors"
                     >
                         {row.pilotName}

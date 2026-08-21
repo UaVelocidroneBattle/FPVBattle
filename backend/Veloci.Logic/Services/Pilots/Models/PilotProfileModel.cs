@@ -11,8 +11,5 @@ public class PilotProfileModel
     public DateTime? LastRaceDate { get; set; }
     public DateTime? FirstRaceDate { get; set; }
     public required int AvailableFreezes { get; set; }
-    public required int? GlobalRating { get; set; }
-    public string? League { get; set; }
-    public string? LeagueColor { get; set; }
-    public required List<PilotRatingHistoryPoint> RatingHistory { get; set; }
+    public required List<PilotClassRatingModel> ClassRatings { get; set; }
 }

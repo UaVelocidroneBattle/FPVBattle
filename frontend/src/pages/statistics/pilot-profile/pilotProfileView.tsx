@@ -1,12 +1,13 @@
 import { PilotProfileModel, PilotResult } from '@/api/client';
 import { Spinner } from '@/components/ui/spinner';
 import AchievementsList from './AchievementsList';
-import PilotStatsGrid from '@/components/PilotStatsGrid';
+import RatingSection from './RatingSection';
 import { LoadingStates } from '@/lib/loadingStates';
 import { ChartContainer } from '@/components/ChartContainer';
 import { lazy, useMemo, useState } from 'react';
 import { formatDate } from '@/lib/utils';
 import CountryFlag from '@/components/ui/CountryFlag';
+import { countryName } from '@/lib/countries';
 import GapHistorySection from './GapHistorySection';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'));
@@ -43,19 +44,24 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
         <>
             {/* Pilot Header */}
             <div className="bg-slate-800 p-6">
-                <h1 className="text-xl sm:text-3xl font-bold text-white mb-3 flex items-center gap-2 sm:gap-3">
-                    <CountryFlag countryCode={profile.country} className="text-lg sm:text-2xl" />
+                <h1 className="text-xl sm:text-3xl font-bold text-white flex items-center flex-wrap gap-2 sm:gap-3">
                     {profile.name}
+                    {profile.country && (
+                        <span className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-400 bg-slate-700/60 border border-slate-600 rounded-full pl-3 pr-4 py-1">
+                            <CountryFlag countryCode={profile.country} className="text-xs sm:text-sm" />
+                            {countryName(profile.country)}
+                        </span>
+                    )}
                 </h1>
-                <div className='text-slate-400 mb-4'>
-                    <div>First race: {formatDate(profile.firstRaceDate)}</div>
-                    <div>Last race: {formatDate(profile.lastRaceDate)}</div>
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs sm:text-sm text-slate-400 mt-3 mb-4">
+                    <span>First race: {formatDate(profile.firstRaceDate)}</span>
+                    <span aria-hidden="true" className="text-slate-600">·</span>
+                    <span>Last race: {formatDate(profile.lastRaceDate)}</span>
                 </div>
-                
-
-                {/* Stats Grid */}
-                <PilotStatsGrid profile={profile} />
             </div>
+
+            {/* Rating */}
+            <RatingSection profile={profile} />
 
             {/* Achievements */}
             <div className="bg-slate-800 p-6">
@@ -68,8 +74,8 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
             </div>
 
             {/* Rating Gap History */}
-            {profile.ratingHistory.length > 1 && (
-                <GapHistorySection history={profile.ratingHistory} />
+            {profile.classRatings.some(c => c.ratingHistory.length > 1) && (
+                <GapHistorySection classRatings={profile.classRatings} />
             )}
 
             {/* Heatmap */}

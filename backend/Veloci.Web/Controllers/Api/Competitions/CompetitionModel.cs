@@ -25,6 +25,7 @@ public class LeaderboardResultModel
     public string? ModelName { get; set; }
     public required string Country { get; set; }
     public int? Points { get; set; }
+    public double? GapToLeaderPercent { get; set; }
 }
 
 public class CompetitionModel

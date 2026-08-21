@@ -5,6 +5,123 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/pilot-statistics/Count": {
+      "get": {
+        "tags": [
+          "PilotStatistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotsCountModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotsCountModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotsCountModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pilot-statistics/NewPilots": {
+      "get": {
+        "tags": [
+          "PilotStatistics"
+        ],
+        "parameters": [
+          {
+            "name": "months",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewPilotsCountModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewPilotsCountModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewPilotsCountModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pilot-statistics/Participation": {
+      "get": {
+        "tags": [
+          "PilotStatistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ratings/get": {
       "get": {
         "tags": [
@@ -400,6 +517,44 @@
         }
       }
     },
+    "/api/cups/get": {
+      "get": {
+        "tags": [
+          "Cups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CupModel"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CupModel"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CupModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/competitions/current": {
       "get": {
         "tags": [
@@ -773,6 +928,44 @@
           }
         }
       },
+      "CupModel": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CupParticipationModel": {
+        "required": [
+          "cupId",
+          "cupName",
+          "counts"
+        ],
+        "type": "object",
+        "properties": {
+          "cupId": {
+            "type": "string"
+          },
+          "cupName": {
+            "type": "string"
+          },
+          "counts": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
       "CurrentUserModel": {
         "required": [
           "id",
@@ -879,6 +1072,15 @@
           "points": {
             "type": "integer",
             "format": "int32"
+          },
+          "gapToLeaderPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         }
       },
@@ -1043,6 +1245,49 @@
           }
         }
       },
+      "NewPilotsCountModel": {
+        "required": [
+          "months",
+          "counts"
+        ],
+        "type": "object",
+        "properties": {
+          "months": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "counts": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "ParticipationModel": {
+        "required": [
+          "days",
+          "series"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CupParticipationModel"
+            }
+          }
+        }
+      },
       "PendingClaimModel": {
         "required": [
           "pilotName",
@@ -1087,6 +1332,44 @@
           },
           "description": {
             "type": "string"
+          }
+        }
+      },
+      "PilotClassRatingModel": {
+        "required": [
+          "cupId",
+          "className",
+          "ratingHistory"
+        ],
+        "type": "object",
+        "properties": {
+          "cupId": {
+            "type": "string"
+          },
+          "className": {
+            "type": "string"
+          },
+          "globalRating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "league": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "leagueColor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ratingHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PilotRatingHistoryPoint"
+            }
           }
         }
       },
@@ -1136,8 +1419,7 @@
           "achievements",
           "totalRaceDays",
           "availableFreezes",
-          "globalRating",
-          "ratingHistory"
+          "classRatings"
         ],
         "type": "object",
         "properties": {
@@ -1183,26 +1465,10 @@
             "type": "integer",
             "format": "int32"
           },
-          "globalRating": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "league": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "leagueColor": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "ratingHistory": {
+          "classRatings": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PilotRatingHistoryPoint"
+              "$ref": "#/components/schemas/PilotClassRatingModel"
             }
           }
         }
@@ -1295,6 +1561,28 @@
           "trackTime": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PilotsCountModel": {
+        "required": [
+          "days",
+          "totals"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         }
       },
@@ -1395,6 +1683,9 @@
   },
   "tags": [
     {
+      "name": "PilotStatistics"
+    },
+    {
       "name": "Rating"
     },
     {
@@ -1414,6 +1705,9 @@
     },
     {
       "name": "DayStreak"
+    },
+    {
+      "name": "Cups"
     },
     {
       "name": "Competitions"

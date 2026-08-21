@@ -37,7 +37,15 @@ public class TelegramAchievementsHandler :
         foreach (var (cupId, results) in notification.Results.GroupByCup())
         {
             var message = _messageComposer.AchievementList(results);
-            await _cupMessenger.SendMessageToCupAsync(cupId, message);
+
+            if (cupId is null)
+            {
+                await _cupMessenger.SendMessageToAllCupsAsync(message);
+            }
+            else
+            {
+                await _cupMessenger.SendMessageToCupAsync(cupId, message);
+            }
         }
     }
 }

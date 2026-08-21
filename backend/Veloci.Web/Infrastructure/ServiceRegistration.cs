@@ -43,6 +43,7 @@ public static class ServiceRegistration
         services.AddScoped<ModelsService>();
         services.AddScoped<ILeaderboardCalculator, LeaderboardCalculator>();
         services.AddScoped<ParticipationStatisticsService>();
+        services.AddScoped<PilotsCountStatisticsService>();
 
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);

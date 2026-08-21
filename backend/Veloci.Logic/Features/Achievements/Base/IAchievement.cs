@@ -31,5 +31,5 @@ public interface IAchievementAfterSeason : IAchievement
 
 public interface IGlobalAchievement : IAchievement
 {
-    Task CheckAsync();
+    Task<Pilot?> CheckAsync();
 }

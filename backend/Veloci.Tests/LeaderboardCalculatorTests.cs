@@ -1,6 +1,8 @@
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.Leagues;
 using Veloci.Logic.Services;
 
 namespace Veloci.Tests;
@@ -11,7 +13,11 @@ public class LeaderboardCalculatorTests
 
     public LeaderboardCalculatorTests()
     {
-        _calculator = new LeaderboardCalculator(null!, new LeaguesDisabledCupService(), new PointsCalculator());
+        _calculator = new LeaderboardCalculator(
+            null!,
+            new LeaguesDisabledCupService(),
+            new PointsCalculator(),
+            Options.Create(new PaceRatingSettings()));
     }
 
     [Fact]
@@ -81,6 +87,84 @@ public class LeaderboardCalculatorTests
         leaderboard.Single(r => r.PilotId == 1).Points.Should().Be(100);
         leaderboard.Single(r => r.PilotId == 2).Points.Should().Be(85);
         leaderboard.Single(r => r.PilotId == 3).Points.Should().Be(75);
+    }
+
+    [Fact]
+    public void GetLeagueLeaderboard_WithFewerThanThreePilots_ShouldLeaveGapToLeaderNull()
+    {
+        var competition = new Competition
+        {
+            CupId = "test-cup",
+            QuadOfTheDay = null,
+            TimeDeltas =
+            [
+                CreateDelta(pilotId: 1, name: "First", trackTime: 60_000, modelName: "Any Quad", rank: 1),
+                CreateDelta(pilotId: 2, name: "Second", trackTime: 62_000, modelName: "Any Quad", rank: 2)
+            ]
+        };
+
+        var results = _calculator.GetLeagueLeaderboard(competition).SelectMany(l => l.Results);
+
+        results.Should().OnlyContain(r => r.GapToLeaderPercent == null);
+    }
+
+    [Fact]
+    public void GetLeagueLeaderboard_WithThreeOrMorePilots_ShouldSetGapToLeaderRelativeToTopThreeAverage()
+    {
+        var competition = new Competition
+        {
+            CupId = "test-cup",
+            QuadOfTheDay = null,
+            TimeDeltas =
+            [
+                CreateDelta(pilotId: 1, name: "First", trackTime: 60_000, modelName: "Any Quad", rank: 1),
+                CreateDelta(pilotId: 2, name: "Second", trackTime: 61_000, modelName: "Any Quad", rank: 2),
+                CreateDelta(pilotId: 3, name: "Third", trackTime: 62_000, modelName: "Any Quad", rank: 3),
+                CreateDelta(pilotId: 4, name: "Fourth", trackTime: 66_000, modelName: "Any Quad", rank: 4)
+            ]
+        };
+
+        // Reference = average(60_000, 61_000, 62_000) = 61_000
+        var results = _calculator.GetLeagueLeaderboard(competition).SelectMany(l => l.Results).ToList();
+
+        results.Single(r => r.PilotId == 1).GapToLeaderPercent.Should().BeApproximately(-1.639, 0.001);
+        results.Single(r => r.PilotId == 2).GapToLeaderPercent.Should().BeApproximately(0, 0.001);
+        results.Single(r => r.PilotId == 3).GapToLeaderPercent.Should().BeApproximately(1.639, 0.001);
+        results.Single(r => r.PilotId == 4).GapToLeaderPercent.Should().BeApproximately(8.197, 0.001);
+    }
+
+    [Fact]
+    public void GetLeagueLeaderboard_WithResultsAlreadyPersisted_ShouldStillComputeGapToLeaderFromStoredTrackTimes()
+    {
+        // Simulates a closed competition read back from the database: CompetitionResults is already
+        // populated (TimeDeltas typically isn't loaded at all), and GapToLeaderPercent comes back at its
+        // CLR default because it's Ignore()d in ApplicationDbContext and was never persisted.
+        var competition = new Competition
+        {
+            CupId = "test-cup",
+            CompetitionResults =
+            [
+                CreateResult(pilotId: 1, name: "First", trackTime: 60_000),
+                CreateResult(pilotId: 2, name: "Second", trackTime: 61_000),
+                CreateResult(pilotId: 3, name: "Third", trackTime: 62_000)
+            ]
+        };
+
+        var results = _calculator.GetLeagueLeaderboard(competition).SelectMany(l => l.Results).ToList();
+
+        results.Single(r => r.PilotId == 1).GapToLeaderPercent.Should().BeApproximately(-1.639, 0.001);
+        results.Single(r => r.PilotId == 3).GapToLeaderPercent.Should().BeApproximately(1.639, 0.001);
+    }
+
+    private static CompetitionResults CreateResult(int pilotId, string name, int trackTime)
+    {
+        return new CompetitionResults
+        {
+            CompetitionId = "test-competition",
+            PilotId = pilotId,
+            Pilot = new Pilot(name) { Id = pilotId },
+            TrackTime = trackTime
+        };
     }
 
     private static TrackTimeDelta CreateDelta(int pilotId, string name, int trackTime, string modelName, int rank)

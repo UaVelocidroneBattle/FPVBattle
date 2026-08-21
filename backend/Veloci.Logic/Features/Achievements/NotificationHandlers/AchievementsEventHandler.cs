@@ -24,7 +24,7 @@ public class AchievementsEventHandler :
     public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
     {
         await _achievementService.CheckAfterCompetitionAsync(notification.Competition, cancellationToken);
-        await _achievementService.CheckGlobalsAsync();
+        await _achievementService.CheckGlobalsAsync(cancellationToken);
     }
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)

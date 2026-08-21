@@ -76,18 +76,6 @@ const GapHistoryChart = ({ history }: GapHistoryChartProps) => {
             yFormat=" >-.2f"
             curve="monotoneX"
             colors={d => d.color}
-            markers={[{
-                axis: 'y',
-                value: 0,
-                lineStyle: {
-                    stroke: 'rgba(203, 213, 225, 0.4)',
-                    strokeWidth: 1,
-                    strokeDasharray: '6 4'
-                },
-                legend: 'Leader',
-                legendPosition: 'top-right',
-                textStyle: { fill: 'rgba(203, 213, 225, 0.4)', fontSize: 11 }
-            }]}
             axisBottom={{
                 tickValues: [],
                 legend: 'Time',

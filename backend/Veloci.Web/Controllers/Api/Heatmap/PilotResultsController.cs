@@ -19,10 +19,15 @@ public class PilotResultsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<List<PilotResult>> ForPilot([FromQuery]string pilotName, CancellationToken ct)
+    public async Task<ActionResult<List<PilotResult>>> ForPilot([FromQuery]string pilotName, CancellationToken ct)
     {
-        var pilot = await _pilots.GetAll().ByName(pilotName).FirstAsync(cancellationToken: ct);
-        var data = await _calculator.GetPilotResults(pilot, ct);
-        return data;
+        var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync(cancellationToken: ct);
+
+        if (pilot is null)
+        {
+            return NotFound($"Pilot '{pilotName}' was not found");
+        }
+
+        return await _calculator.GetPilotResults(pilot, ct);
     }
 }

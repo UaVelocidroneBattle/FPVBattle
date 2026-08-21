@@ -11,12 +11,12 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://fpv-battle.fun/open</loc>
+    <loc>https://fpv-battle.fun/open-class</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://fpv-battle.fun/whoop</loc>
+    <loc>https://fpv-battle.fun/whoop-class</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -68,7 +68,12 @@
   </url>
 
   <url>
-    <loc>https://fpv-battle.fun/statistics/global-rating</loc>
+    <loc>https://fpv-battle.fun/global-rating/open-class</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fpv-battle.fun/global-rating/whoop-class</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
@@ -88,7 +93,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fpv-battle.fun/statistics/profile</loc>
+    <loc>https://fpv-battle.fun/pilot</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>

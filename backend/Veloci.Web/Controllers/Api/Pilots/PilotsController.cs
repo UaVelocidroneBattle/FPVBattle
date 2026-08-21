@@ -45,6 +45,11 @@ public class PilotsController : ControllerBase
 
         var profile = await _pilotProfileService.GetPilotProfileAsync(pilotName, ct);
 
+        if (profile is null)
+        {
+            return NotFound($"Pilot '{pilotName}' was not found");
+        }
+
         return profile;
     }
 }

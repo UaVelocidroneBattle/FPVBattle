@@ -76,7 +76,8 @@ public class CompetitionsController : ControllerBase
                 GlobalRank = r.GlobalRank,
                 ModelName = r.ModelName,
                 Country = r.Pilot.Country,
-                Points = r.Points
+                Points = r.Points,
+                GapToLeaderPercent = r.GapToLeaderPercent
             }).ToList()
         };
 
