@@ -20,7 +20,7 @@ const PilotsPage = () => {
         <div className="flex flex-col gap-10">
             <ChartSection
                 title="Pilots count"
-                description="How many pilots have joined FPV Battle, day by day."
+                description="The total number of pilots in FPV Battle, day by day."
                 store={usePilotsCountStore}
                 isEmpty={(data) => data.days.length === 0}
                 height="400px"
