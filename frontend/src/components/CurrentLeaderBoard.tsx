@@ -78,7 +78,7 @@ function TimeCell({ trackTimeMs, gapToLeaderPercent }: { trackTimeMs: number; ga
                     {time}
                 </div>
             </TooltipTrigger>
-            <TooltipContent className="bg-slate-800 border-slate-700">
+            <TooltipContent side="right" className="bg-slate-800 border-slate-700">
                 <span className="text-slate-400">Gap to leader:</span>{" "}
                 <span className="font-semibold text-slate-100 ml-1">{gap}</span>
             </TooltipContent>
