@@ -195,6 +195,7 @@ export type PilotRatingModel = {
     rank?: number;
     rankChange?: number;
     league?: null | string;
+    qualification?: null | RatingQualification;
 };
 
 export type PilotResult = {
@@ -220,7 +221,15 @@ export type RatingModel = {
     ratings?: Array<PilotRatingModel>;
     droppedOutPilots?: Array<PilotRatingModel>;
     leagueSettings?: LeagueSettingsModel;
+    requiredTracks?: number;
 };
+
+export type RatingQualification = {
+    tracksFlown: number;
+    status: RatingQualificationStatus;
+};
+
+export type RatingQualificationStatus = 'Qualified' | 'Reachable' | 'OutOfReach';
 
 export type RefreshRequest = {
     refreshToken: string;

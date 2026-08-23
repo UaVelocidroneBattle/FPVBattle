@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { client, LeagueSettingsModel } from "../api/client";
+import { client, LeagueSettingsModel, RatingQualification } from "../api/client";
 import { LoadingStates } from "../lib/loadingStates";
 
-export type { LeagueSettingsModel, LeagueDescriptorModel } from "../api/client";
+export type { LeagueSettingsModel, LeagueDescriptorModel, RatingQualification, RatingQualificationStatus } from "../api/client";
 
 export interface PilotRatingModel {
     pilotId: number;
@@ -13,6 +13,7 @@ export interface PilotRatingModel {
     rank: number;
     rankChange: number | null;
     league: string | null;
+    qualification: RatingQualification | null;
 }
 
 export interface GlobalRatingData {
@@ -20,6 +21,8 @@ export interface GlobalRatingData {
     ratings: PilotRatingModel[];
     droppedOutPilots: PilotRatingModel[];
     leagueSettings: LeagueSettingsModel;
+    /** Null on a cup without leagues, where there is nothing to qualify for. */
+    requiredTracks: number | null;
 }
 
 interface GlobalRatingState {

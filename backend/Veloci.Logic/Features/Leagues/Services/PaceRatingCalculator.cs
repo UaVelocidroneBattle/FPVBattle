@@ -53,7 +53,7 @@ public class PaceRatingCalculator
     public async Task CalculateForCupAsync(string cupId)
     {
         var today = DateTime.Today;
-        var since = today.AddDays(-_settings.LookBackDays);
+        var since = _settings.LookBackPeriod.StartOfWindowEndingAt(today);
 
         var alreadyCalculatedToday = await _ratings.GetAll()
             .AnyAsync(r => r.CupId == cupId && r.CalculatedOn == today);
@@ -74,8 +74,8 @@ public class PaceRatingCalculator
             .Include(c => c.QuadOfTheDay)
             .ToListAsync();
 
-        Log.Information("Cup {CupId}: found {CompetitionCount} competitions in the last {Days} days",
-            cupId, competitions.Count, _settings.LookBackDays);
+        Log.Information("Cup {CupId}: found {CompetitionCount} competitions since {Since:yyyy-MM-dd}, the last {LookBackPeriod}",
+            cupId, competitions.Count, since, _settings.LookBackPeriod);
 
         var ratings = competitions
             .SelectMany(ComputeCompetitionStats)
@@ -113,9 +113,7 @@ public class PaceRatingCalculator
 
     private IEnumerable<PilotStats> ComputeCompetitionStats(Competition competition)
     {
-        var eligibleResults = competition.QuadOfTheDay is not null
-            ? competition.CompetitionResults.Where(r => r.ModelName == competition.QuadOfTheDay.Name).ToList()
-            : competition.CompetitionResults;
+        var eligibleResults = competition.RatingEligibleResults.ToList();
 
         var referenceTime = GetTopPilotsAverageTime(eligibleResults);
 

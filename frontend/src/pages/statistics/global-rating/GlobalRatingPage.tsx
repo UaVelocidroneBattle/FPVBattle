@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowDown, ArrowUp } from "lucide-react";
-import { useGlobalRatingStore, PilotRatingModel, LeagueSettingsModel } from "@/store/globalRatingStore";
+import { ArrowDown, ArrowUp, CircleHelp } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useGlobalRatingStore, PilotRatingModel, LeagueSettingsModel, RatingQualification, RatingQualificationStatus } from "@/store/globalRatingStore";
 import { Spinner } from "@/components/ui/spinner";
 import PilotWithAvatar from "@/components/PilotWithAvatar";
 import { useCups } from "@/hooks/useCups";
@@ -49,6 +50,68 @@ function formatGap(value: number | null): string {
 
 const formatRank = (rank: number) => String(rank).padStart(2, "0");
 
+const qualificationColors: Record<RatingQualificationStatus, string> = {
+    Qualified: "text-emerald-400",
+    Reachable: "text-slate-300",
+    OutOfReach: "text-red-400",
+};
+
+/**
+ * The three columns after the pilot share one width, so their headers and values line up as a
+ * block. Sized by the widest of them, the "Current league" heading.
+ */
+const trailingColumnWidth = "w-20 sm:w-40";
+
+/** A cup without leagues sends no qualification, and shows no column. */
+function Qualification({ qualification, requiredTracks }: { qualification: RatingQualification | null; requiredTracks: number | null }) {
+    if (!qualification || requiredTracks === null) return null;
+
+    return (
+        <div className={`${trailingColumnWidth} flex-shrink-0 text-right text-sm font-medium tabular-nums ${qualificationColors[qualification.status]}`}>
+            {qualification.tracksFlown}/{requiredTracks}
+        </div>
+    );
+}
+
+function TracksHeader({ requiredTracks }: { requiredTracks: number }) {
+    return (
+        <div className={`${trailingColumnWidth} flex-shrink-0 flex items-center justify-end gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500`}>
+            Tracks
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        type="button"
+                        aria-label="What the tracks column means"
+                        className="text-slate-500 hover:text-slate-300 transition-colors cursor-help"
+                    >
+                        <CircleHelp className="h-3.5 w-3.5" />
+                    </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="end" className="max-w-xs bg-slate-800 border-slate-700">
+                    <p className="text-slate-300">
+                        Tracks flown this month out of the {requiredTracks} needed to be in the next league
+                        distribution.
+                    </p>
+                    <ul className="mt-2 space-y-1 text-slate-400">
+                        <li>
+                            <span className={`font-semibold ${qualificationColors.Qualified}`}>Green</span> — enough
+                            tracks flown already; the pilot takes a place in one of the leagues next month.
+                        </li>
+                        <li>
+                            <span className={`font-semibold ${qualificationColors.Reachable}`}>White</span> — still a
+                            few tracks short, with days enough left this month to fly them.
+                        </li>
+                        <li>
+                            <span className={`font-semibold ${qualificationColors.OutOfReach}`}>Red</span> — too few
+                            days left in the month to fly the tracks still missing, so the pilot misses out.
+                        </li>
+                    </ul>
+                </TooltipContent>
+            </Tooltip>
+        </div>
+    );
+}
+
 /**
  * Marks the signed in user's own row, matching the competition leaderboards.
  * The list draws its separators with `divide-y`, whose selector outranks a
@@ -75,7 +138,7 @@ function Position({ pilot, localRank }: { pilot: PilotRatingModel; localRank?: n
     );
 }
 
-function RatingRow({ pilot, localRank, leagueColors, showLeague, othersName, isHighlighted }: { pilot: PilotRatingModel; localRank?: number; leagueColors: Map<string, string>; showLeague: boolean; othersName: string; isHighlighted: boolean }) {
+function RatingRow({ pilot, localRank, leagueColors, showLeague, othersName, requiredTracks, isHighlighted }: { pilot: PilotRatingModel; localRank?: number; leagueColors: Map<string, string>; showLeague: boolean; othersName: string; requiredTracks: number | null; isHighlighted: boolean }) {
     const leagueColor = pilot.league ? leagueColors.get(pilot.league) : undefined;
 
     return (
@@ -90,16 +153,18 @@ function RatingRow({ pilot, localRank, leagueColors, showLeague, othersName, isH
                     <PilotWithAvatar name={pilot.pilotName} countryCode={pilot.country ?? null} />
                 </div>
 
+                <Qualification qualification={pilot.qualification} requiredTracks={requiredTracks} />
+
                 {showLeague && (
                     <div
-                        className={`w-20 sm:w-28 flex-shrink-0 pr-4 sm:pr-6 text-sm font-medium text-right truncate ${leagueColor ? "" : "text-slate-500"}`}
+                        className={`${trailingColumnWidth} flex-shrink-0 text-sm font-medium text-right truncate ${leagueColor ? "" : "text-slate-500"}`}
                         style={{ color: leagueColor || undefined }}
                     >
                         {pilot.league ?? othersName}
                     </div>
                 )}
 
-                <div className="relative w-20 sm:w-24 flex-shrink-0 text-right">
+                <div className={`relative ${trailingColumnWidth} flex-shrink-0 text-right`}>
                     <span className="text-lg font-semibold text-slate-300 tabular-nums">
                         {formatGap(pilot.averageGapPercent)}
                     </span>
@@ -132,29 +197,32 @@ function positionColumnWidth(withLocalRank: boolean): string {
     return withLocalRank ? "w-16" : "w-8";
 }
 
-function RatingsTable({ items, leagueColors, showLeague, othersName, highlightPilotName }: { items: RatingListItem[]; leagueColors: Map<string, string>; showLeague: boolean; othersName: string; highlightPilotName: string | null }) {
+function RatingsTable({ items, leagueColors, showLeague, othersName, requiredTracks, highlightPilotName }: { items: RatingListItem[]; leagueColors: Map<string, string>; showLeague: boolean; othersName: string; requiredTracks: number | null; highlightPilotName: string | null }) {
     const withLocalRanks = items.some((item) => item.kind === "pilot" && item.localRank !== undefined);
 
     return (
-        <div className="overflow-hidden -mx-6 sm:mx-0">
-            <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
-                <div className={`flex-shrink-0 ${positionColumnWidth(withLocalRanks)}`} />
-                <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>
-                {showLeague && (
-                    <div className="w-20 sm:w-28 flex-shrink-0 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">League</div>
-                )}
-                <div className="w-20 sm:w-24 flex-shrink-0 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Gap</div>
+        <TooltipProvider delayDuration={150}>
+            <div className="overflow-hidden -mx-6 sm:mx-0">
+                <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
+                    <div className={`flex-shrink-0 ${positionColumnWidth(withLocalRanks)}`} />
+                    <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>
+                    {requiredTracks !== null && <TracksHeader requiredTracks={requiredTracks} />}
+                    {showLeague && (
+                        <div className={`${trailingColumnWidth} flex-shrink-0 text-right text-xs font-semibold uppercase tracking-wider text-slate-500`}>Current league</div>
+                    )}
+                    <div className={`${trailingColumnWidth} flex-shrink-0 text-right text-xs font-semibold uppercase tracking-wider text-slate-500`}>Gap</div>
+                </div>
+                <ul className="divide-y divide-slate-700/50">
+                    {items.map((item) =>
+                        item.kind === "divider" ? (
+                            <ZoneDivider key={item.key} name={item.name} color={item.color} />
+                        ) : (
+                            <RatingRow key={item.key} pilot={item.pilot} localRank={item.localRank} leagueColors={leagueColors} showLeague={showLeague} othersName={othersName} requiredTracks={requiredTracks} isHighlighted={item.pilot.pilotName === highlightPilotName} />
+                        )
+                    )}
+                </ul>
             </div>
-            <ul className="divide-y divide-slate-700/50">
-                {items.map((item) =>
-                    item.kind === "divider" ? (
-                        <ZoneDivider key={item.key} name={item.name} color={item.color} />
-                    ) : (
-                        <RatingRow key={item.key} pilot={item.pilot} localRank={item.localRank} leagueColors={leagueColors} showLeague={showLeague} othersName={othersName} isHighlighted={item.pilot.pilotName === highlightPilotName} />
-                    )
-                )}
-            </ul>
-        </div>
+        </TooltipProvider>
     );
 }
 
@@ -281,7 +349,7 @@ function CupRating({ cup }: { cup: CupModel }) {
 
             {loadingState === "Loaded" && data && (
                 <>
-                    <RatingsTable items={ratingListItems} leagueColors={leagueColors} showLeague={showLeagues} othersName={othersName} highlightPilotName={highlightPilotName} />
+                    <RatingsTable items={ratingListItems} leagueColors={leagueColors} showLeague={showLeagues} othersName={othersName} requiredTracks={data.requiredTracks ?? null} highlightPilotName={highlightPilotName} />
 
                     {droppedOutPilots.length > 0 && (
                         <div className="pt-8">

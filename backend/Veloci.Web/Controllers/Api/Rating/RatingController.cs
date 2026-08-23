@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Features.Leagues.Services;
 
 namespace Veloci.Web.Controllers.Api.Rating;
@@ -13,12 +14,18 @@ public class RatingController : ControllerBase
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
 
     private readonly RatingService _ratingService;
+    private readonly RatingQualificationService _qualificationService;
     private readonly ICupService _cupService;
     private readonly IMemoryCache _cache;
 
-    public RatingController(RatingService ratingService, ICupService cupService, IMemoryCache cache)
+    public RatingController(
+        RatingService ratingService,
+        RatingQualificationService qualificationService,
+        ICupService cupService,
+        IMemoryCache cache)
     {
         _ratingService = ratingService;
+        _qualificationService = qualificationService;
         _cupService = cupService;
         _cache = cache;
     }
@@ -33,8 +40,6 @@ public class RatingController : ControllerBase
 
         var model = await BuildRatingModelAsync(cupId);
 
-        // Empty results are not cached: cupId is user input, and caching misses
-        // would let arbitrary values flood the cache.
         if (model is null)
             return NotFound();
 
@@ -54,13 +59,18 @@ public class RatingController : ControllerBase
         var previousRatings = await _ratingService.GetPreviousRatingsForCupAsync(cupId);
         var currentPilotIds = ratings.Select(r => r.PilotId).ToHashSet();
 
+        var qualifications = leagueOptions.Enabled
+            ? await _qualificationService.GetForCupAsync(cupId)
+            : null;
+
         return new RatingModel
         {
             CalculatedOn = ratings[0].CalculatedOn,
-            Ratings = ratings.Select(r => ToPilotRatingModel(r, cupId)).ToList(),
+            RequiredTracks = qualifications?.RequiredTracks,
+            Ratings = ratings.Select(r => ToPilotRatingModel(r, cupId, qualifications)).ToList(),
             DroppedOutPilots = previousRatings
                 .Where(r => !currentPilotIds.Contains(r.PilotId))
-                .Select(r => ToPilotRatingModel(r, cupId))
+                .Select(r => ToPilotRatingModel(r, cupId, qualifications))
                 .ToList(),
 
             LeagueSettings = new LeagueSettingsModel
@@ -79,7 +89,7 @@ public class RatingController : ControllerBase
         };
     }
 
-    private static PilotRatingModel ToPilotRatingModel(PilotPaceRating r, string cupId) => new()
+    private static PilotRatingModel ToPilotRatingModel(PilotPaceRating r, string cupId, CupRatingQualifications? qualifications) => new()
     {
         PilotId = r.PilotId,
         PilotName = r.Pilot.Name,
@@ -88,6 +98,7 @@ public class RatingController : ControllerBase
         AverageGapChange = r.AverageGapChange,
         Rank = r.Rank,
         RankChange = r.RankChange,
-        League = r.Pilot.GetCurrentLeague(cupId)
+        League = r.Pilot.GetCurrentLeague(cupId),
+        Qualification = qualifications?.For(r.PilotId)
     };
 }
