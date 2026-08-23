@@ -108,7 +108,7 @@ export const translations: Record<Language, RulesContent> = {
         ],
         globalRatingTitle: 'Global Rating',
         globalRatingParagraphs: [
-            'Global Rating розраховується раз на тиждень і показує, наскільки в середньому пілот відстає від найкращих у відсотках. Але рахується це не за одним результатом, а за всіма результатами за останні 30 днів. Для кожного треку система дивиться топ-3 результати і рахує їхній середній час.',
+            'Global Rating розраховується раз на тиждень і показує, наскільки в середньому пілот відстає від найкращих у відсотках. Але рахується це не за одним результатом, а за всіма результатами за останній місяць. Для кожного треку система дивиться топ-3 результати і рахує їхній середній час.',
             <div>
                 <div className="bg-slate-900/60 border border-slate-700 p-4 space-y-1 text-sm font-mono">
                     <p className="text-slate-400 mb-2">Наприклад:</p>
@@ -118,9 +118,9 @@ export const translations: Record<Language, RulesContent> = {
                 </div>
                 <p className="mt-3">Середній час = <span className="text-emerald-400">51s</span>. Саме від нього рахується відставання. Якщо ваш час 53s, ви приблизно на <span className="text-emerald-400">3.9%</span> повільніші.</p>
             </div>,
-            'Система бере всі ваші результати за останні 30 днів і рахує середній відсоток відставання. Саме це число і є вашим Global Rating GAP. Чим менший відсоток, тим вище місце в рейтингу.',
+            'Система бере всі ваші результати за останній місяць і рахує середній відсоток відставання. Саме це число і є вашим Global Rating GAP. Чим менший відсоток, тим вище місце в рейтингу.',
             <div><p className="font-bold text-slate-100 border-l-2 border-emerald-400 pl-3">Чому у першого місця може бути від'ємний GAP?</p><p className="mt-2 pl-3">Бо еталон — це середній час топ-3. Якщо пілот літає швидше за цей середній час, його GAP стає від'ємним. Тобто він швидший за середній рівень топ-3.</p></div>,
-            <div><p className="font-bold text-slate-100 border-l-2 border-emerald-400 pl-3">Хто потрапляє в рейтинг?</p><p className="mt-2 pl-3">До таблиці потрапляють тільки пілоти, які літали мінімум 15 днів за останні 30 днів. Це потрібно, щоб рейтинг відображав стабільні результати.</p></div>,
+            <div><p className="font-bold text-slate-100 border-l-2 border-emerald-400 pl-3">Хто потрапляє в рейтинг?</p><p className="mt-2 pl-3">До таблиці потрапляють тільки пілоти, які літали мінімум 15 днів за останній місяць. Це потрібно, щоб рейтинг відображав стабільні результати.</p></div>,
         ],
         achievementsTitle: 'Achievements',
         achievementsText: 'У системі є набір achievements, який постійно розширюється. Вони видаються за досягнення певної кількості day streak, першого місця в гонці, тощо.',
@@ -180,7 +180,7 @@ export const translations: Record<Language, RulesContent> = {
         ],
         globalRatingTitle: 'Global Rating',
         globalRatingParagraphs: [
-            'Global Rating is calculated once a week and shows how far behind the best pilots you are on average, as a percentage. It is based not on a single result but on all your results from the last 30 days. For each track, the system looks at the top-3 results and calculates their average time.',
+            'Global Rating is calculated once a week and shows how far behind the best pilots you are on average, as a percentage. It is based not on a single result but on all your results from the last month. For each track, the system looks at the top-3 results and calculates their average time.',
             <div>
                 <div className="bg-slate-900/60 border border-slate-700 p-4 space-y-1 text-sm font-mono">
                     <p className="text-slate-400 mb-2">Example:</p>
@@ -190,9 +190,9 @@ export const translations: Record<Language, RulesContent> = {
                 </div>
                 <p className="mt-3">Average time = <span className="text-emerald-400">51s</span>. Your gap is measured from this. If your time is 53s, you are approximately <span className="text-emerald-400">3.9%</span> slower.</p>
             </div>,
-            'The system takes all your results from the last 30 days and calculates the average gap percentage. That number is your Global Rating GAP. The smaller the percentage, the higher your rank.',
+            'The system takes all your results from the last month and calculates the average gap percentage. That number is your Global Rating GAP. The smaller the percentage, the higher your rank.',
             <div><p className="font-bold text-slate-100 border-l-2 border-emerald-400 pl-3">Why can first place have a negative GAP?</p><p className="mt-2 pl-3">Because the benchmark is the average time of the top-3. If a pilot flies faster than that average, their GAP turns negative — they are faster than the average top-3 level.</p></div>,
-            <div><p className="font-bold text-slate-100 border-l-2 border-emerald-400 pl-3">Who qualifies?</p><p className="mt-2 pl-3">Only pilots who flew on at least 15 days out of the last 30 are included. This ensures the rating reflects consistent performance rather than one-off results.</p></div>,
+            <div><p className="font-bold text-slate-100 border-l-2 border-emerald-400 pl-3">Who qualifies?</p><p className="mt-2 pl-3">Only pilots who flew on at least 15 days in the last month are included. This ensures the rating reflects consistent performance rather than one-off results.</p></div>,
         ],
         achievementsTitle: 'Achievements',
         achievementsText: 'The system has a growing set of achievements, awarded for reaching certain day streak milestones, finishing in first place, and more.',

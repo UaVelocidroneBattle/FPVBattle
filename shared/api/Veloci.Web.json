@@ -1539,6 +1539,16 @@
               "null",
               "string"
             ]
+          },
+          "qualification": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RatingQualification"
+              }
+            ]
           }
         }
       },
@@ -1642,8 +1652,35 @@
           },
           "leagueSettings": {
             "$ref": "#/components/schemas/LeagueSettingsModel"
+          },
+          "requiredTracks": {
+            "type": "integer",
+            "format": "int32"
           }
         }
+      },
+      "RatingQualification": {
+        "required": [
+          "tracksFlown",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "tracksFlown": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RatingQualificationStatus"
+          }
+        }
+      },
+      "RatingQualificationStatus": {
+        "enum": [
+          "Qualified",
+          "Reachable",
+          "OutOfReach"
+        ]
       },
       "RefreshRequest": {
         "required": [
