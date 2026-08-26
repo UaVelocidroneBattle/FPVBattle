@@ -1,0 +1,81 @@
+@using Veloci.Web.Controllers.Admin.Notifications
+@model UserNotificationsViewModel
+
+@{
+    ViewData["Title"] = "Notifications";
+    ViewData["ContentClass"] = "content-wide";
+}
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Sent to Users</h2>
+        <span class="panel-count">@Model.TotalCount</span>
+    </header>
+
+    <div class="table-toolbar">
+        <form asp-action="Index" method="get" class="d-flex gap-2">
+            <input type="search" name="search" value="@Model.Search" class="form-control form-control-sm"
+                   placeholder="Search by email, pilot or message…" />
+            <button type="submit" class="btn btn-sm btn-primary">Search</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Search))
+            {
+                <a asp-action="Index" class="btn btn-sm btn-secondary">Clear</a>
+            }
+        </form>
+        @if (Model.IsTruncated)
+        {
+            <span class="text-muted">Showing the latest @Model.Notifications.Count of @Model.TotalCount</span>
+        }
+    </div>
+
+    @if (Model.Notifications.Count == 0)
+    {
+        <div class="panel-body text-muted">
+            @(string.IsNullOrWhiteSpace(Model.Search) ? "No notifications have been sent yet." : "No notifications match your search.")
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-fixed">
+                <colgroup>
+                    <col style="width: 13%" />
+                    <col style="width: 20%" />
+                    <col style="width: 13%" />
+                    <col style="width: 12%" />
+                    <col style="width: 10%" />
+                    <col style="width: 32%" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Sent</th>
+                        <th>User</th>
+                        <th>Pilot</th>
+                        <th>Type</th>
+                        <th>Cup</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var notification in Model.Notifications)
+                    {
+                        <tr>
+                            <td class="mono">@notification.CreatedOn.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td class="mono">@notification.UserEmail</td>
+                            <td class="mono">@(notification.PilotName ?? "—")</td>
+                            <td>@notification.Type</td>
+                            <td>@(notification.CupName ?? "—")</td>
+                            <td>
+                                @notification.Text
+                                @if (notification.ReadOn is null)
+                                {
+                                    <span class="badge bg-success">Unread</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

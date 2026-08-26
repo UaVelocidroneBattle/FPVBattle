@@ -13,13 +13,6 @@ public enum ClaimPilotResult
     PilotClaimPending
 }
 
-/// <summary>
-/// Links application users to Velocidrone pilots ("fly-to-verify"):
-/// a user claims a pilot name, and the link is completed when a pilot with
-/// that name posts a result on a daily track while the claim is active.
-/// This covers pilots that don't exist yet — their first daily race both
-/// creates the pilot and completes the claim.
-/// </summary>
 public class PilotBindingService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<PilotBindingService>();

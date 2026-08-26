@@ -23,6 +23,7 @@ using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 using Veloci.Logic.Features.Auth;
 using Veloci.Logic.Features.PilotBinding;
+using Veloci.Logic.Features.Notifications;
 using Veloci.Logic.Notifications;
 using ModelContextProtocol.AspNetCore;
 using Veloci.Logic.Services;
@@ -93,6 +94,7 @@ public class Startup
 
         services.AddAuthFeature(Configuration);
         services.AddPilotBinding();
+        services.AddNotifications();
 
         services
             .AddControllersWithViews()

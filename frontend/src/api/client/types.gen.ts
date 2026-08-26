@@ -126,10 +126,30 @@ export type LinkedPilotModel = {
     lastRaceDate?: null | string;
 };
 
+export type MarkReadRequest = {
+    ids: Array<number>;
+};
+
 export type NewPilotsCountModel = {
     months: Array<string>;
     counts: Array<number>;
 };
+
+export type NotificationModel = {
+    id: number;
+    type: NotificationType;
+    cupId?: null | string;
+    text: string;
+    createdOn: string;
+    readOn?: null | string;
+};
+
+export type NotificationsModel = {
+    items: Array<NotificationModel>;
+    unreadCount: number;
+};
+
+export type NotificationType = 'General' | 'Achievement' | 'CompetitionResults' | 'LeagueUpdate';
 
 export type ParticipationModel = {
     days: Array<string>;
@@ -240,6 +260,10 @@ export type SeasonResult = {
     points?: number;
     rank?: number;
     country: string;
+};
+
+export type UnreadCountModel = {
+    unreadCount: number;
 };
 
 export type GetApiPilotStatisticsCountData = {
@@ -427,6 +451,72 @@ export type GetApiPilotsProfileResponses = {
 };
 
 export type GetApiPilotsProfileResponse = GetApiPilotsProfileResponses[keyof GetApiPilotsProfileResponses];
+
+export type GetApiNotificationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        take?: number;
+    };
+    url: '/api/notifications';
+};
+
+export type GetApiNotificationsResponses = {
+    /**
+     * OK
+     */
+    200: NotificationsModel;
+};
+
+export type GetApiNotificationsResponse = GetApiNotificationsResponses[keyof GetApiNotificationsResponses];
+
+export type GetApiNotificationsUnreadCountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/notifications/unread-count';
+};
+
+export type GetApiNotificationsUnreadCountResponses = {
+    /**
+     * OK
+     */
+    200: UnreadCountModel;
+};
+
+export type GetApiNotificationsUnreadCountResponse = GetApiNotificationsUnreadCountResponses[keyof GetApiNotificationsUnreadCountResponses];
+
+export type PostApiNotificationsReadData = {
+    body: MarkReadRequest;
+    path?: never;
+    query?: never;
+    url: '/api/notifications/read';
+};
+
+export type PostApiNotificationsReadResponses = {
+    /**
+     * OK
+     */
+    200: UnreadCountModel;
+};
+
+export type PostApiNotificationsReadResponse = PostApiNotificationsReadResponses[keyof PostApiNotificationsReadResponses];
+
+export type PostApiNotificationsReadAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/notifications/read-all';
+};
+
+export type PostApiNotificationsReadAllResponses = {
+    /**
+     * OK
+     */
+    200: UnreadCountModel;
+};
+
+export type PostApiNotificationsReadAllResponse = PostApiNotificationsReadAllResponses[keyof PostApiNotificationsReadAllResponses];
 
 export type GetApiMigrationCalculatePilotPropertiesData = {
     body?: never;

@@ -78,7 +78,7 @@ const Combobox = <T,>({ items, value, defaultCaption, getKey, getLabel, onSelect
             <PopoverContent align="end" className="w-[200px] p-0 bg-slate-800 border-slate-700">
                 <Command className="bg-slate-800">
                     <CommandInput placeholder="Search ..." className="text-slate-200 placeholder:text-slate-500 border-slate-700" />
-                    <CommandList className="[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full">
+                    <CommandList className="scrollbar-slim">
                         <CommandEmpty className="text-slate-400 py-4 text-center text-sm">Nothing found</CommandEmpty>
                         <CommandGroup>
                             {items.map((item) => (

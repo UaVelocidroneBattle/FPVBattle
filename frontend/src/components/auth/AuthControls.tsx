@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import GoogleSignInButton from "./GoogleSignInButton";
 
 /**
  * Header widget: Google sign-in button when signed out,
- * initials avatar with a dropdown menu (identity, Profile, Sign out) when signed in.
+ * notification bell and initials avatar with a dropdown menu
+ * (identity, Profile, Sign out) when signed in.
  */
 
 function getInitials(displayName: string, email: string) {
@@ -38,41 +40,45 @@ function AuthControls() {
     };
 
     return (
-        <div ref={containerRef} className="relative flex items-center">
-            <button
-                onClick={() => setMenuOpen(open => !open)}
-                aria-label="User menu"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-600 hover:text-emerald-400"
-            >
-                {getInitials(user.displayName, user.email)}
-            </button>
+        <div className="flex items-center gap-4">
+            <NotificationBell />
 
-            {menuOpen && (
-                <div className="absolute right-0 top-full z-20 mt-2 w-56 border border-slate-700 bg-slate-900 py-1 shadow-lg">
-                    <div className="flex items-center gap-3 border-b border-slate-700 px-4 py-3">
-                        <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-200">
-                            {getInitials(user.displayName, user.email)}
-                        </span>
-                        <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-slate-200">{user.displayName}</p>
-                            <p className="truncate text-xs text-slate-400">{user.email}</p>
+            <div ref={containerRef} className="relative flex items-center">
+                <button
+                    onClick={() => setMenuOpen(open => !open)}
+                    aria-label="User menu"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-600 hover:text-emerald-400"
+                >
+                    {getInitials(user.displayName, user.email)}
+                </button>
+
+                {menuOpen && (
+                    <div className="absolute right-0 top-full z-20 mt-2 w-56 border border-slate-700 bg-slate-900 py-1 shadow-lg">
+                        <div className="flex items-center gap-3 border-b border-slate-700 px-4 py-3">
+                            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-slate-200">
+                                {getInitials(user.displayName, user.email)}
+                            </span>
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-slate-200">{user.displayName}</p>
+                                <p className="truncate text-xs text-slate-400">{user.email}</p>
+                            </div>
                         </div>
+                        <Link
+                            to="/profile"
+                            onClick={() => setMenuOpen(false)}
+                            className="block w-full px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:text-emerald-400"
+                        >
+                            Profile
+                        </Link>
+                        <button
+                            onClick={signOut}
+                            className="block w-full px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:text-emerald-400"
+                        >
+                            Sign out
+                        </button>
                     </div>
-                    <Link
-                        to="/profile"
-                        onClick={() => setMenuOpen(false)}
-                        className="block w-full px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:text-emerald-400"
-                    >
-                        Profile
-                    </Link>
-                    <button
-                        onClick={signOut}
-                        className="block w-full px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:text-emerald-400"
-                    >
-                        Sign out
-                    </button>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }
