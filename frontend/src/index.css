@@ -64,3 +64,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /*
+   * Slim dark scrollbar for scrollable panels. Chrome 121+ and Firefox honour the
+   * standard properties and ignore the -webkit- rules below, which are kept for
+   * older WebKit. Both paths drop the native arrow buttons.
+   */
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: theme(colors.slate.600) theme(colors.slate.800);
+  }
+
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background-color: theme(colors.slate.800);
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background-color: theme(colors.slate.600);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb:hover {
+    background-color: theme(colors.slate.500);
+  }
+}

@@ -19,15 +19,16 @@ public static class AchievementsServiceExtensions
             // Register core services
             services.AddScoped<AchievementService>();
             services.AddScoped<AchievementsEventHandler>();
-            services.AddScoped<IPilotCupLookupService, PilotCupLookupService>();
 
             // Register message composers
             services.AddScoped<DiscordAchievementMessageComposer>();
             services.AddScoped<TelegramAchievementMessageComposer>();
+            services.AddScoped<InAppAchievementMessageComposer>();
 
             // Register notification handlers
             services.AddScoped<DiscordAchievementsHandler>();
             services.AddScoped<TelegramAchievementsHandler>();
+            services.AddScoped<InAppAchievementsHandler>();
 
             var cupsConfig = configuration.GetSection(CupsConfiguration.SectionName).Get<CupsConfiguration>() ?? new();
 

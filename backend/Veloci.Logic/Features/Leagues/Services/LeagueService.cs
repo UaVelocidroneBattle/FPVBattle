@@ -59,7 +59,7 @@ public class LeagueService
         var leagueUpdates = new List<LeagueUpdateModel>();
         var leagueDistribution = await GetLeagueDistributionAsync(cupId);
 
-        foreach (var (pilotId, league, pilotName) in leagueDistribution)
+        foreach (var (pilotId, league, pilot) in leagueDistribution)
         {
             var pilotLeagueRecord = await _pilotLeagues
                 .GetAll()
@@ -88,7 +88,7 @@ public class LeagueService
             {
                 OldLeague = pilotLeagueRecord?.League,
                 NewLeague = league,
-                PilotName = pilotName
+                Pilot = pilot
             });
         }
 
@@ -123,7 +123,7 @@ public class LeagueService
             {
                 OldLeague = record.League,
                 NewLeague = null,
-                PilotName = record.Pilot.Name
+                Pilot = record.Pilot
             });
         }
 
@@ -137,12 +137,12 @@ public class LeagueService
         Log.Information("Pilot leagues updated for cup {CupId}", cupId);
     }
 
-    private async Task<List<(int PilotId, string League, string PilotName)>> GetLeagueDistributionAsync(string cupId)
+    private async Task<List<(int PilotId, string League, Pilot Pilot)>> GetLeagueDistributionAsync(string cupId)
     {
         var cupOptions = _cupService.GetCupOptions(cupId);
         var ratings = await _ratingService.GetRatingsForCupAsync(cupId);
         var leagues = cupOptions.Leagues.Definitions.OrderBy(l => l.Order).ToList();
-        var distribution = new List<(int PilotId, string League, string PilotName)>();
+        var distribution = new List<(int PilotId, string League, Pilot Pilot)>();
         var position = 0;
 
         foreach (var league in leagues)
@@ -152,7 +152,7 @@ public class LeagueService
                 : ratings.Skip(position).Take(league.Size);
 
             foreach (var rating in slice)
-                distribution.Add((rating.PilotId, league.Name, rating.Pilot.Name));
+                distribution.Add((rating.PilotId, league.Name, rating.Pilot));
 
             if (league.Size == 0) break;
 

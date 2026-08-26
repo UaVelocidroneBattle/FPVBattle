@@ -19,6 +19,8 @@ public static class LeaguesServiceExtensions
         services.AddScoped<LeagueService>();
         services.AddScoped<TelegramLeagueHandler>();
         services.AddScoped<DiscordLeagueHandler>();
+        services.AddScoped<InAppLeagueHandler>();
+        services.AddScoped<InAppLeagueMessageComposer>();
 
         return services;
     }

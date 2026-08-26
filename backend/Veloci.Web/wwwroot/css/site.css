@@ -237,7 +237,7 @@ a {
     border-bottom: 1px solid var(--line);
 }
 
-.table-toolbar #userSearch {
+.table-toolbar input[type="search"] {
     max-width: 280px;
 }
 
