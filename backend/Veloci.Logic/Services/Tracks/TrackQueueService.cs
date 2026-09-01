@@ -43,7 +43,7 @@ public class TrackQueueService
         var trackFilter = new TrackFilter(cupOptions.TrackFilter);
         var maps = await _trackFetcher.FetchMapsAsync();
         var tracks = trackFilter.GetSuitableTracks(maps);
-        var found = tracks.Where(track => track.Name == trackName).ToList();
+        var found = tracks.Where(track => track.Name.Trim() == trackName.Trim()).ToList();
 
         if (found.Count == 0)
         {
