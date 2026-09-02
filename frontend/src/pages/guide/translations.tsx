@@ -45,6 +45,14 @@ export interface RulesContent {
     quadOfTheDayTitle: string;
     quadOfTheDayParagraphs: string[];
     leaguesTitle: string;
+    /** Sentence introducing the league list, whose spot counts are fetched from the cup's configuration. */
+    leaguesIntro: string;
+    /** Unit appended after a league's seat count, e.g. "5 {leaguesSpotsLabel}". */
+    leaguesSpotsLabel: string;
+    /** Shown instead of a seat count for the uncapped league at the bottom of the ladder. */
+    leaguesAllRemaining: string;
+    /** Paragraph about per-league leaderboards, with the configured name of the catch-all league for unrated pilots. */
+    leaguesFooter: (othersName: string) => ReactNode;
     leaguesParagraphs: ReactNode[];
     globalRatingTitle: string;
     globalRatingParagraphs: ReactNode[];
@@ -92,16 +100,13 @@ export const translations: Record<Language, RulesContent> = {
             'Якщо ви летите не на обраному дроні — незалежно від зайнятого місця, отримаєте лише 1 бал наприкінці дня. Крім того, ваш результат буде виключено з розрахунку глобального рейтингу, щоб не спотворювати показники інших пілотів.',
         ],
         leaguesTitle: 'Leagues',
+        leaguesIntro: 'У кожної ліги обмежена кількість місць:',
+        leaguesSpotsLabel: 'місць',
+        leaguesAllRemaining: 'всі інші пілоти',
+        leaguesFooter: (othersName) => (
+            <>У кожної ліги свій окремий лідерборд, медалі за призові місця і нарахування очок. Для пілотів, які не потрапили до Global Rating і не були розподілені в жодну лігу, — окремий лідерборд <span className="font-bold text-slate-400">{othersName.toUpperCase()}</span>.</>
+        ),
         leaguesParagraphs: [
-            <>
-                <p>Існує три ліги: <span className="font-bold text-amber-600">BRONZE</span>, <span className="font-bold text-slate-300">SILVER</span> і <span className="font-bold text-yellow-400">GOLD</span>. У кожної ліги обмежена кількість місць:</p>
-                <ul className="list-disc list-outside pl-6 space-y-2 mt-3">
-                    <li><span className="font-bold text-yellow-400">GOLD</span> — 10 місць</li>
-                    <li><span className="font-bold text-slate-300">SILVER</span> — 15 місць</li>
-                    <li><span className="font-bold text-amber-600">BRONZE</span> — всі інші пілоти</li>
-                </ul>
-                <p className="mt-3">У кожної ліги свій окремий лідерборд, медалі за призові місця і нарахування очок. Для пілотів, які не потрапили до Global Rating і не були розподілені в жодну лігу, — окремий лідерборд <span className="font-bold text-slate-400">UNRANKED</span>.</p>
-            </>,
             'Після завершення сезону в кінці кожного місяця відбуватиметься перерозподіл пілотів по лігах знову-таки на основі Global Rating.',
             ' Органічний спосіб перейти у вищу лігу — ставати швидшим і підніматися вище в Global Rating. Але бувають ситуації, коли пілот тримає свій темп упродовж усього сезону, проте в його лігу потрапляють кілька більш швидких пілотів — через ліміт місць такий пілот може «зіскочити» в нижчу лігу. І навпаки: якщо більш швидкі пілоти «вилетять» з Global Rating, такий пілот може зайняти їхнє місце у вищій лізі.',
             'Таким чином, винагороджуються пілоти саме за швидкість, а не за фарм очок за місяць.',
@@ -164,16 +169,13 @@ export const translations: Record<Language, RulesContent> = {
             'If you fly on a different quad — regardless of your finishing position — you will only receive 1 point at the end of the day. Your result will also be excluded from global rating calculation to avoid distorting other pilots\' statistics.',
         ],
         leaguesTitle: 'Leagues',
+        leaguesIntro: 'Each league has a limited number of spots:',
+        leaguesSpotsLabel: 'spots',
+        leaguesAllRemaining: 'all remaining pilots',
+        leaguesFooter: (othersName) => (
+            <>Each league has its own separate leaderboard, medals for top placements, and point scoring. Pilots who are not in the Global Rating and were not assigned to any league have a separate <span className="font-bold text-slate-400">{othersName.toUpperCase()}</span> leaderboard.</>
+        ),
         leaguesParagraphs: [
-            <>
-                <p>There are three leagues: <span className="font-bold text-amber-600">BRONZE</span>, <span className="font-bold text-slate-300">SILVER</span>, and <span className="font-bold text-yellow-400">GOLD</span>. Each league has a limited number of spots:</p>
-                <ul className="list-disc list-outside pl-6 space-y-2 mt-3">
-                    <li><span className="font-bold text-yellow-400">GOLD</span> — 10 spots</li>
-                    <li><span className="font-bold text-slate-300">SILVER</span> — 15 spots</li>
-                    <li><span className="font-bold text-amber-600">BRONZE</span> — all remaining pilots</li>
-                </ul>
-                <p className="mt-3">Each league has its own separate leaderboard, medals for top placements, and point scoring. Pilots who are not in the Global Rating and were not assigned to any league have a separate <span className="font-bold text-slate-400">UNRANKED</span> leaderboard.</p>
-            </>,
             'At the end of each season pilots are redistributed across leagues again based on Global Rating.',
             'The natural way to move up is to get faster and climb higher in the Global Rating. However, situations arise where a pilot maintains their pace throughout the season but several faster pilots join their league — due to seat limits, that pilot may drop to a lower league. Conversely, if faster pilots fall out of the Global Rating, that pilot may take their spot in a higher league.',
             'This way, pilots are rewarded for speed, not for farming points over the month.',
