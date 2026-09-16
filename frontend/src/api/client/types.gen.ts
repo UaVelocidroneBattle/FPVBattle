@@ -30,6 +30,17 @@ export type CompetitionOverviewModel = {
 
 export type CompetitionState = number;
 
+export type CountryModel = {
+    countryCode?: string;
+    countryName?: string;
+    pilotsCount?: number;
+};
+
+export type CountryPilotModel = {
+    pilotId?: number;
+    pilotName?: string;
+};
+
 export type CountryPilotsModel = {
     country?: string;
     countryCode?: string;
@@ -597,6 +608,40 @@ export type GetApiCupsGetResponses = {
 };
 
 export type GetApiCupsGetResponse = GetApiCupsGetResponses[keyof GetApiCupsGetResponses];
+
+export type GetApiCountriesAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/countries/All';
+};
+
+export type GetApiCountriesAllResponses = {
+    /**
+     * OK
+     */
+    200: Array<CountryModel>;
+};
+
+export type GetApiCountriesAllResponse = GetApiCountriesAllResponses[keyof GetApiCountriesAllResponses];
+
+export type GetApiCountriesPilotsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        countryCode?: string;
+    };
+    url: '/api/countries/Pilots';
+};
+
+export type GetApiCountriesPilotsResponses = {
+    /**
+     * OK
+     */
+    200: Array<CountryPilotModel>;
+};
+
+export type GetApiCountriesPilotsResponse = GetApiCountriesPilotsResponses[keyof GetApiCountriesPilotsResponses];
 
 export type GetApiCompetitionsCurrentData = {
     body?: never;

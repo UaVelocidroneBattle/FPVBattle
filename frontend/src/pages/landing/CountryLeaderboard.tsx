@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import CountryFlag from '@/components/ui/CountryFlag';
 import { CountryPilotsModel } from '@/api/client';
 
@@ -44,7 +45,12 @@ function CountryLeaderboard({ countryPilots, totalCountries }: CountryLeaderboar
             })}
 
             {remaining > 0 && (
-                <div className="text-xs text-slate-500 pt-1">… and {remaining} more countries on the board.</div>
+                <Link
+                    to="/statistics/countries"
+                    className="text-xs text-emerald-400 hover:text-emerald-300 pt-1 transition-colors"
+                >
+                    See all countries →
+                </Link>
             )}
         </div>
     );
