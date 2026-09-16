@@ -4,6 +4,7 @@ using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Features.Leagues.Services;
 
@@ -115,30 +116,15 @@ public class PaceRatingCalculator
     {
         var eligibleResults = competition.RatingEligibleResults.ToList();
 
-        var referenceTime = GetTopPilotsAverageTime(eligibleResults);
+        var referenceTime = ReferenceTimeCalculator.GetTopPilotsAverageTime(
+            eligibleResults.Select(r => r.TrackTime), _settings.TopPilotsForReference, minimumCount: 1);
 
         if (referenceTime is null)
             return [];
 
         return eligibleResults
-            .Select(r => new PilotStats(r.PilotId, GapPercent(r.TrackTime, referenceTime.Value)));
+            .Select(r => new PilotStats(r.PilotId, ReferenceTimeCalculator.GapPercent(r.TrackTime, referenceTime.Value)));
     }
-
-    private double? GetTopPilotsAverageTime(List<CompetitionResults> results)
-    {
-        var topTimes = results
-            .OrderBy(r => r.TrackTime)
-            .Take(_settings.TopPilotsForReference)
-            .Select(r => r.TrackTime)
-            .ToList();
-
-        return topTimes.Count == 0
-            ? null
-            : topTimes.Average();
-    }
-
-    private static double GapPercent(int pilotTime, double referenceTime)
-        => (pilotTime - referenceTime) / referenceTime * 100.0;
 
     private double AverageGapExcludingWorstDays(IEnumerable<double> gaps)
     {

@@ -42,4 +42,11 @@ public static class CompetitionResultsExtensions
     {
         return competitionResults.FirstOrDefault(res => res.Pilot.Id == pilotId);
     }
+
+    public static IEnumerable<CompetitionResults> ForQuadOfTheDay(this IEnumerable<CompetitionResults> results, QuadModel? quadOfTheDay)
+    {
+        return quadOfTheDay is null
+            ? results
+            : results.Where(r => string.Equals(r.ModelName, quadOfTheDay.Name, StringComparison.OrdinalIgnoreCase));
+    }
 }
