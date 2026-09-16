@@ -79,8 +79,8 @@ public class LandingController : ControllerBase
     private async Task<List<CountryPilotsModel>> GetCountryPilotsAsync()
     {
         var pilotsByCountry = await _pilots
-            .GetAll(p => !string.IsNullOrEmpty(p.Country))
-            .GroupBy(p => p.Country)
+            .GetAll()
+            .GroupedByCountry()
             .Select(g => new { CountryCode = g.Key, Pilots = g.Count() })
             .OrderByDescending(g => g.Pilots)
             .ToListAsync();

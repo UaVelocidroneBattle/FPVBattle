@@ -19,6 +19,7 @@ import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
 import DayStreaksPage from './pages/statistics/daystreaks/DayStreaksPage.tsx'
 import PilotPerformancePage from './pages/statistics/performance/PilotPerformancePage.tsx'
 import PilotsPage from './pages/statistics/pilots/PilotsPage.tsx'
+import CountriesPage from './pages/statistics/countries/CountriesPage.tsx'
 import PilotProfilePage from './pages/statistics/pilot-profile/PilotProfilePage.tsx'
 import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.tsx'
 import LegacyRedirect from './pages/LegacyRedirect.tsx'
@@ -65,6 +66,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="daystreaks" element={<DayStreaksPage />} />
               <Route path="tracks" element={<TracksPage />} />
               <Route path="pilots" element={<PilotsPage />} />
+              <Route path="countries/:countryCode?" element={<CountriesPage />} />
               <Route path="performance" element={<PilotPerformancePage />} />
             </Route>
             {/* A cup id is its own URL, e.g. /open-class. Keep last: it matches

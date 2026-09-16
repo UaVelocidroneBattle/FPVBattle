@@ -153,5 +153,10 @@ public static class PilotExtensions
         {
             return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
         }
+
+        public IQueryable<IGrouping<string, Pilot>> GroupedByCountry()
+        {
+            return allPilots.Where(p => !string.IsNullOrEmpty(p.Country)).GroupBy(p => p.Country);
+        }
     }
 }

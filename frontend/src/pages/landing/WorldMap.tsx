@@ -23,8 +23,15 @@ const mapProjection = geoEqualEarth().fitExtent(
     worldFeatures
 ) as unknown as ProjectionFunction;
 
+const RUSSIA_NUMERIC_ID = getNumericCountryId('RU');
+
 interface TooltipState {
     row: CountryPilotsModel;
+    x: number;
+    y: number;
+}
+
+interface Position {
     x: number;
     y: number;
 }
@@ -35,6 +42,7 @@ interface WorldMapProps {
 
 function WorldMap({ countryPilots }: WorldMapProps) {
     const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+    const [bannedTooltip, setBannedTooltip] = useState<Position | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const rowByNumericId = useMemo(() => {
@@ -47,10 +55,20 @@ function WorldMap({ countryPilots }: WorldMapProps) {
         return map;
     }, [countryPilots]);
 
-    const trackTooltip = (row: CountryPilotsModel, evt: { clientX: number; clientY: number }) => {
+    const trackPosition = (evt: { clientX: number; clientY: number }): Position | null => {
         const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect) return;
-        setTooltip({ row, x: evt.clientX - rect.left, y: evt.clientY - rect.top });
+        if (!rect) return null;
+        return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+    };
+
+    const trackTooltip = (row: CountryPilotsModel, evt: { clientX: number; clientY: number }) => {
+        const position = trackPosition(evt);
+        if (position) setTooltip({ row, ...position });
+    };
+
+    const trackBannedTooltip = (evt: { clientX: number; clientY: number }) => {
+        const position = trackPosition(evt);
+        if (position) setBannedTooltip(position);
     };
 
     return (
@@ -64,37 +82,43 @@ function WorldMap({ countryPilots }: WorldMapProps) {
                 <Geographies geography={worldFeatures}>
                     {({ geographies }) =>
                         geographies.map(geo => {
+                            const isRussia = geo.id === RUSSIA_NUMERIC_ID;
                             const row = rowByNumericId.get(geo.id as string);
-                            const isHighlighted = !!row;
+                            const isHighlighted = !!row && !isRussia;
 
                             return (
                                 <Geography
                                     key={geo.rsmKey}
                                     geography={geo}
                                     onMouseEnter={evt => {
-                                        if (row) trackTooltip(row, evt);
+                                        if (isRussia) trackBannedTooltip(evt);
+                                        else if (row) trackTooltip(row, evt);
                                     }}
                                     onMouseMove={evt => {
-                                        if (row) trackTooltip(row, evt);
+                                        if (isRussia) trackBannedTooltip(evt);
+                                        else if (row) trackTooltip(row, evt);
                                     }}
-                                    onMouseLeave={() => setTooltip(null)}
+                                    onMouseLeave={() => {
+                                        setTooltip(null);
+                                        setBannedTooltip(null);
+                                    }}
                                     style={{
                                         default: {
-                                            fill: isHighlighted ? '#10b981' : '#1e293b',
-                                            stroke: isHighlighted ? '#34d399' : '#334155',
+                                            fill: isRussia ? '#182029' : isHighlighted ? '#10b981' : '#1e293b',
+                                            stroke: isRussia ? '#383f47' : isHighlighted ? '#34d399' : '#334155',
                                             strokeWidth: 0.5,
                                             outline: 'none',
                                         },
                                         hover: {
-                                            fill: isHighlighted ? '#6ee7b7' : '#1e293b',
-                                            stroke: isHighlighted ? '#34d399' : '#334155',
+                                            fill: isRussia ? '#242b34' : isHighlighted ? '#6ee7b7' : '#1e293b',
+                                            stroke: isRussia ? '#383f47' : isHighlighted ? '#34d399' : '#334155',
                                             strokeWidth: 0.5,
                                             outline: 'none',
-                                            cursor: isHighlighted ? 'pointer' : 'default',
+                                            cursor: isHighlighted || isRussia ? 'pointer' : 'default',
                                         },
                                         pressed: {
-                                            fill: isHighlighted ? '#6ee7b7' : '#1e293b',
-                                            stroke: isHighlighted ? '#34d399' : '#334155',
+                                            fill: isRussia ? '#242b34' : isHighlighted ? '#6ee7b7' : '#1e293b',
+                                            stroke: isRussia ? '#383f47' : isHighlighted ? '#34d399' : '#334155',
                                             strokeWidth: 0.5,
                                             outline: 'none',
                                         },
@@ -117,6 +141,15 @@ function WorldMap({ countryPilots }: WorldMapProps) {
                 </div>
             )}
 
+            {bannedTooltip && (
+                <div
+                    className="absolute z-50 pointer-events-none bg-slate-900 border border-[#383f47] px-3 py-2 flex items-center gap-2 shadow-lg whitespace-nowrap"
+                    style={{ left: bannedTooltip.x + 14, top: bannedTooltip.y + 14 }}
+                >
+                    <span className="text-sm text-slate-300">Russia is a terrorist state. Banned.</span>
+                </div>
+            )}
+
             <div className="relative flex flex-wrap items-center justify-between gap-x-6 gap-y-2 mt-4 pt-4 border-t border-slate-700 text-xs text-slate-400">
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     <div className="flex items-center gap-2">
@@ -126,6 +159,10 @@ function WorldMap({ countryPilots }: WorldMapProps) {
                     <div className="flex items-center gap-2">
                         <span className="inline-block h-3 w-3 bg-slate-800 border border-slate-700" />
                         No pilots yet
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-3 w-3 bg-[#182029] border border-[#383f47]" />
+                        Banned
                     </div>
                 </div>
                 <div className="text-slate-500">Hover a highlighted country for pilot count.</div>
