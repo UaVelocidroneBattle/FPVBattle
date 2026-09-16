@@ -6,6 +6,7 @@ import { SiDiscord, SiInstagram } from "react-icons/si";
 import { TbBrandPatreonFilled } from "react-icons/tb";
 import logo from "/logo.svg";
 import AuthControls from "@/components/auth/AuthControls";
+import { useNotificationsPolling } from "@/components/notifications/useNotificationsPolling";
 import { useCups } from "@/hooks/useCups";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuthStore } from "@/store/authStore";
@@ -44,6 +45,7 @@ function LayoutMain() {
     const { cups } = useCups();
 
     usePageMeta();
+    useNotificationsPolling();
 
     useEffect(() => {
         const { restore } = useAuthStore.getState();
@@ -74,8 +76,10 @@ function LayoutMain() {
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
                         <div className="w-px h-5 bg-slate-600" />
                         <SocialLinks />
-                        <div className="w-px h-5 bg-slate-600" />
-                        <AuthControls />
+                        <div className="flex items-center gap-4">
+                            <div className="w-px h-5 bg-slate-600" />
+                            <AuthControls />
+                        </div>
                     </nav>
 
                     {/* Mobile hamburger */}

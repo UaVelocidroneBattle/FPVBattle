@@ -1,3 +1,5 @@
+using Veloci.Logic.Features.Leagues.Models;
+
 namespace Veloci.Web.Controllers.Api.Rating;
 
 public class RatingModel
@@ -6,6 +8,7 @@ public class RatingModel
     public IList<PilotRatingModel> Ratings { get; set; }
     public IList<PilotRatingModel> DroppedOutPilots { get; set; } = [];
     public LeagueSettingsModel LeagueSettings { get; set; } = new();
+    public int? RequiredTracks { get; set; }
 }
 
 public class PilotRatingModel
@@ -18,6 +21,7 @@ public class PilotRatingModel
     public int Rank { get; set; }
     public int? RankChange { get; set; }
     public string? League { get; set; }
+    public RatingQualification? Qualification { get; set; }
 }
 
 public class LeagueSettingsModel

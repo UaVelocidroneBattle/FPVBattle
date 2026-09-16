@@ -34,6 +34,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<UserNotification>().ToTable("UserNotifications");
+        builder.Entity<UserNotification>().HasKey(n => n.Id);
+        builder.Entity<UserNotification>().Property(n => n.Text).HasMaxLength(512).IsRequired();
+        builder.Entity<UserNotification>().Property(n => n.CupId).HasMaxLength(64);
+        builder.Entity<UserNotification>().HasIndex(n => new { n.UserId, n.ReadOn });
+        builder.Entity<UserNotification>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Competition>().ToTable("Competitions");
         builder.Entity<Competition>().Property(c => c.CupId).HasMaxLength(64).IsRequired().HasDefaultValue("open-class");
         builder.Entity<Competition>().HasIndex(c => c.StartedOn);

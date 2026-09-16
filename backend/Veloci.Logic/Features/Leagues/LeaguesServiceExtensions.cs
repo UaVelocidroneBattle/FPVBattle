@@ -15,9 +15,12 @@ public static class LeaguesServiceExtensions
         services.Configure<PaceRatingSettings>(configuration.GetSection(PaceRatingSettings.SectionName));
         services.AddScoped<PaceRatingCalculator>();
         services.AddScoped<RatingService>();
+        services.AddScoped<RatingQualificationService>();
         services.AddScoped<LeagueService>();
         services.AddScoped<TelegramLeagueHandler>();
         services.AddScoped<DiscordLeagueHandler>();
+        services.AddScoped<InAppLeagueHandler>();
+        services.AddScoped<InAppLeagueMessageComposer>();
 
         return services;
     }

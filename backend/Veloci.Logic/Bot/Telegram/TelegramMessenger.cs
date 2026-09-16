@@ -2,6 +2,7 @@ using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Veloci.Logic.Helpers;
 
 namespace Veloci.Logic.Bot.Telegram;
 
@@ -11,6 +12,8 @@ namespace Veloci.Logic.Bot.Telegram;
 public class TelegramMessenger : ITelegramMessenger
 {
     private static readonly ILogger _log = Log.ForContext<TelegramMessenger>();
+
+    private const int MaxMessageLength = 4096;
 
     private readonly ITelegramBotClient _client;
 
@@ -25,13 +28,18 @@ public class TelegramMessenger : ITelegramMessenger
     {
         try
         {
-            _log.Information("Sending Telegram message to chat {ChatId}: {MessagePreview}...",
-                chatId, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+            var chunks = TextHelper.SplitIntoChunks(message, MaxMessageLength);
 
-            await _client.SendTextMessageAsync(
-                chatId: chatId,
-                text: TelegramMarkdown.EscapeComposedMessage(message),
-                parseMode: ParseMode.MarkdownV2);
+            _log.Information("Sending Telegram message to chat {ChatId} ({ChunkCount} chunk(s)): {MessagePreview}...",
+                chatId, chunks.Count, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+
+            foreach (var chunk in chunks)
+            {
+                await _client.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: TelegramMarkdown.EscapeComposedMessage(chunk),
+                    parseMode: ParseMode.MarkdownV2);
+            }
 
             _log.Debug("Telegram message sent successfully with {MessageLength} characters to {ChatId}",
                 message.Length, chatId);

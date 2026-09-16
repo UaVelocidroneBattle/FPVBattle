@@ -6,6 +6,6 @@ public class PaceRatingSettings
 
     public int MinDaysForRelevance { get; set; } = 7;
     public int TopPilotsForReference { get; set; } = 3;
-    public int LookBackDays { get; set; } = 30;
+    public LookBackPeriod LookBackPeriod { get; set; } = new(1, LookBackUnit.Month);
     public int DropWorstDaysCount { get; set; } = 1;
 }

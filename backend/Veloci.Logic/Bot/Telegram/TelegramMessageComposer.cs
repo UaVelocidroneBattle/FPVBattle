@@ -291,9 +291,9 @@ public class TelegramMessageComposer
         {
             var line = update switch
             {
-                { OldLeague: null } => $"▫️ {TelegramMarkdown.Escape(update.PilotName)} → *{update.NewLeague?.ToUpper()}*",
-                { NewLeague: null } => $"▫️ {TelegramMarkdown.Escape(update.PilotName)} покидає *{update.OldLeague?.ToUpper()}*",
-                _ => $"▫️ {TelegramMarkdown.Escape(update.PilotName)} *{update.OldLeague?.ToUpper()}* → *{update.NewLeague?.ToUpper()}*"
+                { OldLeague: null } => $"▫️ {TelegramMarkdown.Escape(update.Pilot.Name)} → *{update.NewLeague?.ToUpper()}*",
+                { NewLeague: null } => $"▫️ {TelegramMarkdown.Escape(update.Pilot.Name)} покидає *{update.OldLeague?.ToUpper()}*",
+                _ => $"▫️ {TelegramMarkdown.Escape(update.Pilot.Name)} *{update.OldLeague?.ToUpper()}* → *{update.NewLeague?.ToUpper()}*"
             };
 
             sb.AppendLine(line);

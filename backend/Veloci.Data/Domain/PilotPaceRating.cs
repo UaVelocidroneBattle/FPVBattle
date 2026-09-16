@@ -11,13 +11,10 @@ public class PilotPaceRating
 
     public double? AverageGapPercent { get; set; }
 
-    // how changed AverageGapPercent compare to previous calculation
     public double? AverageGapChange { get; set; }
 
-    // pilot's position in the rating
     public int Rank { get; set; }
 
-    // how changed rank compare to previous calculation
     public int? RankChange { get; set; }
 
     public DateTime CalculatedOn { get; set; }

@@ -929,6 +929,41 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackTimeDeltas", (string)null);
                 });
 
+            modelBuilder.Entity("Veloci.Data.Domain.UserNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CupId")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReadOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ReadOn");
+
+                    b.ToTable("UserNotifications", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1190,6 +1225,15 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Competition");
 
                     b.Navigation("Pilot");
+                });
+
+            modelBuilder.Entity("Veloci.Data.Domain.UserNotification", b =>
+                {
+                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>

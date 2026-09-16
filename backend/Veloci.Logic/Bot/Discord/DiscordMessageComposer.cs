@@ -314,9 +314,9 @@ public class DiscordMessageComposer
         {
             var line = update switch
             {
-                { OldLeague: null } => $"▫️ {update.PilotName} → **{update.NewLeague?.ToUpper()}**",
-                { NewLeague: null } => $"▫️ {update.PilotName} leaves **{update.OldLeague?.ToUpper()}**",
-                _ => $"▫️ {update.PilotName} **{update.OldLeague?.ToUpper()}** → **{update.NewLeague?.ToUpper()}**"
+                { OldLeague: null } => $"▫️ {update.Pilot.Name} → **{update.NewLeague?.ToUpper()}**",
+                { NewLeague: null } => $"▫️ {update.Pilot.Name} leaves **{update.OldLeague?.ToUpper()}**",
+                _ => $"▫️ {update.Pilot.Name} **{update.OldLeague?.ToUpper()}** → **{update.NewLeague?.ToUpper()}**"
             };
 
             sb.AppendLine(line);
