@@ -702,6 +702,91 @@
         }
       }
     },
+    "/api/countries/All": {
+      "get": {
+        "tags": [
+          "Countries"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryModel"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryModel"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/countries/Pilots": {
+      "get": {
+        "tags": [
+          "Countries"
+        ],
+        "parameters": [
+          {
+            "name": "countryCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryPilotModel"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryPilotModel"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryPilotModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/competitions/current": {
       "get": {
         "tags": [
@@ -1059,6 +1144,33 @@
       },
       "CompetitionState": {
         "type": "integer"
+      },
+      "CountryModel": {
+        "type": "object",
+        "properties": {
+          "countryCode": {
+            "type": "string"
+          },
+          "countryName": {
+            "type": "string"
+          },
+          "pilotsCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CountryPilotModel": {
+        "type": "object",
+        "properties": {
+          "pilotId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pilotName": {
+            "type": "string"
+          }
+        }
       },
       "CountryPilotsModel": {
         "type": "object",
@@ -1987,6 +2099,9 @@
     },
     {
       "name": "Cups"
+    },
+    {
+      "name": "Countries"
     },
     {
       "name": "Competitions"

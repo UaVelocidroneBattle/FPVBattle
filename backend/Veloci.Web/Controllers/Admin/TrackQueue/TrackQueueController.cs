@@ -9,6 +9,8 @@ namespace Veloci.Web.Controllers.Admin.TrackQueue;
 
 public class TrackQueueController : AdminControllerBase
 {
+    private static readonly Serilog.ILogger Log = Serilog.Log.ForContext<TrackQueueController>();
+
     private readonly TrackQueueService _trackQueueService;
     private readonly ICupService _cupService;
     private readonly IRepository<QuadModel> _quads;
@@ -45,6 +47,7 @@ public class TrackQueueController : AdminControllerBase
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to queue track {TrackName} for cup {CupId}", trackName, cupId);
             TempData["Error"] = ex.Message;
         }
 
@@ -60,6 +63,7 @@ public class TrackQueueController : AdminControllerBase
         }
         catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to remove queued track {Id}", id);
             TempData["Error"] = ex.Message;
         }
 

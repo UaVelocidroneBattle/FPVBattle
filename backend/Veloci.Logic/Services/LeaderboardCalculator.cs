@@ -55,28 +55,22 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             .ToList();
     }
 
-    private void ApplyGapToLeader(List<CompetitionResults> results)
+    /// <summary>
+    /// Sets each result's gap to the reference time, which is based on the fastest quad-of-the-day
+    /// times only (when a quad of the day is set) so a fast time on a different quad can't skew it.
+    /// </summary>
+    private void ApplyGapToLeader(List<CompetitionResults> results, QuadModel? quadOfTheDay)
     {
-        var referenceTime = GetTopPilotsAverageTime(results.Select(r => r.TrackTime));
+        var referenceTimes = results.ForQuadOfTheDay(quadOfTheDay).Select(r => r.TrackTime);
+
+        var referenceTime = ReferenceTimeCalculator.GetTopPilotsAverageTime(
+            referenceTimes, _settings.TopPilotsForReference, minimumCount: _settings.TopPilotsForReference);
 
         foreach (var result in results)
-            result.GapToLeaderPercent = referenceTime is null ? null : GapPercent(result.TrackTime, referenceTime.Value);
+            result.GapToLeaderPercent = referenceTime is null
+                ? null
+                : ReferenceTimeCalculator.GapPercent(result.TrackTime, referenceTime.Value);
     }
-
-    private double? GetTopPilotsAverageTime(IEnumerable<int> trackTimes)
-    {
-        var topTimes = trackTimes
-            .OrderBy(t => t)
-            .Take(_settings.TopPilotsForReference)
-            .ToList();
-
-        return topTimes.Count < _settings.TopPilotsForReference
-            ? null
-            : topTimes.Average();
-    }
-
-    private static double GapPercent(int pilotTime, double referenceTime)
-        => (pilotTime - referenceTime) / referenceTime * 100.0;
 
     private static TrackTimeDelta SelectBestDelta(IGrouping<int, TrackTimeDelta> pilotDeltas, QuadModel? quadOfTheDay)
     {
@@ -135,7 +129,7 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             ? competition.CompetitionResults
             : GetLeaderboard(competition);
 
-        ApplyGapToLeader(leaderboard);
+        ApplyGapToLeader(leaderboard, competition.QuadOfTheDay);
 
         var othersName = cupOptions.Leagues.OthersName;
 

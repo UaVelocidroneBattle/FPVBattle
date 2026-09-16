@@ -7,8 +7,6 @@ public static class CompetitionRatingExtensions
     extension(Competition competition)
     {
         public IEnumerable<CompetitionResults> RatingEligibleResults =>
-            competition.QuadOfTheDay is null
-                ? competition.CompetitionResults
-                : competition.CompetitionResults.Where(r => r.ModelName == competition.QuadOfTheDay.Name);
+            competition.CompetitionResults.ForQuadOfTheDay(competition.QuadOfTheDay);
     }
 }

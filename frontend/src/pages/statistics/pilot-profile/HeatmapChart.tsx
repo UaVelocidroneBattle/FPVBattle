@@ -21,7 +21,7 @@ const theme: PartialTheme = {
 
 const HeatmapChart = ({ data, year }: HeatmapChartProps) => {
     const d = data.map(i => ({
-        day: new Date(i.date!).toISOString().split('T')[0],
+        day: i.date!.split('T')[0],
         value: i.points
     } as CalendarDatum));
 

@@ -134,6 +134,35 @@ public class LeaderboardCalculatorTests
     }
 
     [Fact]
+    public void GetLeagueLeaderboard_WithQuadOfTheDay_ShouldExcludeNonQuadOfTheDayTimesFromReference()
+    {
+        // Arrange: "Fastest" beats everyone but flew a different quad, so their time shouldn't be
+        // able to pull the reference time down for the pilots who flew the quad of the day.
+        var quadOfTheDay = new QuadModel { Id = 1, Name = "iFlight Nazgul5", Class = QuadClasses.Race };
+
+        var competition = new Competition
+        {
+            CupId = "test-cup",
+            QuadOfTheDay = quadOfTheDay,
+            TimeDeltas =
+            [
+                CreateDelta(pilotId: 1, name: "Fastest", trackTime: 50_000, modelName: "Some Other Quad", rank: 1),
+                CreateDelta(pilotId: 2, name: "QodFirst", trackTime: 61_000, modelName: quadOfTheDay.Name, rank: 2),
+                CreateDelta(pilotId: 3, name: "QodSecond", trackTime: 62_000, modelName: quadOfTheDay.Name, rank: 3),
+                CreateDelta(pilotId: 4, name: "QodThird", trackTime: 63_000, modelName: quadOfTheDay.Name, rank: 4)
+            ]
+        };
+
+        // Reference = average(61_000, 62_000, 63_000) = 62_000, "Fastest" excluded despite being quickest overall
+        var results = _calculator.GetLeagueLeaderboard(competition).SelectMany(l => l.Results).ToList();
+
+        results.Single(r => r.PilotId == 1).GapToLeaderPercent.Should().BeApproximately(-19.355, 0.001);
+        results.Single(r => r.PilotId == 2).GapToLeaderPercent.Should().BeApproximately(-1.613, 0.001);
+        results.Single(r => r.PilotId == 3).GapToLeaderPercent.Should().BeApproximately(0, 0.001);
+        results.Single(r => r.PilotId == 4).GapToLeaderPercent.Should().BeApproximately(1.613, 0.001);
+    }
+
+    [Fact]
     public void GetLeagueLeaderboard_WithResultsAlreadyPersisted_ShouldStillComputeGapToLeaderFromStoredTrackTimes()
     {
         // Simulates a closed competition read back from the database: CompetitionResults is already

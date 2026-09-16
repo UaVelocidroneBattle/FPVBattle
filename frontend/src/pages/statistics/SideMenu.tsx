@@ -1,4 +1,4 @@
-import { UserRound, ChartNoAxesCombined, Trophy, Flame, Users } from "lucide-react";
+import { UserRound, ChartNoAxesCombined, Trophy, Flame, Users, Globe } from "lucide-react";
 import SideMenuItem from "../../components/ui/SideMenuItem";
 import { useCups } from "@/hooks/useCups";
 
@@ -31,6 +31,9 @@ const SideMenu = () => {
                     </li>
                     <li className="hidden sm:flex flex-1 lg:flex-none">
                         <SideMenuItem to="/statistics/performance" icon={ChartNoAxesCombined} label="Compare pilots" />
+                    </li>
+                    <li className="hidden sm:flex flex-1 lg:flex-none">
+                        <SideMenuItem to="/statistics/countries" icon={Globe} label="Countries" />
                     </li>
                 </ul>
             </nav>
