@@ -2,8 +2,8 @@
  * Single source of truth for the public site URL and per-route page metadata.
  *
  * Changing domain? Update SITE_URL below, then the same host in
- * `index.html` (og:image, JSON-LD), `public/robots.txt`
- * and `public/sitemap.xml` — those are static files the app never touches.
+ * `index.html` (og:image, JSON-LD) and `public/robots.txt` — static files
+ * the app never touches.
  */
 export const SITE_URL = 'https://fpv-battle.fun';
 
@@ -15,6 +15,8 @@ export interface PageMeta {
     description: string;
     /** Keeps per-user or thin pages out of search results. */
     noIndex?: boolean;
+    /** Only a fallback for its child routes, so it is left out of the sitemap. */
+    parentOnly?: boolean;
 }
 
 const LANDING_META: PageMeta = {
@@ -51,6 +53,7 @@ export const PAGE_META: Record<string, PageMeta> = {
         title: `Guide — How FPV Battle Works${BRAND_SUFFIX}`,
         description:
             'How the daily Velocidrone competition works: joining, scoring, global rating, leagues, day streaks, freezies and achievements.',
+        parentOnly: true,
     },
     '/guide/getting-started': {
         title: `Getting Started — Join the Daily Velocidrone Race${BRAND_SUFFIX}`,
@@ -102,11 +105,13 @@ export const PAGE_META: Record<string, PageMeta> = {
         title: `Statistics — Velocidrone Pilot Rankings${BRAND_SUFFIX}`,
         description:
             'Global rating, day streak standings, track history and pilot statistics from the FPV Battle daily Velocidrone competition.',
+        parentOnly: true,
     },
     '/global-rating': {
         title: `Global Rating Leaderboard${BRAND_SUFFIX}`,
         description:
             'The full FPV Battle global rating leaderboard — every Velocidrone pilot ranked by their results across the daily competitions.',
+        parentOnly: true,
     },
     '/global-rating/open-class': {
         title: `Open Class Global Rating${BRAND_SUFFIX}`,
@@ -148,6 +153,7 @@ export const PAGE_META: Record<string, PageMeta> = {
         title: `Pilot Profile${BRAND_SUFFIX}`,
         description:
             'Race history, day streak, achievements and results heatmap for a Velocidrone pilot competing in FPV Battle.',
+        parentOnly: true,
     },
 };
 
