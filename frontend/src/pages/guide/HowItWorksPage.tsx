@@ -1,8 +1,8 @@
-import { useLanguage } from '@/hooks/useLanguage';
+import { useGuideLanguage } from '@/hooks/useLanguage';
 import { translations } from './translations';
 
 function HowItWorksPage() {
-    const { language } = useLanguage();
+    const language = useGuideLanguage();
     const t = translations[language];
 
     return (

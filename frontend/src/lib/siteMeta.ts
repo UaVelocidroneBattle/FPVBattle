@@ -101,6 +101,58 @@ export const PAGE_META: Record<string, PageMeta> = {
             'How to support FPV Battle on Patreon and help keep the daily Velocidrone competition running.',
     },
 
+    '/uk/guide': {
+        title: `Гайд — як працює FPV Battle${BRAND_SUFFIX}`,
+        description:
+            'Як працюють щоденні змагання у Velocidrone: участь, нарахування балів, global rating, ліги, day streak, freezies та achievements.',
+        parentOnly: true,
+    },
+    '/uk/guide/getting-started': {
+        title: `Як почати — щоденні перегони у Velocidrone${BRAND_SUFFIX}`,
+        description:
+            'Усе, що потрібно, щоб почати літати щоденні змагання FPV Battle у Velocidrone: що знадобиться, як долучитися і як зарахувати свій перший результат.',
+    },
+    '/uk/guide/how-it-works': {
+        title: `Як це працює — щоденні траси та бали${BRAND_SUFFIX}`,
+        description:
+            'Щодня нова траса у Velocidrone, результати відстежуються впродовж дня, а опівночі — фінальна таблиця та бали. Ось як нараховуються бали у FPV Battle.',
+    },
+    '/uk/guide/global-rating': {
+        title: `Як працює Global Rating${BRAND_SUFFIX}`,
+        description:
+            'Як global rating FPV Battle рахується з ваших щоденних результатів у Velocidrone і що піднімає чи опускає вас у рейтингу.',
+    },
+    '/uk/guide/leagues': {
+        title: `Як працюють ліги${BRAND_SUFFIX}`,
+        description:
+            'Як ліги FPV Battle групують пілотів за рівнем, щоб ви змагалися із суперниками свого рівня, і як працюють підвищення та пониження.',
+    },
+    '/uk/guide/day-streak': {
+        title: `Як працює Day Streak${BRAND_SUFFIX}`,
+        description:
+            'Day streak — це кількість днів поспіль, коли ви літали щоденну трасу у Velocidrone без пропусків. Ось як він росте і як переривається.',
+    },
+    '/uk/guide/freeze': {
+        title: `Day Streak Freeze (freezies) — як це працює${BRAND_SUFFIX}`,
+        description:
+            'Freezies рятують ваш day streak у FPV Battle в дні, коли не вдається полетіти. Як їх отримати, скільки можна мати і коли вони витрачаються.',
+    },
+    '/uk/guide/quad-of-the-day': {
+        title: `Квад дня — як це працює${BRAND_SUFFIX}`,
+        description:
+            'Що таке квад дня у FPV Battle, як його обирають і як він змінює те, як ви літаєте трасу.',
+    },
+    '/uk/guide/achievements': {
+        title: `Список Achievements${BRAND_SUFFIX}`,
+        description:
+            'Усі achievements, які можна отримати у FPV Battle: від рубежів day streak до призових місць у щоденних змаганнях у Velocidrone.',
+    },
+    '/uk/guide/support': {
+        title: `Підтримати FPV Battle${BRAND_SUFFIX}`,
+        description:
+            'Як підтримати FPV Battle на Patreon і допомогти щоденним змаганням у Velocidrone працювати далі.',
+    },
+
     '/statistics': {
         title: `Statistics — Velocidrone Pilot Rankings${BRAND_SUFFIX}`,
         description:
@@ -177,4 +229,36 @@ function findAncestorMeta(path: string): PageMeta | undefined {
 export function resolvePageMeta(pathname: string): PageMeta {
     const path = normalizePath(pathname);
     return PAGE_META[path] ?? findAncestorMeta(path) ?? LANDING_META;
+}
+
+export type PageLanguage = 'en' | 'uk';
+
+/** Ukrainian translations mirror the English routes under this prefix, e.g. /uk/guide/leagues. */
+export const UKRAINIAN_PREFIX = '/uk';
+
+export function pageLanguage(pathname: string): PageLanguage {
+    const path = normalizePath(pathname);
+    return path === UKRAINIAN_PREFIX || path.startsWith(`${UKRAINIAN_PREFIX}/`) ? 'uk' : 'en';
+}
+
+export interface PageAlternate {
+    hreflang: PageLanguage | 'x-default';
+    path: string;
+}
+
+/** Every language version of a translated page, for hreflang links. Empty for English-only pages. */
+export function pageAlternates(pathname: string): PageAlternate[] {
+    const path = normalizePath(pathname);
+    const englishPath = pageLanguage(path) === 'uk' ? path.slice(UKRAINIAN_PREFIX.length) : path;
+    const ukrainianPath = `${UKRAINIAN_PREFIX}${englishPath}`;
+
+    if (!PAGE_META[englishPath] || !PAGE_META[ukrainianPath]) {
+        return [];
+    }
+
+    return [
+        { hreflang: 'en', path: englishPath },
+        { hreflang: 'uk', path: ukrainianPath },
+        { hreflang: 'x-default', path: englishPath },
+    ];
 }

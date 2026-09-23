@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { PAGE_META, SITE_URL, type PageMeta } from '../src/lib/siteMeta';
+import { PAGE_META, SITE_URL, pageAlternates, pageLanguage, type PageMeta } from '../src/lib/siteMeta';
 
 /**
  * Link-preview bots (Discord, Telegram, Slack, X, Facebook) never run
@@ -11,6 +11,7 @@ import { PAGE_META, SITE_URL, type PageMeta } from '../src/lib/siteMeta';
  */
 
 const MARKER = '<!-- page-meta -->';
+const HTML_LANG = /<html lang="[^"]*">/;
 
 function escapeHtml(text: string): string {
     return text
@@ -22,16 +23,25 @@ function escapeHtml(text: string): string {
 
 function renderPageMeta(path: string, { title, description, noIndex }: PageMeta): string {
     const url = `${SITE_URL}${path}`;
+    const alternates = pageAlternates(path).map(({ hreflang, path }) =>
+        `<link rel="alternate" hreflang="${hreflang}" href="${SITE_URL}${path}" />`);
 
     return [
         `<title>${escapeHtml(title)}</title>`,
         `<meta name="description" content="${escapeHtml(description)}" />`,
         `<meta name="robots" content="${noIndex ? 'noindex, follow' : 'index, follow'}" />`,
         `<link rel="canonical" href="${url}" />`,
+        ...alternates,
         `<meta property="og:title" content="${escapeHtml(title)}" />`,
         `<meta property="og:description" content="${escapeHtml(description)}" />`,
         `<meta property="og:url" content="${url}" />`,
     ].join('\n    ');
+}
+
+function renderPage(template: string, path: string): string {
+    return template
+        .replace(HTML_LANG, `<html lang="${pageLanguage(path)}">`)
+        .replace(MARKER, renderPageMeta(path, PAGE_META[path]));
 }
 
 function htmlFileFor(path: string): string {
@@ -58,7 +68,7 @@ export function pageMetaPlugin(): Plugin {
 
         // The dev server serves index.html for every route, so it gets the landing defaults.
         transformIndexHtml(html, { server }) {
-            return server ? html.replace(MARKER, renderPageMeta('/', PAGE_META['/'])) : html;
+            return server ? renderPage(html, '/') : html;
         },
 
         generateBundle: {
@@ -71,8 +81,8 @@ export function pageMetaPlugin(): Plugin {
 
                 const html = String(template.source);
 
-                for (const [path, meta] of Object.entries(PAGE_META)) {
-                    const source = html.replace(MARKER, renderPageMeta(path, meta));
+                for (const path of Object.keys(PAGE_META)) {
+                    const source = renderPage(html, path);
 
                     if (path === '/') {
                         template.source = source;

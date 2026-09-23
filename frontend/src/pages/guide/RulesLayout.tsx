@@ -1,34 +1,48 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { useLanguage, type Language } from '@/hooks/useLanguage';
+import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { guidePath, useGuideLanguage, useLanguage, type Language } from '@/hooks/useLanguage';
 import { navItems } from './translations';
 
-function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (lang: Language) => void }) {
+const FIRST_PAGE = navItems[0].path;
+
+/** Sends /guide to the first page in the visitor's preferred language. */
+export function GuideIndexRedirect() {
+    const { language } = useLanguage();
+    return <Navigate to={guidePath(language, FIRST_PAGE)} replace />;
+}
+
+function LanguageToggle() {
+    const language = useGuideLanguage();
+    const { setLanguage } = useLanguage();
+    const page = useLocation().pathname.split('/').filter(Boolean).pop() ?? FIRST_PAGE;
+
     return (
         <div className="flex gap-1 border border-slate-600 p-0.5 text-sm font-medium">
             {(['ua', 'en'] as Language[]).map((lang) => (
-                <button
+                <Link
                     key={lang}
+                    to={guidePath(lang, page)}
+                    hrefLang={lang === 'ua' ? 'uk' : 'en'}
                     onClick={() => setLanguage(lang)}
                     className={`px-3 py-1 transition-colors uppercase ${
                         language === lang ? 'bg-slate-600 text-slate-200' : 'text-slate-500 hover:text-slate-300'
                     }`}
                 >
                     {lang}
-                </button>
+                </Link>
             ))}
         </div>
     );
 }
 
 function RulesLayout() {
-    const { language, setLanguage } = useLanguage();
+    const language = useGuideLanguage();
 
     return (
         <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6 flex-1">
             <aside className="md:w-64 md:shrink-0 md:sticky md:top-4 md:self-start">
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
                     <div className="px-4 py-3 border-b border-slate-700 flex justify-end">
-                        <LanguageToggle language={language} setLanguage={setLanguage} />
+                        <LanguageToggle />
                     </div>
                     <nav className="flex md:flex-col overflow-x-auto py-2 md:py-2">
                         {navItems.map(item => (

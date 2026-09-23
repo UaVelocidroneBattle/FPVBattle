@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 import PilotWithAvatar from "@/components/PilotWithAvatar";
 import { useCups } from "@/hooks/useCups";
 import { useHighlightedPilot } from "@/hooks/useHighlightedPilot";
+import { guidePath, useLanguage } from "@/hooks/useLanguage";
 import CountryFilter, { countryOptionsOf } from "@/components/CountryFilter";
 import { useUrlCountry } from "@/hooks/useUrlCountry";
 import { CupModel } from "@/store/cupsStore";
@@ -278,6 +279,7 @@ function CupRating({ cup }: { cup: CupModel }) {
     const data = useGlobalRatingStore((state) => state.data);
     const loadingState = useGlobalRatingStore((state) => state.loadingState);
     const highlightPilotName = useHighlightedPilot();
+    const { language } = useLanguage();
 
     useEffect(() => {
         const { fetchRatings } = useGlobalRatingStore.getState();
@@ -314,7 +316,7 @@ function CupRating({ cup }: { cup: CupModel }) {
                         <span className="flex items-baseline gap-3">
                             <span className="text-slate-600">·</span>
                             <Link
-                                to="/guide/global-rating"
+                                to={guidePath(language, 'global-rating')}
                                 className="shrink-0 text-sm text-slate-400 hover:text-emerald-400 transition-colors"
                             >
                                 How does it work?
