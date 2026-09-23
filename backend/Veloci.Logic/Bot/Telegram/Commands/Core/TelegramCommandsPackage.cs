@@ -13,8 +13,6 @@ public static class TelegramCommandsPackage
             .AddScoped<ITelegramCommand, AchievementsCommand>()
             .AddScoped<ITelegramCommand, CurrentTrackCommand>()
             .AddScoped<ITelegramCommand, ConnectPilotToPlatformCommand>()
-            .AddScoped<ITelegramCommand, ConnectPilotToPatreonCommand>()
-            .AddScoped<ITelegramCommand, ListPatreonSupportersCommand>()
             .AddScoped<ITelegramCommand, ListPilotPlatformsCommand>()
             ;
 

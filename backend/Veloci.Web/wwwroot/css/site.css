@@ -704,6 +704,11 @@ a {
     color: var(--ok);
 }
 
+.badge.bg-warning {
+    background: var(--warn-bg) !important;
+    color: var(--warn);
+}
+
 .badge.bg-secondary {
     background: #eceff2 !important;
     color: var(--muted);
