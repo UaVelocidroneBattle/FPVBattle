@@ -3,6 +3,8 @@
   Mirrors the indexable routes declared in src/main.tsx.
   Add an entry here whenever a public route is added there.
   /profile is intentionally omitted: it is per-user and requires sign-in.
+  /pilot and /statistics/tracks are omitted: an empty pilot picker and an
+  unfinished page have nothing worth indexing.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -83,17 +85,17 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fpv-battle.fun/statistics/tracks</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://fpv-battle.fun/statistics/pilots</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fpv-battle.fun/pilot</loc>
+    <loc>https://fpv-battle.fun/statistics/countries</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fpv-battle.fun/statistics/performance</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
