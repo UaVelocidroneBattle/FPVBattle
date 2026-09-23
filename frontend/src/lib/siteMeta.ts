@@ -2,7 +2,7 @@
  * Single source of truth for the public site URL and per-route page metadata.
  *
  * Changing domain? Update SITE_URL below, then the same host in
- * `index.html` (canonical, og:url, og:image, JSON-LD), `public/robots.txt`
+ * `index.html` (og:image, JSON-LD), `public/robots.txt`
  * and `public/sitemap.xml` — those are static files the app never touches.
  */
 export const SITE_URL = 'https://fpv-battle.fun';
@@ -27,7 +27,7 @@ const LANDING_META: PageMeta = {
  * Keyed by exact pathname. A path with no entry falls back to the closest
  * parent entry, then to the landing page metadata.
  */
-const PAGE_META: Record<string, PageMeta> = {
+export const PAGE_META: Record<string, PageMeta> = {
     '/': LANDING_META,
 
     '/open-class': {

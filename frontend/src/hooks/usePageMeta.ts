@@ -35,9 +35,8 @@ function upsertCanonical(url: string) {
  * need to know about their own metadata. Route metadata lives in
  * `@/lib/siteMeta`.
  *
- * Note this runs in the browser, so it only reaches crawlers that execute
- * JavaScript (Googlebot does). Link-preview bots for Discord, Telegram and
- * Slack read the static tags in `index.html` instead.
+ * Link-preview bots never run this; they read the same tags, prerendered per
+ * route by `plugins/pageMetaPlugin.ts`.
  */
 export function usePageMeta() {
     const { pathname } = useLocation();
