@@ -108,6 +108,16 @@ const PAGE_META: Record<string, PageMeta> = {
         description:
             'The full FPV Battle global rating leaderboard — every Velocidrone pilot ranked by their results across the daily competitions.',
     },
+    '/global-rating/open-class': {
+        title: `Open Class Global Rating${BRAND_SUFFIX}`,
+        description:
+            'Every Open Class Velocidrone pilot ranked by their results across the FPV Battle daily competitions.',
+    },
+    '/global-rating/whoop-class': {
+        title: `Whoop Class Global Rating${BRAND_SUFFIX}`,
+        description:
+            'Every Whoop Class Velocidrone pilot ranked by their results across the FPV Battle daily competitions.',
+    },
     '/statistics/daystreaks': {
         title: `Day Streak Leaderboard${BRAND_SUFFIX}`,
         description:
@@ -117,11 +127,17 @@ const PAGE_META: Record<string, PageMeta> = {
         title: `Track History${BRAND_SUFFIX}`,
         description:
             'Every Velocidrone track used in the FPV Battle daily competition, with the results and fastest times recorded on each one.',
+        noIndex: true,
     },
     '/statistics/pilots': {
         title: `Pilot Numbers${BRAND_SUFFIX}`,
         description:
             'How the FPV Battle pilot community is growing — total Velocidrone pilots over time, new pilots each month and daily participation.',
+    },
+    '/statistics/countries': {
+        title: `Pilots by Country${BRAND_SUFFIX}`,
+        description:
+            'Where FPV Battle pilots fly from — every country in the daily Velocidrone competition and the pilots representing it.',
     },
     '/statistics/performance': {
         title: `Pilot Comparison${BRAND_SUFFIX}`,
