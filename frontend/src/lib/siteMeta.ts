@@ -231,6 +231,41 @@ export function resolvePageMeta(pathname: string): PageMeta {
     return PAGE_META[path] ?? findAncestorMeta(path) ?? LANDING_META;
 }
 
+/** '2026-09-20' → '20.09.2026', without a Date round trip that could shift the day across time zones. */
+function formatDay(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-');
+    return `${day}.${month}.${year}`;
+}
+
+export interface CompetitionDay {
+    cupName: string;
+    date: string;
+    mapName: string;
+    trackName: string;
+    pilots: number;
+}
+
+/** A finished day keeps its results at `/<cup>?date=<day>`, named after the track flown that day. */
+export function competitionDayMeta({ cupName, date, mapName, trackName, pilots }: CompetitionDay): PageMeta {
+    const day = formatDay(date);
+
+    return {
+        title: `${trackName} — ${cupName} Results, ${day}${BRAND_SUFFIX}`,
+        description:
+            `Final FPV Battle ${cupName} leaderboard for ${day}: lap times and points of ${pilots} pilots on the Velocidrone track ${mapName} – ${trackName}.`,
+    };
+}
+
+export function emptyCompetitionDayMeta(cupName: string, date: string): PageMeta {
+    const day = formatDay(date);
+
+    return {
+        title: `${cupName}, ${day}${BRAND_SUFFIX}`,
+        description: `No FPV Battle ${cupName} race was held on ${day}.`,
+        noIndex: true,
+    };
+}
+
 export type PageLanguage = 'en' | 'uk';
 
 /** Ukrainian translations mirror the English routes under this prefix, e.g. /uk/guide/leagues. */

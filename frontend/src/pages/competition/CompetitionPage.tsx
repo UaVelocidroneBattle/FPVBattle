@@ -13,8 +13,14 @@ import { LeagueLeaderboardModel } from '@/api/client';
 import { useHighlightedPilot } from '@/hooks/useHighlightedPilot';
 import CountryFilter, { countryOptionsOf } from '@/components/CountryFilter';
 import { useUrlCountry } from '@/hooks/useUrlCountry';
+import { usePageMetaOverride } from '@/hooks/usePageMeta';
+import { competitionDayMeta, emptyCompetitionDayMeta } from '@/lib/siteMeta';
 
 const TEN_MINUTES = 10 * 60 * 1000;
+
+// The backend's CompetitionState enum, which the API sends as a number.
+const COMPETITION_STARTED = 0;
+const COMPETITION_CLOSED = 1;
 
 /**
  * Today's board for a single country: only that country's pilots, numbered from
@@ -85,6 +91,29 @@ function CupCompetition({ cupId }: { cupId: string }) {
     );
     const [country, setCountry] = useUrlCountry(countryOptions);
 
+    const { findCup } = useCups();
+    const cupName = findCup(cupId)?.name ?? cupId;
+    const pastDayMeta = useMemo(() => {
+        if (!selectedDate || state !== 'Loaded' || !overview) return null;
+
+        const competition = overview.competition;
+        // Today's race opened by date is still today's page.
+        if (competition?.state === COMPETITION_STARTED) return null;
+
+        const meta = competition?.state === COMPETITION_CLOSED
+            ? competitionDayMeta({
+                cupName,
+                date: selectedDate,
+                mapName: competition.mapName,
+                trackName: competition.trackName,
+                pilots: pilotCount(overview.leaderboard),
+            })
+            : emptyCompetitionDayMeta(cupName, selectedDate);
+
+        return { ...meta, canonicalPath: `/${cupId}?date=${selectedDate}` };
+    }, [cupId, cupName, selectedDate, state, overview]);
+    usePageMetaOverride(pastDayMeta);
+
     if (state == 'Loading') {
         return <><Spinner /></>
     }
@@ -147,7 +176,7 @@ function CupCompetition({ cupId }: { cupId: string }) {
                             )}
                         </div>
                     </div>
-                    <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat} isEnded={overview.competition?.state === 1} highlightPilotName={highlightPilotName} />
+                    <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat} isEnded={overview.competition?.state === COMPETITION_CLOSED} highlightPilotName={highlightPilotName} />
                 </div>
 
                 <div className="flex flex-col gap-3">

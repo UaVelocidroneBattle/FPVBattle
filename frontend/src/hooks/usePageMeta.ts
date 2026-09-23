@@ -1,6 +1,25 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { SITE_URL, pageAlternates, pageLanguage, resolvePageMeta, type PageAlternate } from '@/lib/siteMeta';
+import { create } from 'zustand';
+import { SITE_URL, pageAlternates, pageLanguage, resolvePageMeta, type PageAlternate, type PageMeta } from '@/lib/siteMeta';
+
+/** Metadata a page derives from its own data, with the query string that makes its URL unique. */
+export interface PageMetaOverride extends PageMeta {
+    canonicalPath: string;
+}
+
+const usePageMetaOverrideStore = create<{ override: PageMetaOverride | null }>()(() => ({ override: null }));
+
+/**
+ * Replaces the route's metadata while the calling page is mounted. Pass a
+ * memoised value, or null to keep the route's metadata.
+ */
+export function usePageMetaOverride(override: PageMetaOverride | null) {
+    useEffect(() => {
+        usePageMetaOverrideStore.setState({ override });
+        return () => usePageMetaOverrideStore.setState({ override: null });
+    }, [override]);
+}
 
 function upsertMeta(attribute: 'name' | 'property', key: string, content: string) {
     const selector = `meta[${attribute}="${key}"]`;
@@ -52,10 +71,11 @@ function replaceAlternates(alternates: PageAlternate[]) {
  */
 export function usePageMeta() {
     const { pathname } = useLocation();
+    const override = usePageMetaOverrideStore((state) => state.override);
 
     useEffect(() => {
-        const { title, description, noIndex } = resolvePageMeta(pathname);
-        const canonicalUrl = `${SITE_URL}${pathname}`;
+        const { title, description, noIndex } = override ?? resolvePageMeta(pathname);
+        const canonicalUrl = `${SITE_URL}${override?.canonicalPath ?? pathname}`;
 
         document.title = title;
         document.documentElement.lang = pageLanguage(pathname);
@@ -66,5 +86,5 @@ export function usePageMeta() {
         upsertMeta('property', 'og:url', canonicalUrl);
         upsertCanonical(canonicalUrl);
         replaceAlternates(pageAlternates(pathname));
-    }, [pathname]);
+    }, [pathname, override]);
 }
