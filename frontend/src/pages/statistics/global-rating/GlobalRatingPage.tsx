@@ -309,7 +309,7 @@ function CupRating({ cup }: { cup: CupModel }) {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div>
                     <div className="flex flex-wrap items-baseline gap-x-3 mb-1">
-                        <h2 className="text-xl font-semibold text-white">{cup.name} global rating</h2>
+                        <h1 className="text-xl font-semibold text-white">{cup.name} global rating</h1>
                         {/* Grouped so the separator never wraps onto a line of its own. */}
                         <span className="flex items-baseline gap-3">
                             <span className="text-slate-600">·</span>

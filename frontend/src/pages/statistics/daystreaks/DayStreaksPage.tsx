@@ -52,7 +52,7 @@ function DayStreaksPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-white mb-1">Day Streaks</h2>
+                <h1 className="text-xl font-semibold text-white mb-1">Day Streaks</h1>
                 <p className="text-slate-400 text-sm">Pilots ranked by their current consecutive day streak</p>
             </div>
 

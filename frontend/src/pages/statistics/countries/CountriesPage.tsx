@@ -26,6 +26,7 @@ function CountriesPage() {
 
     return (
         <div className="flex flex-col lg:flex-row gap-6">
+            <h1 className="sr-only">Pilots by country</h1>
             <div className={`lg:w-72 shrink-0 flex flex-col ${PANEL_HEIGHT}`}>
                 <div className="flex items-center gap-3 px-3 pb-2 border-b border-slate-700 text-xs uppercase tracking-wider text-slate-500">
                     <span className="flex-1">Country</span>

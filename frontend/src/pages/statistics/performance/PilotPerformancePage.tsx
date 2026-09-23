@@ -57,6 +57,7 @@ const PilotPerformancePage = () => {
     if (pilotsState == 'Error') return <Error></Error>
 
     return <>
+        <h1 className="sr-only">Pilot comparison</h1>
         <div className="mb-4 text-sm text-gray-200">
             Compare lap times between two pilots on a track. Use the controls to choose pilots.
         </div>
