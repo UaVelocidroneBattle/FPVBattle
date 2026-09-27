@@ -1,4 +1,5 @@
 using Veloci.Data.Domain;
+using Veloci.Logic.Features.Leagues.Models;
 
 namespace Veloci.Logic.Features.Achievements.Base;
 
@@ -32,4 +33,9 @@ public interface IAchievementAfterSeason : IAchievement
 public interface IGlobalAchievement : IAchievement
 {
     Task<Pilot?> CheckAsync();
+}
+
+public interface IAchievementAfterLeagueUpdate : IAchievement
+{
+    Task<bool> CheckAsync(LeagueUpdateModel leagueUpdate);
 }

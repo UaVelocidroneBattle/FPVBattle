@@ -144,6 +144,15 @@ public class LeagueOptions
 
     public IReadOnlyList<string> GetAllLeagueNames() =>
         Definitions.OrderBy(d => d.Order).Select(d => d.Name).Append(OthersName).ToList();
+
+    /// <summary>
+    /// Returns null if the league is not among the currently configured definitions
+    /// (e.g. it was renamed or removed since a pilot was assigned to it).
+    /// </summary>
+    public int? GetLeagueOrder(string leagueName)
+    {
+        return Definitions.FirstOrDefault(d => d.Name == leagueName)?.Order;
+    }
 }
 
 public class LeagueDescriptor

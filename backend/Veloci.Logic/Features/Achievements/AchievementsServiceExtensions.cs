@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Collection;
-using Veloci.Logic.Features.Achievements.Collection.OpenClass;
 using Veloci.Logic.Features.Achievements.Collection.WhoopClass;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Achievements.NotificationHandlers;
@@ -88,6 +87,10 @@ public static class AchievementsServiceExtensions
                 .AddAchievement<NanoBoostAchievement>()
                 .AddAchievement<BeastAchievement>()
                 .AddAchievement<UniversalSoldierAchievement>()
+                .AddAchievement<LevelUpAchievement>()
+                .AddAchievement<DemotedAchievement>()
+                .AddAchievement<RankedAchievement>()
+                .AddAchievement<DroppedAchievement>()
                 ;
 
             return services;

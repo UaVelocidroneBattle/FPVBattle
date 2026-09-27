@@ -6,6 +6,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Notifications;
+using Veloci.Logic.Features.Leagues.Models;
 
 namespace Veloci.Logic.Features.Achievements.Services;
 
@@ -25,6 +26,41 @@ public class AchievementService
         _pilots = pilots;
         _mediator = mediator;
         _achievements = serviceProvider.GetServices<IAchievement>();
+    }
+
+    public async Task CheckAfterLeagueUpdateAsync(string cupId, IList<LeagueUpdateModel> leagueUpdates, CancellationToken cancellationToken)
+    {
+        Log.Information("Checking achievements after league update for cup {CupId}", cupId);
+
+        await CheckAndPublishAchievementsAsync<IAchievementAfterLeagueUpdate>(
+            achievement => CheckAchievementAfterLeagueUpdate(achievement, leagueUpdates, cupId),
+            cupId,
+            cancellationToken
+        );
+    }
+
+    private async Task<AchievementCheckResults> CheckAchievementAfterLeagueUpdate(IAchievementAfterLeagueUpdate achievement, IList<LeagueUpdateModel> leagueUpdates, string cupId)
+    {
+        var results = new AchievementCheckResults();
+        Log.Debug("Checking achievement {AchievementName}", achievement.Name);
+
+        foreach (var leagueUpdate in leagueUpdates)
+        {
+            var pilot = leagueUpdate.Pilot;
+            var triggered = await achievement.CheckAsync(leagueUpdate);
+
+            if (!triggered)
+            {
+                continue;
+            }
+
+            Log.Information("🏅 Pilot {PilotName} earned achievement {AchievementName}", pilot.Name, achievement.Name);
+            pilot.AddAchievement(achievement);
+            results.Add(new AchievementCheckResult(pilot, achievement, cupId));
+        }
+
+        Log.Debug("Achievement {AchievementName} check completed: {TriggeredCount} pilots earned it", achievement.Name, results.Count);
+        return results;
     }
 
     public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
@@ -201,12 +237,12 @@ public class AchievementService
 
     private async Task CheckAndPublishAchievementsAsync<T>(
         Func<T, Task<AchievementCheckResults>> processor,
-        string cupId,
+        string? cupId,
         CancellationToken cancellationToken
     ) where T : IAchievement
     {
         var achievements = GetAchievements<T>()
-            .Where(a => a.CupId == cupId || a.CupId == null)
+            .Where(a => cupId == null || a.CupId == cupId || a.CupId == null)
             .ToList();
 
         Log.Debug("Processing {AchievementCount} achievements of type {AchievementType}", achievements.Count, typeof(T).Name);
