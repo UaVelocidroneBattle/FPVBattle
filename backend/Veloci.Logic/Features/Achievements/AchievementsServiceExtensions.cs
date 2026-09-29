@@ -5,11 +5,9 @@ using Veloci.Logic.Features.Achievements.Collection;
 using Veloci.Logic.Features.Achievements.Collection.Leagues;
 using Veloci.Logic.Features.Achievements.Collection.OpenClass;
 using Veloci.Logic.Features.Achievements.Collection.WhoopClass;
-using Veloci.Logic.Features.Achievements.Jobs;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Achievements.NotificationHandlers;
 using Veloci.Logic.Features.Cups;
-using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Achievements;
 
@@ -23,9 +21,6 @@ public static class AchievementsServiceExtensions
             services.AddScoped<AchievementService>();
             services.AddScoped<AchievementsEventHandler>();
 
-            // One-off cleanup of obsolete achievements; delete once it has run in production
-            services.AddScoped<AchievementCleanupJob>();
-            services.AddScoped<IJobRegistrar, AchievementsJobRegistrar>();
 
             // Register message composers
             services.AddScoped<DiscordAchievementMessageComposer>();
