@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Collection;
 using Veloci.Logic.Features.Achievements.Collection.Leagues;
+using Veloci.Logic.Features.Achievements.Collection.OpenClass;
 using Veloci.Logic.Features.Achievements.Collection.WhoopClass;
 using Veloci.Logic.Features.Achievements.Jobs;
 using Veloci.Logic.Features.Achievements.Services;
@@ -72,6 +73,8 @@ public static class AchievementsServiceExtensions
                 // Unranked pilots only get a winner achievement
                 services.AddAchievement(new LeagueRacePlacementAchievement(CupIds.OpenClass, null, leagues.OthersName, 1));
                 services.AddAchievement(new LeagueSeasonPlacementAchievement(CupIds.OpenClass, leagues.OthersName, 1));
+
+                services.AddAchievement<Haunter_OpenClass_Achievement>();
             }
 
             // Whoop class achievements
@@ -83,7 +86,8 @@ public static class AchievementsServiceExtensions
                     .AddAchievement<FirstPlaceInRace_Whoop_Achievement>()
                     .AddAchievement<ThirdInSeason_Whoop_Achievement>()
                     .AddAchievement<SecondInSeason_Whoop_Achievement>()
-                    .AddAchievement<FirstInSeason_Whoop_Achievement>();
+                    .AddAchievement<FirstInSeason_Whoop_Achievement>()
+                    .AddAchievement<Haunter_Whoop_Achievement>();
             }
 
             // Others
