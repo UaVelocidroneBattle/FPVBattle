@@ -11,13 +11,13 @@ public class SecondInSeason_Whoop_Achievement : IAchievementAfterSeason
     public string Description => "Second place in a season (whoop class)";
     public string? CupId => CupIds.WhoopClass;
 
-    public async Task<bool> CheckAsync(Pilot pilot, List<SeasonResult> seasonResults)
+    public async Task<bool> CheckAsync(Pilot pilot, List<LeagueSeasonLeaderboard> seasonLeaderboards)
     {
         if (pilot.HasAchievement(Name))
         {
             return false;
         }
 
-        return seasonResults.GetByPlace(2)?.PlayerName == pilot.Name;
+        return seasonLeaderboards.SelectMany(l => l.Results).GetByPlace(2)?.PlayerName == pilot.Name;
     }
 }

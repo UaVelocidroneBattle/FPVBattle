@@ -31,8 +31,7 @@ public class AchievementsEventHandler :
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
-        var flatResults = notification.Results.SelectMany(l => l.Results).ToList();
-        await _achievementService.CheckAfterSeasonAsync(flatResults, notification.CupId, cancellationToken);
+        await _achievementService.CheckAfterSeasonAsync(notification.Results,notification.CupId, cancellationToken);
     }
 
     public async Task Handle(LeagueUpdateNotification notification, CancellationToken cancellationToken)

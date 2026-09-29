@@ -2,10 +2,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Achievements.Collection;
+using Veloci.Logic.Features.Achievements.Collection.Leagues;
 using Veloci.Logic.Features.Achievements.Collection.WhoopClass;
+using Veloci.Logic.Features.Achievements.Jobs;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Achievements.NotificationHandlers;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Jobs;
 
 namespace Veloci.Logic.Features.Achievements;
 
@@ -18,6 +21,10 @@ public static class AchievementsServiceExtensions
             // Register core services
             services.AddScoped<AchievementService>();
             services.AddScoped<AchievementsEventHandler>();
+
+            // One-off cleanup of obsolete achievements; delete once it has run in production
+            services.AddScoped<AchievementCleanupJob>();
+            services.AddScoped<IJobRegistrar, AchievementsJobRegistrar>();
 
             // Register message composers
             services.AddScoped<DiscordAchievementMessageComposer>();
@@ -51,16 +58,20 @@ public static class AchievementsServiceExtensions
             // Open class achievements
             if (IsCupEnabled(CupIds.OpenClass))
             {
-                // OUTDATED FOR NOW
+                var leagues = cupsConfig.Definitions[CupIds.OpenClass].Leagues;
 
-                // services
-                //     .AddAchievement<ThirdPlaceInRace_Open_Achievement>()
-                //     .AddAchievement<SecondPlaceInRace_Open_Achievement>()
-                //     .AddAchievement<FirstPlaceInRace_Open_Achievement>()
-                //     .AddAchievement<ThirdInSeason_Open_Achievement>()
-                //     .AddAchievement<SecondInSeason_Open_Achievement>()
-                //     .AddAchievement<FirstInSeason_Open_Achievement>()
-                //     ;
+                foreach (var league in leagues.Definitions)
+                {
+                    for (var place = 1; place <= 3; place++)
+                    {
+                        services.AddAchievement(new LeagueRacePlacementAchievement(CupIds.OpenClass, league.Name, league.Name, place));
+                        services.AddAchievement(new LeagueSeasonPlacementAchievement(CupIds.OpenClass, league.Name, place));
+                    }
+                }
+
+                // Unranked pilots only get a winner achievement
+                services.AddAchievement(new LeagueRacePlacementAchievement(CupIds.OpenClass, null, leagues.OthersName, 1));
+                services.AddAchievement(new LeagueSeasonPlacementAchievement(CupIds.OpenClass, leagues.OthersName, 1));
             }
 
             // Whoop class achievements
@@ -97,6 +108,12 @@ public static class AchievementsServiceExtensions
 
             bool IsCupEnabled(string cupId) =>
                 cupsConfig.Definitions.TryGetValue(cupId, out var cup) && cup.IsEnabled;
+        }
+
+        private IServiceCollection AddAchievement(IAchievement instance)
+        {
+            services.AddScoped<IAchievement>(_ => instance);
+            return services;
         }
 
         private IServiceCollection AddAchievement<T>() where T : IAchievement
