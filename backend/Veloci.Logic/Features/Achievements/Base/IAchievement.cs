@@ -27,7 +27,7 @@ public interface IAchievementAfterCompetition : IAchievement
 
 public interface IAchievementAfterSeason : IAchievement
 {
-    Task<bool> CheckAsync(Pilot pilot, List<SeasonResult> seasonResults);
+    Task<bool> CheckAsync(Pilot pilot, List<LeagueSeasonLeaderboard> seasonLeaderboards);
 }
 
 public interface IGlobalAchievement : IAchievement

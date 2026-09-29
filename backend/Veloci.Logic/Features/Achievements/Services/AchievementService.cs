@@ -100,21 +100,22 @@ public class AchievementService
         return results;
     }
 
-    public async Task CheckAfterSeasonAsync(List<SeasonResult> results, string cupId, CancellationToken cancellationToken)
+    public async Task CheckAfterSeasonAsync(List<LeagueSeasonLeaderboard> leaderboards, string cupId, CancellationToken cancellationToken)
     {
-        Log.Information("Checking achievements after season completion for cup {CupId} with {PilotCount} pilots", cupId, results.Count);
+        Log.Information("Checking achievements after season completion for cup {CupId} with {LeagueCount} leagues", cupId, leaderboards.Count);
 
         await CheckAndPublishAchievementsAsync<IAchievementAfterSeason>(
-            achievement => CheckAchievementAfterSeason(achievement, results, cupId),
+            achievement => CheckAchievementAfterSeason(achievement, leaderboards, cupId),
             cupId,
             cancellationToken
         );
     }
 
     private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement,
-        List<SeasonResult> results, string cupId)
+        List<LeagueSeasonLeaderboard> leaderboards, string cupId)
     {
         var checkResults = new AchievementCheckResults();
+        var results = leaderboards.SelectMany(l => l.Results).ToList();
         Log.Debug("Checking season achievement {AchievementName} for cup {CupId} with {PilotCount} pilots",
             achievement.Name, cupId, results.Count);
 
@@ -127,7 +128,7 @@ public class AchievementService
                 throw new Exception("Pilot not found");
             }
 
-            var triggered = await achievement.CheckAsync(pilot, results);
+            var triggered = await achievement.CheckAsync(pilot, leaderboards);
 
             if (!triggered)
             {
