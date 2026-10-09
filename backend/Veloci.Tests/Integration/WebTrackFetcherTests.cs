@@ -1,4 +1,5 @@
-﻿using Veloci.Logic.Services.Tracks;
+﻿using FluentAssertions;
+using Veloci.Logic.Services.Tracks;
 
 namespace Veloci.Tests.Integration;
 
@@ -10,6 +11,10 @@ public class WebTrackFetcherTests
     {
         var fetcher = new WebTrackFetcher();
         var maps = await fetcher.FetchMapsAsync();
+
+        maps.Should().NotBeEmpty();
+        maps.Should().OnlyContain(m => !string.IsNullOrWhiteSpace(m.Name) && m.Id > 0);
+        maps.SelectMany(m => m.Tracks).Should().NotBeEmpty().And.OnlyContain(t => !string.IsNullOrWhiteSpace(t.Name) && t.Id > 0);
     }
 
     [Fact]
