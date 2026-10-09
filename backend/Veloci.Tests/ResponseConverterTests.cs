@@ -456,6 +456,7 @@ public class ResponseConverterTests
         public Task AddRangeAsync(IEnumerable<T> entries) => throw new NotImplementedException();
         public Task UpdateAsync(T entry) => throw new NotImplementedException();
         public Task RemoveAsync(object id) => throw new NotImplementedException();
+        public Task RemoveEntryAsync(T entry) => throw new NotImplementedException();
         public Task SaveChangesAsync() => throw new NotImplementedException();
         public Task SaveChangesAsync(CancellationToken ct) => throw new NotImplementedException();
     }

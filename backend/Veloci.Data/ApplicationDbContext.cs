@@ -127,6 +127,45 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Team>().ToTable("Teams");
+        builder.Entity<Team>().HasKey(t => t.Id);
+        builder.Entity<Team>().Property(t => t.Name).HasMaxLength(Team.NameMaxLength).IsRequired().UseCollation("NOCASE");
+        builder.Entity<Team>().Property(t => t.Description).HasMaxLength(Team.DescriptionMaxLength);
+        builder.Entity<Team>().HasIndex(t => t.Name).IsUnique();
+
+        builder.Entity<TeamMember>().ToTable("TeamMembers");
+        builder.Entity<TeamMember>().HasKey(m => new { m.TeamId, m.UserId });
+        builder.Entity<TeamMember>().HasIndex(m => m.UserId);
+        builder.Entity<TeamMember>()
+            .HasOne(m => m.Team)
+            .WithMany(t => t.Members)
+            .HasForeignKey(m => m.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamMember>()
+            .HasOne(m => m.User)
+            .WithMany()
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TeamInvite>().ToTable("TeamInvites");
+        builder.Entity<TeamInvite>().HasKey(i => new { i.TeamId, i.UserId });
+        builder.Entity<TeamInvite>().HasIndex(i => i.UserId);
+        builder.Entity<TeamInvite>()
+            .HasOne(i => i.Team)
+            .WithMany(t => t.Invites)
+            .HasForeignKey(i => i.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamInvite>()
+            .HasOne(i => i.User)
+            .WithMany()
+            .HasForeignKey(i => i.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamInvite>()
+            .HasOne(i => i.InvitedByUser)
+            .WithMany()
+            .HasForeignKey(i => i.InvitedByUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<QuadModel>().ToTable("QuadModels");
         builder.Entity<QuadModel>().HasKey(p => p.Id);
         builder.Entity<QuadModel>().Property(p => p.Id).ValueGeneratedNever();

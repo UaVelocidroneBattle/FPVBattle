@@ -49,6 +49,12 @@ export const PAGE_META: Record<string, PageMeta> = {
         noIndex: true,
     },
 
+    '/teams': {
+        title: `Teams${BRAND_SUFFIX}`,
+        description: 'Create a FPV Battle team, invite pilots and see who is in each team.',
+        noIndex: true,
+    },
+
     '/guide': {
         title: `Guide — How FPV Battle Works${BRAND_SUFFIX}`,
         description:

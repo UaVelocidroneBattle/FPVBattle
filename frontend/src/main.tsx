@@ -25,6 +25,7 @@ import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.
 import LegacyRedirect from './pages/LegacyRedirect.tsx'
 import LandingPage from './pages/landing/LandingPage.tsx'
 import ProfilePage from './pages/profile/ProfilePage.tsx'
+import TeamsPage from './pages/teams/TeamsPage.tsx'
 import { registerAuthInterceptor } from './api/authInterceptor.ts'
 
 registerAuthInterceptor()
@@ -52,6 +53,7 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<MainLayout />}>
             <Route index element={<LandingPage />} />
             <Route path='profile' element={<ProfilePage />} />
+            <Route path='teams' element={<TeamsPage />} />
             {/* Paths used before cup ids became the URL. */}
             <Route path='open' element={<Navigate to="/open-class" replace />} />
             <Route path='whoop' element={<Navigate to="/whoop-class" replace />} />

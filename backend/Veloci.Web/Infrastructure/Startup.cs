@@ -26,6 +26,7 @@ using Veloci.Logic.Features.PilotBinding;
 using Veloci.Logic.Features.Notifications;
 using Veloci.Logic.Notifications;
 using ModelContextProtocol.AspNetCore;
+using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Services;
 using Veloci.Mcp.Tools;
 using Veloci.Web.Infrastructure.Hangfire;
@@ -95,6 +96,7 @@ public class Startup
         services.AddAuthFeature(Configuration);
         services.AddPilotBinding();
         services.AddNotifications();
+        services.AddTeams(Configuration);
 
         services
             .AddControllersWithViews()

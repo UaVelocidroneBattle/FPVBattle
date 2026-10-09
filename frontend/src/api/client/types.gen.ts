@@ -47,6 +47,11 @@ export type CountryPilotsModel = {
     pilots?: number;
 };
 
+export type CreateTeamModel = {
+    name: string;
+    description?: null | string;
+};
+
 export type CupModel = {
     id: string;
     name: string;
@@ -72,6 +77,11 @@ export type DayStreakLeaderboardRow = {
 
 export type GoogleSignInRequest = {
     idToken: string;
+};
+
+export type InviteModel = {
+    pilotName: string;
+    teamId: number;
 };
 
 export type LandingDataModel = {
@@ -240,6 +250,11 @@ export type PilotsCountModel = {
     totals: Array<number>;
 };
 
+export type PilotSuggestionModel = {
+    name: string;
+    country?: null | string;
+};
+
 export type ProfileModel = {
     displayName: string;
     email: string;
@@ -273,8 +288,296 @@ export type SeasonResult = {
     country: string;
 };
 
+export type SetMemberRoleModel = {
+    role: TeamRole;
+    teamId: number;
+    userId: string;
+};
+
+export type TeamDetailsModel = {
+    id: number;
+    name: string;
+    description?: null | string;
+    memberCount: number;
+    myRole?: null | TeamRole;
+    members: Array<TeamMemberModel>;
+    pendingInvites: Array<TeamPendingInviteModel>;
+};
+
+export type TeamInvitationModel = {
+    teamId: number;
+    teamName: string;
+    memberCount: number;
+    invitedBy?: null | string;
+};
+
+export type TeamMemberModel = {
+    userId: string;
+    role: TeamRole;
+    joinedOn: string;
+    pilotName?: null | string;
+    country?: null | string;
+};
+
+export type TeamMemberReferenceModel = {
+    teamId: number;
+    userId: string;
+};
+
+export type TeamModel = {
+    id: number;
+    name: string;
+    description?: null | string;
+};
+
+export type TeamPendingInviteModel = {
+    userId: string;
+    pilotName?: null | string;
+    country?: null | string;
+    invitedBy?: null | string;
+    invitedOn: string;
+};
+
+export type TeamReferenceModel = {
+    teamId: number;
+};
+
+export type TeamRole = 'Member' | 'Admin' | 'Owner';
+
+export type TeamsOverviewModel = {
+    myTeams: Array<TeamSummaryModel>;
+    invitations: Array<TeamInvitationModel>;
+    maxTeamSize: number;
+    teamsPerUser: number;
+};
+
+export type TeamSummaryModel = {
+    id: number;
+    name: string;
+    memberCount: number;
+};
+
 export type UnreadCountModel = {
     unreadCount: number;
+};
+
+export type UpdateTeamModel = {
+    teamId: number;
+    name: string;
+    description?: null | string;
+};
+
+export type GetApiTeamsOverviewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Overview';
+};
+
+export type GetApiTeamsOverviewResponses = {
+    /**
+     * OK
+     */
+    200: TeamsOverviewModel;
+};
+
+export type GetApiTeamsOverviewResponse = GetApiTeamsOverviewResponses[keyof GetApiTeamsOverviewResponses];
+
+export type GetApiTeamsSearchData = {
+    body?: never;
+    path?: never;
+    query?: {
+        query?: string;
+    };
+    url: '/api/teams/Search';
+};
+
+export type GetApiTeamsSearchResponses = {
+    /**
+     * OK
+     */
+    200: Array<TeamSummaryModel>;
+};
+
+export type GetApiTeamsSearchResponse = GetApiTeamsSearchResponses[keyof GetApiTeamsSearchResponses];
+
+export type GetApiTeamsInviteCandidatesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        teamId?: number;
+        query?: string;
+    };
+    url: '/api/teams/InviteCandidates';
+};
+
+export type GetApiTeamsInviteCandidatesResponses = {
+    /**
+     * OK
+     */
+    200: Array<PilotSuggestionModel>;
+};
+
+export type GetApiTeamsInviteCandidatesResponse = GetApiTeamsInviteCandidatesResponses[keyof GetApiTeamsInviteCandidatesResponses];
+
+export type GetApiTeamsDetailsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        teamId?: number;
+    };
+    url: '/api/teams/Details';
+};
+
+export type GetApiTeamsDetailsResponses = {
+    /**
+     * OK
+     */
+    200: TeamDetailsModel;
+};
+
+export type GetApiTeamsDetailsResponse = GetApiTeamsDetailsResponses[keyof GetApiTeamsDetailsResponses];
+
+export type PostApiTeamsCreateData = {
+    body: CreateTeamModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Create';
+};
+
+export type PostApiTeamsCreateResponses = {
+    /**
+     * OK
+     */
+    200: TeamModel;
+};
+
+export type PostApiTeamsCreateResponse = PostApiTeamsCreateResponses[keyof PostApiTeamsCreateResponses];
+
+export type PostApiTeamsUpdateData = {
+    body: UpdateTeamModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Update';
+};
+
+export type PostApiTeamsUpdateResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsInviteData = {
+    body: InviteModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Invite';
+};
+
+export type PostApiTeamsInviteResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsRemoveData = {
+    body: TeamReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Remove';
+};
+
+export type PostApiTeamsRemoveResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsAcceptData = {
+    body: TeamReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Accept';
+};
+
+export type PostApiTeamsAcceptResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsDeclineData = {
+    body: TeamReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Decline';
+};
+
+export type PostApiTeamsDeclineResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsLeaveData = {
+    body: TeamReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/Leave';
+};
+
+export type PostApiTeamsLeaveResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsRevokeInviteData = {
+    body: TeamMemberReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/RevokeInvite';
+};
+
+export type PostApiTeamsRevokeInviteResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsSetRoleData = {
+    body: SetMemberRoleModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/SetRole';
+};
+
+export type PostApiTeamsSetRoleResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsRemoveMemberData = {
+    body: TeamMemberReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/RemoveMember';
+};
+
+export type PostApiTeamsRemoveMemberResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
 };
 
 export type GetApiPilotStatisticsCountData = {

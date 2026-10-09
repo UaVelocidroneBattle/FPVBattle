@@ -96,7 +96,7 @@ public class PatronsController : AdminControllerBase
         {
             var supporter = await _supporters.FindAsync(patreonId)
                             ?? throw new InvalidOperationException("Patron not found");
-            var pilot = await _bindingService.FindPilotByNameAsync(pilotName)
+            var pilot = await _pilots.GetAll().FindByNameAsync(pilotName)
                         ?? throw new InvalidOperationException($"Pilot '{pilotName}' not found (names are case sensitive)");
 
             supporter.PilotId = pilot.Id;
