@@ -16,33 +16,8 @@ using Veloci.Web.Controllers.Api.Teams;
 
 namespace Veloci.Tests;
 
-public class TeamsTests : IDisposable
+public class TeamsTests : TeamsTestBase
 {
-    private readonly SqliteConnection _connection = new("DataSource=:memory:");
-    private readonly ApplicationDbContext _db;
-    private readonly TeamSettings _settings = new() { MaxTeamSize = 0, MaxOwnedTeamsPerUser = 1, TeamsPerUser = 1 };
-    private readonly UserManager<ApplicationUser> _userManager;
-    private int _nextPilotId = 1;
-
-    public TeamsTests()
-    {
-        _connection.Open();
-        _db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseLazyLoadingProxies()
-            .UseSqlite(_connection)
-            .Options);
-        _db.Database.EnsureCreated();
-
-        _userManager = new UserManager<ApplicationUser>(
-            new UserStore<ApplicationUser>(_db), null!, null!, null!, null!, null!, null!, null!, null!);
-    }
-
-    public void Dispose()
-    {
-        _db.Dispose();
-        _connection.Dispose();
-    }
-
     [Fact]
     public async Task Create_MakesTheCreatorTheOwner()
     {
@@ -360,22 +335,6 @@ public class TeamsTests : IDisposable
         (await Controller(member).Details(lonelyTeamId)).Result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    private ApplicationUser AddUser(string name, bool withPilot = true)
-    {
-        var user = new ApplicationUser { Id = name, UserName = name, Email = $"{name}@test.local", DisplayName = $"Real Name of {name}" };
-
-        if (withPilot)
-        {
-            var pilot = new Pilot($"pilot_{name}") { Id = _nextPilotId++, Country = "UA" };
-            _db.Set<Pilot>().Add(pilot);
-            user.PilotId = pilot.Id;
-        }
-
-        _db.Users.Add(user);
-        _db.SaveChanges();
-        return user;
-    }
-
     private async Task<int> CreateTeamWithMembers(string name, int memberCount)
     {
         var owner = AddUser("owner of " + name);
@@ -388,16 +347,11 @@ public class TeamsTests : IDisposable
         return teamId;
     }
 
-    private string PilotNameOf(ApplicationUser user) => _db.Set<Pilot>().Find(user.PilotId)!.Name;
-
     private static TeamMemberReferenceModel MemberRef(int teamId, ApplicationUser user) =>
         new() { TeamId = teamId, UserId = user.Id };
 
     private static SetMemberRoleModel RoleChange(int teamId, ApplicationUser user, TeamRole role) =>
         new() { TeamId = teamId, UserId = user.Id, Role = role };
-
-    private TeamService Service() => new(
-        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamInvite>(_db), Options.Create(_settings));
 
     /// <summary>A controller acting as the given user, or as a visitor when there is none.</summary>
     private TeamsController Controller(ApplicationUser? user)

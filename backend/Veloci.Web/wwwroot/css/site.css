@@ -241,6 +241,10 @@ a {
     max-width: 280px;
 }
 
+.table-toolbar .combobox {
+    width: 240px;
+}
+
 .table-toolbar .form-check {
     margin: 0;
     white-space: nowrap;
@@ -641,6 +645,33 @@ a {
 .dropdown-item.text-danger:focus {
     background: var(--danger-bg);
     color: var(--danger) !important;
+}
+
+/* Searchable select: a text input with a filtered list under it, see site.js. */
+.combobox {
+    position: relative;
+}
+
+/* Fixed, so a panel's overflow: hidden cannot clip it; site.js sets its coordinates. */
+.combobox-menu {
+    position: fixed;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.combobox-menu.show {
+    display: block;
+}
+
+.combobox-menu .dropdown-item.active {
+    background: var(--cloud);
+    color: var(--ink);
+}
+
+.combobox-empty {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.88rem;
+    color: var(--muted);
 }
 
 .btn-link-quiet {

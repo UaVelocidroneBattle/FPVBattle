@@ -20,6 +20,10 @@ To encourage people to fly every day, the bot also calculates "daystreaks." A da
 
 The web dashboard supports user accounts with Google sign-in (JWT access tokens plus rotating refresh tokens). A user links their account to their Velocidrone pilot through a fly-to-verify claim: they claim a pilot name, and the link completes automatically once that pilot posts a result on the daily track. Users can permanently delete their account from the profile page — deletion removes personal data (email, profile, sign-in methods, sessions), while the pilot and race history remain as community competition data.
 
+### Teams
+
+Users with a linked pilot can create teams (by default a user belongs to one team) and invite other pilots to them. Anyone, including visitors, can browse teams and their members; members are identified by pilot name only, never by account name or email. Details are in [docs/teams.md](docs/teams.md).
+
 ## Development Principles
 
 - Always favour most readable and elegant solutions. Developers should be proud of the code. It should be maintainable and literate.

@@ -20,10 +20,6 @@ public class TeamsController : ControllerBase
     private const int SuggestionsLimit = 8;
     private const int MinSuggestionQueryLength = 2;
 
-    private const string NameTakenMessage = "A team with this name already exists";
-    private static readonly string InvalidNameMessage = $"Team name is required and can be up to {Team.NameMaxLength} characters";
-    private static readonly string DescriptionTooLongMessage = $"Description can be up to {Team.DescriptionMaxLength} characters";
-
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly TeamService _teamService;
     private readonly IRepository<Team> _teams;
@@ -104,12 +100,7 @@ public class TeamsController : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var myRole = await _members.GetAll()
-            .Where(m => m.TeamId == teamId && m.UserId == userId)
-            .Select(m => (TeamRole?)m.Role)
-            .FirstOrDefaultAsync();
-
-        if (myRole is not (TeamRole.Owner or TeamRole.Admin))
+        if (!TeamPermissions.CanInvite(await FindMemberAsync(teamId, userId)))
             return Forbid();
 
         if (query is null || query.Trim().Length < MinSuggestionQueryLength)
@@ -145,7 +136,7 @@ public class TeamsController : ControllerBase
         var team = await _teams.FindAsync(teamId);
 
         if (team is null)
-            return NotFound("Team not found");
+            return NotFound(TeamMessages.TeamNotFound);
 
         var members = await _members.GetAll()
             .Where(m => m.TeamId == teamId)
@@ -205,9 +196,9 @@ public class TeamsController : ControllerBase
         return result.Status switch
         {
             CreateTeamStatus.PilotNotLinked => BadRequest("Link your Velocidrone pilot to your account before creating a team"),
-            CreateTeamStatus.InvalidName => BadRequest(InvalidNameMessage),
-            CreateTeamStatus.DescriptionTooLong => BadRequest(DescriptionTooLongMessage),
-            CreateTeamStatus.NameTaken => Conflict(NameTakenMessage),
+            CreateTeamStatus.InvalidName => BadRequest(TeamMessages.InvalidName),
+            CreateTeamStatus.DescriptionTooLong => BadRequest(TeamMessages.DescriptionTooLong),
+            CreateTeamStatus.NameTaken => Conflict(TeamMessages.NameTaken),
             CreateTeamStatus.MembershipLimitReached => Conflict("You are already in the maximum number of teams. Leave a team to create a new one"),
             CreateTeamStatus.OwnedTeamsLimitReached => Conflict("You have reached the limit of teams you can own"),
             _ => new TeamModel
@@ -233,16 +224,18 @@ public class TeamsController : ControllerBase
         var team = await _teams.FindAsync(model.TeamId);
 
         if (team is null)
-            return NotFound("Team not found");
+            return NotFound(TeamMessages.TeamNotFound);
 
-        var result = await _teamService.UpdateAsync(user, team, model.Name, model.Description);
+        if (!TeamPermissions.CanEditTeam(await FindMemberAsync(team.Id, user.Id)))
+            return Forbid();
+
+        var result = await _teamService.UpdateAsync(team, model.Name, model.Description);
 
         return result switch
         {
-            UpdateTeamResult.NotAllowed => Forbid(),
-            UpdateTeamResult.InvalidName => BadRequest(InvalidNameMessage),
-            UpdateTeamResult.DescriptionTooLong => BadRequest(DescriptionTooLongMessage),
-            UpdateTeamResult.NameTaken => Conflict(NameTakenMessage),
+            UpdateTeamResult.InvalidName => BadRequest(TeamMessages.InvalidName),
+            UpdateTeamResult.DescriptionTooLong => BadRequest(TeamMessages.DescriptionTooLong),
+            UpdateTeamResult.NameTaken => Conflict(TeamMessages.NameTaken),
             _ => NoContent()
         };
     }
@@ -261,23 +254,25 @@ public class TeamsController : ControllerBase
         var team = await _teams.FindAsync(model.TeamId);
 
         if (team is null)
-            return NotFound("Team not found");
+            return NotFound(TeamMessages.TeamNotFound);
+
+        if (!TeamPermissions.CanInvite(await FindMemberAsync(team.Id, inviter.Id)))
+            return Forbid();
 
         var pilot = await _pilots.GetAll().FindByNameAsync(model.PilotName);
 
         if (pilot is null)
-            return NotFound("Pilot not found");
+            return NotFound(TeamMessages.PilotNotFound);
 
         var invitee = await _userManager.Users.FirstOrDefaultAsync(u => u.PilotId == pilot.Id);
 
         if (invitee is null)
-            return NotFound("This pilot is not registered yet");
+            return NotFound(TeamMessages.PilotNotRegistered);
 
         var result = await _teamService.InviteAsync(inviter, team, invitee);
 
         return result switch
         {
-            InviteToTeamResult.NotAllowed => Forbid(),
             InviteToTeamResult.AlreadyMember => Conflict("This pilot is already a member of the team"),
             InviteToTeamResult.AlreadyInvited => Conflict("This pilot has already been invited"),
             InviteToTeamResult.TeamFull => Conflict("The team is full"),
@@ -297,11 +292,14 @@ public class TeamsController : ControllerBase
         var team = await _teams.FindAsync(model.TeamId);
 
         if (team is null)
-            return NotFound("Team not found");
+            return NotFound(TeamMessages.TeamNotFound);
 
-        var result = await _teamService.RemoveAsync(user, team);
+        if (!TeamPermissions.CanDeleteTeam(await FindMemberAsync(team.Id, user.Id)))
+            return Forbid();
 
-        return result is RemoveTeamResult.NotOwner ? Forbid() : NoContent();
+        await _teamService.RemoveAsync(team);
+
+        return NoContent();
     }
 
     [HttpPost]
@@ -321,7 +319,6 @@ public class TeamsController : ControllerBase
 
         return result switch
         {
-            AcceptInviteResult.NotInvitee => Forbid(),
             AcceptInviteResult.TeamFull => Conflict("The team is full"),
             AcceptInviteResult.MembershipLimitReached => Conflict("You are already in the maximum number of teams. Leave a team to join this one"),
             _ => NoContent()
@@ -341,9 +338,9 @@ public class TeamsController : ControllerBase
         if (invite is null)
             return NotFound("Invite not found");
 
-        var result = await _teamService.DeclineInviteAsync(user, invite);
+        await _teamService.DeclineInviteAsync(user, invite);
 
-        return result is DeclineInviteResult.NotInvitee ? Forbid() : NoContent();
+        return NoContent();
     }
 
     [HttpPost]
@@ -357,7 +354,7 @@ public class TeamsController : ControllerBase
         var team = await _teams.FindAsync(model.TeamId);
 
         if (team is null)
-            return NotFound("Team not found");
+            return NotFound(TeamMessages.TeamNotFound);
 
         var result = await _teamService.LeaveAsync(user, team);
 
@@ -382,9 +379,12 @@ public class TeamsController : ControllerBase
         if (invite is null)
             return NotFound("Invite not found");
 
-        var result = await _teamService.RevokeInviteAsync(user, invite);
+        if (!TeamPermissions.CanRevokeInvite(await FindMemberAsync(invite.TeamId, user.Id)))
+            return Forbid();
 
-        return result is RevokeInviteResult.NotAllowed ? Forbid() : NoContent();
+        await _teamService.RevokeInviteAsync(invite);
+
+        return NoContent();
     }
 
     [HttpPost]
@@ -400,9 +400,12 @@ public class TeamsController : ControllerBase
         if (member is null)
             return NotFound("Member not found");
 
-        var result = await _teamService.SetRoleAsync(user, member, model.Role);
+        if (!TeamPermissions.CanChangeRole(await FindMemberAsync(member.TeamId, user.Id), member))
+            return Forbid();
 
-        return result is SetMemberRoleResult.NotAllowed ? Forbid() : NoContent();
+        var result = await _teamService.SetRoleAsync(member, model.Role);
+
+        return result is SetMemberRoleResult.OwnerRoleIsFixed ? Forbid() : NoContent();
     }
 
     [HttpPost]
@@ -418,9 +421,12 @@ public class TeamsController : ControllerBase
         if (member is null)
             return NotFound("Member not found");
 
-        var result = await _teamService.RemoveMemberAsync(user, member);
+        if (!TeamPermissions.CanRemoveMember(await FindMemberAsync(member.TeamId, user.Id), member))
+            return Forbid();
 
-        return result is RemoveMemberResult.NotAllowed ? Forbid() : NoContent();
+        var result = await _teamService.RemoveMemberAsync(member);
+
+        return result is RemoveMemberResult.OwnerCannotBeRemoved ? Forbid() : NoContent();
     }
 
     private async Task<List<TeamSummaryModel>> GetTeamsOfUserAsync(string userId)

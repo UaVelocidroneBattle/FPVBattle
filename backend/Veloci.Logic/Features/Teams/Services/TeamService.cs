@@ -6,6 +6,10 @@ using Veloci.Data.Repositories;
 
 namespace Veloci.Logic.Features.Teams.Services;
 
+/// <summary>
+/// Team operations and the rules that hold for everyone. Who is allowed to run an operation is decided by the
+/// caller, see <see cref="TeamPermissions"/>.
+/// </summary>
 public class TeamService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<TeamService>();
@@ -69,13 +73,8 @@ public class TeamService
         return new CreateTeamResult(CreateTeamStatus.Created, team);
     }
 
-    public async Task<UpdateTeamResult> UpdateAsync(ApplicationUser actor, Team team, string name, string? description)
+    public async Task<UpdateTeamResult> UpdateAsync(Team team, string name, string? description)
     {
-        var actorRole = (await FindMembershipAsync(team.Id, actor.Id))?.Role;
-
-        if (actorRole is not (TeamRole.Owner or TeamRole.Admin))
-            return UpdateTeamResult.NotAllowed;
-
         var (normalizedName, normalizedDescription) = Normalize(name, description);
 
         if (normalizedName.Length is 0 or > Team.NameMaxLength)
@@ -91,38 +90,22 @@ public class TeamService
         team.Description = normalizedDescription;
         await _teams.SaveChangesAsync();
 
-        Log.Information("User {UserId} updated team {TeamName} ({TeamId})", actor.Id, team.Name, team.Id);
+        Log.Information("Updated team {TeamName} ({TeamId})", team.Name, team.Id);
 
         return UpdateTeamResult.Updated;
     }
 
-    public async Task<RemoveTeamResult> RemoveAsync(ApplicationUser actor, Team team)
+    public async Task RemoveAsync(Team team)
     {
-        var isOwner = await _members.GetAll().AnyAsync(m =>
-            m.TeamId == team.Id && m.UserId == actor.Id && m.Role == TeamRole.Owner);
-
-        if (!isOwner)
-            return RemoveTeamResult.NotOwner;
-
         await _teams.RemoveAsync(team.Id);
         await _teams.SaveChangesAsync();
 
-        Log.Information("User {UserId} removed team {TeamName} ({TeamId})", actor.Id, team.Name, team.Id);
-
-        return RemoveTeamResult.Removed;
+        Log.Information("Removed team {TeamName} ({TeamId})", team.Name, team.Id);
     }
 
     public async Task<InviteToTeamResult> InviteAsync(ApplicationUser inviter, Team team, ApplicationUser invitee)
     {
         var teamMembers = _members.GetAll().Where(m => m.TeamId == team.Id);
-
-        var inviterRole = await teamMembers
-            .Where(m => m.UserId == inviter.Id)
-            .Select(m => (TeamRole?)m.Role)
-            .FirstOrDefaultAsync();
-
-        if (inviterRole is not (TeamRole.Owner or TeamRole.Admin))
-            return InviteToTeamResult.NotAllowed;
 
         if (await teamMembers.AnyAsync(m => m.UserId == invitee.Id))
             return InviteToTeamResult.AlreadyMember;
@@ -130,7 +113,7 @@ public class TeamService
         if (await _invites.GetAll().AnyAsync(i => i.TeamId == team.Id && i.UserId == invitee.Id))
             return InviteToTeamResult.AlreadyInvited;
 
-        if (_settings.MaxTeamSize > 0 && await teamMembers.CountAsync() >= _settings.MaxTeamSize)
+        if (await IsFullAsync(team.Id))
             return InviteToTeamResult.TeamFull;
 
         if (await HasReachedMembershipLimitAsync(invitee))
@@ -151,14 +134,42 @@ public class TeamService
         return InviteToTeamResult.Invited;
     }
 
+    /// <summary>
+    /// Makes the user a plain member without an invitation. A pending invite of the user to this team is dropped.
+    /// </summary>
+    public async Task<AddMemberResult> AddMemberAsync(Team team, ApplicationUser user)
+    {
+        if (await _members.GetAll().AnyAsync(m => m.TeamId == team.Id && m.UserId == user.Id))
+            return AddMemberResult.AlreadyMember;
+
+        if (await IsFullAsync(team.Id))
+            return AddMemberResult.TeamFull;
+
+        if (await HasReachedMembershipLimitAsync(user))
+            return AddMemberResult.MembershipLimitReached;
+
+        await _members.AddAsync(new TeamMember
+        {
+            TeamId = team.Id,
+            UserId = user.Id,
+            Role = TeamRole.Member
+        });
+
+        var invite = await _invites.GetAll().FirstOrDefaultAsync(i => i.TeamId == team.Id && i.UserId == user.Id);
+
+        if (invite is not null)
+            await _invites.RemoveEntryAsync(invite);
+
+        await _members.SaveChangesAsync();
+
+        Log.Information("Added user {UserId} to team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
+
+        return AddMemberResult.Added;
+    }
+
     public async Task<AcceptInviteResult> AcceptInviteAsync(ApplicationUser user, TeamInvite invite)
     {
-        if (invite.UserId != user.Id)
-            return AcceptInviteResult.NotInvitee;
-
-        var memberCount = await _members.GetAll().CountAsync(m => m.TeamId == invite.TeamId);
-
-        if (_settings.MaxTeamSize > 0 && memberCount >= _settings.MaxTeamSize)
+        if (await IsFullAsync(invite.TeamId))
             return AcceptInviteResult.TeamFull;
 
         // An invite sent earlier stays valid after the user joins another team, so the limit is checked again here.
@@ -180,22 +191,17 @@ public class TeamService
         return AcceptInviteResult.Accepted;
     }
 
-    public async Task<DeclineInviteResult> DeclineInviteAsync(ApplicationUser user, TeamInvite invite)
+    public async Task DeclineInviteAsync(ApplicationUser user, TeamInvite invite)
     {
-        if (invite.UserId != user.Id)
-            return DeclineInviteResult.NotInvitee;
-
         await _invites.RemoveEntryAsync(invite);
         await _invites.SaveChangesAsync();
 
         Log.Information("User {UserId} declined the invite to team {TeamId}", user.Id, invite.TeamId);
-
-        return DeclineInviteResult.Declined;
     }
 
     public async Task<LeaveTeamResult> LeaveAsync(ApplicationUser user, Team team)
     {
-        var membership = await FindMembershipAsync(team.Id, user.Id);
+        var membership = await _members.GetAll().FirstOrDefaultAsync(m => m.TeamId == team.Id && m.UserId == user.Id);
 
         if (membership is null)
             return LeaveTeamResult.NotMember;
@@ -211,53 +217,36 @@ public class TeamService
         return LeaveTeamResult.Left;
     }
 
-    public async Task<RevokeInviteResult> RevokeInviteAsync(ApplicationUser actor, TeamInvite invite)
+    public async Task RevokeInviteAsync(TeamInvite invite)
     {
-        var actorRole = (await FindMembershipAsync(invite.TeamId, actor.Id))?.Role;
-
-        if (actorRole is not (TeamRole.Owner or TeamRole.Admin))
-            return RevokeInviteResult.NotAllowed;
-
         await _invites.RemoveEntryAsync(invite);
         await _invites.SaveChangesAsync();
 
-        Log.Information("User {UserId} revoked the invite of user {InviteeId} to team {TeamId}",
-            actor.Id, invite.UserId, invite.TeamId);
-
-        return RevokeInviteResult.Revoked;
+        Log.Information("Revoked the invite of user {InviteeId} to team {TeamId}", invite.UserId, invite.TeamId);
     }
 
-    public async Task<SetMemberRoleResult> SetRoleAsync(ApplicationUser actor, TeamMember target, TeamRole role)
+    public async Task<SetMemberRoleResult> SetRoleAsync(TeamMember target, TeamRole role)
     {
-        var actorRole = (await FindMembershipAsync(target.TeamId, actor.Id))?.Role;
-
-        if (actorRole is not TeamRole.Owner || target.UserId == actor.Id || role is TeamRole.Owner)
-            return SetMemberRoleResult.NotAllowed;
+        if (target.Role is TeamRole.Owner || role is TeamRole.Owner)
+            return SetMemberRoleResult.OwnerRoleIsFixed;
 
         target.Role = role;
         await _members.SaveChangesAsync();
 
-        Log.Information("User {UserId} made user {TargetId} {Role} in team {TeamId}",
-            actor.Id, target.UserId, role, target.TeamId);
+        Log.Information("Made user {TargetId} {Role} in team {TeamId}", target.UserId, role, target.TeamId);
 
         return SetMemberRoleResult.Changed;
     }
 
-    public async Task<RemoveMemberResult> RemoveMemberAsync(ApplicationUser actor, TeamMember target)
+    public async Task<RemoveMemberResult> RemoveMemberAsync(TeamMember target)
     {
-        var actorRole = (await FindMembershipAsync(target.TeamId, actor.Id))?.Role;
-
-        var allowed = target.UserId != actor.Id
-                      && target.Role is not TeamRole.Owner
-                      && (actorRole is TeamRole.Owner || (actorRole is TeamRole.Admin && target.Role is TeamRole.Member));
-
-        if (!allowed)
-            return RemoveMemberResult.NotAllowed;
+        if (target.Role is TeamRole.Owner)
+            return RemoveMemberResult.OwnerCannotBeRemoved;
 
         await _members.RemoveEntryAsync(target);
         await _members.SaveChangesAsync();
 
-        Log.Information("User {UserId} removed user {TargetId} from team {TeamId}", actor.Id, target.UserId, target.TeamId);
+        Log.Information("Removed user {TargetId} from team {TeamId}", target.UserId, target.TeamId);
 
         return RemoveMemberResult.Removed;
     }
@@ -304,9 +293,12 @@ public class TeamService
         return (name.Trim(), string.IsNullOrWhiteSpace(description) ? null : description.Trim());
     }
 
-    private async Task<TeamMember?> FindMembershipAsync(int teamId, string userId)
+    private async Task<bool> IsFullAsync(int teamId)
     {
-        return await _members.GetAll().FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId);
+        if (_settings.MaxTeamSize <= 0)
+            return false;
+
+        return await _members.GetAll().CountAsync(m => m.TeamId == teamId) >= _settings.MaxTeamSize;
     }
 
     private async Task<bool> HasReachedMembershipLimitAsync(ApplicationUser user)
@@ -339,40 +331,33 @@ public record CreateTeamResult(CreateTeamStatus Status, Team? Team = null);
 public enum UpdateTeamResult
 {
     Updated,
-    NotAllowed,
     InvalidName,
     DescriptionTooLong,
     NameTaken
 }
 
-public enum RemoveTeamResult
-{
-    Removed,
-    NotOwner
-}
-
 public enum InviteToTeamResult
 {
     Invited,
-    NotAllowed,
     AlreadyMember,
     AlreadyInvited,
     TeamFull,
     InviteeMembershipLimitReached
 }
 
-public enum AcceptInviteResult
+public enum AddMemberResult
 {
-    Accepted,
-    NotInvitee,
+    Added,
+    AlreadyMember,
     TeamFull,
     MembershipLimitReached
 }
 
-public enum DeclineInviteResult
+public enum AcceptInviteResult
 {
-    Declined,
-    NotInvitee
+    Accepted,
+    TeamFull,
+    MembershipLimitReached
 }
 
 public enum LeaveTeamResult
@@ -382,20 +367,14 @@ public enum LeaveTeamResult
     OwnerCannotLeave
 }
 
-public enum RevokeInviteResult
-{
-    Revoked,
-    NotAllowed
-}
-
 public enum SetMemberRoleResult
 {
     Changed,
-    NotAllowed
+    OwnerRoleIsFixed
 }
 
 public enum RemoveMemberResult
 {
     Removed,
-    NotAllowed
+    OwnerCannotBeRemoved
 }
