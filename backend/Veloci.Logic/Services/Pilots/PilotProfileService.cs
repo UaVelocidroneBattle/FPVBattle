@@ -20,17 +20,20 @@ public interface IPilotProfileService
 public class PilotProfileService : IPilotProfileService
 {
     private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<TeamMember> _teamMembers;
     private readonly IEnumerable<IAchievement> _allAchievements;
     private readonly RatingService _ratingService;
     private readonly ICupService _cupService;
 
     public PilotProfileService(
         IRepository<Pilot> pilots,
+        IRepository<TeamMember> teamMembers,
         IServiceProvider serviceProvider,
         RatingService ratingService,
         ICupService cupService)
     {
         _pilots = pilots;
+        _teamMembers = teamMembers;
         _ratingService = ratingService;
         _cupService = cupService;
         _allAchievements = serviceProvider.GetServices<IAchievement>();
@@ -64,9 +67,17 @@ public class PilotProfileService : IPilotProfileService
             TotalRaceDays = pilot.TotalRaceDays,
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
-            ClassRatings = classRatings
+            ClassRatings = classRatings,
+            Teams = await GetTeamsAsync(pilot, ct)
         };
     }
+
+    private Task<List<PilotTeamModel>> GetTeamsAsync(Pilot pilot, CancellationToken ct)
+        => _teamMembers.GetAll()
+            .Where(m => m.User.PilotId == pilot.Id)
+            .OrderBy(m => m.JoinedOn)
+            .Select(m => new PilotTeamModel { Id = m.TeamId, Name = m.Team.Name })
+            .ToListAsync(ct);
 
     private async Task<PilotClassRatingModel> BuildClassRatingAsync(Pilot pilot, string cupId)
     {

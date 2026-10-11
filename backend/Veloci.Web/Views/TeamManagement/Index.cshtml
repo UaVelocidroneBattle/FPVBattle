@@ -24,13 +24,14 @@
     else
     {
         <div class="table-toolbar">
-            <input type="search" id="teamSearch" class="form-control form-control-sm" placeholder="Search by team or owner…" />
+            <input type="search" id="teamSearch" class="form-control form-control-sm" placeholder="Search by team, tag or owner…" />
         </div>
         <div class="table-responsive">
             <table class="table" id="teamsTable">
                 <thead>
                     <tr>
                         <th data-sort="name">Team</th>
+                        <th data-sort="tag">Tag</th>
                         <th data-sort="owner">Owner</th>
                         <th data-sort="members" data-sort-type="number">Members</th>
                         <th data-sort="invites" data-sort-type="number">Invites</th>
@@ -41,11 +42,13 @@
                     @foreach (var team in Model.Teams)
                     {
                         <tr data-name="@team.Name.ToLowerInvariant()"
+                            data-tag="@(team.Tag?.ToLowerInvariant() ?? "")"
                             data-owner="@(team.OwnerPilotName?.ToLowerInvariant() ?? "")"
                             data-members="@team.MemberCount"
                             data-invites="@team.InviteCount"
                             data-created-on="@team.CreatedOn.ToString("s")">
                             <td><a asp-action="Details" asp-route-id="@team.Id">@team.Name</a></td>
+                            <td class="mono">@(team.Tag ?? "—")</td>
                             <td class="mono">@(team.OwnerPilotName ?? "—")</td>
                             <td class="mono">@team.MemberCount@(Model.MaxTeamSize > 0 ? $" / {Model.MaxTeamSize}" : "")</td>
                             <td class="mono">@team.InviteCount</td>
@@ -53,7 +56,7 @@
                         </tr>
                     }
                     <tr id="teamsNoMatch" class="no-match-row d-none">
-                        <td colspan="5" class="text-center text-muted">No teams match your search.</td>
+                        <td colspan="6" class="text-center text-muted">No teams match your search.</td>
                     </tr>
                 </tbody>
             </table>
@@ -73,6 +76,13 @@
                     <div class="mb-3">
                         <label class="form-label mb-1" for="createName">Name</label>
                         <input type="text" name="name" id="createName" class="form-control" maxlength="@Team.NameMaxLength" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label mb-1" for="createTag">Tag</label>
+                        <input type="text" name="tag" id="createTag" class="form-control mono" maxlength="@Team.TagMaxLength"
+                               minlength="@Team.TagMinLength" pattern="[A-Za-z0-9]+" autocomplete="off" required
+                               oninput="this.value = this.value.toUpperCase()" />
+                        <div class="form-text">@Team.TagMinLength to @Team.TagMaxLength letters or digits, unique across teams.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label mb-1" for="createOwner">Owner pilot</label>
@@ -117,7 +127,7 @@
                 let visibleCount = 0;
 
                 rows.forEach(row => {
-                    const visible = !term || row.dataset.name.includes(term) || row.dataset.owner.includes(term);
+                    const visible = !term || row.dataset.name.includes(term) || row.dataset.tag.includes(term) || row.dataset.owner.includes(term);
                     row.classList.toggle('d-none', !visible);
                     if (visible) visibleCount++;
                 });

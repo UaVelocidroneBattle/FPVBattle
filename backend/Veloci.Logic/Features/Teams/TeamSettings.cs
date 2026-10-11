@@ -14,4 +14,9 @@ public class TeamSettings
     /// How many teams a user can be a member of. 0 - if no limit
     /// </summary>
     public int TeamsPerUser { get; set; } = 1;
+
+    /// <summary>
+    /// Tags nobody can pick, compared ignoring case.
+    /// </summary>
+    public List<string> BlacklistedTags { get; set; } = [];
 }

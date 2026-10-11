@@ -12,10 +12,18 @@ import { inputClass, primaryButtonClass, secondaryButtonClass } from "./teamStyl
 
 const NAME_MAX_LENGTH = 32;
 const DESCRIPTION_MAX_LENGTH = 500;
+const TAG_MIN_LENGTH = 2;
+const TAG_MAX_LENGTH = 5;
+
+/** Tags are upper-case letters and digits only, so anything else is dropped as the user types. */
+function toTag(value: string): string {
+    return value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
 
 interface EditedTeam {
     id: number;
     name: string;
+    tag?: string | null;
     description?: string | null;
 }
 
@@ -35,10 +43,11 @@ interface TeamFormProps {
 
 function TeamForm({ team, busy, onBusyChange, onClose }: TeamFormProps) {
     const [name, setName] = useState(team?.name ?? "");
+    const [tag, setTag] = useState(team?.tag ?? "");
     const [description, setDescription] = useState(team?.description ?? "");
     const [error, setError] = useState<string | null>(null);
 
-    const canSubmit = name.trim().length > 0 && !busy;
+    const canSubmit = name.trim().length > 0 && tag.length >= TAG_MIN_LENGTH && !busy;
 
     const submit = async () => {
         if (!canSubmit) return;
@@ -48,8 +57,8 @@ function TeamForm({ team, busy, onBusyChange, onClose }: TeamFormProps) {
         onBusyChange(true);
         setError(null);
         const result = team
-            ? await updateTeam(team.id, name.trim(), description.trim())
-            : await createTeam(name.trim(), description.trim());
+            ? await updateTeam(team.id, name.trim(), tag, description.trim())
+            : await createTeam(name.trim(), tag, description.trim());
         onBusyChange(false);
 
         if (result.ok) onClose();
@@ -62,7 +71,7 @@ function TeamForm({ team, busy, onBusyChange, onClose }: TeamFormProps) {
                 <DialogTitle>{team ? "Edit team" : "Create a team"}</DialogTitle>
                 <DialogDescription className="text-slate-400">
                     {team
-                        ? "Change the name and description of the team."
+                        ? "Change the name, tag and description of the team."
                         : "You'll be its owner and can invite other pilots right after."}
                 </DialogDescription>
             </DialogHeader>
@@ -80,6 +89,24 @@ function TeamForm({ team, busy, onBusyChange, onClose }: TeamFormProps) {
                     maxLength={NAME_MAX_LENGTH}
                     className={inputClass}
                     autoFocus
+                />
+            </div>
+
+            <div>
+                <label htmlFor="team-tag" className="mb-1.5 flex justify-between text-sm text-slate-400">
+                    <span>
+                        Tag <span className="text-slate-500">({TAG_MIN_LENGTH}-{TAG_MAX_LENGTH} letters or digits)</span>
+                    </span>
+                    <span>{tag.length}/{TAG_MAX_LENGTH}</span>
+                </label>
+                <input
+                    id="team-tag"
+                    value={tag}
+                    onChange={(e) => setTag(toTag(e.target.value))}
+                    onKeyDown={(e) => e.key === "Enter" && submit()}
+                    maxLength={TAG_MAX_LENGTH}
+                    autoComplete="off"
+                    className={`${inputClass} font-mono tracking-wider`}
                 />
             </div>
 

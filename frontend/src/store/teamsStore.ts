@@ -39,8 +39,8 @@ interface TeamsActions {
     load: () => Promise<void>;
     selectTeam: (teamId: number) => Promise<void>;
     search: (query: string) => Promise<void>;
-    createTeam: (name: string, description: string) => Promise<ActionResult>;
-    updateTeam: (teamId: number, name: string, description: string) => Promise<ActionResult>;
+    createTeam: (name: string, tag: string, description: string) => Promise<ActionResult>;
+    updateTeam: (teamId: number, name: string, tag: string, description: string) => Promise<ActionResult>;
     inviteToTeam: (teamId: number, pilotName: string) => Promise<ActionResult>;
     acceptInvitation: (teamId: number) => Promise<ActionResult>;
     declineInvitation: (teamId: number) => Promise<ActionResult>;
@@ -177,9 +177,9 @@ export const useTeamsStore = create<TeamsStore>()((set, get) => {
             await fetchOtherTeams();
         },
 
-        createTeam: async (name, description) => {
+        createTeam: async (name, tag, description) => {
             try {
-                const response = await postApiTeamsCreate({ body: { name, description: description || null } });
+                const response = await postApiTeamsCreate({ body: { name, tag, description: description || null } });
                 if (!response.data) return toResult(response, "Could not create the team. Please try again.");
 
                 set({ selectedTeamId: response.data.id });
@@ -190,9 +190,9 @@ export const useTeamsStore = create<TeamsStore>()((set, get) => {
             }
         },
 
-        updateTeam: (teamId, name, description) =>
+        updateTeam: (teamId, name, tag, description) =>
             perform(
-                () => postApiTeamsUpdate({ body: { teamId, name, description: description || null } }),
+                () => postApiTeamsUpdate({ body: { teamId, name, tag, description: description || null } }),
                 "Could not save the team. Please try again.",
             ),
 

@@ -15,6 +15,7 @@ public class TeamRow
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Tag { get; set; }
     public string? OwnerPilotName { get; set; }
     public int MemberCount { get; set; }
     public int InviteCount { get; set; }
@@ -25,6 +26,7 @@ public class TeamDetailsViewModel
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Tag { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedOn { get; set; }
     public int MaxTeamSize { get; set; }

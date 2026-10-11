@@ -26,6 +26,13 @@
             <input type="text" id="teamName" name="name" class="form-control" value="@Model.Name" maxlength="@Team.NameMaxLength" required />
         </div>
         <div class="mb-3">
+            <label class="form-label mb-1" for="teamTag">Tag</label>
+            <input type="text" id="teamTag" name="tag" class="form-control mono" value="@Model.Tag" placeholder="No tag yet"
+                   maxlength="@Team.TagMaxLength" minlength="@Team.TagMinLength" pattern="[A-Za-z0-9]+" autocomplete="off" required
+                   oninput="this.value = this.value.toUpperCase()" />
+            <div class="form-text">@Team.TagMinLength to @Team.TagMaxLength letters or digits, unique across teams.</div>
+        </div>
+        <div class="mb-3">
             <label class="form-label mb-1" for="teamDescription">Description</label>
             <textarea id="teamDescription" name="description" class="form-control" rows="3" maxlength="@Team.DescriptionMaxLength">@Model.Description</textarea>
         </div>

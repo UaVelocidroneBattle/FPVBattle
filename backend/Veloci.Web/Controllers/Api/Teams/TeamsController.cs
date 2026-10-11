@@ -175,6 +175,7 @@ public class TeamsController : ControllerBase
         {
             Id = team.Id,
             Name = team.Name,
+            Tag = team.Tag,
             Description = team.Description,
             MemberCount = members.Count,
             MyRole = myRole,
@@ -191,27 +192,31 @@ public class TeamsController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        var result = await _teamService.CreateAsync(user, model.Name, model.Description);
+        var result = await _teamService.CreateAsync(user, model.Name, model.Tag, model.Description);
 
         return result.Status switch
         {
             CreateTeamStatus.PilotNotLinked => BadRequest("Link your Velocidrone pilot to your account before creating a team"),
             CreateTeamStatus.InvalidName => BadRequest(TeamMessages.InvalidName),
             CreateTeamStatus.DescriptionTooLong => BadRequest(TeamMessages.DescriptionTooLong),
+            CreateTeamStatus.InvalidTag => BadRequest(TeamMessages.InvalidTag),
+            CreateTeamStatus.TagNotAllowed => BadRequest(TeamMessages.TagNotAllowed),
             CreateTeamStatus.NameTaken => Conflict(TeamMessages.NameTaken),
+            CreateTeamStatus.TagTaken => Conflict(TeamMessages.TagTaken),
             CreateTeamStatus.MembershipLimitReached => Conflict("You are already in the maximum number of teams. Leave a team to create a new one"),
             CreateTeamStatus.OwnedTeamsLimitReached => Conflict("You have reached the limit of teams you can own"),
             _ => new TeamModel
             {
                 Id = result.Team!.Id,
                 Name = result.Team.Name,
+                Tag = result.Team.Tag,
                 Description = result.Team.Description
             }
         };
     }
 
     /// <summary>
-    /// Changes the name and description of the team. Only the owner and admins can do it.
+    /// Changes the name, tag and description of the team. Only the owner and admins can do it.
     /// </summary>
     [HttpPost]
     public async Task<ActionResult> Update([FromBody] UpdateTeamModel model)
@@ -229,13 +234,16 @@ public class TeamsController : ControllerBase
         if (!TeamPermissions.CanEditTeam(await FindMemberAsync(team.Id, user.Id)))
             return Forbid();
 
-        var result = await _teamService.UpdateAsync(team, model.Name, model.Description);
+        var result = await _teamService.UpdateAsync(team, model.Name, model.Tag, model.Description);
 
         return result switch
         {
             UpdateTeamResult.InvalidName => BadRequest(TeamMessages.InvalidName),
             UpdateTeamResult.DescriptionTooLong => BadRequest(TeamMessages.DescriptionTooLong),
+            UpdateTeamResult.InvalidTag => BadRequest(TeamMessages.InvalidTag),
+            UpdateTeamResult.TagNotAllowed => BadRequest(TeamMessages.TagNotAllowed),
             UpdateTeamResult.NameTaken => Conflict(TeamMessages.NameTaken),
+            UpdateTeamResult.TagTaken => Conflict(TeamMessages.TagTaken),
             _ => NoContent()
         };
     }

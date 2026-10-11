@@ -49,6 +49,7 @@ public class TeamManagementController : AdminControllerBase
             {
                 Id = t.Id,
                 Name = t.Name,
+                Tag = t.Tag,
                 OwnerPilotName = t.Members
                     .Where(m => m.Role == TeamRole.Owner)
                     .Select(m => m.User.Pilot != null ? m.User.Pilot.Name : null)
@@ -103,6 +104,7 @@ public class TeamManagementController : AdminControllerBase
         {
             Id = team.Id,
             Name = team.Name,
+            Tag = team.Tag,
             Description = team.Description,
             CreatedOn = team.CreatedOn,
             MaxTeamSize = _settings.MaxTeamSize,
@@ -113,20 +115,23 @@ public class TeamManagementController : AdminControllerBase
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(string name, string? description, string ownerPilotName)
+    public async Task<IActionResult> Create(string name, string tag, string? description, string ownerPilotName)
     {
         var owner = await FindUserByPilotNameAsync(ownerPilotName);
 
         if (owner is null)
             return RedirectToAction(nameof(Index));
 
-        var result = await _teamService.CreateAsync(owner, name ?? string.Empty, description);
+        var result = await _teamService.CreateAsync(owner, name ?? string.Empty, tag ?? string.Empty, description);
 
         var error = result.Status switch
         {
             CreateTeamStatus.InvalidName => TeamMessages.InvalidName,
             CreateTeamStatus.DescriptionTooLong => TeamMessages.DescriptionTooLong,
+            CreateTeamStatus.InvalidTag => TeamMessages.InvalidTag,
+            CreateTeamStatus.TagNotAllowed => TeamMessages.TagNotAllowed,
             CreateTeamStatus.NameTaken => TeamMessages.NameTaken,
+            CreateTeamStatus.TagTaken => TeamMessages.TagTaken,
             CreateTeamStatus.MembershipLimitReached => "This pilot is already in the maximum number of teams",
             CreateTeamStatus.OwnedTeamsLimitReached => "This pilot has reached the limit of teams they can own",
             _ => null
@@ -144,20 +149,23 @@ public class TeamManagementController : AdminControllerBase
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, string name, string? description)
+    public async Task<IActionResult> Edit(int id, string name, string tag, string? description)
     {
         var team = await _teams.FindAsync(id);
 
         if (team is null)
             return NotFound();
 
-        var result = await _teamService.UpdateAsync(team, name ?? string.Empty, description);
+        var result = await _teamService.UpdateAsync(team, name ?? string.Empty, tag ?? string.Empty, description);
 
         var error = result switch
         {
             UpdateTeamResult.InvalidName => TeamMessages.InvalidName,
             UpdateTeamResult.DescriptionTooLong => TeamMessages.DescriptionTooLong,
+            UpdateTeamResult.InvalidTag => TeamMessages.InvalidTag,
+            UpdateTeamResult.TagNotAllowed => TeamMessages.TagNotAllowed,
             UpdateTeamResult.NameTaken => TeamMessages.NameTaken,
+            UpdateTeamResult.TagTaken => TeamMessages.TagTaken,
             _ => null
         };
 

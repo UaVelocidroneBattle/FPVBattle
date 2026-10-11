@@ -4,9 +4,12 @@ public class Team
 {
     public const int NameMaxLength = 32;
     public const int DescriptionMaxLength = 500;
+    public const int TagMinLength = 2;
+    public const int TagMaxLength = 5;
 
     public int Id { get; set; }
     public required string Name { get; set; }
+    public string? Tag { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     public virtual ICollection<TeamMember> Members { get; set; } = [];

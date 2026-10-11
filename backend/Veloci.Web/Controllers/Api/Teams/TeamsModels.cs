@@ -5,6 +5,7 @@ namespace Veloci.Web.Controllers.Api.Teams;
 public class CreateTeamModel
 {
     public required string Name { get; set; }
+    public required string Tag { get; set; }
     public string? Description { get; set; }
 }
 
@@ -12,6 +13,7 @@ public class UpdateTeamModel
 {
     public required int TeamId { get; set; }
     public required string Name { get; set; }
+    public required string Tag { get; set; }
     public string? Description { get; set; }
 }
 
@@ -35,6 +37,7 @@ public class TeamModel
 {
     public required int Id { get; set; }
     public required string Name { get; set; }
+    public string? Tag { get; set; }
     public string? Description { get; set; }
 }
 
@@ -83,6 +86,9 @@ public class TeamDetailsModel
 {
     public required int Id { get; set; }
     public required string Name { get; set; }
+
+    /// <summary>Empty for teams created before tags existed.</summary>
+    public string? Tag { get; set; }
     public string? Description { get; set; }
     public required int MemberCount { get; set; }
 

@@ -36,6 +36,15 @@ Creating a team requires a linked pilot.
 
 Team names are unique ignoring case (the SQLite column uses the `NOCASE` collation) and at most 32 characters. The description is optional, at most 500. `NOCASE` folds only ASCII letters, so "Дрони" and "дрони" are treated as different names.
 
+## Tags
+
+A tag is a short label for the leaderboard, where the full name would not fit. The creator enters it when creating the team: 2 to 5 letters or digits, stored in upper case and unique ignoring case (`NOCASE` collation plus a unique index). The form upper-cases and filters the input as you type; the server validates again.
+
+- Teams created before tags existed have no tag until an admin sets one.
+- The owner and team admins change it in the edit dialog, together with the name and description. Site admins change it on the admin team page, which also lets them reclaim a squatted tag.
+- Editing a team always requires a valid tag, so a team without one gets it the first time it is edited.
+- `Teams:BlacklistedTags` in `appsettings.json` lists tags nobody can pick (compared ignoring case). A team that already holds a tag blacklisted later keeps it. The admin page applies the same rules.
+
 ## Privacy
 
 Teams are public, so responses must never contain account display names or emails: they come from the Google profile and are usually real names. Members and inviters are identified by pilot name only. `TeamsTests.Responses_NeverContainDisplayNamesOrEmails` guards this.

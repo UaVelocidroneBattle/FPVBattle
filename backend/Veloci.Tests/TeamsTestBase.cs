@@ -19,6 +19,7 @@ public abstract class TeamsTestBase : IDisposable
     protected readonly TeamSettings _settings = new() { MaxTeamSize = 0, MaxOwnedTeamsPerUser = 1, TeamsPerUser = 1 };
     protected readonly UserManager<ApplicationUser> _userManager;
     private int _nextPilotId = 1;
+    private int _nextTag = 1;
 
     protected TeamsTestBase()
     {
@@ -56,6 +57,9 @@ public abstract class TeamsTestBase : IDisposable
     }
 
     protected string PilotNameOf(ApplicationUser user) => _db.Set<Pilot>().Find(user.PilotId)!.Name;
+
+    /// <summary>A tag no other team in this test has used yet.</summary>
+    protected string NextTag() => $"T{_nextTag++}";
 
     protected TeamService Service() => new(
         new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamInvite>(_db), Options.Create(_settings));

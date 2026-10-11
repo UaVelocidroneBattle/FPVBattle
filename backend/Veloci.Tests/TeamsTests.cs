@@ -23,7 +23,7 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
 
-        var created = await Controller(owner).Create(new CreateTeamModel { Name = "Alpha", Description = "First" });
+        var created = await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha", Description = "First" });
 
         created.Value!.Name.Should().Be("Alpha");
         var overview = (await Controller(owner).Overview()).Value!;
@@ -34,17 +34,95 @@ public class TeamsTests : TeamsTestBase
     [Fact]
     public async Task Create_RejectsDuplicateNamesIgnoringCase()
     {
-        await Controller(AddUser("first")).Create(new CreateTeamModel { Name = "Alpha" });
+        await Controller(AddUser("first")).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" });
 
-        var duplicate = await Controller(AddUser("second")).Create(new CreateTeamModel { Name = "aLPHA" });
+        var duplicate = await Controller(AddUser("second")).Create(new CreateTeamModel { Tag = NextTag(), Name = "aLPHA" });
 
         duplicate.Result.Should().BeOfType<ConflictObjectResult>();
     }
 
     [Fact]
+    public async Task Create_StoresTheTagInUpperCase()
+    {
+        var created = await Controller(AddUser("owner")).Create(new CreateTeamModel { Tag = " na1 ", Name = "Alpha" });
+
+        created.Value!.Tag.Should().Be("NA1");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("A")]
+    [InlineData("ABCDEF")]
+    [InlineData("A B")]
+    [InlineData("AB-")]
+    [InlineData("ДРОН")]
+    public async Task Create_RejectsATagOfTheWrongLengthOrWithOtherSymbols(string tag)
+    {
+        var result = await Controller(AddUser("owner")).Create(new CreateTeamModel { Tag = tag, Name = "Alpha" });
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task Create_RejectsATakenTagIgnoringCase()
+    {
+        await Controller(AddUser("first")).Create(new CreateTeamModel { Tag = "NAVI", Name = "Alpha" });
+
+        var duplicate = await Controller(AddUser("second")).Create(new CreateTeamModel { Tag = "nAvI", Name = "Beta" });
+
+        duplicate.Result.Should().BeOfType<ConflictObjectResult>();
+    }
+
+    [Fact]
+    public async Task Update_LetsOwnersAndAdminsChangeTheTagButNotMembers()
+    {
+        var owner = AddUser("owner");
+        var admin = AddUser("admin");
+        var member = AddUser("member");
+        _settings.TeamsPerUser = 0;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = "OLD", Name = "Alpha" })).Value!.Id;
+        foreach (var user in new[] { admin, member })
+        {
+            await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(user) });
+            await Controller(user).Accept(new TeamReferenceModel { TeamId = teamId });
+        }
+        await Controller(owner).SetRole(RoleChange(teamId, admin, TeamRole.Admin));
+
+        (await Controller(member).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha", Tag = "NEW" })).Should().BeOfType<ForbidResult>();
+        (await Controller(admin).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha", Tag = "mid" })).Should().BeOfType<NoContentResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha", Tag = "new" })).Should().BeOfType<NoContentResult>();
+
+        (await Controller(owner).Details(teamId)).Value!.Tag.Should().Be("NEW");
+    }
+
+    [Fact]
+    public async Task Update_RejectsATakenInvalidOrBlacklistedTagButKeepsTheOwnTagInAnotherCase()
+    {
+        var owner = AddUser("owner");
+        await Controller(AddUser("other")).Create(new CreateTeamModel { Tag = "NAVI", Name = "Beta" });
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = "ABC", Name = "Alpha" })).Value!.Id;
+        _settings.BlacklistedTags = ["ABC", "ADMIN"];
+
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha", Tag = "navi" })).Should().BeOfType<ConflictObjectResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha", Tag = "A" })).Should().BeOfType<BadRequestObjectResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha", Tag = "admin" })).Should().BeOfType<BadRequestObjectResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "Alpha 2", Tag = "abc" })).Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task Create_RejectsABlacklistedTagIgnoringCase()
+    {
+        _settings.BlacklistedTags = ["Admin"];
+
+        var result = await Controller(AddUser("owner")).Create(new CreateTeamModel { Tag = "admin", Name = "Alpha" });
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
     public async Task Create_RequiresALinkedPilot()
     {
-        var result = await Controller(AddUser("nopilot", withPilot: false)).Create(new CreateTeamModel { Name = "Alpha" });
+        var result = await Controller(AddUser("nopilot", withPilot: false)).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" });
 
         result.Result.Should().BeOfType<BadRequestObjectResult>();
     }
@@ -56,7 +134,7 @@ public class TeamsTests : TeamsTestBase
         var owner = AddUser("owner");
         var admin = AddUser("admin");
         var member = AddUser("member");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         foreach (var user in new[] { admin, member })
         {
             await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(user) });
@@ -64,8 +142,8 @@ public class TeamsTests : TeamsTestBase
         }
         await Controller(owner).SetRole(RoleChange(teamId, admin, TeamRole.Admin));
 
-        (await Controller(member).Update(new UpdateTeamModel { TeamId = teamId, Name = "Hacked" })).Should().BeOfType<ForbidResult>();
-        (await Controller(admin).Update(new UpdateTeamModel { TeamId = teamId, Name = "  Beta  ", Description = "New text" }))
+        (await Controller(member).Update(new UpdateTeamModel { TeamId = teamId, Tag = "ZZ1", Name = "Hacked" })).Should().BeOfType<ForbidResult>();
+        (await Controller(admin).Update(new UpdateTeamModel { TeamId = teamId, Tag = "ZZ1", Name = "  Beta  ", Description = "New text" }))
             .Should().BeOfType<NoContentResult>();
 
         var details = (await Controller(owner).Details(teamId)).Value!;
@@ -77,12 +155,12 @@ public class TeamsTests : TeamsTestBase
     public async Task Update_RejectsATakenNameButAllowsChangingTheCaseOfTheOwnName()
     {
         var owner = AddUser("owner");
-        await Controller(AddUser("other")).Create(new CreateTeamModel { Name = "Taken" });
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        await Controller(AddUser("other")).Create(new CreateTeamModel { Tag = NextTag(), Name = "Taken" });
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
 
-        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "tAKEN" })).Should().BeOfType<ConflictObjectResult>();
-        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "ALPHA" })).Should().BeOfType<NoContentResult>();
-        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Name = "   " })).Should().BeOfType<BadRequestObjectResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Tag = "ZZ1", Name = "tAKEN" })).Should().BeOfType<ConflictObjectResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Tag = "ZZ1", Name = "ALPHA" })).Should().BeOfType<NoContentResult>();
+        (await Controller(owner).Update(new UpdateTeamModel { TeamId = teamId, Tag = "ZZ1", Name = "   " })).Should().BeOfType<BadRequestObjectResult>();
     }
 
     [Fact]
@@ -90,7 +168,7 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
 
         var invited = await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invitee) });
         invited.Should().BeOfType<OkResult>();
@@ -112,8 +190,8 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var busy = AddUser("busy");
-        await Controller(busy).Create(new CreateTeamModel { Name = "Busy team" });
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        await Controller(busy).Create(new CreateTeamModel { Tag = NextTag(), Name = "Busy team" });
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
 
         var result = await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(busy) });
 
@@ -126,8 +204,8 @@ public class TeamsTests : TeamsTestBase
         var ownerA = AddUser("ownerA");
         var ownerB = AddUser("ownerB");
         var invitee = AddUser("invitee");
-        var teamA = (await Controller(ownerA).Create(new CreateTeamModel { Name = "A" })).Value!.Id;
-        var teamB = (await Controller(ownerB).Create(new CreateTeamModel { Name = "B" })).Value!.Id;
+        var teamA = (await Controller(ownerA).Create(new CreateTeamModel { Tag = NextTag(), Name = "A" })).Value!.Id;
+        var teamB = (await Controller(ownerB).Create(new CreateTeamModel { Tag = NextTag(), Name = "B" })).Value!.Id;
         await Controller(ownerA).Invite(new InviteModel { TeamId = teamA, PilotName = PilotNameOf(invitee) });
         await Controller(ownerB).Invite(new InviteModel { TeamId = teamB, PilotName = PilotNameOf(invitee) });
 
@@ -141,7 +219,7 @@ public class TeamsTests : TeamsTestBase
     public async Task Search_ExcludesMyTeamsAndOrdersBySizeThenFiltersByName()
     {
         var me = AddUser("me");
-        await Controller(me).Create(new CreateTeamModel { Name = "Mine" });
+        await Controller(me).Create(new CreateTeamModel { Tag = NextTag(), Name = "Mine" });
         var small = await CreateTeamWithMembers("Small crew", 1);
         var big = await CreateTeamWithMembers("Big crew", 3);
         await CreateTeamWithMembers("100% fast", 2);
@@ -167,12 +245,12 @@ public class TeamsTests : TeamsTestBase
         var busy = AddUser("busy");
         AddUser("free");
         AddUser("nopilot", withPilot: false);
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         _settings.TeamsPerUser = 0;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(member) });
         await Controller(member).Accept(new TeamReferenceModel { TeamId = teamId });
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invited) });
-        await Controller(busy).Create(new CreateTeamModel { Name = "Busy team" });
+        await Controller(busy).Create(new CreateTeamModel { Tag = NextTag(), Name = "Busy team" });
         _settings.TeamsPerUser = 1;
 
         var all = (await Controller(owner).InviteCandidates(teamId, "PILOT_")).Value!;
@@ -185,7 +263,7 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var member = AddUser("member");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         _settings.TeamsPerUser = 0;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(member) });
         await Controller(member).Accept(new TeamReferenceModel { TeamId = teamId });
@@ -199,7 +277,7 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha", Description = "Text" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha", Description = "Text" })).Value!.Id;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invitee) });
         var visitor = Controller(null);
 
@@ -223,7 +301,7 @@ public class TeamsTests : TeamsTestBase
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
         var other = AddUser("other");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invitee) });
 
         var json = System.Text.Json.JsonSerializer.Serialize(new object?[]
@@ -247,7 +325,7 @@ public class TeamsTests : TeamsTestBase
         var owner = AddUser("owner");
         var member = AddUser("member");
         var outsider = AddUser("outsider");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(member) });
         await Controller(member).Accept(new TeamReferenceModel { TeamId = teamId });
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(outsider) });
@@ -261,7 +339,7 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var member = AddUser("member");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(member) });
         await Controller(member).Accept(new TeamReferenceModel { TeamId = teamId });
 
@@ -278,7 +356,7 @@ public class TeamsTests : TeamsTestBase
         var admin = AddUser("admin");
         var otherAdmin = AddUser("otherAdmin");
         var member = AddUser("member");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         foreach (var user in new[] { admin, otherAdmin, member })
         {
             await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(user) });
@@ -301,7 +379,7 @@ public class TeamsTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invitee) });
 
         (await Controller(invitee).RevokeInvite(MemberRef(teamId, invitee))).Should().BeOfType<ForbidResult>();
@@ -316,7 +394,7 @@ public class TeamsTests : TeamsTestBase
         var owner = AddUser("owner");
         var member = AddUser("member");
         var admin = AddUser("admin");
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = "Alpha" })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
         foreach (var user in new[] { member, admin })
         {
             await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(user) });
@@ -324,7 +402,7 @@ public class TeamsTests : TeamsTestBase
         }
         await Controller(owner).SetRole(RoleChange(teamId, admin, TeamRole.Admin));
         var lonely = AddUser("lonely");
-        var lonelyTeamId = (await Controller(lonely).Create(new CreateTeamModel { Name = "Solo" })).Value!.Id;
+        var lonelyTeamId = (await Controller(lonely).Create(new CreateTeamModel { Tag = NextTag(), Name = "Solo" })).Value!.Id;
 
         await Service().RemoveUserFromTeamsAsync(owner);
         await Service().RemoveUserFromTeamsAsync(lonely);
@@ -338,7 +416,7 @@ public class TeamsTests : TeamsTestBase
     private async Task<int> CreateTeamWithMembers(string name, int memberCount)
     {
         var owner = AddUser("owner of " + name);
-        var teamId = (await Controller(owner).Create(new CreateTeamModel { Name = name })).Value!.Id;
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = name })).Value!.Id;
 
         for (var i = 1; i < memberCount; i++)
             _db.Set<TeamMember>().Add(new TeamMember { TeamId = teamId, UserId = AddUser($"{name} member {i}").Id });

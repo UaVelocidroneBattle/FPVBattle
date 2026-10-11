@@ -12,4 +12,11 @@ public class PilotProfileModel
     public DateTime? FirstRaceDate { get; set; }
     public required int AvailableFreezes { get; set; }
     public required List<PilotClassRatingModel> ClassRatings { get; set; }
+    public required List<PilotTeamModel> Teams { get; set; }
+}
+
+public class PilotTeamModel
+{
+    public required int Id { get; set; }
+    public required string Name { get; set; }
 }

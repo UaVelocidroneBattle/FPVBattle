@@ -49,6 +49,7 @@ export type CountryPilotsModel = {
 
 export type CreateTeamModel = {
     name: string;
+    tag: string;
     description?: null | string;
 };
 
@@ -219,6 +220,7 @@ export type PilotProfileModel = {
     firstRaceDate?: null | string;
     availableFreezes: number;
     classRatings: Array<PilotClassRatingModel>;
+    teams: Array<PilotTeamModel>;
 };
 
 export type PilotRatingHistoryPoint = {
@@ -253,6 +255,11 @@ export type PilotsCountModel = {
 export type PilotSuggestionModel = {
     name: string;
     country?: null | string;
+};
+
+export type PilotTeamModel = {
+    id: number;
+    name: string;
 };
 
 export type ProfileModel = {
@@ -297,6 +304,7 @@ export type SetMemberRoleModel = {
 export type TeamDetailsModel = {
     id: number;
     name: string;
+    tag?: null | string;
     description?: null | string;
     memberCount: number;
     myRole?: null | TeamRole;
@@ -327,6 +335,7 @@ export type TeamMemberReferenceModel = {
 export type TeamModel = {
     id: number;
     name: string;
+    tag?: null | string;
     description?: null | string;
 };
 
@@ -364,6 +373,7 @@ export type UnreadCountModel = {
 export type UpdateTeamModel = {
     teamId: number;
     name: string;
+    tag: string;
     description?: null | string;
 };
 

@@ -132,6 +132,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Team>().Property(t => t.Name).HasMaxLength(Team.NameMaxLength).IsRequired().UseCollation("NOCASE");
         builder.Entity<Team>().Property(t => t.Description).HasMaxLength(Team.DescriptionMaxLength);
         builder.Entity<Team>().HasIndex(t => t.Name).IsUnique();
+        builder.Entity<Team>().Property(t => t.Tag).HasMaxLength(Team.TagMaxLength).UseCollation("NOCASE");
+        builder.Entity<Team>().HasIndex(t => t.Tag).IsUnique();
 
         builder.Entity<TeamMember>().ToTable("TeamMembers");
         builder.Entity<TeamMember>().HasKey(m => new { m.TeamId, m.UserId });

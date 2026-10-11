@@ -31,18 +31,22 @@ public class TeamService
         _settings = settings.Value;
     }
 
-    public async Task<CreateTeamResult> CreateAsync(ApplicationUser owner, string name, string? description)
+    public async Task<CreateTeamResult> CreateAsync(ApplicationUser owner, string name, string tag, string? description)
     {
         if (owner.PilotId is null)
             return new CreateTeamResult(CreateTeamStatus.PilotNotLinked);
 
         var (normalizedName, normalizedDescription) = Normalize(name, description);
+        var normalizedTag = NormalizeTag(tag);
 
         if (normalizedName.Length is 0 or > Team.NameMaxLength)
             return new CreateTeamResult(CreateTeamStatus.InvalidName);
 
         if (normalizedDescription?.Length > Team.DescriptionMaxLength)
             return new CreateTeamResult(CreateTeamStatus.DescriptionTooLong);
+
+        if (!IsValidTag(normalizedTag))
+            return new CreateTeamResult(CreateTeamStatus.InvalidTag);
 
         if (await HasReachedMembershipLimitAsync(owner))
             return new CreateTeamResult(CreateTeamStatus.MembershipLimitReached);
@@ -53,9 +57,16 @@ public class TeamService
         if (await _teams.GetAll().AnyAsync(t => t.Name == normalizedName))
             return new CreateTeamResult(CreateTeamStatus.NameTaken);
 
+        if (IsBlacklistedTag(normalizedTag))
+            return new CreateTeamResult(CreateTeamStatus.TagNotAllowed);
+
+        if (await _teams.GetAll().AnyAsync(t => t.Tag == normalizedTag))
+            return new CreateTeamResult(CreateTeamStatus.TagTaken);
+
         var team = new Team
         {
             Name = normalizedName,
+            Tag = normalizedTag,
             Description = normalizedDescription
         };
 
@@ -73,9 +84,10 @@ public class TeamService
         return new CreateTeamResult(CreateTeamStatus.Created, team);
     }
 
-    public async Task<UpdateTeamResult> UpdateAsync(Team team, string name, string? description)
+    public async Task<UpdateTeamResult> UpdateAsync(Team team, string name, string tag, string? description)
     {
         var (normalizedName, normalizedDescription) = Normalize(name, description);
+        var normalizedTag = NormalizeTag(tag);
 
         if (normalizedName.Length is 0 or > Team.NameMaxLength)
             return UpdateTeamResult.InvalidName;
@@ -83,10 +95,23 @@ public class TeamService
         if (normalizedDescription?.Length > Team.DescriptionMaxLength)
             return UpdateTeamResult.DescriptionTooLong;
 
+        if (!IsValidTag(normalizedTag))
+            return UpdateTeamResult.InvalidTag;
+
         if (await _teams.GetAll().AnyAsync(t => t.Id != team.Id && t.Name == normalizedName))
             return UpdateTeamResult.NameTaken;
 
+        // A tag blacklisted after the team took it stays usable, so the team can still be edited.
+        var keepsOwnTag = string.Equals(team.Tag, normalizedTag, StringComparison.OrdinalIgnoreCase);
+
+        if (!keepsOwnTag && IsBlacklistedTag(normalizedTag))
+            return UpdateTeamResult.TagNotAllowed;
+
+        if (await _teams.GetAll().AnyAsync(t => t.Id != team.Id && t.Tag == normalizedTag))
+            return UpdateTeamResult.TagTaken;
+
         team.Name = normalizedName;
+        team.Tag = normalizedTag;
         team.Description = normalizedDescription;
         await _teams.SaveChangesAsync();
 
@@ -293,6 +318,22 @@ public class TeamService
         return (name.Trim(), string.IsNullOrWhiteSpace(description) ? null : description.Trim());
     }
 
+    private static string NormalizeTag(string tag)
+    {
+        return tag.Trim().ToUpperInvariant();
+    }
+
+    private static bool IsValidTag(string normalizedTag)
+    {
+        return normalizedTag.Length is >= Team.TagMinLength and <= Team.TagMaxLength
+               && normalizedTag.All(char.IsAsciiLetterOrDigit);
+    }
+
+    private bool IsBlacklistedTag(string normalizedTag)
+    {
+        return _settings.BlacklistedTags.Contains(normalizedTag, StringComparer.OrdinalIgnoreCase);
+    }
+
     private async Task<bool> IsFullAsync(int teamId)
     {
         if (_settings.MaxTeamSize <= 0)
@@ -322,6 +363,9 @@ public enum CreateTeamStatus
     InvalidName,
     DescriptionTooLong,
     NameTaken,
+    InvalidTag,
+    TagNotAllowed,
+    TagTaken,
     MembershipLimitReached,
     OwnedTeamsLimitReached
 }
@@ -333,7 +377,10 @@ public enum UpdateTeamResult
     Updated,
     InvalidName,
     DescriptionTooLong,
-    NameTaken
+    NameTaken,
+    InvalidTag,
+    TagNotAllowed,
+    TagTaken
 }
 
 public enum InviteToTeamResult

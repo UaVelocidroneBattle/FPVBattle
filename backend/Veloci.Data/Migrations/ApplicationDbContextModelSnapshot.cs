@@ -775,9 +775,17 @@ namespace Veloci.Web.Data.Migrations
                         .HasColumnType("TEXT")
                         .UseCollation("NOCASE");
 
+                    b.Property<string>("Tag")
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Tag")
                         .IsUnique();
 
                     b.ToTable("Teams", (string)null);

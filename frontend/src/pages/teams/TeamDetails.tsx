@@ -99,7 +99,14 @@ function TeamDetails() {
     return (
         <section className={`${panelClass} p-6`}>
             <div className="flex items-start justify-between gap-4">
-                <h2 className="text-[22px] font-bold text-white">{details.name}</h2>
+                <h2 className="flex flex-wrap items-center gap-3 text-[22px] font-bold text-white">
+                    {details.name}
+                    {details.tag && (
+                        <span className="border border-emerald-500 px-2 py-0.5 font-mono text-sm font-semibold tracking-wider text-emerald-400">
+                            {details.tag}
+                        </span>
+                    )}
+                </h2>
                 {teamMenu.length > 0 && <ActionMenu label="Team actions" items={teamMenu} />}
             </div>
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Features.Teams;
 using Veloci.Web.Controllers.Admin.Teams;
 
 namespace Veloci.Tests;
@@ -43,7 +44,7 @@ public class TeamManagementTests : TeamsTestBase
         AddUser("owner");
         var controller = Controller();
 
-        var result = await controller.Create("Alpha", "First", "pilot_owner");
+        var result = await controller.Create("Alpha", NextTag(), "First", "pilot_owner");
 
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be(nameof(TeamManagementController.Details));
         controller.TempData["Success"].Should().NotBeNull();
@@ -58,19 +59,19 @@ public class TeamManagementTests : TeamsTestBase
         await CreateTeamAsync("busy", "Busy team");
         var controller = Controller();
 
-        await controller.Create("Alpha", null, "nobody");
+        await controller.Create("Alpha", NextTag(), null, "nobody");
         controller.TempData["Error"].Should().Be("Pilot not found (names are case sensitive)");
 
         _db.Set<Pilot>().Add(new Pilot("unregistered") { Id = 100 });
         await _db.SaveChangesAsync();
-        await controller.Create("Alpha", null, "unregistered");
+        await controller.Create("Alpha", NextTag(), null, "unregistered");
         controller.TempData["Error"].Should().Be("This pilot is not registered yet");
 
         AddUser("free");
-        await controller.Create("busy team", null, "pilot_free");
+        await controller.Create("busy team", NextTag(), null, "pilot_free");
         controller.TempData["Error"].Should().Be("A team with this name already exists");
 
-        await controller.Create("Second", null, "pilot_busy");
+        await controller.Create("Second", NextTag(), null, "pilot_busy");
         controller.TempData["Error"].Should().Be("This pilot is already in the maximum number of teams");
     }
 
@@ -81,15 +82,39 @@ public class TeamManagementTests : TeamsTestBase
         await CreateTeamAsync("other", "Taken");
         var controller = Controller();
 
-        await controller.Edit(team.Id, "  Beta  ", "New text");
+        await controller.Edit(team.Id, "  Beta  ", "ZZ1", "New text");
         controller.TempData["Success"].Should().NotBeNull();
 
-        await controller.Edit(team.Id, "taken", null);
+        await controller.Edit(team.Id, "taken", "ZZ1", null);
         controller.TempData["Error"].Should().Be("A team with this name already exists");
 
         var details = await DetailsOf(controller, team.Id);
         details.Name.Should().Be("Beta");
         details.Description.Should().Be("New text");
+    }
+
+    [Fact]
+    public async Task Edit_ChangesTheTagAndRejectsInvalidTakenAndBlacklistedOnes()
+    {
+        var team = await CreateTeamAsync("owner", "Alpha");
+        var taken = (await CreateTeamAsync("other", "Beta")).Tag;
+        _settings.BlacklistedTags = ["ADMIN"];
+        var controller = Controller();
+
+        await controller.Edit(team.Id, "Alpha", "na1", null);
+        controller.TempData["Success"].Should().NotBeNull();
+        (await DetailsOf(controller, team.Id)).Tag.Should().Be("NA1");
+
+        await controller.Edit(team.Id, "Alpha", "A", null);
+        controller.TempData["Error"].Should().Be(TeamMessages.InvalidTag);
+
+        await controller.Edit(team.Id, "Alpha", taken!.ToLowerInvariant(), null);
+        controller.TempData["Error"].Should().Be(TeamMessages.TagTaken);
+
+        await controller.Edit(team.Id, "Alpha", "Admin", null);
+        controller.TempData["Error"].Should().Be(TeamMessages.TagNotAllowed);
+
+        (await DetailsOf(controller, team.Id)).Tag.Should().Be("NA1");
     }
 
     [Fact]
@@ -110,7 +135,7 @@ public class TeamManagementTests : TeamsTestBase
         _settings.TeamsPerUser = 0;
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
-        var team = (await Service().CreateAsync(owner, "Alpha", null)).Team!;
+        var team = (await Service().CreateAsync(owner, "Alpha", NextTag(), null)).Team!;
         await Service().InviteAsync(owner, team, invitee);
         var controller = Controller();
 
@@ -196,7 +221,7 @@ public class TeamManagementTests : TeamsTestBase
     {
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
-        var team = (await Service().CreateAsync(owner, "Alpha", null)).Team!;
+        var team = (await Service().CreateAsync(owner, "Alpha", NextTag(), null)).Team!;
         await Service().InviteAsync(owner, team, invitee);
         var controller = Controller();
 
@@ -208,7 +233,7 @@ public class TeamManagementTests : TeamsTestBase
     private async Task<Team> CreateTeamAsync(string ownerName, string teamName)
     {
         var owner = AddUser(ownerName);
-        var team = (await Service().CreateAsync(owner, teamName, null)).Team!;
+        var team = (await Service().CreateAsync(owner, teamName, NextTag(), null)).Team!;
         _settings.TeamsPerUser = 1;
         return team;
     }
