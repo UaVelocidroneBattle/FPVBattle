@@ -1872,6 +1872,12 @@
           "country": {
             "type": "string"
           },
+          "teamTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "points": {
             "type": "integer",
             "format": "int32"
@@ -2636,6 +2642,12 @@
           },
           "country": {
             "type": "string"
+          },
+          "teamTag": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2877,6 +2889,7 @@
           "myTeams",
           "invitations",
           "maxTeamSize",
+          "minPublicTeamSize",
           "teamsPerUser"
         ],
         "type": "object",
@@ -2894,6 +2907,10 @@
             }
           },
           "maxTeamSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minPublicTeamSize": {
             "type": "integer",
             "format": "int32"
           },

@@ -55,6 +55,9 @@ public class TeamsOverviewModel
     /// <summary>0 - if no limit</summary>
     public required int MaxTeamSize { get; set; }
 
+    /// <summary>Members a team needs to be public. 0 - if teams are public from the start</summary>
+    public required int MinPublicTeamSize { get; set; }
+
     /// <summary>0 - if no limit</summary>
     public required int TeamsPerUser { get; set; }
 }

@@ -6,6 +6,7 @@ public class SeasonResult
     public int Points { get; set; }
     public int Rank { get; set; }
     public required string Country { get; set; }
+    public string? TeamTag { get; set; }
 }
 
 public class LeagueSeasonLeaderboard

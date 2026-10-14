@@ -60,12 +60,13 @@ public class TeamsController : ControllerBase
             MyTeams = userId is null ? [] : await GetTeamsOfUserAsync(userId),
             Invitations = userId is null ? [] : await GetInvitationsOfUserAsync(userId),
             MaxTeamSize = _settings.MaxTeamSize,
+            MinPublicTeamSize = _settings.MinPublicTeamSize,
             TeamsPerUser = _settings.TeamsPerUser
         };
     }
 
     /// <summary>
-    /// The biggest teams, optionally filtered by name. A signed-in user does not get their own teams here.
+    /// The biggest public teams, optionally filtered by name. A signed-in user does not get their own teams here.
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
@@ -73,7 +74,7 @@ public class TeamsController : ControllerBase
     {
         var userId = _userManager.GetUserId(User);
 
-        var teams = _teams.GetAll();
+        var teams = _teams.GetAll().Public(_settings.MinPublicTeamSize);
 
         if (userId is not null)
             teams = teams.Where(t => t.Members.All(m => m.UserId != userId));
@@ -126,6 +127,7 @@ public class TeamsController : ControllerBase
 
     /// <summary>
     /// A team with its members. A visitor has no role in it and sees no pending invites.
+    /// A team that is not public yet is found only by its members and invitees.
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
@@ -153,6 +155,10 @@ public class TeamsController : ControllerBase
             .ToListAsync();
 
         var myRole = members.FirstOrDefault(m => m.UserId == userId)?.Role;
+
+        if (members.Count < _settings.MinPublicTeamSize && myRole is null && !await IsInvitedAsync(teamId, userId))
+            return NotFound(TeamMessages.TeamNotFound);
+
         var pendingInvites = new List<TeamPendingInviteModel>();
 
         if (myRole is TeamRole.Owner or TeamRole.Admin)
@@ -463,6 +469,11 @@ public class TeamsController : ControllerBase
                 InvitedBy = i.InvitedByUser.Pilot != null ? i.InvitedByUser.Pilot.Name : null
             })
             .ToListAsync();
+    }
+
+    private async Task<bool> IsInvitedAsync(int teamId, string? userId)
+    {
+        return userId is not null && await FindInviteAsync(teamId, userId) is not null;
     }
 
     private async Task<TeamInvite?> FindInviteAsync(int teamId, string userId)

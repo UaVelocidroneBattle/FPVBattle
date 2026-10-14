@@ -99,6 +99,7 @@ export type LeaderboardResultModel = {
     globalRank?: number;
     modelName?: null | string;
     country: string;
+    teamTag?: null | string;
     points?: number;
     gapToLeaderPercent?: null | string;
 };
@@ -293,6 +294,7 @@ export type SeasonResult = {
     points?: number;
     rank?: number;
     country: string;
+    teamTag?: null | string;
 };
 
 export type SetMemberRoleModel = {
@@ -357,6 +359,7 @@ export type TeamsOverviewModel = {
     myTeams: Array<TeamSummaryModel>;
     invitations: Array<TeamInvitationModel>;
     maxTeamSize: number;
+    minPublicTeamSize: number;
     teamsPerUser: number;
 };
 

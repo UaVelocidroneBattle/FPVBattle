@@ -20,7 +20,8 @@ function TeamDetails() {
     const details = useTeamsStore((state) => state.details);
     const detailsState = useTeamsStore((state) => state.detailsState);
     const maxTeamSize = useTeamsStore((state) => state.overview?.maxTeamSize ?? 0);
-    const currentUserId = useAuthStore((state) => state.user?.id);
+    const minPublicTeamSize = useTeamsStore((state) => state.overview?.minPublicTeamSize ?? 0);
+    const currentUserId =useAuthStore((state) => state.user?.id);
     const [inviting, setInviting] = useState(false);
     const [editing, setEditing] = useState(false);
     const [confirmation, setConfirmation] = useState<PendingConfirmation | null>(null);
@@ -35,6 +36,7 @@ function TeamDetails() {
     const { myRole } = details;
     const canManage = myRole === "Owner" || myRole === "Admin";
     const isFull = maxTeamSize > 0 && details.memberCount >= maxTeamSize;
+    const isHidden = details.memberCount < minPublicTeamSize;
     const teamId = details.id;
 
     const run = async (action: Promise<ActionResult>) => {
@@ -111,6 +113,13 @@ function TeamDetails() {
             </div>
 
             {details.description && <p className="mt-3.5 max-w-prose text-sm text-slate-400">{details.description}</p>}
+
+            {isHidden && (
+                <p className="mt-3.5 max-w-prose border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
+                    Only its members and invited pilots can see this team until it has {minPublicTeamSize} members.
+                    It is not listed for others, and its tag is not shown on leaderboards or pilot profiles.
+                </p>
+            )}
 
             {!myRole && (
                 <p className="mt-3.5 text-xs text-slate-500">

@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Leagues.Services;
+using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Services.Pilots.Models;
 
 namespace Veloci.Logic.Services.Pilots;
@@ -21,6 +23,7 @@ public class PilotProfileService : IPilotProfileService
 {
     private readonly IRepository<Pilot> _pilots;
     private readonly IRepository<TeamMember> _teamMembers;
+    private readonly TeamSettings _teamSettings;
     private readonly IEnumerable<IAchievement> _allAchievements;
     private readonly RatingService _ratingService;
     private readonly ICupService _cupService;
@@ -28,12 +31,14 @@ public class PilotProfileService : IPilotProfileService
     public PilotProfileService(
         IRepository<Pilot> pilots,
         IRepository<TeamMember> teamMembers,
+        IOptions<TeamSettings> teamSettings,
         IServiceProvider serviceProvider,
         RatingService ratingService,
         ICupService cupService)
     {
         _pilots = pilots;
         _teamMembers = teamMembers;
+        _teamSettings = teamSettings.Value;
         _ratingService = ratingService;
         _cupService = cupService;
         _allAchievements = serviceProvider.GetServices<IAchievement>();
@@ -74,7 +79,7 @@ public class PilotProfileService : IPilotProfileService
 
     private Task<List<PilotTeamModel>> GetTeamsAsync(Pilot pilot, CancellationToken ct)
         => _teamMembers.GetAll()
-            .Where(m => m.User.PilotId == pilot.Id)
+            .Where(m => m.User.PilotId == pilot.Id && m.Team.Members.Count >= _teamSettings.MinPublicTeamSize)
             .OrderBy(m => m.JoinedOn)
             .Select(m => new PilotTeamModel { Id = m.TeamId, Name = m.Team.Name })
             .ToListAsync(ct);

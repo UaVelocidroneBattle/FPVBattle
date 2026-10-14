@@ -29,6 +29,7 @@ The `Teams` section of `appsettings.json` (documented in `appsettings.schema.jso
 | `TeamsPerUser` | Teams a user can belong to. Default 1, so one user - one team. 0 means no limit. |
 | `MaxOwnedTeamsPerUser` | Teams a user can create. |
 | `MaxTeamSize` | Members per team. 0 means no limit. The UI shows "x / limit" only when a limit is set. |
+| `MinPublicTeamSize` | Members a team needs to be public. Default 3; 0 makes teams public from the start. See Visibility. |
 
 Creating a team requires a linked pilot.
 
@@ -44,6 +45,12 @@ A tag is a short label for the leaderboard, where the full name would not fit. T
 - The owner and team admins change it in the edit dialog, together with the name and description. Site admins change it on the admin team page, which also lets them reclaim a squatted tag.
 - Editing a team always requires a valid tag, so a team without one gets it the first time it is edited.
 - `Teams:BlacklistedTags` in `appsettings.json` lists tags nobody can pick (compared ignoring case). A team that already holds a tag blacklisted later keeps it. The admin page applies the same rules.
+
+Leaderboards (today's and the season's) show the tag in brackets before the pilot name. A pilot in several teams shows the tag of the team they joined first (`TeamTagLookup`).
+
+## Visibility
+
+A team with fewer than `MinPublicTeamSize` members is not public, so a one- or two-pilot team does not expose who flies together. It is hidden from the teams list, its team page is not found by visitors and other users (members and invited pilots still see it, with a notice), its tag is not shown on leaderboards, and it is not listed on its members' pilot profiles. It becomes public by itself once it reaches the size; nothing is stored. The admin pages always show every team.
 
 ## Privacy
 

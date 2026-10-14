@@ -237,6 +237,47 @@ public class TeamsTests : TeamsTestBase
     }
 
     [Fact]
+    public async Task TeamBelowMinPublicSize_IsHiddenFromEveryoneButMembersAndInvitees()
+    {
+        _settings.MinPublicTeamSize = 3;
+        var owner = AddUser("owner");
+        var invitee = AddUser("invitee");
+        var stranger = AddUser("stranger");
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Tiny" })).Value!.Id;
+        await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invitee) });
+        await CreateTeamWithMembers("Crowd", 3);
+
+        (await Controller(null).Search(null)).Value!.Select(t => t.Name).Should().Equal("Crowd");
+        (await Controller(stranger).Search("Tiny")).Value.Should().BeEmpty();
+        (await Controller(null).Details(teamId)).Result.Should().BeOfType<NotFoundObjectResult>();
+        (await Controller(stranger).Details(teamId)).Result.Should().BeOfType<NotFoundObjectResult>();
+        (await Controller(owner).Details(teamId)).Value.Should().NotBeNull();
+        (await Controller(invitee).Details(teamId)).Value.Should().NotBeNull();
+
+        await Controller(invitee).Accept(new TeamReferenceModel { TeamId = teamId });
+        var third = AddUser("third");
+        await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(third) });
+        await Controller(third).Accept(new TeamReferenceModel { TeamId = teamId });
+
+        (await Controller(null).Details(teamId)).Value.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task TeamTagLookup_SkipsTeamsBelowMinPublicSize()
+    {
+        _settings.MinPublicTeamSize = 3;
+        var owner = AddUser("owner");
+        await Controller(owner).Create(new CreateTeamModel { Tag = "TNY", Name = "Tiny" });
+        var lookup = new TeamTagLookup(new Repository<TeamMember>(_db), Options.Create(_settings));
+
+        (await lookup.GetTagsByPilotNameAsync()).Should().BeEmpty();
+
+        _settings.MinPublicTeamSize = 1;
+
+        (await lookup.GetTagsByPilotNameAsync()).Should().ContainKey(PilotNameOf(owner)).WhoseValue.Should().Be("TNY");
+    }
+
+    [Fact]
     public async Task InviteCandidates_OffersOnlyPilotsThatCanBeInvited()
     {
         var owner = AddUser("owner");
