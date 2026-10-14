@@ -151,7 +151,7 @@ function RatingRow({ pilot, localRank, leagueColors, showLeague, othersName, req
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <PilotWithAvatar name={pilot.pilotName} countryCode={pilot.country ?? null} />
+                    <PilotWithAvatar name={pilot.pilotName} countryCode={pilot.country ?? null} teamTag={pilot.teamTag} />
                 </div>
 
                 <Qualification qualification={pilot.qualification} requiredTracks={requiredTracks} />

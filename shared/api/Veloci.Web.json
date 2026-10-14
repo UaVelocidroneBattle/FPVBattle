@@ -2436,6 +2436,12 @@
               "string"
             ]
           },
+          "teamTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "qualification": {
             "oneOf": [
               {

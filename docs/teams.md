@@ -48,6 +48,8 @@ A tag is a short label for the leaderboard, where the full name would not fit. T
 
 Leaderboards (today's and the season's) show the tag in brackets before the pilot name. A pilot in several teams shows the tag of the team they joined first (`TeamTagLookup`).
 
+A member of a team gets an All / My team switch above today's leaderboard. "My team" shows only the team's pilots, ranked together (flat), with their positions on the full board in brackets, and hides the country and flat filters. It works for teams that are not public yet too (`useMyTeamPilots`).
+
 ## Visibility
 
 A team with fewer than `MinPublicTeamSize` members is not public, so a one- or two-pilot team does not expose who flies together. It is hidden from the teams list, its team page is not found by visitors and other users (members and invited pilots still see it, with a notice), its tag is not shown on leaderboards, and it is not listed on its members' pilot profiles. It becomes public by itself once it reaches the size; nothing is stored. The admin pages always show every team.

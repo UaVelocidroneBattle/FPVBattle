@@ -17,6 +17,16 @@ public class TeamSettings
     public int MinPublicTeamSize { get; set; } = 3;
 
     /// <summary>
+    /// Race days a pilot needs before their user can create a team. 0 - if no requirement
+    /// </summary>
+    public int MinRaceDaysToCreate { get; set; } = 10;
+
+    /// <summary>
+    /// Whether an active Patron can create a team without the required race days
+    /// </summary>
+    public bool AllowPatronsToCreate { get; set; } = true;
+
+    /// <summary>
     /// How many teams a user can be a member of. 0 - if no limit
     /// </summary>
     public int TeamsPerUser { get; set; } = 1;

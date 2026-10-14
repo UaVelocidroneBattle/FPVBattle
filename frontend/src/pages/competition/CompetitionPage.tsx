@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Navigate, useParams } from 'react-router-dom';
 import LeaderBoard from '../../components/LeaderBoard';
 import { getCompetitionStore } from '../../store/competitionStore';
@@ -13,6 +13,9 @@ import { LeagueLeaderboardModel } from '@/api/client';
 import { useHighlightedPilot } from '@/hooks/useHighlightedPilot';
 import CountryFilter, { countryOptionsOf } from '@/components/CountryFilter';
 import { useUrlCountry } from '@/hooks/useUrlCountry';
+import { useUrlFlag } from '@/hooks/useUrlFlag';
+import { useMyTeamPilots } from '@/hooks/useMyTeamPilots';
+import TeamScopeSwitch from '@/components/TeamScopeSwitch';
 import { usePageMetaOverride } from '@/hooks/usePageMeta';
 import { competitionDayMeta, emptyCompetitionDayMeta } from '@/lib/siteMeta';
 
@@ -23,13 +26,17 @@ const COMPETITION_STARTED = 0;
 const COMPETITION_CLOSED = 1;
 
 /**
- * Today's board for a single country: only that country's pilots, numbered from
- * one again, each keeping in brackets the position it held on the full board —
- * the reading the global rating uses for its country leaderboards. Grouped, the
- * kept position is the one from the pilot's league; flat, everyone is ranked
- * together, so it is the one from the whole day.
+ * Today's board narrowed to some of its pilots (a country, a team): they are
+ * numbered from one again, each keeping in brackets the position it held on the
+ * full board — the reading the global rating uses for its country leaderboards.
+ * Grouped, the kept position is the one from the pilot's league; flat, everyone
+ * is ranked together, so it is the one from the whole day.
  */
-function countryLeaderboard(groups: LeagueLeaderboardModel[], countryCode: string, flat: boolean): LeagueLeaderboard[] {
+function restrictedLeaderboard(
+    groups: LeagueLeaderboardModel[],
+    keep: (result: LeagueLeaderboardModel["results"][number]) => boolean,
+    flat: boolean,
+): LeagueLeaderboard[] {
     const positionsOnFullBoard = new Map(
         groups
             .flatMap(group => group.results)
@@ -41,7 +48,7 @@ function countryLeaderboard(groups: LeagueLeaderboardModel[], countryCode: strin
         .map(group => ({
             ...group,
             results: group.results
-                .filter(result => result.country === countryCode)
+                .filter(keep)
                 .map((result, index) => flat
                     ? { ...result, originalRank: positionsOnFullBoard.get(result.playerName) }
                     : { ...result, localRank: index + 1, originalRank: result.localRank }),
@@ -80,9 +87,13 @@ function CupCompetition({ cupId }: { cupId: string }) {
         return () => clearInterval(interval);
     }, [cupId]);
 
-    const [flat, setFlat] = useState(false);
+    const [flat, setFlat] = useUrlFlag('flat');
+    const [myTeamSelected, setMyTeamSelected] = useUrlFlag('team');
 
     const highlightPilotName = useHighlightedPilot();
+    const myTeamPilots = useMyTeamPilots();
+    // The team board replaces the other filters, and exists only for a member of a team
+    const myTeamOnly = myTeamSelected && myTeamPilots !== null;
 
     // Only today's board is filtered, so only the countries flying today are offered.
     const countryOptions = useMemo(
@@ -130,9 +141,11 @@ function CupCompetition({ cupId }: { cupId: string }) {
 
     const leaguesEnabled = overview.competition?.leagues?.enabled ?? false;
 
-    const leaderboard = country.code
-        ? countryLeaderboard(overview.leaderboard, country.code, flat)
-        : overview.leaderboard;
+    const leaderboard = myTeamOnly
+        ? restrictedLeaderboard(overview.leaderboard, result => myTeamPilots.has(result.playerName), true)
+        : country.code
+            ? restrictedLeaderboard(overview.leaderboard, result => result.country === country.code, flat)
+            : overview.leaderboard;
     const todayPilots = pilotCount(leaderboard);
     const seasonPilots = pilotCount(overview.seasonLeaderboard);
 
@@ -157,14 +170,14 @@ function CupCompetition({ cupId }: { cupId: string }) {
                             )}
                         </h3>
                         <div className="flex items-center gap-4">
-                            <CountryFilter options={countryOptions} value={country} onChange={setCountry} />
-                            {leaguesEnabled && (
+                            {!myTeamOnly && <CountryFilter options={countryOptions} value={country} onChange={setCountry} />}
+                            {leaguesEnabled && !myTeamOnly && (
                                 <>
                                     <div className="h-4 w-px bg-slate-600" />
                                     <button
                                         role="switch"
                                         aria-checked={flat}
-                                        onClick={() => setFlat(f => !f)}
+                                        onClick={() => setFlat(!flat)}
                                         className="flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <span className="text-xs text-slate-400">Flat</span>
@@ -174,9 +187,15 @@ function CupCompetition({ cupId }: { cupId: string }) {
                                     </button>
                                 </>
                             )}
+                            {myTeamPilots && (
+                                <>
+                                    {!myTeamOnly && <div className="h-4 w-px bg-slate-600" />}
+                                    <TeamScopeSwitch myTeam={myTeamOnly} onChange={setMyTeamSelected} />
+                                </>
+                            )}
                         </div>
                     </div>
-                    <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat} isEnded={overview.competition?.state === COMPETITION_CLOSED} highlightPilotName={highlightPilotName} />
+                    <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat || myTeamOnly} isEnded={overview.competition?.state === COMPETITION_CLOSED} highlightPilotName={highlightPilotName} />
                 </div>
 
                 <div className="flex flex-col gap-3">

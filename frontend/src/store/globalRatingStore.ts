@@ -13,6 +13,7 @@ export interface PilotRatingModel {
     rank: number;
     rankChange: number | null;
     league: string | null;
+    teamTag: string | null;
     qualification: RatingQualification | null;
 }
 

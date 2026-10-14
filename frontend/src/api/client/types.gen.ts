@@ -239,6 +239,7 @@ export type PilotRatingModel = {
     rank?: number;
     rankChange?: number;
     league?: null | string;
+    teamTag?: null | string;
     qualification?: null | RatingQualification;
 };
 
