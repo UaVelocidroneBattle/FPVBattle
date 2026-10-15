@@ -69,11 +69,11 @@ function TeamForm({ team, busy, onBusyChange, onClose }: TeamFormProps) {
         <>
             <DialogHeader>
                 <DialogTitle>{team ? "Edit team" : "Create a team"}</DialogTitle>
-                <DialogDescription className="text-slate-400">
-                    {team
-                        ? "Change the name, tag and description of the team."
-                        : "You'll be its owner and can invite other pilots right after."}
-                </DialogDescription>
+                {!team && (
+                    <DialogDescription className="text-slate-400">
+                        You'll be its owner and can invite other pilots right after.
+                    </DialogDescription>
+                )}
             </DialogHeader>
 
             <div>
@@ -154,7 +154,8 @@ function TeamFormDialog({ open, team, onClose }: TeamFormDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && close()}>
-            <DialogContent className="border-slate-700 bg-slate-800 text-white">
+            {/* The edit dialog has no description, so it must not point to one */}
+            <DialogContent className="border-slate-700 bg-slate-800 text-white" {...(team && { "aria-describedby": undefined })}>
                 <TeamForm team={team} busy={busy} onBusyChange={setBusy} onClose={close} />
             </DialogContent>
         </Dialog>

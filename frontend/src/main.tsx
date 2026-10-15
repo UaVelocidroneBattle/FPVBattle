@@ -53,7 +53,7 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<MainLayout />}>
             <Route index element={<LandingPage />} />
             <Route path='profile' element={<ProfilePage />} />
-            <Route path='teams' element={<TeamsPage />} />
+            <Route path='teams/:teamId?' element={<TeamsPage />} />
             {/* Paths used before cup ids became the URL. */}
             <Route path='open' element={<Navigate to="/open-class" replace />} />
             <Route path='whoop' element={<Navigate to="/whoop-class" replace />} />

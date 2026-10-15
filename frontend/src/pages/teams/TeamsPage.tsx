@@ -5,11 +5,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 import { useTeamsStore } from "@/store/teamsStore";
+import CreateTeamButton from "./CreateTeamButton";
 import TeamFormDialog from "./TeamFormDialog";
 import InvitationsBanner from "./InvitationsBanner";
 import TeamDetails from "./TeamDetails";
 import TeamsSidebar from "./TeamsSidebar";
 import { panelClass, primaryButtonClass } from "./teamStyles";
+import { useUrlTeamSync } from "./useUrlTeamSync";
 
 /** Why the user cannot create a team right now, or null when they can. */
 function createBlockedReason(overview: TeamsOverviewModel, pilotMissing: boolean): string | null {
@@ -31,6 +33,8 @@ function TeamsPage() {
     const [creating, setCreating] = useState(false);
 
     const firstTeamId = useTeamsStore((state) => state.otherTeams[0]?.id);
+
+    useUrlTeamSync();
 
     useEffect(() => {
         useTeamsStore.getState().load();
@@ -57,7 +61,7 @@ function TeamsPage() {
             <InvitationsBanner />
 
             <div className="grid items-start gap-6 md:grid-cols-[300px_1fr]">
-                <TeamsSidebar onCreateTeam={blockedReason === null ? () => setCreating(true) : undefined} />
+                <TeamsSidebar createBlockedReason={blockedReason} onCreateTeam={() => setCreating(true)} />
 
                 {hasSelectedTeam ? (
                     <TeamDetails />
@@ -66,13 +70,12 @@ function TeamsPage() {
                         {user ? (
                             <>
                                 <h2 className="mb-7 text-xl font-semibold text-white">You're not in a team yet</h2>
-                                <button
-                                    onClick={() => setCreating(true)}
-                                    disabled={blockedReason !== null}
+                                <CreateTeamButton
+                                    label="Create a team"
                                     className={primaryButtonClass}
-                                >
-                                    Create a team
-                                </button>
+                                    blockedReason={blockedReason}
+                                    onClick={() => setCreating(true)}
+                                />
                                 {pilotMissing && (
                                     <p className="mt-4 text-xs text-slate-400">
                                         <Link to="/profile" className="text-emerald-400 hover:underline">

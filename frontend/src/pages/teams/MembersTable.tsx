@@ -39,15 +39,17 @@ function MembersTable({ members, myRole, currentUserId, onSetRole, onRemove }: M
     return (
         <table className="w-full table-fixed text-sm">
             <colgroup>
-                <col className="w-[60%] sm:w-[50%]" />
-                <col className="w-[20%] sm:w-[10%]" />
-                <col className="hidden w-[34%] sm:table-column" />
+                <col className="w-[45%] sm:w-[40%]" />
+                <col className="w-[15%] sm:w-[10%]" />
+                <col className="w-[20%] sm:w-[18%]" />
+                <col className="hidden w-[26%] sm:table-column" />
                 <col className="w-[20%] sm:w-[6%]" />
             </colgroup>
             <thead>
                 <tr>
                     <th className={headerCellClass}>Pilot</th>
                     <th className={headerCellClass} />
+                    <th className={headerCellClass}>Role</th>
                     <th className={`${headerCellClass} hidden text-right sm:table-cell`}>Joined</th>
                     <th className={headerCellClass} />
                 </tr>
@@ -63,11 +65,11 @@ function MembersTable({ members, myRole, currentUserId, onSetRole, onRemove }: M
                         >
                             <td className={`truncate px-2 py-2.5 font-semibold ${roleNameClass[member.role]}`}>
                                 {member.pilotName ? <PilotName name={member.pilotName} /> : "-"}
-                                <span className="sr-only"> ({member.role})</span>
                             </td>
                             <td className="py-2.5 pr-2">
                                 {member.country && <CountryFlag countryCode={member.country} />}
                             </td>
+                            <td className="truncate px-2 py-2.5 text-slate-400">{member.role}</td>
                             <td className="hidden px-2 py-2.5 text-right text-slate-400 sm:table-cell">
                                 {formatDate(member.joinedOn)}
                             </td>

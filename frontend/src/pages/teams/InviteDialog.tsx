@@ -51,8 +51,7 @@ function InviteDialog({ open, teamId, onClose }: InviteDialogProps) {
                 <DialogHeader>
                     <DialogTitle>Invite a pilot</DialogTitle>
                     <DialogDescription className="text-slate-400">
-                        The pilot must be linked to an account and must not be in another team. The invite stays
-                        until they accept or decline.
+                        The pilot must not be in another team.
                     </DialogDescription>
                 </DialogHeader>
 

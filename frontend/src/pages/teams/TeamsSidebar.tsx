@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { TeamSummaryModel } from "@/api/client";
 import { useAuthStore } from "@/store/authStore";
 import { useTeamsStore } from "@/store/teamsStore";
+import CreateTeamButton from "./CreateTeamButton";
 import MemberCount from "./MemberCount";
 import { compactPrimaryButtonClass, inputClass, panelClass, sectionTitleClass } from "./teamStyles";
 
@@ -77,11 +78,12 @@ function OtherTeams({ title, separated, maxTeamSize }: OtherTeamsProps) {
 }
 
 interface TeamsSidebarProps {
-    /** Present only when the user can create a team right now. */
-    onCreateTeam?: () => void;
+    /** Why the user cannot create a team right now, or null when they can. */
+    createBlockedReason: string | null;
+    onCreateTeam: () => void;
 }
 
-function TeamsSidebar({ onCreateTeam }: TeamsSidebarProps) {
+function TeamsSidebar({ createBlockedReason, onCreateTeam }: TeamsSidebarProps) {
     const signedIn = useAuthStore((state) => state.user !== null);
     const myTeam = useTeamsStore((state) => state.overview?.myTeam);
     const maxTeamSize = useTeamsStore((state) => state.overview?.maxTeamSize ?? 0);
@@ -92,11 +94,12 @@ function TeamsSidebar({ onCreateTeam }: TeamsSidebarProps) {
                 <div className={`pt-4 ${myTeam ? "" : "pb-4"}`}>
                     <div className={`flex min-h-[30px] items-center justify-between gap-2 px-4 ${myTeam ? "mb-4" : ""}`}>
                         <h2 className={sectionTitleClass}>Your team</h2>
-                        {onCreateTeam && (
-                            <button onClick={onCreateTeam} className={compactPrimaryButtonClass}>
-                                Create team
-                            </button>
-                        )}
+                        <CreateTeamButton
+                            label="Create team"
+                            className={compactPrimaryButtonClass}
+                            blockedReason={createBlockedReason}
+                            onClick={onCreateTeam}
+                        />
                     </div>
                     {myTeam && <TeamListItem team={myTeam} maxTeamSize={maxTeamSize} />}
                 </div>
