@@ -17,7 +17,6 @@ public class TeamManagementTests : TeamsTestBase
     {
         var team = await CreateTeamAsync("owner", "Alpha");
         await Service().AddMemberAsync(team, AddUser("member"));
-        _settings.TeamsPerUser = 1;
 
         var result = await Controller().Index();
 
@@ -54,7 +53,7 @@ public class TeamManagementTests : TeamsTestBase
     }
 
     [Fact]
-    public async Task Create_ReportsAnUnknownOrUnregisteredPilotATakenNameAndTheLimits()
+    public async Task Create_ReportsAnUnknownOrUnregisteredPilotATakenNameAndAPilotInATeam()
     {
         await CreateTeamAsync("busy", "Busy team");
         var controller = Controller();
@@ -72,7 +71,7 @@ public class TeamManagementTests : TeamsTestBase
         controller.TempData["Error"].Should().Be("A team with this name already exists");
 
         await controller.Create("Second", NextTag(), null, "pilot_busy");
-        controller.TempData["Error"].Should().Be("This pilot is already in the maximum number of teams");
+        controller.TempData["Error"].Should().Be("This pilot is already in a team");
     }
 
     [Fact]
@@ -132,7 +131,6 @@ public class TeamManagementTests : TeamsTestBase
     [Fact]
     public async Task AddMember_AddsThePilotAndDropsTheirInvite()
     {
-        _settings.TeamsPerUser = 0;
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
         var team = (await Service().CreateAsync(owner, "Alpha", NextTag(), null)).Team!;
@@ -163,19 +161,18 @@ public class TeamManagementTests : TeamsTestBase
     }
 
     [Fact]
-    public async Task AddMember_RespectsTheLimitsAndRejectsDuplicates()
+    public async Task AddMember_RejectsPilotsInATeamAndAFullTeam()
     {
         var team = await CreateTeamAsync("owner", "Alpha");
         await CreateTeamAsync("busy", "Busy team");
         var controller = Controller();
 
         await controller.AddMember(team.Id, "pilot_busy");
-        controller.TempData["Error"].Should().Be("This pilot is already in the maximum number of teams");
+        controller.TempData["Error"].Should().Be("This pilot is already in another team");
 
         await controller.AddMember(team.Id, "pilot_owner");
         controller.TempData["Error"].Should().Be("This pilot is already a member of the team");
 
-        _settings.TeamsPerUser = 0;
         _settings.MaxTeamSize = 1;
         AddUser("late");
         await controller.AddMember(team.Id, "pilot_late");
@@ -185,7 +182,6 @@ public class TeamManagementTests : TeamsTestBase
     [Fact]
     public async Task SetRole_ChangesTheRoleOfAMemberButNeverTheOwners()
     {
-        _settings.TeamsPerUser = 0;
         var team = await CreateTeamAsync("owner", "Alpha");
         var member = AddUser("member");
         await Service().AddMemberAsync(team, member);
@@ -203,7 +199,6 @@ public class TeamManagementTests : TeamsTestBase
     [Fact]
     public async Task RemoveMember_RemovesAMemberButNotTheOwner()
     {
-        _settings.TeamsPerUser = 0;
         var team = await CreateTeamAsync("owner", "Alpha");
         var member = AddUser("member");
         await Service().AddMemberAsync(team, member);
@@ -234,7 +229,6 @@ public class TeamManagementTests : TeamsTestBase
     {
         var owner = AddUser(ownerName);
         var team = (await Service().CreateAsync(owner, teamName, NextTag(), null)).Team!;
-        _settings.TeamsPerUser = 1;
         return team;
     }
 

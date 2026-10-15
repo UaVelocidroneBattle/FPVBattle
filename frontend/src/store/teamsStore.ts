@@ -33,7 +33,7 @@ interface TeamsState {
 }
 
 interface TeamsActions {
-    /** Loads only what the navigation needs: the user's teams and invitations. */
+    /** Loads only what the navigation needs: the user's team and invitations. */
     fetchOverview: () => Promise<void>;
     /** Loads everything the Teams page shows. */
     load: () => Promise<void>;
@@ -49,7 +49,7 @@ interface TeamsActions {
     revokeInvitation: (teamId: number, userId: string) => Promise<ActionResult>;
     setMemberRole: (teamId: number, userId: string, role: TeamRole) => Promise<ActionResult>;
     removeMember: (teamId: number, userId: string) => Promise<ActionResult>;
-    /** Drops another user's teams when the session ends. */
+    /** Drops another user's team when the session ends. */
     reset: () => void;
 }
 
@@ -116,11 +116,11 @@ export const useTeamsStore = create<TeamsStore>()((set, get) => {
 
     const clearSelection = () => set({ selectedTeamId: null, details: null, detailsState: "Idle" });
 
-    /** Reloads the page data and falls back to the user's first team when the selected one is gone. */
+    /** Reloads the page data and falls back to the user's own team when the selected one is gone. */
     const refresh = async () => {
         await Promise.all([get().fetchOverview(), fetchOtherTeams()]);
 
-        const defaultTeamId = get().overview?.myTeams[0]?.id ?? null;
+        const defaultTeamId = get().overview?.myTeam?.id ?? null;
         const teamId = get().selectedTeamId ?? defaultTeamId;
 
         if (teamId === null) return clearSelection();
@@ -134,7 +134,7 @@ export const useTeamsStore = create<TeamsStore>()((set, get) => {
 
     /**
      * Runs a mutation and refreshes the page on success. `selectAfter` picks the team to show
-     * afterwards: a team id, or null to fall back to the user's first team.
+     * afterwards: a team id, or null to fall back to the user's own team.
      */
     const perform = async (
         request: () => Promise<MutationResponse>,

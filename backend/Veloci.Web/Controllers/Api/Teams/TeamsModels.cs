@@ -49,7 +49,8 @@ public class InviteModel
 
 public class TeamsOverviewModel
 {
-    public required List<TeamSummaryModel> MyTeams { get; set; }
+    /// <summary>Empty when the user is in no team.</summary>
+    public TeamSummaryModel? MyTeam { get; set; }
     public required List<TeamInvitationModel> Invitations { get; set; }
 
     /// <summary>0 - if no limit</summary>
@@ -57,9 +58,6 @@ public class TeamsOverviewModel
 
     /// <summary>Members a team needs to be public. 0 - if teams are public from the start</summary>
     public required int MinPublicTeamSize { get; set; }
-
-    /// <summary>0 - if no limit</summary>
-    public required int TeamsPerUser { get; set; }
 }
 
 public class TeamSummaryModel

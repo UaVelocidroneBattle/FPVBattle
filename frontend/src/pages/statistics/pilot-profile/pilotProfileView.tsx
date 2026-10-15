@@ -9,7 +9,7 @@ import { formatDate } from '@/lib/utils';
 import CountryFlag from '@/components/ui/CountryFlag';
 import { countryName } from '@/lib/countries';
 import GapHistorySection from './GapHistorySection';
-import PilotTeams from './PilotTeams';
+import PilotTeam from './PilotTeam';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'));
 
@@ -61,7 +61,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
                         <span>Last race: {formatDate(profile.lastRaceDate)}</span>
                     </div>
                 </div>
-                <PilotTeams teams={profile.teams} />
+                <PilotTeam team={profile.team} />
             </div>
 
             {/* Rating */}

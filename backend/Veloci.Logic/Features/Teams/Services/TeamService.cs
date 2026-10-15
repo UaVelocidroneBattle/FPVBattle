@@ -48,11 +48,8 @@ public class TeamService
         if (!IsValidTag(normalizedTag))
             return new CreateTeamResult(CreateTeamStatus.InvalidTag);
 
-        if (await HasReachedMembershipLimitAsync(owner))
-            return new CreateTeamResult(CreateTeamStatus.MembershipLimitReached);
-
-        if (await CountOwnedTeamsAsync(owner) >= _settings.MaxOwnedTeamsPerUser)
-            return new CreateTeamResult(CreateTeamStatus.OwnedTeamsLimitReached);
+        if (await IsInTeamAsync(owner))
+            return new CreateTeamResult(CreateTeamStatus.AlreadyInTeam);
 
         if (await _teams.GetAll().AnyAsync(t => t.Name == normalizedName))
             return new CreateTeamResult(CreateTeamStatus.NameTaken);
@@ -130,9 +127,7 @@ public class TeamService
 
     public async Task<InviteToTeamResult> InviteAsync(ApplicationUser inviter, Team team, ApplicationUser invitee)
     {
-        var teamMembers = _members.GetAll().Where(m => m.TeamId == team.Id);
-
-        if (await teamMembers.AnyAsync(m => m.UserId == invitee.Id))
+        if (await _members.GetAll().AnyAsync(m => m.TeamId == team.Id && m.UserId == invitee.Id))
             return InviteToTeamResult.AlreadyMember;
 
         if (await _invites.GetAll().AnyAsync(i => i.TeamId == team.Id && i.UserId == invitee.Id))
@@ -141,8 +136,8 @@ public class TeamService
         if (await IsFullAsync(team.Id))
             return InviteToTeamResult.TeamFull;
 
-        if (await HasReachedMembershipLimitAsync(invitee))
-            return InviteToTeamResult.InviteeMembershipLimitReached;
+        if (await IsInTeamAsync(invitee))
+            return InviteToTeamResult.InviteeInAnotherTeam;
 
         await _invites.AddAsync(new TeamInvite
         {
@@ -170,8 +165,8 @@ public class TeamService
         if (await IsFullAsync(team.Id))
             return AddMemberResult.TeamFull;
 
-        if (await HasReachedMembershipLimitAsync(user))
-            return AddMemberResult.MembershipLimitReached;
+        if (await IsInTeamAsync(user))
+            return AddMemberResult.InAnotherTeam;
 
         await _members.AddAsync(new TeamMember
         {
@@ -197,9 +192,9 @@ public class TeamService
         if (await IsFullAsync(invite.TeamId))
             return AcceptInviteResult.TeamFull;
 
-        // An invite sent earlier stays valid after the user joins another team, so the limit is checked again here.
-        if (await HasReachedMembershipLimitAsync(user))
-            return AcceptInviteResult.MembershipLimitReached;
+        // An invite sent earlier stays pending after the user joins another team, so this is checked again here.
+        if (await IsInTeamAsync(user))
+            return AcceptInviteResult.AlreadyInTeam;
 
         await _members.AddAsync(new TeamMember
         {
@@ -277,21 +272,18 @@ public class TeamService
     }
 
     /// <summary>
-    /// Takes the user out of all their teams before the account is deleted. A team the user owns goes to its
+    /// Takes the user out of their team before the account is deleted. A team the user owns goes to its
     /// longest-serving admin, else its longest-serving member, and is deleted when nobody else is left.
     /// </summary>
-    public async Task RemoveUserFromTeamsAsync(ApplicationUser user)
+    public async Task RemoveUserFromTeamAsync(ApplicationUser user)
     {
-        var memberships = await _members.GetAll().Where(m => m.UserId == user.Id).ToListAsync();
+        var membership = await _members.GetAll().FirstOrDefaultAsync(m => m.UserId == user.Id);
 
-        foreach (var membership in memberships)
+        if (membership is null)
+            return;
+
+        if (membership.Role is TeamRole.Owner)
         {
-            if (membership.Role is not TeamRole.Owner)
-            {
-                await _members.RemoveEntryAsync(membership);
-                continue;
-            }
-
             var successor = await _members.GetAll()
                 .Where(m => m.TeamId == membership.TeamId && m.UserId != user.Id)
                 .OrderByDescending(m => m.Role)
@@ -300,17 +292,17 @@ public class TeamService
 
             if (successor is null)
             {
-                await _teams.RemoveAsync(membership.TeamId);
-                continue;
+                await RemoveAsync(membership.Team);
+                return;
             }
 
             successor.Role = TeamRole.Owner;
-            await _members.RemoveEntryAsync(membership);
         }
 
+        await _members.RemoveEntryAsync(membership);
         await _members.SaveChangesAsync();
 
-        Log.Information("Removed user {UserId} from {TeamCount} team(s) before account deletion", user.Id, memberships.Count);
+        Log.Information("Removed user {UserId} from team {TeamId} before account deletion", user.Id, membership.TeamId);
     }
 
     private static (string Name, string? Description) Normalize(string name, string? description)
@@ -342,17 +334,9 @@ public class TeamService
         return await _members.GetAll().CountAsync(m => m.TeamId == teamId) >= _settings.MaxTeamSize;
     }
 
-    private async Task<bool> HasReachedMembershipLimitAsync(ApplicationUser user)
+    private async Task<bool> IsInTeamAsync(ApplicationUser user)
     {
-        if (_settings.TeamsPerUser <= 0)
-            return false;
-
-        return await _members.GetAll().CountAsync(m => m.UserId == user.Id) >= _settings.TeamsPerUser;
-    }
-
-    private async Task<int> CountOwnedTeamsAsync(ApplicationUser user)
-    {
-        return await _members.GetAll().CountAsync(m => m.UserId == user.Id && m.Role == TeamRole.Owner);
+        return await _members.GetAll().AnyAsync(m => m.UserId == user.Id);
     }
 }
 
@@ -366,8 +350,7 @@ public enum CreateTeamStatus
     InvalidTag,
     TagNotAllowed,
     TagTaken,
-    MembershipLimitReached,
-    OwnedTeamsLimitReached
+    AlreadyInTeam
 }
 
 public record CreateTeamResult(CreateTeamStatus Status, Team? Team = null);
@@ -389,7 +372,7 @@ public enum InviteToTeamResult
     AlreadyMember,
     AlreadyInvited,
     TeamFull,
-    InviteeMembershipLimitReached
+    InviteeInAnotherTeam
 }
 
 public enum AddMemberResult
@@ -397,14 +380,14 @@ public enum AddMemberResult
     Added,
     AlreadyMember,
     TeamFull,
-    MembershipLimitReached
+    InAnotherTeam
 }
 
 public enum AcceptInviteResult
 {
     Accepted,
     TeamFull,
-    MembershipLimitReached
+    AlreadyInTeam
 }
 
 public enum LeaveTeamResult

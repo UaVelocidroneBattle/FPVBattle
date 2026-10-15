@@ -14,9 +14,7 @@ import { panelClass, primaryButtonClass } from "./teamStyles";
 /** Why the user cannot create a team right now, or null when they can. */
 function createBlockedReason(overview: TeamsOverviewModel, pilotMissing: boolean): string | null {
     if (pilotMissing) return "Link your Velocidrone pilot first";
-    if (overview.teamsPerUser > 0 && overview.myTeams.length >= overview.teamsPerUser) {
-        return "You are already in the maximum number of teams";
-    }
+    if (overview.myTeam) return "You are already in a team";
     return null;
 }
 

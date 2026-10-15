@@ -27,7 +27,7 @@ public class TeamsTests : TeamsTestBase
 
         created.Value!.Name.Should().Be("Alpha");
         var overview = (await Controller(owner).Overview()).Value!;
-        overview.MyTeams.Should().ContainSingle(t => t.Name == "Alpha" && t.MemberCount == 1);
+        overview.MyTeam.Should().BeEquivalentTo(new { Name = "Alpha", MemberCount = 1 });
         (await Controller(owner).Details(created.Value!.Id)).Value!.MyRole.Should().Be(TeamRole.Owner);
     }
 
@@ -79,7 +79,6 @@ public class TeamsTests : TeamsTestBase
         var owner = AddUser("owner");
         var admin = AddUser("admin");
         var member = AddUser("member");
-        _settings.TeamsPerUser = 0;
         var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = "OLD", Name = "Alpha" })).Value!.Id;
         foreach (var user in new[] { admin, member })
         {
@@ -130,7 +129,6 @@ public class TeamsTests : TeamsTestBase
     [Fact]
     public async Task Update_LetsOwnersAndAdminsEditTheTeamButNotMembers()
     {
-        _settings.TeamsPerUser = 0;
         var owner = AddUser("owner");
         var admin = AddUser("admin");
         var member = AddUser("member");
@@ -199,7 +197,7 @@ public class TeamsTests : TeamsTestBase
     }
 
     [Fact]
-    public async Task Accept_IsRejectedWhenTheMembershipLimitIsReached()
+    public async Task Accept_IsRejectedWhenTheUserIsAlreadyInATeam()
     {
         var ownerA = AddUser("ownerA");
         var ownerB = AddUser("ownerB");
@@ -216,7 +214,20 @@ public class TeamsTests : TeamsTestBase
     }
 
     [Fact]
-    public async Task Search_ExcludesMyTeamsAndOrdersBySizeThenFiltersByName()
+    public async Task Database_KeepsAUserInOneTeamOnly()
+    {
+        var owner = AddUser("owner");
+        await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" });
+        var otherTeamId = (await Controller(AddUser("other")).Create(new CreateTeamModel { Tag = NextTag(), Name = "Beta" })).Value!.Id;
+
+        _db.Set<TeamMember>().Add(new TeamMember { TeamId = otherTeamId, UserId = owner.Id });
+        var secondMembership = () => _db.SaveChangesAsync();
+
+        await secondMembership.Should().ThrowAsync<DbUpdateException>();
+    }
+
+    [Fact]
+    public async Task Search_ExcludesMyTeamAndOrdersBySizeThenFiltersByName()
     {
         var me = AddUser("me");
         await Controller(me).Create(new CreateTeamModel { Tag = NextTag(), Name = "Mine" });
@@ -287,12 +298,10 @@ public class TeamsTests : TeamsTestBase
         AddUser("free");
         AddUser("nopilot", withPilot: false);
         var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
-        _settings.TeamsPerUser = 0;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(member) });
         await Controller(member).Accept(new TeamReferenceModel { TeamId = teamId });
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invited) });
         await Controller(busy).Create(new CreateTeamModel { Tag = NextTag(), Name = "Busy team" });
-        _settings.TeamsPerUser = 1;
 
         var all = (await Controller(owner).InviteCandidates(teamId, "PILOT_")).Value!;
 
@@ -305,7 +314,6 @@ public class TeamsTests : TeamsTestBase
         var owner = AddUser("owner");
         var member = AddUser("member");
         var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
-        _settings.TeamsPerUser = 0;
         await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(member) });
         await Controller(member).Accept(new TeamReferenceModel { TeamId = teamId });
 
@@ -323,7 +331,7 @@ public class TeamsTests : TeamsTestBase
         var visitor = Controller(null);
 
         var overview = (await visitor.Overview()).Value!;
-        overview.MyTeams.Should().BeEmpty();
+        overview.MyTeam.Should().BeNull();
         overview.Invitations.Should().BeEmpty();
 
         (await visitor.Search(null)).Value!.Select(t => t.Name).Should().Equal("Alpha");
@@ -338,7 +346,6 @@ public class TeamsTests : TeamsTestBase
     [Fact]
     public async Task Responses_NeverContainDisplayNamesOrEmails()
     {
-        _settings.TeamsPerUser = 0;
         var owner = AddUser("owner");
         var invitee = AddUser("invitee");
         var other = AddUser("other");
@@ -392,7 +399,6 @@ public class TeamsTests : TeamsTestBase
     [Fact]
     public async Task Roles_OnlyTheOwnerChangesRolesAndAdminsRemoveOnlyMembers()
     {
-        _settings.TeamsPerUser = 0;
         var owner = AddUser("owner");
         var admin = AddUser("admin");
         var otherAdmin = AddUser("otherAdmin");
@@ -429,9 +435,8 @@ public class TeamsTests : TeamsTestBase
     }
 
     [Fact]
-    public async Task RemoveUserFromTeams_HandsTheTeamToTheLongestServingAdminOrDeletesAnEmptyTeam()
+    public async Task RemoveUserFromTeam_HandsTheTeamToTheLongestServingAdminOrDeletesAnEmptyTeam()
     {
-        _settings.TeamsPerUser = 0;
         var owner = AddUser("owner");
         var member = AddUser("member");
         var admin = AddUser("admin");
@@ -445,8 +450,8 @@ public class TeamsTests : TeamsTestBase
         var lonely = AddUser("lonely");
         var lonelyTeamId = (await Controller(lonely).Create(new CreateTeamModel { Tag = NextTag(), Name = "Solo" })).Value!.Id;
 
-        await Service().RemoveUserFromTeamsAsync(owner);
-        await Service().RemoveUserFromTeamsAsync(lonely);
+        await Service().RemoveUserFromTeamAsync(owner);
+        await Service().RemoveUserFromTeamAsync(lonely);
 
         var details = (await Controller(member).Details(teamId)).Value!;
         details.Members.Should().ContainSingle(m => m.PilotName == "pilot_admin" && m.Role == TeamRole.Owner);

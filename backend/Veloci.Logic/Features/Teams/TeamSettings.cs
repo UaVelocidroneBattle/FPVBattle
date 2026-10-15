@@ -8,7 +8,6 @@ public class TeamSettings
     /// 0 - if no limit
     /// </summary>
     public int MaxTeamSize { get; set; }
-    public int MaxOwnedTeamsPerUser { get; set; } = 1;
 
     /// <summary>
     /// Members a team needs before it is public: listed for everyone, shown on leaderboards and pilot profiles.
@@ -25,11 +24,6 @@ public class TeamSettings
     /// Whether an active Patron can create a team without the required race days
     /// </summary>
     public bool AllowPatronsToCreate { get; set; } = true;
-
-    /// <summary>
-    /// How many teams a user can be a member of. 0 - if no limit
-    /// </summary>
-    public int TeamsPerUser { get; set; } = 1;
 
     /// <summary>
     /// Tags nobody can pick, compared ignoring case.

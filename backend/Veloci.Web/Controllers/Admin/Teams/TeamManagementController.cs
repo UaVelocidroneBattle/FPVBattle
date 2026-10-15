@@ -11,7 +11,7 @@ namespace Veloci.Web.Controllers.Admin.Teams;
 
 /// <summary>
 /// Administers teams on behalf of nobody in particular, so unlike the public API it skips <see cref="TeamPermissions"/>.
-/// The team limits still apply.
+/// The team rules still apply: one team per user and the team size limit.
 /// </summary>
 public class TeamManagementController : AdminControllerBase
 {
@@ -64,7 +64,7 @@ public class TeamManagementController : AdminControllerBase
         {
             Teams = rows,
             MaxTeamSize = _settings.MaxTeamSize,
-            OwnerCandidates = await FindOwnerCandidatesAsync()
+            OwnerCandidates = await FindPilotsWithoutTeamAsync()
         });
     }
 
@@ -110,7 +110,7 @@ public class TeamManagementController : AdminControllerBase
             MaxTeamSize = _settings.MaxTeamSize,
             Members = members,
             Invites = invites,
-            MemberCandidates = await FindMemberCandidatesAsync(id, members.Count)
+            MemberCandidates = await FindMemberCandidatesAsync(members.Count)
         });
     }
 
@@ -132,8 +132,7 @@ public class TeamManagementController : AdminControllerBase
             CreateTeamStatus.TagNotAllowed => TeamMessages.TagNotAllowed,
             CreateTeamStatus.NameTaken => TeamMessages.NameTaken,
             CreateTeamStatus.TagTaken => TeamMessages.TagTaken,
-            CreateTeamStatus.MembershipLimitReached => "This pilot is already in the maximum number of teams",
-            CreateTeamStatus.OwnedTeamsLimitReached => "This pilot has reached the limit of teams they can own",
+            CreateTeamStatus.AlreadyInTeam => "This pilot is already in a team",
             _ => null
         };
 
@@ -207,7 +206,7 @@ public class TeamManagementController : AdminControllerBase
             {
                 AddMemberResult.AlreadyMember => "This pilot is already a member of the team",
                 AddMemberResult.TeamFull => "The team is full",
-                AddMemberResult.MembershipLimitReached => "This pilot is already in the maximum number of teams",
+                AddMemberResult.InAnotherTeam => "This pilot is already in another team",
                 _ => null
             };
 
@@ -263,37 +262,23 @@ public class TeamManagementController : AdminControllerBase
         return RedirectToAction(nameof(Details), new { id });
     }
 
-    /// <summary>Pilots linked to an account that is under both the membership and the owned-teams limit.</summary>
-    private async Task<List<string>> FindOwnerCandidatesAsync()
-    {
-        return await UsersWithRoomForAnotherTeam()
-            .Where(u => _members.GetAll().Count(m => m.UserId == u.Id && m.Role == TeamRole.Owner) < _settings.MaxOwnedTeamsPerUser)
-            .Select(u => u.Pilot!.Name)
-            .OrderBy(name => name)
-            .ToListAsync();
-    }
-
-    /// <summary>Pilots linked to an account that can join the team now: not in it yet and under the membership limit.</summary>
-    private async Task<List<string>> FindMemberCandidatesAsync(int teamId, int memberCount)
+    /// <summary>Pilots that can join the team now: in no team yet, while the team has room.</summary>
+    private async Task<List<string>> FindMemberCandidatesAsync(int memberCount)
     {
         if (_settings.MaxTeamSize > 0 && memberCount >= _settings.MaxTeamSize)
             return [];
 
-        return await UsersWithRoomForAnotherTeam()
-            .Where(u => !_members.GetAll().Any(m => m.TeamId == teamId && m.UserId == u.Id))
+        return await FindPilotsWithoutTeamAsync();
+    }
+
+    /// <summary>Pilots linked to an account that is in no team yet.</summary>
+    private Task<List<string>> FindPilotsWithoutTeamAsync()
+    {
+        return _users.GetAll()
+            .Where(u => u.Pilot != null && !_members.GetAll().Any(m => m.UserId == u.Id))
             .Select(u => u.Pilot!.Name)
             .OrderBy(name => name)
             .ToListAsync();
-    }
-
-    private IQueryable<ApplicationUser> UsersWithRoomForAnotherTeam()
-    {
-        var users = _users.GetAll().Where(u => u.Pilot != null);
-
-        if (_settings.TeamsPerUser > 0)
-            users = users.Where(u => _members.GetAll().Count(m => m.UserId == u.Id) < _settings.TeamsPerUser);
-
-        return users;
     }
 
     private async Task<TeamMember?> FindMemberAsync(int teamId, string userId)

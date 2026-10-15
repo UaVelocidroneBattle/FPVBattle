@@ -129,7 +129,7 @@ public class ProfileController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        await _teamService.RemoveUserFromTeamsAsync(user);
+        await _teamService.RemoveUserFromTeamAsync(user);
 
         var deletion = await _userManager.DeleteAsync(user);
 

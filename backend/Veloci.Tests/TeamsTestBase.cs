@@ -16,7 +16,7 @@ public abstract class TeamsTestBase : IDisposable
 {
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
     protected readonly ApplicationDbContext _db;
-    protected readonly TeamSettings _settings = new() { MaxTeamSize = 0, MinPublicTeamSize = 0, MaxOwnedTeamsPerUser = 1, TeamsPerUser = 1 };
+    protected readonly TeamSettings _settings = new() { MaxTeamSize = 0, MinPublicTeamSize = 0 };
     protected readonly UserManager<ApplicationUser> _userManager;
     private int _nextPilotId = 1;
     private int _nextTag = 1;

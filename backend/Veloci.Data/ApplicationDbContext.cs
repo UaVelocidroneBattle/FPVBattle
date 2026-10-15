@@ -137,7 +137,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<TeamMember>().ToTable("TeamMembers");
         builder.Entity<TeamMember>().HasKey(m => new { m.TeamId, m.UserId });
-        builder.Entity<TeamMember>().HasIndex(m => m.UserId);
+        builder.Entity<TeamMember>().HasIndex(m => m.UserId).IsUnique();
         builder.Entity<TeamMember>()
             .HasOne(m => m.Team)
             .WithMany(t => t.Members)

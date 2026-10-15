@@ -6,7 +6,7 @@ using Veloci.Data.Repositories;
 namespace Veloci.Logic.Features.Teams;
 
 /// <summary>
-/// Finds the tag a pilot wears on leaderboards: that of the team they joined first. Teams that are not public yet give no tag.
+/// Finds the tag a pilot wears on leaderboards: that of their team. Teams that are not public yet give no tag.
 /// </summary>
 public class TeamTagLookup
 {
@@ -24,16 +24,9 @@ public class TeamTagLookup
     /// </summary>
     public async Task<IReadOnlyDictionary<string, string>> GetTagsByPilotNameAsync(CancellationToken ct = default)
     {
-        var members = await _teamMembers.GetAll()
+        return await _teamMembers.GetAll()
             .Where(m => m.Team.Tag != null && m.User.Pilot != null && m.Team.Members.Count >= _settings.MinPublicTeamSize)
-            .OrderBy(m => m.JoinedOn)
             .Select(m => new { PilotName = m.User.Pilot!.Name, Tag = m.Team.Tag! })
-            .ToListAsync(ct);
-
-        var tags = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var member in members)
-            tags.TryAdd(member.PilotName, member.Tag);
-
-        return tags;
+            .ToDictionaryAsync(m => m.PilotName, m => m.Tag, StringComparer.Ordinal, ct);
     }
 }

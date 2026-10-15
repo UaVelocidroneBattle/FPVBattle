@@ -2308,8 +2308,7 @@
           "achievements",
           "totalRaceDays",
           "availableFreezes",
-          "classRatings",
-          "teams"
+          "classRatings"
         ],
         "type": "object",
         "properties": {
@@ -2361,11 +2360,15 @@
               "$ref": "#/components/schemas/PilotClassRatingModel"
             }
           },
-          "teams": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PilotTeamModel"
-            }
+          "team": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PilotTeamModel"
+              }
+            ]
           }
         }
       },
@@ -2892,19 +2895,21 @@
       },
       "TeamsOverviewModel": {
         "required": [
-          "myTeams",
           "invitations",
           "maxTeamSize",
-          "minPublicTeamSize",
-          "teamsPerUser"
+          "minPublicTeamSize"
         ],
         "type": "object",
         "properties": {
-          "myTeams": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TeamSummaryModel"
-            }
+          "myTeam": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TeamSummaryModel"
+              }
+            ]
           },
           "invitations": {
             "type": "array",
@@ -2917,10 +2922,6 @@
             "format": "int32"
           },
           "minPublicTeamSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "teamsPerUser": {
             "type": "integer",
             "format": "int32"
           }

@@ -22,7 +22,7 @@ The web dashboard supports user accounts with Google sign-in (JWT access tokens 
 
 ### Teams
 
-Users with a linked pilot can create teams (by default a user belongs to one team) and invite other pilots to them. Anyone, including visitors, can browse teams and their members; members are identified by pilot name only, never by account name or email. Details are in [docs/teams.md](docs/teams.md).
+Users with a linked pilot can create teams (a user belongs to at most one team) and invite other pilots to them. Anyone, including visitors, can browse teams and their members; members are identified by pilot name only, never by account name or email. Details are in [docs/teams.md](docs/teams.md).
 
 ## Development Principles
 

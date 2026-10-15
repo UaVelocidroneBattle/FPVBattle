@@ -831,7 +831,8 @@ namespace Veloci.Web.Data.Migrations
 
                     b.HasKey("TeamId", "UserId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("TeamMembers", (string)null);
                 });

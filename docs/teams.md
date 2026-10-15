@@ -2,6 +2,8 @@
 
 Signed-in users with a linked pilot can create teams and invite other pilots to them from the Teams page (`/teams`). Anyone, including visitors, can browse teams and their members.
 
+A user belongs to at most one team. This is a rule, not a setting: the unique index on `TeamMembers.UserId` enforces it, and the API and UI deal with a single team (`TeamsOverviewModel.MyTeam`, `PilotProfileModel.Team`).
+
 ## Roles
 
 | Role | Can do |
@@ -16,8 +18,8 @@ The owner cannot leave; they delete the team instead.
 
 - Sent by pilot name (case sensitive) to the user linked to that pilot, so an invitee always has a linked pilot.
 - They never expire. They disappear when accepted, declined or revoked.
-- The invite dialog suggests only pilots that can be invited right now: linked to an account, not in the team, not already invited, and not at the team limit.
-- Accepting checks the limits again, because an invite can wait for a long time.
+- The invite dialog suggests only pilots that can be invited right now: linked to an account, in no team, and not already invited.
+- A pilot can hold invites from several teams; accepting one is refused while they are in a team. Accepting also checks `MaxTeamSize` again, because an invite can wait for a long time.
 - Joining is by invitation only.
 
 ## Limits
@@ -26,12 +28,10 @@ The `Teams` section of `appsettings.json` (documented in `appsettings.schema.jso
 
 | Setting | Meaning |
 |---|---|
-| `TeamsPerUser` | Teams a user can belong to. Default 1, so one user - one team. 0 means no limit. |
-| `MaxOwnedTeamsPerUser` | Teams a user can create. |
 | `MaxTeamSize` | Members per team. 0 means no limit. The UI shows "x / limit" only when a limit is set. |
 | `MinPublicTeamSize` | Members a team needs to be public. Default 3; 0 makes teams public from the start. See Visibility. |
 
-Creating a team requires a linked pilot.
+Creating a team requires a linked pilot and no team yet.
 
 ## Names
 
@@ -46,7 +46,7 @@ A tag is a short label for the leaderboard, where the full name would not fit. T
 - Editing a team always requires a valid tag, so a team without one gets it the first time it is edited.
 - `Teams:BlacklistedTags` in `appsettings.json` lists tags nobody can pick (compared ignoring case). A team that already holds a tag blacklisted later keeps it. The admin page applies the same rules.
 
-Leaderboards (today's and the season's) show the tag in brackets before the pilot name. A pilot in several teams shows the tag of the team they joined first (`TeamTagLookup`).
+Leaderboards (today's and the season's) show the tag of the pilot's team in brackets before the pilot name (`TeamTagLookup`).
 
 A member of a team gets an All / My team switch above today's leaderboard. "My team" shows only the team's pilots, ranked together (flat), with their positions on the full board in brackets, and hides the country and flat filters. It works for teams that are not public yet too (`useMyTeamPilots`).
 
@@ -60,14 +60,14 @@ Teams are public, so responses must never contain account display names or email
 
 ## Account deletion
 
-Before an account is deleted, a team the user owns goes to its longest-serving admin, then to its longest-serving member, and is deleted when nobody else is left (`TeamService.RemoveUserFromTeamsAsync`).
+Before an account is deleted, a team the user owns goes to its longest-serving admin, then to its longest-serving member, and is deleted when nobody else is left (`TeamService.RemoveUserFromTeamAsync`).
 
 ## Admin page
 
-The admin area has a Teams page (`/TeamManagement`, sidebar: Pilots > Teams). Admins act outside the team roles, so `TeamPermissions` does not apply, but the limits do (`TeamsPerUser`, `MaxOwnedTeamsPerUser`, `MaxTeamSize`). Pilots are always entered by exact, case-sensitive pilot name, and pages show pilot names only, never emails.
+The admin area has a Teams page (`/TeamManagement`, sidebar: Pilots > Teams). Admins act outside the team roles, so `TeamPermissions` does not apply, but the rules do: one team per user and `MaxTeamSize`. Pilots are always entered by exact, case-sensitive pilot name, and pages show pilot names only, never emails.
 
 - **List**: team, owner, members (`x / limit` when a limit is set), pending invites, created date. Searchable and sortable.
-- **Create a team**: the admin picks a pilot as the owner, who must be linked to an account.
+- **Create a team**: the admin picks a pilot as the owner, who must be linked to an account and in no team.
 - **Team page**: edit name and description (same rules as users), delete the team.
 - **Members**: add a pilot straight into the team (as a plain member; their pending invite to it is dropped), make a member admin or member again, remove a member. The owner can be neither removed nor demoted.
 - **Pending invites**: revoke.

@@ -221,7 +221,7 @@ export type PilotProfileModel = {
     firstRaceDate?: null | string;
     availableFreezes: number;
     classRatings: Array<PilotClassRatingModel>;
-    teams: Array<PilotTeamModel>;
+    team?: null | PilotTeamModel;
 };
 
 export type PilotRatingHistoryPoint = {
@@ -357,11 +357,10 @@ export type TeamReferenceModel = {
 export type TeamRole = 'Member' | 'Admin' | 'Owner';
 
 export type TeamsOverviewModel = {
-    myTeams: Array<TeamSummaryModel>;
+    myTeam?: null | TeamSummaryModel;
     invitations: Array<TeamInvitationModel>;
     maxTeamSize: number;
     minPublicTeamSize: number;
-    teamsPerUser: number;
 };
 
 export type TeamSummaryModel = {

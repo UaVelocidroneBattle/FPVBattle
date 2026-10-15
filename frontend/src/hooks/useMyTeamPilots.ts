@@ -3,29 +3,27 @@ import { getApiTeamsDetails } from "@/api/client";
 import { useTeamsStore } from "@/store/teamsStore";
 
 /**
- * Names of the pilots in the signed-in user's teams, or null when the user is in
- * no team (or the members are not loaded yet). Teams that are not public yet
- * count too: their members can always see them.
+ * Names of the pilots in the signed-in user's team, or null when the user is in
+ * no team (or the members are not loaded yet). A team that is not public yet
+ * counts too: its members can always see it.
  */
 export function useMyTeamPilots(): Set<string> | null {
-    const teamIdsKey = useTeamsStore((state) => state.overview?.myTeams.map((team) => team.id).join(",") ?? "");
+    const teamId = useTeamsStore((state) => state.overview?.myTeam?.id);
     const [pilots, setPilots] = useState<Set<string> | null>(null);
 
     useEffect(() => {
-        if (!teamIdsKey) {
+        if (teamId === undefined) {
             setPilots(null);
             return;
         }
 
         let cancelled = false;
-        const teamIds = teamIdsKey.split(",").map(Number);
 
-        Promise.all(teamIds.map((teamId) => getApiTeamsDetails({ query: { teamId } })))
-            .then((responses) => {
+        getApiTeamsDetails({ query: { teamId } })
+            .then((response) => {
                 if (cancelled) return;
 
-                const names = responses
-                    .flatMap((response) => response.data?.members ?? [])
+                const names = (response.data?.members ?? [])
                     .map((member) => member.pilotName)
                     .filter((name): name is string => !!name);
                 setPilots(new Set(names));
@@ -37,7 +35,7 @@ export function useMyTeamPilots(): Set<string> | null {
         return () => {
             cancelled = true;
         };
-    }, [teamIdsKey]);
+    }, [teamId]);
 
     return pilots;
 }

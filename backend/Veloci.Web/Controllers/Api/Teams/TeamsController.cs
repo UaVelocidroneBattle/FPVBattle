@@ -47,7 +47,7 @@ public class TeamsController : ControllerBase
     }
 
     /// <summary>
-    /// The team settings, plus the teams and invitations of the signed-in user. A visitor gets them empty.
+    /// The team settings, plus the team and invitations of the signed-in user. A visitor gets them empty.
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
@@ -57,16 +57,15 @@ public class TeamsController : ControllerBase
 
         return new TeamsOverviewModel
         {
-            MyTeams = userId is null ? [] : await GetTeamsOfUserAsync(userId),
+            MyTeam = userId is null ? null : await GetTeamOfUserAsync(userId),
             Invitations = userId is null ? [] : await GetInvitationsOfUserAsync(userId),
             MaxTeamSize = _settings.MaxTeamSize,
-            MinPublicTeamSize = _settings.MinPublicTeamSize,
-            TeamsPerUser = _settings.TeamsPerUser
+            MinPublicTeamSize = _settings.MinPublicTeamSize
         };
     }
 
     /// <summary>
-    /// The biggest public teams, optionally filtered by name. A signed-in user does not get their own teams here.
+    /// The biggest public teams, optionally filtered by name. A signed-in user does not get their own team here.
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
@@ -108,17 +107,11 @@ public class TeamsController : ControllerBase
             return new List<PilotSuggestionModel>();
 
         var pattern = TeamModelMapper.ContainsPattern(query.Trim());
-        var membershipLimit = _settings.TeamsPerUser;
 
-        var candidates = _userManager.Users
+        return await _userManager.Users
             .Where(u => u.Pilot != null && EF.Functions.Like(u.Pilot.Name, pattern, "\\"))
-            .Where(u => !_members.GetAll().Any(m => m.TeamId == teamId && m.UserId == u.Id))
-            .Where(u => !_invites.GetAll().Any(i => i.TeamId == teamId && i.UserId == u.Id));
-
-        if (membershipLimit > 0)
-            candidates = candidates.Where(u => _members.GetAll().Count(m => m.UserId == u.Id) < membershipLimit);
-
-        return await candidates
+            .Where(u => !_members.GetAll().Any(m => m.UserId == u.Id))
+            .Where(u => !_invites.GetAll().Any(i => i.TeamId == teamId && i.UserId == u.Id))
             .OrderBy(u => u.Pilot!.Name)
             .Take(SuggestionsLimit)
             .Select(u => new PilotSuggestionModel { Name = u.Pilot!.Name, Country = u.Pilot.Country })
@@ -209,8 +202,7 @@ public class TeamsController : ControllerBase
             CreateTeamStatus.TagNotAllowed => BadRequest(TeamMessages.TagNotAllowed),
             CreateTeamStatus.NameTaken => Conflict(TeamMessages.NameTaken),
             CreateTeamStatus.TagTaken => Conflict(TeamMessages.TagTaken),
-            CreateTeamStatus.MembershipLimitReached => Conflict("You are already in the maximum number of teams. Leave a team to create a new one"),
-            CreateTeamStatus.OwnedTeamsLimitReached => Conflict("You have reached the limit of teams you can own"),
+            CreateTeamStatus.AlreadyInTeam => Conflict("You are already in a team. Leave it to create a new one"),
             _ => new TeamModel
             {
                 Id = result.Team!.Id,
@@ -290,7 +282,7 @@ public class TeamsController : ControllerBase
             InviteToTeamResult.AlreadyMember => Conflict("This pilot is already a member of the team"),
             InviteToTeamResult.AlreadyInvited => Conflict("This pilot has already been invited"),
             InviteToTeamResult.TeamFull => Conflict("The team is full"),
-            InviteToTeamResult.InviteeMembershipLimitReached => Conflict("This pilot is already in a team"),
+            InviteToTeamResult.InviteeInAnotherTeam => Conflict("This pilot is already in a team"),
             _ => Ok()
         };
     }
@@ -334,7 +326,7 @@ public class TeamsController : ControllerBase
         return result switch
         {
             AcceptInviteResult.TeamFull => Conflict("The team is full"),
-            AcceptInviteResult.MembershipLimitReached => Conflict("You are already in the maximum number of teams. Leave a team to join this one"),
+            AcceptInviteResult.AlreadyInTeam => Conflict("You are already in a team. Leave it to join this one"),
             _ => NoContent()
         };
     }
@@ -443,7 +435,7 @@ public class TeamsController : ControllerBase
         return result is RemoveMemberResult.OwnerCannotBeRemoved ? Forbid() : NoContent();
     }
 
-    private async Task<List<TeamSummaryModel>> GetTeamsOfUserAsync(string userId)
+    private async Task<TeamSummaryModel?> GetTeamOfUserAsync(string userId)
     {
         return await _members.GetAll()
             .Where(m => m.UserId == userId)
@@ -453,7 +445,7 @@ public class TeamsController : ControllerBase
                 Name = m.Team.Name,
                 MemberCount = m.Team.Members.Count
             })
-            .ToListAsync();
+            .FirstOrDefaultAsync();
     }
 
     private async Task<List<TeamInvitationModel>> GetInvitationsOfUserAsync(string userId)

@@ -73,16 +73,15 @@ public class PilotProfileService : IPilotProfileService
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
             ClassRatings = classRatings,
-            Teams = await GetTeamsAsync(pilot, ct)
+            Team = await GetTeamAsync(pilot, ct)
         };
     }
 
-    private Task<List<PilotTeamModel>> GetTeamsAsync(Pilot pilot, CancellationToken ct)
+    private Task<PilotTeamModel?> GetTeamAsync(Pilot pilot, CancellationToken ct)
         => _teamMembers.GetAll()
             .Where(m => m.User.PilotId == pilot.Id && m.Team.Members.Count >= _teamSettings.MinPublicTeamSize)
-            .OrderBy(m => m.JoinedOn)
             .Select(m => new PilotTeamModel { Id = m.TeamId, Name = m.Team.Name })
-            .ToListAsync(ct);
+            .FirstOrDefaultAsync(ct);
 
     private async Task<PilotClassRatingModel> BuildClassRatingAsync(Pilot pilot, string cupId)
     {

@@ -6,7 +6,6 @@ import MemberCount from "./MemberCount";
 import { compactPrimaryButtonClass, inputClass, panelClass, sectionTitleClass } from "./teamStyles";
 
 const SEARCH_DEBOUNCE_MS = 250;
-const NO_TEAMS: TeamSummaryModel[] = [];
 
 interface TeamListItemProps {
     team: TeamSummaryModel;
@@ -33,7 +32,7 @@ function TeamListItem({ team, maxTeamSize }: TeamListItemProps) {
 
 interface OtherTeamsProps {
     title: string;
-    /** Draws a line above the block, to set it apart from the user's own teams. */
+    /** Draws a line above the block, to set it apart from the user's own team. */
     separated: boolean;
     maxTeamSize: number;
 }
@@ -84,24 +83,22 @@ interface TeamsSidebarProps {
 
 function TeamsSidebar({ onCreateTeam }: TeamsSidebarProps) {
     const signedIn = useAuthStore((state) => state.user !== null);
-    const myTeams = useTeamsStore((state) => state.overview?.myTeams) ?? NO_TEAMS;
+    const myTeam = useTeamsStore((state) => state.overview?.myTeam);
     const maxTeamSize = useTeamsStore((state) => state.overview?.maxTeamSize ?? 0);
 
     return (
         <aside className={panelClass}>
             {signedIn && (
-                <div className={`pt-4 ${myTeams.length === 0 ? "pb-4" : ""}`}>
-                    <div className={`flex min-h-[30px] items-center justify-between gap-2 px-4 ${myTeams.length > 0 ? "mb-4" : ""}`}>
-                        <h2 className={sectionTitleClass}>{myTeams.length > 1 ? "Your teams" : "Your team"}</h2>
+                <div className={`pt-4 ${myTeam ? "" : "pb-4"}`}>
+                    <div className={`flex min-h-[30px] items-center justify-between gap-2 px-4 ${myTeam ? "mb-4" : ""}`}>
+                        <h2 className={sectionTitleClass}>Your team</h2>
                         {onCreateTeam && (
                             <button onClick={onCreateTeam} className={compactPrimaryButtonClass}>
                                 Create team
                             </button>
                         )}
                     </div>
-                    {myTeams.map((team) => (
-                        <TeamListItem key={team.id} team={team} maxTeamSize={maxTeamSize} />
-                    ))}
+                    {myTeam && <TeamListItem team={myTeam} maxTeamSize={maxTeamSize} />}
                 </div>
             )}
 
