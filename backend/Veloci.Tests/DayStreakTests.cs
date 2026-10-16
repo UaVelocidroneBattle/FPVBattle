@@ -128,4 +128,37 @@ public class DayStreakTests
         pilot.DayStreak.Should().Be(0);
         pilot.DayStreakFreezeCount.Should().Be(0);
     }
+
+    [Fact]
+    public void frozen_streak_is_kept_without_spending_freezies()
+    {
+        var today = DateTime.Today;
+        var pilot = new Pilot("TestPilot")
+        {
+            DayStreak = 50,
+            DayStreakFrozenUntil = today,
+            DayStreakFreezes = new List<DayStreakFreeze> { new() }
+        };
+
+        pilot.ResetDayStreak(today);
+
+        pilot.DayStreak.Should().Be(50);
+        pilot.DayStreakFreezeCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void expired_freeze_falls_back_to_regular_reset()
+    {
+        var today = DateTime.Today;
+        var pilot = new Pilot("TestPilot")
+        {
+            DayStreak = 50,
+            DayStreakFrozenUntil = today.AddDays(-1),
+            DayStreakFreezes = new List<DayStreakFreeze>()
+        };
+
+        pilot.ResetDayStreak(today);
+
+        pilot.DayStreak.Should().Be(0);
+    }
 }
