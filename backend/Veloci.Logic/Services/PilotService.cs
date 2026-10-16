@@ -104,6 +104,7 @@ public class PilotService
         var pilotsToNotify = await _pilots
             .GetAll(p => p.DayStreak > 10)
             .Where(p => participatedPilotIds.All(l => l != p.Id))
+            .Where(p => p.DayStreakFrozenUntil == null || p.DayStreakFrozenUntil < today)
             .ToListAsync();
 
         if (pilotsToNotify.Count == 0)

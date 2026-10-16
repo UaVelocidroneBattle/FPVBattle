@@ -35,7 +35,8 @@ public class UsersController : AdminControllerBase
             PilotName = u.Pilot?.Name,
             CountryName = u.Pilot is null ? null : TextHelper.CountryName(u.Pilot.Country),
             DayStreak = u.Pilot?.DayStreak,
-            Freezies = u.Pilot?.DayStreakFreezeCount
+            Freezies = u.Pilot?.DayStreakFreezeCount,
+            DayStreakFrozenUntil = u.Pilot?.DayStreakFrozenUntil
         }).ToList();
 
         return View(new UsersViewModel { Users = rows });
@@ -97,6 +98,28 @@ public class UsersController : AdminControllerBase
             {
                 pilot.DayStreakFreezes.Add(new DayStreakFreeze(today));
             }
+
+            await _users.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> FreezeDayStreak(string userId, DateTime? until)
+    {
+        try
+        {
+            var user = await _users.FindAsync(userId)
+                       ?? throw new InvalidOperationException("User not found");
+            var pilot = user.Pilot
+                        ?? throw new InvalidOperationException("User is not linked to a pilot");
+
+            pilot.DayStreakFrozenUntil = until?.Date;
 
             await _users.SaveChangesAsync();
         }
