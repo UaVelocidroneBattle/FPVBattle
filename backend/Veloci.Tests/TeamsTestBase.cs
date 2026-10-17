@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
@@ -61,6 +62,27 @@ public abstract class TeamsTestBase : IDisposable
     /// <summary>A tag no other team in this test has used yet.</summary>
     protected string NextTag() => $"T{_nextTag++}";
 
+    protected readonly RecordingPublisher _publisher = new();
+
     protected TeamService Service() => new(
-        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamInvite>(_db), Options.Create(_settings));
+        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamInvite>(_db), Options.Create(_settings), _publisher);
+
+    /// <summary>Keeps the published events instead of running their handlers.</summary>
+    protected class RecordingPublisher : IPublisher
+    {
+        public List<object> Published { get; } = [];
+
+        public Task Publish(object notification, CancellationToken cancellationToken = default)
+        {
+            Published.Add(notification);
+            return Task.CompletedTask;
+        }
+
+        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
+            where TNotification : INotification
+        {
+            Published.Add(notification);
+            return Task.CompletedTask;
+        }
+    }
 }

@@ -172,7 +172,7 @@ export type NotificationsModel = {
     unreadCount: number;
 };
 
-export type NotificationType = 'General' | 'Achievement' | 'CompetitionResults' | 'LeagueUpdate';
+export type NotificationType = 'General' | 'Achievement' | 'CompetitionResults' | 'LeagueUpdate' | 'TeamInvite';
 
 export type ParticipationModel = {
     days: Array<string>;

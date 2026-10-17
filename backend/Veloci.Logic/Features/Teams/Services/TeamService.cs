@@ -1,15 +1,13 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Logic.Features.Teams.Notifications;
 
 namespace Veloci.Logic.Features.Teams.Services;
 
-/// <summary>
-/// Team operations and the rules that hold for everyone. Who is allowed to run an operation is decided by the
-/// caller, see <see cref="TeamPermissions"/>.
-/// </summary>
 public class TeamService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<TeamService>();
@@ -18,17 +16,20 @@ public class TeamService
     private readonly IRepository<TeamMember> _members;
     private readonly IRepository<TeamInvite> _invites;
     private readonly TeamSettings _settings;
+    private readonly IPublisher _publisher;
 
     public TeamService(
         IRepository<Team> teams,
         IRepository<TeamMember> members,
         IRepository<TeamInvite> invites,
-        IOptions<TeamSettings> settings)
+        IOptions<TeamSettings> settings,
+        IPublisher publisher)
     {
         _teams = teams;
         _members = members;
         _invites = invites;
         _settings = settings.Value;
+        _publisher = publisher;
     }
 
     public async Task<CreateTeamResult> CreateAsync(ApplicationUser owner, string name, string tag, string? description)
@@ -150,6 +151,8 @@ public class TeamService
 
         Log.Information("User {InviterId} invited user {InviteeId} to team {TeamName} ({TeamId})",
             inviter.Id, invitee.Id, team.Name, team.Id);
+
+        await _publisher.Publish(new TeamInviteSentNotification(team, inviter, invitee));
 
         return InviteToTeamResult.Invited;
     }

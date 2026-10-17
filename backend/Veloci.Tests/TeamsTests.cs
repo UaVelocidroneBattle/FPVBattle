@@ -11,6 +11,10 @@ using Veloci.Data;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Teams;
+using Veloci.Logic.Features.Notifications.Channels;
+using Veloci.Logic.Features.Notifications.Services;
+using Veloci.Logic.Features.Teams.NotificationHandlers;
+using Veloci.Logic.Features.Teams.Notifications;
 using Veloci.Logic.Features.Teams.Services;
 using Veloci.Web.Controllers.Api.Teams;
 
@@ -194,6 +198,7 @@ public class TeamsTests : TeamsTestBase
 
         var invited = await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(invitee) });
         invited.Should().BeOfType<OkResult>();
+        _publisher.Published.Should().ContainSingle(e => e is TeamInviteSentNotification && ((TeamInviteSentNotification)e).Invitee.Id == invitee.Id);
 
         var invitations = (await Controller(invitee).Overview()).Value!.Invitations;
         invitations.Should().ContainSingle(i => i.TeamId == teamId && i.InvitedBy == "pilot_owner" && i.MemberCount == 1);
@@ -205,6 +210,21 @@ public class TeamsTests : TeamsTestBase
         details.MyRole.Should().Be(TeamRole.Member);
         details.PendingInvites.Should().BeEmpty();
         (await Controller(invitee).Overview()).Value!.Invitations.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InAppTeamInviteHandler_PutsTheInviteInTheInviteesBell()
+    {
+        var owner = AddUser("owner");
+        var invitee = AddUser("invitee");
+        var team = (await Service().CreateAsync(owner, "Alpha", NextTag(), null)).Team!;
+        var notifications = new UserNotificationService(
+            [new InAppNotificationChannel(new Repository<UserNotification>(_db))], new Repository<ApplicationUser>(_db));
+
+        await new InAppTeamInviteHandler(notifications).Handle(new TeamInviteSentNotification(team, owner, invitee), CancellationToken.None);
+
+        _db.Set<UserNotification>().Should().ContainSingle(n =>
+            n.UserId == invitee.Id && n.Type == NotificationType.TeamInvite && n.Text == "pilot_owner invited you to join the team Alpha");
     }
 
     [Fact]

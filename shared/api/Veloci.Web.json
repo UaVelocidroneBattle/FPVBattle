@@ -2153,7 +2153,8 @@
           "General",
           "Achievement",
           "CompetitionResults",
-          "LeagueUpdate"
+          "LeagueUpdate",
+          "TeamInvite"
         ]
       },
       "ParticipationModel": {

@@ -21,6 +21,7 @@ The owner cannot leave; they delete the team instead.
 - The invite dialog suggests only pilots that can be invited right now: linked to an account, in no team, and not already invited.
 - A pilot can hold invites from several teams; accepting one is refused while they are in a team. Accepting also checks `MaxTeamSize` again, because an invite can wait for a long time.
 - Joining is by invitation only.
+- An invite also puts a notification in the invitee's bell (`TeamInviteSentNotification`, handled by `InAppTeamInviteHandler`), next to the badge on the Teams menu item.
 
 ## Limits
 
@@ -85,5 +86,4 @@ Code: `Veloci.Web/Controllers/Admin/Teams` (`TeamManagementController`), `Views/
 
 ## Not built
 
-- No bell notification when someone is invited; the badge in the menu is the only signal.
 - No ownership transfer between members, from the site or from the admin page.
