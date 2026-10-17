@@ -11,7 +11,7 @@ namespace Veloci.Logic.Features.Patreon.Jobs;
 
 public class AccrueFreeziesToPatronsJob
 {
-    private static readonly ILogger _log = Log.ForContext<MonthlyPatreonSupportersJob>();
+    private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
     private readonly IMediator _mediator;
     private readonly IRepository<PatreonSupporter> _supportersRepository;
 
@@ -25,16 +25,17 @@ public class AccrueFreeziesToPatronsJob
     public async Task Handle(CancellationToken ct)
     {
         var allActiveSupporters = await _supportersRepository
-            .GetAll(s => s.Status == "active_patron")
+            .GetAll()
+            .Paying()
             .ToListAsync(ct);
 
         if (!allActiveSupporters.Any())
         {
-            _log.Information("No active supporters found for freezie accrual");
+            Log.Information("No active supporters found for freezie accrual");
             return;
         }
 
-        _log.Information("Found {Count} active supporters for freezie accrual", allActiveSupporters.Count);
+        Log.Information("Found {Count} active supporters for freezie accrual", allActiveSupporters.Count);
 
         var today = DateTime.Today;
         var accruedFreezies = new List<AccruedPatronFreezies>();
@@ -48,7 +49,7 @@ public class AccrueFreeziesToPatronsJob
 
             var freeziesToAdd = CalculateFreeziesForSupporter(supporter);
 
-            _log.Information("Accruing {FreeziesToAdd} freezies to pilot {PilotName} for supporting at tier {SupporterTierName}", freeziesToAdd, pilot.Name, supporter.TierName);
+            Log.Information("Accruing {FreeziesToAdd} freezies to pilot {PilotName} for supporting at tier {SupporterTierName}", freeziesToAdd, pilot.Name, supporter.TierName);
 
             for (var i = 0; i < freeziesToAdd; i++)
             {
@@ -69,7 +70,7 @@ public class AccrueFreeziesToPatronsJob
         await _mediator.Publish(new MonthlyAccruedFreeziesNotification(accruedFreezies), ct);
     }
 
-    private int CalculateFreeziesForSupporter(PatreonSupporter supporter)
+    private static int CalculateFreeziesForSupporter(PatreonSupporter supporter)
     {
         return supporter.TierName switch
         {

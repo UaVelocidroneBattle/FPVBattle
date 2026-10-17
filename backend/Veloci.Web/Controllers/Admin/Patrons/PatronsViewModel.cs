@@ -13,7 +13,9 @@ public class PatronRow
     public string? Email { get; set; }
     public string? TierName { get; set; }
     public decimal? Amount { get; set; }
+    public string Status { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public bool IsPaying { get; set; }
     public DateTime FirstSupportedAt { get; set; }
     public string? PilotName { get; set; }
     public string? SuggestedPilotName { get; set; }

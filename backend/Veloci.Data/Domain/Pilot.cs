@@ -20,6 +20,7 @@ public class Pilot
     public int TotalRaceDays { get; set; }
     public int DayStreak { get; set; }
     public int MaxDayStreak { get; set; }
+    public DateTime? DayStreakFrozenUntil { get; set; }
     public string Country { get; set; }
     public virtual ICollection<PilotAchievement> Achievements { get; set; }
     public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
@@ -28,10 +29,6 @@ public class Pilot
     public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
     public virtual ICollection<PilotLeague> Leagues { get; set; } = [];
 
-    /// <summary>
-    /// Called when competition is finished and pilot took place in it.
-    /// </summary>
-    /// <param name="today">Date of the competition to record</param>
     public void OnRaceFlown(DateTime today)
     {
         if (LastRaceDate.HasValue && LastRaceDate.Value.Date == today.Date)
@@ -71,10 +68,18 @@ public class Pilot
     /// <param name="today"></param>
     public void ResetDayStreak(DateTime today)
     {
+        if (IsDayStreakFrozenOn(today))
+            return;
+
         if (SpendFreeze(today))
             return;
 
         DayStreak = 0;
+    }
+
+    public bool IsDayStreakFrozenOn(DateTime date)
+    {
+        return DayStreakFrozenUntil.HasValue && date.Date <= DayStreakFrozenUntil.Value.Date;
     }
 
     private bool SpendFreeze(DateTime today)

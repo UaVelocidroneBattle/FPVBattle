@@ -479,6 +479,9 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<int>("DayStreak")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("DayStreakFrozenUntil")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("LastRaceDate")
                         .HasColumnType("TEXT");
 
