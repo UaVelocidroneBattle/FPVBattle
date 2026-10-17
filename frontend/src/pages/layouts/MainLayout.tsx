@@ -11,6 +11,8 @@ import { useCups } from "@/hooks/useCups";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
+import { useTeamsStore } from "@/store/teamsStore";
+import { useTeamsOverviewSync } from "@/hooks/useTeamsOverviewSync";
 
 /**
  * Defines main layout that is applied to all top level pages
@@ -18,6 +20,26 @@ import { useProfileStore } from "@/store/profileStore";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `transition-colors ${isActive ? "text-emerald-400" : "text-slate-300 hover:text-emerald-400"}`;
+
+function TeamsNavLink({ onClick }: { onClick?: () => void }) {
+    const invitationCount = useTeamsStore((state) => state.overview?.invitations.length ?? 0);
+
+    return (
+        <NavLink to="/teams" className={navLinkClass} onClick={onClick}>
+            <span className="relative">
+                Teams
+                {invitationCount > 0 && (
+                    <span
+                        className="absolute -right-4 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-semibold text-slate-900"
+                        aria-label={`${invitationCount} team invitations`}
+                    >
+                        {invitationCount > 9 ? "9+" : invitationCount}
+                    </span>
+                )}
+            </span>
+        </NavLink>
+    );
+}
 
 const socialLinks = [
     { href: "https://t.me/fpv_velocidrone_ua", title: "Telegram", Icon: FaTelegramPlane },
@@ -46,6 +68,7 @@ function LayoutMain() {
 
     usePageMeta();
     useNotificationsPolling();
+    useTeamsOverviewSync();
 
     useEffect(() => {
         const { restore } = useAuthStore.getState();
@@ -72,6 +95,7 @@ function LayoutMain() {
                         {cups.map(cup => (
                             <NavLink key={cup.id} to={`/${cup.id}`} className={navLinkClass}>{cup.name}</NavLink>
                         ))}
+                        <TeamsNavLink />
                         <NavLink to="/guide" className={navLinkClass}>Guide</NavLink>
                         <NavLink to="/statistics" className={navLinkClass}>Statistics</NavLink>
                         <div className="w-px h-5 bg-slate-600" />
@@ -98,6 +122,7 @@ function LayoutMain() {
                             {cups.map(cup => (
                                 <NavLink key={cup.id} to={`/${cup.id}`} className={navLinkClass} onClick={closeMobileMenu}>{cup.name}</NavLink>
                             ))}
+                            <TeamsNavLink onClick={closeMobileMenu} />
                             <NavLink to="/guide" className={navLinkClass} onClick={closeMobileMenu}>Guide</NavLink>
                             <NavLink to="/statistics" className={navLinkClass} onClick={closeMobileMenu}>Statistics</NavLink>
                             <SocialLinks />

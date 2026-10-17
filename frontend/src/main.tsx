@@ -13,6 +13,7 @@ import AchievementsPage from './pages/guide/AchievementsPage.tsx'
 import GlobalRatingGuidePage from './pages/guide/GlobalRatingPage.tsx'
 import LeaguesPage from './pages/guide/LeaguesPage.tsx'
 import SupportPage from './pages/guide/SupportPage.tsx'
+import TeamsGuidePage from './pages/guide/TeamsGuidePage.tsx'
 import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
 import CompetitionPage from './pages/competition/CompetitionPage.tsx'
 import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
@@ -25,6 +26,7 @@ import GlobalRatingPage from './pages/statistics/global-rating/GlobalRatingPage.
 import LegacyRedirect from './pages/LegacyRedirect.tsx'
 import LandingPage from './pages/landing/LandingPage.tsx'
 import ProfilePage from './pages/profile/ProfilePage.tsx'
+import TeamsPage from './pages/teams/TeamsPage.tsx'
 import { registerAuthInterceptor } from './api/authInterceptor.ts'
 
 registerAuthInterceptor()
@@ -40,6 +42,7 @@ const guidePages = (
     <Route path="global-rating" element={<GlobalRatingGuidePage />} />
     <Route path="leagues" element={<LeaguesPage />} />
     <Route path="achievements" element={<AchievementsPage />} />
+    <Route path="teams" element={<TeamsGuidePage />} />
     <Route path="support" element={<SupportPage />} />
   </>
 )
@@ -52,6 +55,7 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<MainLayout />}>
             <Route index element={<LandingPage />} />
             <Route path='profile' element={<ProfilePage />} />
+            <Route path='teams/:teamId?' element={<TeamsPage />} />
             {/* Paths used before cup ids became the URL. */}
             <Route path='open' element={<Navigate to="/open-class" replace />} />
             <Route path='whoop' element={<Navigate to="/whoop-class" replace />} />

@@ -148,7 +148,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                                 >
                                     <div className={`grid ${cols} items-center gap-6`}>
                                         <Position rank={index + 1} originalRank={result.originalRank} />
-                                        <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                        <PilotName name={result.playerName} teamTag={result.teamTag} className="text-sm text-slate-200 truncate" />
                                         <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
                                         <CountryFlag countryCode={result.country} className="text-sm" />
                                         <TimeCell trackTimeMs={result.trackTime ?? 0} gapToLeaderPercent={result.gapToLeaderPercent} />
@@ -199,7 +199,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                                             >
                                                 <div className={`grid ${cols} items-center gap-6`}>
                                                     <Position rank={result.localRank ?? 0} originalRank={result.originalRank} />
-                                                    <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                                    <PilotName name={result.playerName} teamTag={result.teamTag} className="text-sm text-slate-200 truncate" />
                                                     <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
                                                     <CountryFlag countryCode={result.country} className="text-sm" />
                                                     <TimeCell trackTimeMs={result.trackTime ?? 0} gapToLeaderPercent={result.gapToLeaderPercent} />

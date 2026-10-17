@@ -10,11 +10,16 @@ namespace Veloci.Web.Controllers.Admin.Users;
 public class UsersController : AdminControllerBase
 {
     private readonly IRepository<ApplicationUser> _users;
+    private readonly IRepository<Pilot> _pilots;
     private readonly PilotBindingService _bindingService;
 
-    public UsersController(IRepository<ApplicationUser> users, PilotBindingService bindingService)
+    public UsersController(
+        IRepository<ApplicationUser> users,
+        IRepository<Pilot> pilots,
+        PilotBindingService bindingService)
     {
         _users = users;
+        _pilots = pilots;
         _bindingService = bindingService;
     }
 
@@ -49,7 +54,7 @@ public class UsersController : AdminControllerBase
         {
             var user = await _users.FindAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
-            var pilot = await _bindingService.FindPilotByNameAsync(pilotName)
+            var pilot = await _pilots.GetAll().FindByNameAsync(pilotName)
                         ?? throw new InvalidOperationException($"Pilot '{pilotName}' not found (names are case sensitive)");
 
             await _bindingService.LinkAsync(user, pilot);

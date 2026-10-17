@@ -10,7 +10,7 @@ namespace Veloci.Logic.Features.Patreon.Jobs;
 
 public class MonthlyPatreonSupportersJob
 {
-    private static readonly ILogger _log = Log.ForContext<MonthlyPatreonSupportersJob>();
+    private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
     private readonly IMediator _mediator;
     private readonly IRepository<PatreonSupporter> _supportersRepository;
 
@@ -26,16 +26,17 @@ public class MonthlyPatreonSupportersJob
     public async Task Handle(CancellationToken ct)
     {
         var allActiveSupporters = await _supportersRepository
-            .GetAll(s => s.Status == "active_patron")
+            .GetAll()
+            .Paying()
             .ToListAsync(ct);
 
         if (!allActiveSupporters.Any())
         {
-            _log.Information("No active supporters found for monthly notification");
+            Log.Information("No active supporters found for monthly notification");
             return;
         }
 
-        _log.Information("Found {Count} active supporters for monthly notification", allActiveSupporters.Count);
+        Log.Information("Found {Count} active supporters for monthly notification", allActiveSupporters.Count);
 
         await _mediator.Publish(new MonthlyPatreonSupportersNotification(allActiveSupporters), ct);
     }

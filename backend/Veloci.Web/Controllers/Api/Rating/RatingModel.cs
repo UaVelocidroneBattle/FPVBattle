@@ -21,6 +21,7 @@ public class PilotRatingModel
     public int Rank { get; set; }
     public int? RankChange { get; set; }
     public string? League { get; set; }
+    public string? TeamTag { get; set; }
     public RatingQualification? Qualification { get; set; }
 }
 

@@ -73,7 +73,7 @@ public class PilotClaimsController : AdminControllerBase
                         ?? throw new InvalidOperationException("Claim not found");
             var user = await _users.FindAsync(claim.UserId)
                        ?? throw new InvalidOperationException("The claiming user no longer exists");
-            var pilot = await _bindingService.FindPilotByNameAsync(claim.PilotName)
+            var pilot = await _pilots.GetAll().FindByNameAsync(claim.PilotName)
                         ?? throw new InvalidOperationException($"Pilot '{claim.PilotName}' has no results yet, there is nothing to link");
 
             // LinkAsync also removes the user's pending claim

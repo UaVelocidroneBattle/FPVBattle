@@ -22,6 +22,9 @@ public interface IRepository<T> where T : class
     /// <summary>Stages the entry for removal. Call <see cref="SaveChangesAsync()"/> to persist.</summary>
     Task RemoveAsync(object id);
 
+    /// <summary>Stages the already loaded entry for removal. Use it for entities with composite keys.</summary>
+    Task RemoveEntryAsync(T entry);
+
     Task SaveChangesAsync();
 
     Task SaveChangesAsync(CancellationToken ct);

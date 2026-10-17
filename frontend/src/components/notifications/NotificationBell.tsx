@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, Info, Medal, Shield, Trophy, type LucideIcon } from "lucide-react";
+import { Bell, Info, Medal, Shield, Trophy, Users, type LucideIcon } from "lucide-react";
 import { useNotificationsStore } from "@/store/notificationsStore";
 import { formatDate } from "@/lib/utils";
 import { useCups } from "@/hooks/useCups";
@@ -10,6 +10,7 @@ const notificationIcons: Record<NotificationType, LucideIcon> = {
     Achievement: Medal,
     CompetitionResults: Trophy,
     LeagueUpdate: Shield,
+    TeamInvite: Users,
 };
 
 function formatTimestamp(value: string) {

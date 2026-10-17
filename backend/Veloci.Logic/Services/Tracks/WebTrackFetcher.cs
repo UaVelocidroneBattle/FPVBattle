@@ -31,7 +31,8 @@ public class WebTrackFetcher : ITrackFetcher
     {
         var web = new HtmlWeb();
         var doc = await web.LoadFromWebAsync("https://www.velocidrone.com/leaderboards");
-        var nodes = doc.DocumentNode.SelectNodes("//a[@class='scenery-card']");
+        var nodes = doc.DocumentNode.SelectNodes("//a[contains(@href, '/leaderboard_by_version/')]")
+                    ?? throw new InvalidOperationException("No maps found on the leaderboards page, its markup has probably changed");
         var maps = nodes.Select(ParseMapNode)
             .Where(x => x is not null)
             .ToList();
@@ -46,12 +47,11 @@ public class WebTrackFetcher : ITrackFetcher
     {
         var web = new HtmlWeb();
         var doc = await web.LoadFromWebAsync(mapModel.Url);
-        var nodes = doc.DocumentNode.SelectNodes("//div[@class='track-grid__li']");
+        var nodes = doc.DocumentNode.SelectNodes("//a[contains(@href, '/leaderboard/')]");
 
-        foreach (var node in nodes)
+        foreach (var node in nodes ?? Enumerable.Empty<HtmlNode>())
         {
             var track = ParseTrackNode(node);
-            if (track == null) continue;
             mapModel.Tracks.Add(track);
             track.Map = mapModel;
         }
@@ -59,11 +59,10 @@ public class WebTrackFetcher : ITrackFetcher
 
     private ParsedMapModel? ParseMapNode(HtmlNode node)
     {
-        var nameNode = node.ParentNode
-            .Descendants("div")
-            .FirstOrDefault(a => a.GetAttributeValue("class", "").Contains("scenery-card__title"));
+        var card = node.Ancestors("div").First(div => div.HasClass("card"));
+        var nameNode = card.SelectSingleNode(".//h2[contains(@class, 'card-title')]");
 
-        var mapName = nameNode.InnerText;
+        var mapName = HtmlEntity.DeEntitize(nameNode.InnerText).Trim();
 
         if (_blackListedMaps.Contains(mapName))
             return null;
@@ -79,20 +78,14 @@ public class WebTrackFetcher : ITrackFetcher
         };
     }
 
-    private ParsedTrackModel? ParseTrackNode(HtmlNode node)
+    private ParsedTrackModel ParseTrackNode(HtmlNode node)
     {
-        var nameNode = node
-            .Descendants("a")
-            .FirstOrDefault();
-
-        var trackName = nameNode.InnerText;
-
-        var url = nameNode.GetAttributeValue("href", null);
+        var url = node.GetAttributeValue("href", null);
         var trackId = GetTrackId(url);
 
         return new ParsedTrackModel
         {
-            Name = trackName,
+            Name = HtmlEntity.DeEntitize(node.InnerText).Trim(),
             Id = trackId,
             Url = url
         };

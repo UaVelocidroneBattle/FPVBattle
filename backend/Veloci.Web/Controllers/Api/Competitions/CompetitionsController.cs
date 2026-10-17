@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Logic.Features.Cups;
+using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Services;
 
 namespace Veloci.Web.Controllers.Api.Competitions;
@@ -13,12 +14,14 @@ public class CompetitionsController : ControllerBase
     private readonly CompetitionService _competitionService;
     private readonly ICupService _cupService;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
+    private readonly TeamTagLookup _teamTags;
 
-    public CompetitionsController(CompetitionService competitionService, ICupService cupService, ILeaderboardCalculator leaderboardCalculator)
+    public CompetitionsController(CompetitionService competitionService, ICupService cupService, ILeaderboardCalculator leaderboardCalculator, TeamTagLookup teamTags)
     {
         _competitionService = competitionService;
         _cupService = cupService;
         _leaderboardCalculator = leaderboardCalculator;
+        _teamTags = teamTags;
     }
 
     [HttpGet("/api/competitions/current")]
@@ -44,27 +47,33 @@ public class CompetitionsController : ControllerBase
 
         var cupOptions = _cupService.GetCupOptions(cupId);
 
+        var teamTags = await _teamTags.GetTagsByPilotNameAsync();
+        var seasonLeaderboard = await GetSeasonLeaderboardAsync(cupId, date);
+
+        foreach (var result in seasonLeaderboard.SelectMany(league => league.Results))
+            result.TeamTag = teamTags.GetValueOrDefault(result.PlayerName);
+
         var overview = new CompetitionOverviewModel
         {
             Competition = ToCompetitionModel(competition, cupOptions),
-            Leaderboard = GetLeaderboard(competition),
-            SeasonLeaderboard = await GetSeasonLeaderboardAsync(cupId, date)
+            Leaderboard = GetLeaderboard(competition, teamTags),
+            SeasonLeaderboard = seasonLeaderboard
         };
 
         return overview;
     }
 
-    private List<LeagueLeaderboardModel> GetLeaderboard(Competition? competition)
+    private List<LeagueLeaderboardModel> GetLeaderboard(Competition? competition, IReadOnlyDictionary<string, string> teamTags)
     {
         if (competition is null)
             return [];
 
         return _leaderboardCalculator.GetLeagueLeaderboard(competition)
-            .Select(ToLeaderboardModel)
+            .Select(league => ToLeaderboardModel(league, teamTags))
             .ToList();
     }
 
-    private static LeagueLeaderboardModel ToLeaderboardModel(LeagueLeaderboard league) =>
+    private static LeagueLeaderboardModel ToLeaderboardModel(LeagueLeaderboard league, IReadOnlyDictionary<string, string> teamTags) =>
         new()
         {
             League = league.League,
@@ -76,6 +85,7 @@ public class CompetitionsController : ControllerBase
                 GlobalRank = r.GlobalRank,
                 ModelName = r.ModelName,
                 Country = r.Pilot.Country,
+                TeamTag = teamTags.GetValueOrDefault(r.Pilot.Name),
                 Points = r.Points,
                 GapToLeaderPercent = r.GapToLeaderPercent
             }).ToList()

@@ -53,13 +53,10 @@
                             <td>@(patron.TierName ?? "—")</td>
                             <td class="mono">@(patron.Amount?.ToString("0.00") ?? "—")</td>
                             <td>
+                                <span class="badge @(patron.IsActive ? "bg-success" : "bg-secondary")">@patron.Status</span>
                                 @if (patron.IsActive)
                                 {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge @(patron.IsPaying ? "bg-primary" : "bg-warning")">@(patron.IsPaying ? "Paid" : "Free")</span>
                                 }
                             </td>
                             <td class="mono">@patron.FirstSupportedAt.ToString("dd.MM.yyyy")</td>

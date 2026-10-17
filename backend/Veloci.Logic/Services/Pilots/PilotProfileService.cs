@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Achievements.Base;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Leagues.Services;
+using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Services.Pilots.Models;
 
 namespace Veloci.Logic.Services.Pilots;
@@ -20,17 +22,26 @@ public interface IPilotProfileService
 public class PilotProfileService : IPilotProfileService
 {
     private readonly IRepository<Pilot> _pilots;
+    private readonly IRepository<TeamMember> _teamMembers;
+    private readonly IRepository<PatreonSupporter> _patreonSupporters;
+    private readonly TeamSettings _teamSettings;
     private readonly IEnumerable<IAchievement> _allAchievements;
     private readonly RatingService _ratingService;
     private readonly ICupService _cupService;
 
     public PilotProfileService(
         IRepository<Pilot> pilots,
+        IRepository<TeamMember> teamMembers,
+        IRepository<PatreonSupporter> patreonSupporters,
+        IOptions<TeamSettings> teamSettings,
         IServiceProvider serviceProvider,
         RatingService ratingService,
         ICupService cupService)
     {
         _pilots = pilots;
+        _teamMembers = teamMembers;
+        _patreonSupporters = patreonSupporters;
+        _teamSettings = teamSettings.Value;
         _ratingService = ratingService;
         _cupService = cupService;
         _allAchievements = serviceProvider.GetServices<IAchievement>();
@@ -64,9 +75,22 @@ public class PilotProfileService : IPilotProfileService
             TotalRaceDays = pilot.TotalRaceDays,
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
-            ClassRatings = classRatings
+            ClassRatings = classRatings,
+            Team = await GetTeamAsync(pilot, ct),
+            IsPatron = await IsPatronAsync(pilot, ct)
         };
     }
+
+    private Task<PilotTeamModel?> GetTeamAsync(Pilot pilot, CancellationToken ct)
+        => _teamMembers.GetAll()
+            .Where(m => m.User.PilotId == pilot.Id && m.Team.Members.Count >= _teamSettings.MinPublicTeamSize)
+            .Select(m => new PilotTeamModel { Id = m.TeamId, Name = m.Team.Name })
+            .FirstOrDefaultAsync(ct);
+
+    private Task<bool> IsPatronAsync(Pilot pilot, CancellationToken ct)
+        => _patreonSupporters.GetAll()
+            .Paying()
+            .AnyAsync(s => s.PilotId == pilot.Id, ct);
 
     private async Task<PilotClassRatingModel> BuildClassRatingAsync(Pilot pilot, string cupId)
     {

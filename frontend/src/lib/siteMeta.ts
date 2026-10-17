@@ -49,6 +49,12 @@ export const PAGE_META: Record<string, PageMeta> = {
         noIndex: true,
     },
 
+    '/teams': {
+        title: `Teams${BRAND_SUFFIX}`,
+        description: 'Create a FPV Battle team, invite pilots and see who is in each team.',
+        noIndex: true,
+    },
+
     '/guide': {
         title: `Guide — How FPV Battle Works${BRAND_SUFFIX}`,
         description:
@@ -94,6 +100,11 @@ export const PAGE_META: Record<string, PageMeta> = {
         title: `Achievements List${BRAND_SUFFIX}`,
         description:
             'Every achievement you can unlock in FPV Battle, from day streak milestones to race placements in the daily Velocidrone competition.',
+    },
+    '/guide/teams': {
+        title: `Teams Guide${BRAND_SUFFIX}`,
+        description:
+            'How teams work in FPV Battle: creating a team, invitations, roles, and team tags on the Velocidrone leaderboards.',
     },
     '/guide/support': {
         title: `Support FPV Battle${BRAND_SUFFIX}`,
@@ -146,6 +157,11 @@ export const PAGE_META: Record<string, PageMeta> = {
         title: `Список Achievements${BRAND_SUFFIX}`,
         description:
             'Усі achievements, які можна отримати у FPV Battle: від рубежів day streak до призових місць у щоденних змаганнях у Velocidrone.',
+    },
+    '/uk/guide/teams': {
+        title: `Команди${BRAND_SUFFIX}`,
+        description:
+            'Як працюють команди у FPV Battle: створення команди, запрошення, ролі та теги команд у лідербордах Velocidrone.',
     },
     '/uk/guide/support': {
         title: `Підтримати FPV Battle${BRAND_SUFFIX}`,

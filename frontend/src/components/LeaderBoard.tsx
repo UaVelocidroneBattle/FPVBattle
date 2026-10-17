@@ -43,7 +43,7 @@ function ResultRow({ result, index, isHighlighted }: { result: SeasonResult; ind
                 <span className={`text-right text-sm tabular-nums ${rankStyle(result.rank ?? 0)}`}>
                     {String(result.rank).padStart(2, "0")}
                 </span>
-                <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                <PilotName name={result.playerName} teamTag={result.teamTag} className="text-sm text-slate-200 truncate" />
                 <CountryFlag countryCode={result.country} className="text-sm" />
                 <div className="text-sm font-semibold text-slate-200 tabular-nums text-right">{result.points}</div>
             </div>

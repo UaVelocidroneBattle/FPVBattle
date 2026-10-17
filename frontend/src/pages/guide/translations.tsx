@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import type { TeamsOverviewModel } from '@/api/client';
 import { type Language } from '@/hooks/useLanguage';
 
 export function link(href: string, label: string): ReactNode {
@@ -27,6 +28,7 @@ export const navItems: { path: string; label: Record<Language, string> }[] = [
     { path: 'freeze',          label: { ua: 'Day streak freeze', en: 'Day Streak Freeze' } },
     { path: 'quad-of-the-day', label: { ua: 'Квад дня',         en: 'Quad of the Day'   } },
     { path: 'achievements',    label: { ua: 'Achievements',      en: 'Achievements'      } },
+    { path: 'teams',           label: { ua: 'Команди',           en: 'Teams'             } },
     { path: 'support',         label: { ua: 'Підтримка',       en: 'Support'         } },
 ];
 
@@ -60,8 +62,27 @@ export interface RulesContent {
     achievementsText: string;
     supportTitle: string;
     supportText: ReactNode;
+    teamsTitle: string;
+    teamsIntro: ReactNode;
+    /** Sections of the Teams page; the limits come from the live team settings. */
+    teamsSections: (settings: TeamsGuideSettings) => GuideSection[];
     flyAway: string;
 }
+
+export type TeamsGuideSettings = Pick<
+    TeamsOverviewModel,
+    'maxTeamSize' | 'minPublicTeamSize' | 'minRaceDaysToCreate' | 'allowPatronsToCreate'
+>;
+
+export interface GuideSection {
+    title: string;
+    items: ReactNode[];
+}
+
+const patreonLink = (label: string) => link('https://patreon.com/FPVBattle', label);
+
+/** Leaves out the items whose condition is false. */
+const when = (condition: boolean, item: ReactNode): ReactNode[] => (condition ? [item] : []);
 
 export const translations: Record<Language, RulesContent> = {
     ua: {
@@ -131,6 +152,50 @@ export const translations: Record<Language, RulesContent> = {
         achievementsText: 'У системі є набір achievements, який постійно розширюється. Вони видаються за досягнення певної кількості day streak, першого місця в гонці, тощо.',
         supportTitle: 'Підтримати нас',
         supportText: <>Ви можете підтримати проєкт на нашому {link('https://patreon.com/FPVBattle', 'Patreon')} для покриття різних витрат (хостинг, домен, кава, тощо).</>,
+        teamsTitle: 'Команди',
+        teamsIntro: <>Група пілотів може створити команду. Усі команди та їхніх учасників можна переглянути на сторінці {internalLink('/teams', 'Команди')}.</>,
+        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate }) => [
+            {
+                title: 'Як створити команду',
+                items: [
+                    'Ви не маєте бути в іншій команді.',
+                    ...when(minRaceDaysToCreate > 0, allowPatronsToCreate
+                        ? <>Потрібно мати щонайменше {minRaceDaysToCreate} днів польотів або бути підписником на {patreonLink('Patreon')}.</>
+                        : `Потрібно мати щонайменше ${minRaceDaysToCreate} днів польотів.`),
+                    'Оберіть назву (до 32 символів) і тег із 2–5 літер або цифр, який показується в лідербордах.',
+                ],
+            },
+            {
+                title: 'Як приєднатися',
+                items: [
+                    'До команди можна потрапити лише за запрошенням. Власник або адмін запрошує вас за ніком пілота.',
+                    <>Запрошення з'являються на сторінці {internalLink('/teams', 'Команди')}, де їх можна прийняти або відхилити.</>,
+                    'Пілот може бути лише в одній команді. Щоб перейти в іншу, спершу вийдіть зі своєї.',
+                    ...when(maxTeamSize > 0, `У команді може бути до ${maxTeamSize} пілотів.`),
+                ],
+            },
+            {
+                title: 'Ролі',
+                items: [
+                    <><span className="font-bold text-slate-100">Власник</span> — керує командою, призначає адмінів і може видалити команду. Власник не може вийти з команди, лише видалити її.</>,
+                    <><span className="font-bold text-slate-100">Адмін</span> — змінює назву, тег і опис, запрошує пілотів і видаляє учасників.</>,
+                    <><span className="font-bold text-slate-100">Учасник</span> — може будь-коли вийти з команди.</>,
+                ],
+            },
+            {
+                title: 'Видимість',
+                items: [
+                    ...when(minPublicTeamSize > 0, `Команда стає публічною, коли в ній ${minPublicTeamSize} учасників. До того її бачать лише учасники та запрошені пілоти, а її тег не показується в лідербордах.`),
+                ],
+            },
+            {
+                title: 'Лідерборди',
+                items: [
+                    'Тег команди показується в дужках перед ніком пілота.',
+                    'Учасники команди бачать над лідербордом дня перемикач All / My team, щоб порівняти результати своєї команди.',
+                ],
+            },
+        ],
         flyAway: 'Полетіли! 🚀',
     },
     en: {
@@ -200,6 +265,50 @@ export const translations: Record<Language, RulesContent> = {
         achievementsText: 'The system has a growing set of achievements, awarded for reaching certain day streak milestones, finishing in first place, and more.',
         supportTitle: 'Support Us',
         supportText: <>You can support the project on our {link('https://patreon.com/FPVBattle', 'Patreon')} to help cover various costs (hosting, domain, coffee, etc.).</>,
+        teamsTitle: 'Teams',
+        teamsIntro: <>A group of pilots can create a team. Anyone can browse teams and their members on the {internalLink('/teams', 'Teams')} page.</>,
+        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate }) => [
+            {
+                title: 'Creating a team',
+                items: [
+                    'You must not be in another team.',
+                    ...when(minRaceDaysToCreate > 0, allowPatronsToCreate
+                        ? <>You need at least {minRaceDaysToCreate} race days, or to be a supporter on {patreonLink('Patreon')}.</>
+                        : `You need at least ${minRaceDaysToCreate} race days.`),
+                    'Pick a name (up to 32 characters) and a tag of 2–5 letters or digits, shown on leaderboards.',
+                ],
+            },
+            {
+                title: 'Joining a team',
+                items: [
+                    'Joining is by invitation only. The owner or an admin invites you by your pilot name.',
+                    <>Invitations appear on the {internalLink('/teams', 'Teams')} page, where you can accept or decline them.</>,
+                    'A pilot can be in one team at a time. To join another team, leave yours first.',
+                    ...when(maxTeamSize > 0, `A team can have up to ${maxTeamSize} pilots.`),
+                ],
+            },
+            {
+                title: 'Roles',
+                items: [
+                    <><span className="font-bold text-slate-100">Owner</span> — runs the team, appoints admins and can delete the team. The owner cannot leave; they delete the team instead.</>,
+                    <><span className="font-bold text-slate-100">Admin</span> — edits the name, tag and description, invites pilots and removes members.</>,
+                    <><span className="font-bold text-slate-100">Member</span> — can leave the team at any time.</>,
+                ],
+            },
+            {
+                title: 'Visibility',
+                items: [
+                    ...when(minPublicTeamSize > 0, `A team becomes public once it has ${minPublicTeamSize} members. Until then only its members and invited pilots can see it, and its tag is not shown on leaderboards.`),
+                ],
+            },
+            {
+                title: 'Leaderboards',
+                items: [
+                    'The team tag is shown in brackets before the pilot name.',
+                    'Team members get an All / My team switch above today\'s leaderboard to compare how their team flies.',
+                ],
+            },
+        ],
         flyAway: "Let's fly! 🚀",
     },
 };

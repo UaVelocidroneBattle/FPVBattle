@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 interface PilotWithAvatarProps {
     name: string;
     countryCode: string | null;
+    /** Tag of the pilot's team, shown before the name. */
+    teamTag?: string | null;
 }
 
-function PilotWithAvatar({ name, countryCode }: PilotWithAvatarProps) {
+function PilotWithAvatar({ name, countryCode, teamTag }: PilotWithAvatarProps) {
     const hasFlag = countryCode && countryCode.length === 2;
 
     return (
@@ -25,8 +27,9 @@ function PilotWithAvatar({ name, countryCode }: PilotWithAvatarProps) {
                     ?
                 </span>
             )}
-            <span className="text-sm font-medium text-slate-200 group-hover:text-emerald-400 transition-colors">
-                {name}
+            <span className="flex items-baseline gap-2">
+                {teamTag && <span className="text-sm font-semibold tracking-wide text-slate-500">[{teamTag}]</span>}
+                <span className="text-sm font-medium text-slate-200 group-hover:text-emerald-400 transition-colors">{name}</span>
             </span>
         </Link>
     );

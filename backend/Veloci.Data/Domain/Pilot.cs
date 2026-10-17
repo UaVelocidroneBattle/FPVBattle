@@ -159,6 +159,16 @@ public static class PilotExtensions
             return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
         }
 
+        public async Task<Pilot?> FindByNameAsync(string name)
+        {
+            // Velocidrone pilot names are case sensitive ("Jack" and "jack" are different pilots),
+            // so the exact match is confirmed in memory with ordinal semantics instead of
+            // relying on the database collation.
+            var normalized = name.Trim();
+            var candidates = await allPilots.ByName(normalized).ToListAsync();
+            return candidates.FirstOrDefault(p => string.Equals(p.Name, normalized, StringComparison.Ordinal));
+        }
+
         public IQueryable<IGrouping<string, Pilot>> GroupedByCountry()
         {
             return allPilots.Where(p => !string.IsNullOrEmpty(p.Country)).GroupBy(p => p.Country);

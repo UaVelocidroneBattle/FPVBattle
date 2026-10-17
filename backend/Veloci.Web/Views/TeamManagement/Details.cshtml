@@ -1,0 +1,167 @@
+@using Veloci.Data.Domain
+@using Veloci.Web.Controllers.Admin.Teams
+@model TeamDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["ContentClass"] = "content-wide";
+}
+
+@functions {
+    static string KebabIcon() => "<svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\"><circle cx=\"8\" cy=\"2.5\" r=\"1.5\" /><circle cx=\"8\" cy=\"8\" r=\"1.5\" /><circle cx=\"8\" cy=\"13.5\" r=\"1.5\" /></svg>";
+}
+
+<partial name="_Alerts" />
+
+<p><a asp-action="Index">&larr; All teams</a></p>
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Details</h2>
+        <span class="text-muted">Created @Model.CreatedOn.ToString("dd.MM.yyyy HH:mm")</span>
+    </header>
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="panel-body">
+        <div class="mb-3">
+            <label class="form-label mb-1" for="teamName">Name</label>
+            <input type="text" id="teamName" name="name" class="form-control" value="@Model.Name" maxlength="@Team.NameMaxLength" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label mb-1" for="teamTag">Tag</label>
+            <input type="text" id="teamTag" name="tag" class="form-control mono" value="@Model.Tag" placeholder="No tag yet"
+                   maxlength="@Team.TagMaxLength" minlength="@Team.TagMinLength" pattern="[A-Za-z0-9]+" autocomplete="off" required
+                   oninput="this.value = this.value.toUpperCase()" />
+            <div class="form-text">@Team.TagMinLength to @Team.TagMaxLength letters or digits, unique across teams.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label mb-1" for="teamDescription">Description</label>
+            <textarea id="teamDescription" name="description" class="form-control" rows="3" maxlength="@Team.DescriptionMaxLength">@Model.Description</textarea>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" formaction="@Url.Action("Delete", new { id = Model.Id })" class="btn btn-outline-danger"
+                    onclick="return confirm('Delete this team? Members and invites are removed too.');">
+                Delete team
+            </button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Members</h2>
+        <span class="panel-count">@Model.Members.Count@(Model.MaxTeamSize > 0 ? $" / {Model.MaxTeamSize}" : "")</span>
+    </header>
+    <form asp-action="AddMember" asp-route-id="@Model.Id" method="post" class="table-toolbar">
+        <div class="combobox" data-combobox>
+            <input type="text" name="pilotName" class="form-control form-control-sm" placeholder="Add a pilot…" autocomplete="off" required />
+            <ul class="dropdown-menu combobox-menu">
+                @foreach (var pilotName in Model.MemberCandidates)
+                {
+                    <li><button type="button" class="dropdown-item">@pilotName</button></li>
+                }
+                <li class="combobox-empty" hidden>No pilots found</li>
+            </ul>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary">Add</button>
+    </form>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Pilot</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th style="width: 56px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var member in Model.Members)
+                {
+                    <tr>
+                        <td class="mono">@(member.PilotName ?? "—")</td>
+                        <td>@member.Role</td>
+                        <td class="mono">@member.JoinedOn.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="text-end">
+                            @if (member.Role is not TeamRole.Owner)
+                            {
+                                var otherRole = member.Role is TeamRole.Admin ? TeamRole.Member : TeamRole.Admin;
+
+                                <div class="dropdown">
+                                    <button type="button" class="btn-icon" data-bs-toggle="dropdown" data-bs-strategy="fixed" aria-expanded="false" aria-label="Actions">
+                                        @Html.Raw(KebabIcon())
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <form asp-action="SetRole" asp-route-id="@Model.Id" method="post">
+                                                <input type="hidden" name="userId" value="@member.UserId" />
+                                                <input type="hidden" name="role" value="@otherRole" />
+                                                <button type="submit" class="dropdown-item">Make @otherRole.ToString().ToLowerInvariant()</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-action="RemoveMember" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Remove this member?');">
+                                                <input type="hidden" name="userId" value="@member.UserId" />
+                                                <button type="submit" class="dropdown-item text-danger">Remove from team</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel">
+    <header class="panel-head">
+        <h2 class="panel-title">Pending Invites</h2>
+        <span class="panel-count">@Model.Invites.Count</span>
+    </header>
+    @if (Model.Invites.Count == 0)
+    {
+        <div class="panel-body text-muted">No pending invites.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pilot</th>
+                        <th>Invited by</th>
+                        <th>Invited</th>
+                        <th style="width: 56px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invite in Model.Invites)
+                    {
+                        <tr>
+                            <td class="mono">@(invite.PilotName ?? "—")</td>
+                            <td class="mono">@(invite.InvitedBy ?? "—")</td>
+                            <td class="mono">@invite.InvitedOn.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button type="button" class="btn-icon" data-bs-toggle="dropdown" data-bs-strategy="fixed" aria-expanded="false" aria-label="Actions">
+                                        @Html.Raw(KebabIcon())
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <form asp-action="RevokeInvite" asp-route-id="@Model.Id" method="post">
+                                                <input type="hidden" name="userId" value="@invite.UserId" />
+                                                <button type="submit" class="dropdown-item text-danger">Revoke invite</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

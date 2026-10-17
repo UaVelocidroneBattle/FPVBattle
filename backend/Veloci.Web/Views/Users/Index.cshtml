@@ -73,7 +73,7 @@
                             <td class="mono">@user.RegisteredOn.ToString("dd.MM.yyyy HH:mm")</td>
                             <td class="text-end">
                                 <div class="dropdown">
-                                    <button type="button" class="btn-icon" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Actions">
+                                    <button type="button" class="btn-icon" data-bs-toggle="dropdown" data-bs-strategy="fixed" aria-expanded="false" aria-label="Actions">
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                             <circle cx="8" cy="2.5" r="1.5" />
                                             <circle cx="8" cy="8" r="1.5" />
@@ -115,7 +115,7 @@
                             </td>
                         </tr>
                     }
-                    <tr id="usersNoMatch" class="d-none">
+                    <tr id="usersNoMatch" class="no-match-row d-none">
                         <td colspan="8" class="text-center text-muted">No users match your search.</td>
                     </tr>
                 </tbody>
@@ -238,35 +238,6 @@
 
             searchInput.addEventListener('input', applyFilters);
             unlinkedOnlyFilter.addEventListener('change', applyFilters);
-
-            const tbody = usersTable.querySelector('tbody');
-            const sortableHeaders = usersTable.querySelectorAll('th[data-sort]');
-            let currentSort = { key: null, dir: 1 };
-
-            sortableHeaders.forEach(header => {
-                header.addEventListener('click', () => {
-                    const key = header.dataset.sort;
-                    const isNumber = header.dataset.sortType === 'number';
-
-                    currentSort.dir = currentSort.key === key ? -currentSort.dir : 1;
-                    currentSort.key = key;
-
-                    sortableHeaders.forEach(h => h.removeAttribute('aria-sort'));
-                    header.setAttribute('aria-sort', currentSort.dir === 1 ? 'ascending' : 'descending');
-
-                    const sorted = [...rows].sort((a, b) => {
-                        const valueA = a.dataset[key];
-                        const valueB = b.dataset[key];
-                        const cmp = isNumber
-                            ? parseFloat(valueA) - parseFloat(valueB)
-                            : valueA.localeCompare(valueB);
-
-                        return cmp * currentSort.dir;
-                    });
-
-                    sorted.forEach(row => tbody.insertBefore(row, noMatchRow));
-                });
-            });
         }
     </script>
 }

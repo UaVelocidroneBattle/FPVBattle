@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.PilotBinding.Services;
+using Veloci.Logic.Features.Teams.Services;
 
 namespace Veloci.Web.Controllers.Api.Profile;
 
@@ -17,15 +18,18 @@ public class ProfileController : ControllerBase
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly PilotBindingService _bindingService;
+    private readonly TeamService _teamService;
     private readonly IRepository<Pilot> _pilots;
 
     public ProfileController(
         UserManager<ApplicationUser> userManager,
         PilotBindingService bindingService,
+        TeamService teamService,
         IRepository<Pilot> pilots)
     {
         _userManager = userManager;
         _bindingService = bindingService;
+        _teamService = teamService;
         _pilots = pilots;
     }
 
@@ -49,7 +53,7 @@ public class ProfileController : ControllerBase
         if (string.IsNullOrWhiteSpace(pilotName))
             return BadRequest("Pilot name is required");
 
-        var pilot = await _bindingService.FindPilotByNameAsync(pilotName);
+        var pilot = await _pilots.GetAll().FindByNameAsync(pilotName);
 
         Log.Information("User {UserId} looked up pilot {PilotName}: {LookupResult}",
             _userManager.GetUserId(User), pilotName, pilot is null ? "not found" : "found");
@@ -114,8 +118,8 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>
-    /// Permanently deletes the account: profile data, sign-in methods, sessions
-    /// and pending claims. The linked pilot and their race history are kept.
+    /// Permanently deletes the account: profile data, sign-in methods, sessions,
+    /// team memberships and pending claims. The linked pilot and their race history are kept.
     /// </summary>
     [HttpDelete("account")]
     public async Task<IActionResult> DeleteAccount()
@@ -124,6 +128,8 @@ public class ProfileController : ControllerBase
 
         if (user is null)
             return Unauthorized();
+
+        await _teamService.RemoveUserFromTeamAsync(user);
 
         var deletion = await _userManager.DeleteAsync(user);
 
