@@ -222,6 +222,7 @@ export type PilotProfileModel = {
     availableFreezes: number;
     classRatings: Array<PilotClassRatingModel>;
     team?: null | PilotTeamModel;
+    isPatron: boolean;
 };
 
 export type PilotRatingHistoryPoint = {

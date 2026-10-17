@@ -5,11 +5,12 @@ import RatingSection from './RatingSection';
 import { LoadingStates } from '@/lib/loadingStates';
 import { ChartContainer } from '@/components/ChartContainer';
 import { lazy, useMemo, useState } from 'react';
-import { formatDate } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import CountryFlag from '@/components/ui/CountryFlag';
 import { countryName } from '@/lib/countries';
 import GapHistorySection from './GapHistorySection';
 import PilotTeam from './PilotTeam';
+import PatronBadge from './PatronBadge';
 
 const HeatmapChart = lazy(() => import('./HeatmapChart'));
 
@@ -44,7 +45,10 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
     return (
         <>
             {/* Pilot Header */}
-            <div className="bg-slate-800 p-6 flex flex-wrap items-start justify-between gap-x-6">
+            <div className={cn(
+                'bg-slate-800 p-6 flex flex-wrap items-start justify-between gap-x-6',
+                profile.isPatron && 'patron-header'
+            )}>
                 <div>
                     <h1 className="text-xl sm:text-3xl font-bold text-white flex items-center flex-wrap gap-2 sm:gap-3">
                         {profile.name}
@@ -54,6 +58,7 @@ const PilotProfileView = ({ profile, heatmapData, loadingState }: PilotProfileVi
                                 {countryName(profile.country)}
                             </span>
                         )}
+                        {profile.isPatron && <PatronBadge />}
                     </h1>
                     <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs sm:text-sm text-slate-400 mt-3 mb-4">
                         <span>First race: {formatDate(profile.firstRaceDate)}</span>

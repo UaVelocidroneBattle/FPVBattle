@@ -13,6 +13,7 @@ public class PilotProfileModel
     public required int AvailableFreezes { get; set; }
     public required List<PilotClassRatingModel> ClassRatings { get; set; }
     public PilotTeamModel? Team { get; set; }
+    public required bool IsPatron { get; set; }
 }
 
 public class PilotTeamModel

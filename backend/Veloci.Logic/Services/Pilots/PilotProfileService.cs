@@ -23,6 +23,7 @@ public class PilotProfileService : IPilotProfileService
 {
     private readonly IRepository<Pilot> _pilots;
     private readonly IRepository<TeamMember> _teamMembers;
+    private readonly IRepository<PatreonSupporter> _patreonSupporters;
     private readonly TeamSettings _teamSettings;
     private readonly IEnumerable<IAchievement> _allAchievements;
     private readonly RatingService _ratingService;
@@ -31,6 +32,7 @@ public class PilotProfileService : IPilotProfileService
     public PilotProfileService(
         IRepository<Pilot> pilots,
         IRepository<TeamMember> teamMembers,
+        IRepository<PatreonSupporter> patreonSupporters,
         IOptions<TeamSettings> teamSettings,
         IServiceProvider serviceProvider,
         RatingService ratingService,
@@ -38,6 +40,7 @@ public class PilotProfileService : IPilotProfileService
     {
         _pilots = pilots;
         _teamMembers = teamMembers;
+        _patreonSupporters = patreonSupporters;
         _teamSettings = teamSettings.Value;
         _ratingService = ratingService;
         _cupService = cupService;
@@ -73,7 +76,8 @@ public class PilotProfileService : IPilotProfileService
             AvailableFreezes = pilot.DayStreakFreezeCount,
             Achievements = _allAchievements.Select(a => CreatePilotAchievementModel(a, pilot)).ToList(),
             ClassRatings = classRatings,
-            Team = await GetTeamAsync(pilot, ct)
+            Team = await GetTeamAsync(pilot, ct),
+            IsPatron = await IsPatronAsync(pilot, ct)
         };
     }
 
@@ -82,6 +86,11 @@ public class PilotProfileService : IPilotProfileService
             .Where(m => m.User.PilotId == pilot.Id && m.Team.Members.Count >= _teamSettings.MinPublicTeamSize)
             .Select(m => new PilotTeamModel { Id = m.TeamId, Name = m.Team.Name })
             .FirstOrDefaultAsync(ct);
+
+    private Task<bool> IsPatronAsync(Pilot pilot, CancellationToken ct)
+        => _patreonSupporters.GetAll()
+            .Paying()
+            .AnyAsync(s => s.PilotId == pilot.Id, ct);
 
     private async Task<PilotClassRatingModel> BuildClassRatingAsync(Pilot pilot, string cupId)
     {

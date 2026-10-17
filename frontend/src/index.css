@@ -98,3 +98,22 @@
     background-color: theme(colors.slate.500);
   }
 }
+
+@layer components {
+  /* Pilot profile header for paying patrons: gold edge and a warm wash with soft amber film grain */
+  .patron-header {
+    @apply relative isolate border-t-2 border-amber-400;
+    background-image: linear-gradient(to right, theme(colors.amber.400 / 10%), theme(colors.slate.800) 50%);
+  }
+
+  .patron-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .98 0 0 0 0 .75 0 0 0 0 .14 1.6 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    opacity: 0.2;
+    mask-image: linear-gradient(to right, black, transparent 50%);
+  }
+}
