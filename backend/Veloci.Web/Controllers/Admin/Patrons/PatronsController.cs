@@ -8,8 +8,6 @@ namespace Veloci.Web.Controllers.Admin.Patrons;
 
 public class PatronsController : AdminControllerBase
 {
-    private const string ActivePatronStatus = "active_patron";
-
     private readonly IRepository<PatreonSupporter> _supporters;
     private readonly IRepository<Pilot> _pilots;
     private readonly IRepository<ApplicationUser> _users;
@@ -55,7 +53,9 @@ public class PatronsController : AdminControllerBase
                 Email = s.Email,
                 TierName = s.TierName,
                 Amount = s.Amount,
-                IsActive = s.Status == ActivePatronStatus,
+                Status = s.Status,
+                IsActive = s.Status == PatreonSupporter.ActivePatronStatus,
+                IsPaying = s.IsPaying,
                 FirstSupportedAt = s.FirstSupportedAt,
                 PilotName = s.Pilot?.Name,
                 SuggestedPilotName = suggestedPilot?.Name,
