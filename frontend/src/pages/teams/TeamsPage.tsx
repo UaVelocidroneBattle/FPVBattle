@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { TeamsOverviewModel } from "@/api/client";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
@@ -12,13 +11,6 @@ import TeamDetails from "./TeamDetails";
 import TeamsSidebar from "./TeamsSidebar";
 import { panelClass, primaryButtonClass } from "./teamStyles";
 import { useUrlTeamSync } from "./useUrlTeamSync";
-
-/** Why the user cannot create a team right now, or null when they can. */
-function createBlockedReason(overview: TeamsOverviewModel, pilotMissing: boolean): string | null {
-    if (pilotMissing) return "Link your Velocidrone pilot first";
-    if (overview.myTeam) return "You are already in a team";
-    return null;
-}
 
 /**
  * Teams: anyone can browse them; a signed-in user also manages their own team and answers invitations.
@@ -54,7 +46,7 @@ function TeamsPage() {
         return <Spinner />;
     }
 
-    const blockedReason = createBlockedReason(overview, pilotMissing);
+    const blockedReason = overview.createBlockedReason ?? null;
 
     return (
         <div className="mx-auto w-full max-w-[1100px]">

@@ -13,6 +13,7 @@ import AchievementsPage from './pages/guide/AchievementsPage.tsx'
 import GlobalRatingGuidePage from './pages/guide/GlobalRatingPage.tsx'
 import LeaguesPage from './pages/guide/LeaguesPage.tsx'
 import SupportPage from './pages/guide/SupportPage.tsx'
+import TeamsGuidePage from './pages/guide/TeamsGuidePage.tsx'
 import StatisticsPage from './pages/statistics/StatisticsPage.tsx'
 import CompetitionPage from './pages/competition/CompetitionPage.tsx'
 import TracksPage from './pages/statistics/tracks/TracksPage.tsx'
@@ -41,6 +42,7 @@ const guidePages = (
     <Route path="global-rating" element={<GlobalRatingGuidePage />} />
     <Route path="leagues" element={<LeaguesPage />} />
     <Route path="achievements" element={<AchievementsPage />} />
+    <Route path="teams" element={<TeamsGuidePage />} />
     <Route path="support" element={<SupportPage />} />
   </>
 )

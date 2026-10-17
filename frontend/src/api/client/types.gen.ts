@@ -359,8 +359,11 @@ export type TeamRole = 'Member' | 'Admin' | 'Owner';
 export type TeamsOverviewModel = {
     myTeam?: null | TeamSummaryModel;
     invitations: Array<TeamInvitationModel>;
+    createBlockedReason?: null | string;
     maxTeamSize: number;
     minPublicTeamSize: number;
+    minRaceDaysToCreate: number;
+    allowPatronsToCreate: boolean;
 };
 
 export type TeamSummaryModel = {

@@ -119,6 +119,30 @@ public class TeamsTests : TeamsTestBase
     }
 
     [Fact]
+    public async Task Create_NeedsEnoughRaceDaysOrAPayingPatron()
+    {
+        _settings.MinRaceDaysToCreate = 10;
+        _settings.AllowPatronsToCreate = true;
+        var rookie = AddUser("rookie");
+        var veteran = AddUser("veteran");
+        var patron = AddUser("patron");
+        var lapsedPatron = AddUser("lapsed");
+        _db.Set<Pilot>().Find(veteran.PilotId)!.TotalRaceDays = 10;
+        AddSupporter(patron, PatreonSupporter.ActivePatronStatus);
+        AddSupporter(lapsedPatron, "former_patron");
+
+        (await Controller(rookie).Overview()).Value!.CreateBlockedReason.Should().Contain("10 race days");
+        (await Controller(rookie).Create(new CreateTeamModel { Tag = NextTag(), Name = "Rookies" })).Result.Should().BeOfType<BadRequestObjectResult>();
+        (await Controller(lapsedPatron).Create(new CreateTeamModel { Tag = NextTag(), Name = "Lapsed" })).Result.Should().BeOfType<BadRequestObjectResult>();
+        (await Controller(veteran).Create(new CreateTeamModel { Tag = NextTag(), Name = "Veterans" })).Value.Should().NotBeNull();
+        (await Controller(patron).Overview()).Value!.CreateBlockedReason.Should().BeNull();
+        (await Controller(patron).Create(new CreateTeamModel { Tag = NextTag(), Name = "Patrons" })).Value.Should().NotBeNull();
+
+        _settings.AllowPatronsToCreate = false;
+        (await Controller(AddUser("patron2")).Overview()).Value!.CreateBlockedReason.Should().NotContain("Patreon");
+    }
+
+    [Fact]
     public async Task Create_RequiresALinkedPilot()
     {
         var result = await Controller(AddUser("nopilot", withPilot: false)).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" });
@@ -471,6 +495,15 @@ public class TeamsTests : TeamsTestBase
         return teamId;
     }
 
+    private void AddSupporter(ApplicationUser user, string status)
+    {
+        _db.Set<PatreonSupporter>().Add(new PatreonSupporter
+        {
+            PatreonId = user.Id, Name = user.Id, Status = status, Amount = 5, PilotId = user.PilotId
+        });
+        _db.SaveChanges();
+    }
+
     private static TeamMemberReferenceModel MemberRef(int teamId, ApplicationUser user) =>
         new() { TeamId = teamId, UserId = user.Id };
 
@@ -483,6 +516,8 @@ public class TeamsTests : TeamsTestBase
         var controller = new TeamsController(
             _userManager,
             Service(),
+            new TeamCreationPolicy(
+                new Repository<Pilot>(_db), new Repository<TeamMember>(_db), new Repository<PatreonSupporter>(_db), Options.Create(_settings)),
             new Repository<Team>(_db),
             new Repository<TeamMember>(_db),
             new Repository<TeamInvite>(_db),

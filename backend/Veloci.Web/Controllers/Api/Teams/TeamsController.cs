@@ -22,6 +22,7 @@ public class TeamsController : ControllerBase
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly TeamService _teamService;
+    private readonly TeamCreationPolicy _creationPolicy;
     private readonly IRepository<Team> _teams;
     private readonly IRepository<TeamMember> _members;
     private readonly IRepository<TeamInvite> _invites;
@@ -31,6 +32,7 @@ public class TeamsController : ControllerBase
     public TeamsController(
         UserManager<ApplicationUser> userManager,
         TeamService teamService,
+        TeamCreationPolicy creationPolicy,
         IRepository<Team> teams,
         IRepository<TeamMember> members,
         IRepository<TeamInvite> invites,
@@ -39,6 +41,7 @@ public class TeamsController : ControllerBase
     {
         _userManager = userManager;
         _teamService = teamService;
+        _creationPolicy = creationPolicy;
         _teams = teams;
         _members = members;
         _invites = invites;
@@ -53,14 +56,17 @@ public class TeamsController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<TeamsOverviewModel>> Overview()
     {
-        var userId = _userManager.GetUserId(User);
+        var user = await _userManager.GetUserAsync(User);
 
         return new TeamsOverviewModel
         {
-            MyTeam = userId is null ? null : await GetTeamOfUserAsync(userId),
-            Invitations = userId is null ? [] : await GetInvitationsOfUserAsync(userId),
+            MyTeam = user is null ? null : await GetTeamOfUserAsync(user.Id),
+            Invitations = user is null ? [] : await GetInvitationsOfUserAsync(user.Id),
+            CreateBlockedReason = user is null ? null : await FindCreateBlockedReasonAsync(user),
             MaxTeamSize = _settings.MaxTeamSize,
-            MinPublicTeamSize = _settings.MinPublicTeamSize
+            MinPublicTeamSize = _settings.MinPublicTeamSize,
+            MinRaceDaysToCreate = _settings.MinRaceDaysToCreate,
+            AllowPatronsToCreate = _settings.AllowPatronsToCreate
         };
     }
 
@@ -190,6 +196,9 @@ public class TeamsController : ControllerBase
 
         if (user is null)
             return Unauthorized();
+
+        if (await FindCreateBlockedReasonAsync(user) is { } blockedReason)
+            return BadRequest(blockedReason);
 
         var result = await _teamService.CreateAsync(user, model.Name, model.Tag, model.Description);
 
@@ -433,6 +442,19 @@ public class TeamsController : ControllerBase
         var result = await _teamService.RemoveMemberAsync(member);
 
         return result is RemoveMemberResult.OwnerCannotBeRemoved ? Forbid() : NoContent();
+    }
+
+    private async Task<string?> FindCreateBlockedReasonAsync(ApplicationUser user)
+    {
+        return await _creationPolicy.FindBlockerAsync(user) switch
+        {
+            TeamCreationBlocker.PilotNotLinked => "Link your Velocidrone pilot first",
+            TeamCreationBlocker.AlreadyInTeam => "You are already in a team",
+            TeamCreationBlocker.NotEnoughRaceDays => _settings.AllowPatronsToCreate
+                ? $"Fly {_settings.MinRaceDaysToCreate} race days or support us on Patreon to create a team"
+                : $"Fly {_settings.MinRaceDaysToCreate} race days to create a team",
+            _ => null
+        };
     }
 
     private async Task<TeamSummaryModel?> GetTeamOfUserAsync(string userId)

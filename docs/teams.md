@@ -30,8 +30,10 @@ The `Teams` section of `appsettings.json` (documented in `appsettings.schema.jso
 |---|---|
 | `MaxTeamSize` | Members per team. 0 means no limit. The UI shows "x / limit" only when a limit is set. |
 | `MinPublicTeamSize` | Members a team needs to be public. Default 3; 0 makes teams public from the start. See Visibility. |
+| `MinRaceDaysToCreate` | Race days a pilot needs before they can create a team. 0 means no requirement. |
+| `AllowPatronsToCreate` | Lets a paying Patreon supporter create a team without the race days. |
 
-Creating a team requires a linked pilot and no team yet.
+Creating a team requires a linked pilot, no team yet, and either `MinRaceDaysToCreate` race days or a paying Patreon membership (when `AllowPatronsToCreate` is on). `TeamCreationPolicy` decides it; the Teams overview returns its reason as `CreateBlockedReason`, which the greyed-out Create team button shows on hover. Site admins creating a team from the admin page skip the race days rule.
 
 ## Names
 

@@ -53,11 +53,19 @@ public class TeamsOverviewModel
     public TeamSummaryModel? MyTeam { get; set; }
     public required List<TeamInvitationModel> Invitations { get; set; }
 
+    /// <summary>Why the user cannot create a team now. Empty when they can, and for a visitor.</summary>
+    public string? CreateBlockedReason { get; set; }
+
     /// <summary>0 - if no limit</summary>
     public required int MaxTeamSize { get; set; }
 
     /// <summary>Members a team needs to be public. 0 - if teams are public from the start</summary>
     public required int MinPublicTeamSize { get; set; }
+
+    /// <summary>Race days a pilot needs to create a team. 0 - if no requirement</summary>
+    public required int MinRaceDaysToCreate { get; set; }
+
+    public required bool AllowPatronsToCreate { get; set; }
 }
 
 public class TeamSummaryModel

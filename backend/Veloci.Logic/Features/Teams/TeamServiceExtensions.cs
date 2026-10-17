@@ -10,6 +10,7 @@ public static class TeamServiceExtensions
     {
         services.Configure<TeamSettings>(configuration.GetSection(TeamSettings.SectionName));
         services.AddScoped<TeamService>();
+        services.AddScoped<TeamCreationPolicy>();
         services.AddScoped<TeamTagLookup>();
         return services;
     }
