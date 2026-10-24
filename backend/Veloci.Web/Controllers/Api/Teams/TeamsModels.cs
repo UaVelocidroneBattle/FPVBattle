@@ -53,6 +53,9 @@ public class TeamsOverviewModel
     public TeamSummaryModel? MyTeam { get; set; }
     public required List<TeamInvitationModel> Invitations { get; set; }
 
+    /// <summary>Teams the user has asked to join and that have not answered yet.</summary>
+    public required List<TeamJoinRequestSummaryModel> JoinRequests { get; set; }
+
     /// <summary>Why the user cannot create a team now. Empty when they can, and for a visitor.</summary>
     public string? CreateBlockedReason { get; set; }
 
@@ -66,6 +69,15 @@ public class TeamsOverviewModel
     public required int MinRaceDaysToCreate { get; set; }
 
     public required bool AllowPatronsToCreate { get; set; }
+
+    public required int MaxPendingJoinRequests { get; set; }
+}
+
+public class TeamJoinRequestSummaryModel
+{
+    public required int TeamId { get; set; }
+    public required string TeamName { get; set; }
+    public required int MemberCount { get; set; }
 }
 
 public class TeamSummaryModel
@@ -108,6 +120,15 @@ public class TeamDetailsModel
 
     /// <summary>Only filled for the owner and admins of the team.</summary>
     public required List<TeamPendingInviteModel> PendingInvites { get; set; }
+
+    /// <summary>Pilots asking to join. Only filled for the owner and admins of the team.</summary>
+    public required List<TeamPendingInviteModel> JoinRequests { get; set; }
+
+    /// <summary>Whether the signed-in user, not a member, has asked to join this team.</summary>
+    public required bool MyJoinRequestPending { get; set; }
+
+    /// <summary>Why the signed-in user, not a member, cannot ask to join now. Empty when they can, and for members and visitors.</summary>
+    public string? JoinRequestBlockedReason { get; set; }
 }
 
 public class TeamMemberModel

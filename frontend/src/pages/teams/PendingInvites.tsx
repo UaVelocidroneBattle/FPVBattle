@@ -20,7 +20,7 @@ function PendingInvites({ invites, onRevoke }: PendingInvitesProps) {
                         <span className="flex-1">
                             <span className="font-semibold text-emerald-400">{invite.pilotName ?? "-"}</span>{" "}
                             <span className="text-xs text-slate-500">
-                                · invited {invite.invitedBy && `by ${invite.invitedBy} `}on {formatDate(invite.invitedOn)}
+                                <span className="mx-1.5">·</span>invited {invite.invitedBy && `by ${invite.invitedBy} `}on {formatDate(invite.invitedOn)}
                             </span>
                         </span>
                         <button

@@ -241,7 +241,7 @@ public class TeamsTests : TeamsTestBase
     }
 
     [Fact]
-    public async Task Accept_IsRejectedWhenTheUserIsAlreadyInATeam()
+    public async Task Accept_DropsTheOtherInvitesOfTheUser()
     {
         var ownerA = AddUser("ownerA");
         var ownerB = AddUser("ownerB");
@@ -254,7 +254,8 @@ public class TeamsTests : TeamsTestBase
         await Controller(invitee).Accept(new TeamReferenceModel { TeamId = teamA });
         var second = await Controller(invitee).Accept(new TeamReferenceModel { TeamId = teamB });
 
-        second.Should().BeOfType<ConflictObjectResult>();
+        second.Should().BeOfType<NotFoundObjectResult>();
+        (await Controller(invitee).Overview()).Value!.Invitations.Should().BeEmpty();
     }
 
     [Fact]
@@ -522,38 +523,5 @@ public class TeamsTests : TeamsTestBase
             PatreonId = user.Id, Name = user.Id, Status = status, Amount = 5, PilotId = user.PilotId
         });
         _db.SaveChanges();
-    }
-
-    private static TeamMemberReferenceModel MemberRef(int teamId, ApplicationUser user) =>
-        new() { TeamId = teamId, UserId = user.Id };
-
-    private static SetMemberRoleModel RoleChange(int teamId, ApplicationUser user, TeamRole role) =>
-        new() { TeamId = teamId, UserId = user.Id, Role = role };
-
-    /// <summary>A controller acting as the given user, or as a visitor when there is none.</summary>
-    private TeamsController Controller(ApplicationUser? user)
-    {
-        var controller = new TeamsController(
-            _userManager,
-            Service(),
-            new TeamCreationPolicy(
-                new Repository<Pilot>(_db), new Repository<TeamMember>(_db), new Repository<PatreonSupporter>(_db), Options.Create(_settings)),
-            new Repository<Team>(_db),
-            new Repository<TeamMember>(_db),
-            new Repository<TeamInvite>(_db),
-            new Repository<Pilot>(_db),
-            Options.Create(_settings));
-
-        controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(user is null
-                    ? new ClaimsIdentity()
-                    : new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, user.Id)], "test"))
-            }
-        };
-
-        return controller;
     }
 }

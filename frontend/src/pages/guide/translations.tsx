@@ -71,7 +71,7 @@ export interface RulesContent {
 
 export type TeamsGuideSettings = Pick<
     TeamsOverviewModel,
-    'maxTeamSize' | 'minPublicTeamSize' | 'minRaceDaysToCreate' | 'allowPatronsToCreate'
+    'maxTeamSize' | 'minPublicTeamSize' | 'minRaceDaysToCreate' | 'allowPatronsToCreate' | 'maxPendingJoinRequests'
 >;
 
 export interface GuideSection {
@@ -154,7 +154,7 @@ export const translations: Record<Language, RulesContent> = {
         supportText: <>Ви можете підтримати проєкт на нашому {link('https://patreon.com/FPVBattle', 'Patreon')} для покриття різних витрат (хостинг, домен, кава, тощо).</>,
         teamsTitle: 'Команди',
         teamsIntro: <>Група пілотів може створити команду. Усі команди та їхніх учасників можна переглянути на сторінці {internalLink('/teams', 'Команди')}.</>,
-        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate }) => [
+        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests }) => [
             {
                 title: 'Як створити команду',
                 items: [
@@ -168,7 +168,9 @@ export const translations: Record<Language, RulesContent> = {
             {
                 title: 'Як приєднатися',
                 items: [
-                    'До команди можна потрапити лише за запрошенням. Власник або адмін запрошує вас за ніком пілота.',
+                    'Власник або адмін може запросити вас за ніком пілота.',
+                    `Або ви самі можете попроситися до публічної команди. Одночасно можна мати до ${maxPendingJoinRequests} запитів, які чекають на відповідь.`,
+                    'Запит схвалює власник або адмін команди. Коли вас приймають, ви отримуєте сповіщення.',
                     <>Запрошення з'являються на сторінці {internalLink('/teams', 'Команди')}, де їх можна прийняти або відхилити.</>,
                     'Пілот може бути лише в одній команді. Щоб перейти в іншу, спершу вийдіть зі своєї.',
                     ...when(maxTeamSize > 0, `У команді може бути до ${maxTeamSize} пілотів.`),
@@ -178,7 +180,7 @@ export const translations: Record<Language, RulesContent> = {
                 title: 'Ролі',
                 items: [
                     <><span className="font-bold text-slate-100">Власник</span> — керує командою, призначає адмінів і може видалити команду. Власник не може вийти з команди, лише видалити її.</>,
-                    <><span className="font-bold text-slate-100">Адмін</span> — змінює назву, тег і опис, запрошує пілотів і видаляє учасників.</>,
+                    <><span className="font-bold text-slate-100">Адмін</span> — змінює назву, тег і опис, запрошує пілотів, відповідає на запити і видаляє учасників.</>,
                     <><span className="font-bold text-slate-100">Учасник</span> — може будь-коли вийти з команди.</>,
                 ],
             },
@@ -267,7 +269,7 @@ export const translations: Record<Language, RulesContent> = {
         supportText: <>You can support the project on our {link('https://patreon.com/FPVBattle', 'Patreon')} to help cover various costs (hosting, domain, coffee, etc.).</>,
         teamsTitle: 'Teams',
         teamsIntro: <>A group of pilots can create a team. Anyone can browse teams and their members on the {internalLink('/teams', 'Teams')} page.</>,
-        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate }) => [
+        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests }) => [
             {
                 title: 'Creating a team',
                 items: [
@@ -281,7 +283,9 @@ export const translations: Record<Language, RulesContent> = {
             {
                 title: 'Joining a team',
                 items: [
-                    'Joining is by invitation only. The owner or an admin invites you by your pilot name.',
+                    'The owner or an admin can invite you by your pilot name.',
+                    `Or you can ask to join a public team yourself. You can have up to ${maxPendingJoinRequests} requests waiting at once.`,
+                    'The owner or an admin approves the request, and you get a notification when you are in.',
                     <>Invitations appear on the {internalLink('/teams', 'Teams')} page, where you can accept or decline them.</>,
                     'A pilot can be in one team at a time. To join another team, leave yours first.',
                     ...when(maxTeamSize > 0, `A team can have up to ${maxTeamSize} pilots.`),
@@ -291,7 +295,7 @@ export const translations: Record<Language, RulesContent> = {
                 title: 'Roles',
                 items: [
                     <><span className="font-bold text-slate-100">Owner</span> — runs the team, appoints admins and can delete the team. The owner cannot leave; they delete the team instead.</>,
-                    <><span className="font-bold text-slate-100">Admin</span> — edits the name, tag and description, invites pilots and removes members.</>,
+                    <><span className="font-bold text-slate-100">Admin</span> — edits the name, tag and description, invites pilots, answers join requests and removes members.</>,
                     <><span className="font-bold text-slate-100">Member</span> — can leave the team at any time.</>,
                 ],
             },

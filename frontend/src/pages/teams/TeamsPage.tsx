@@ -4,7 +4,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 import { useTeamsStore } from "@/store/teamsStore";
-import CreateTeamButton from "./CreateTeamButton";
+import BlockableButton from "./BlockableButton";
 import TeamFormDialog from "./TeamFormDialog";
 import InvitationsBanner from "./InvitationsBanner";
 import TeamDetails from "./TeamDetails";
@@ -62,7 +62,7 @@ function TeamsPage() {
                         {user ? (
                             <>
                                 <h2 className="mb-7 text-xl font-semibold text-white">You're not in a team yet</h2>
-                                <CreateTeamButton
+                                <BlockableButton
                                     label="Create a team"
                                     className={primaryButtonClass}
                                     blockedReason={blockedReason}

@@ -5,11 +5,13 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/authStore";
 import { type ActionResult, useTeamsStore } from "@/store/teamsStore";
+import BlockableButton from "./BlockableButton";
 import InviteDialog from "./InviteDialog";
+import JoinRequests from "./JoinRequests";
 import MembersTable from "./MembersTable";
 import PendingInvites from "./PendingInvites";
 import TeamFormDialog from "./TeamFormDialog";
-import { panelClass, sectionTitleClass } from "./teamStyles";
+import { compactPrimaryButtonClass, compactSecondaryButtonClass, panelClass, sectionTitleClass } from "./teamStyles";
 
 type PendingConfirmation =
     | { kind: "delete" }
@@ -21,7 +23,8 @@ function TeamDetails() {
     const detailsState = useTeamsStore((state) => state.detailsState);
     const maxTeamSize = useTeamsStore((state) => state.overview?.maxTeamSize ?? 0);
     const minPublicTeamSize = useTeamsStore((state) => state.overview?.minPublicTeamSize ?? 0);
-    const currentUserId =useAuthStore((state) => state.user?.id);
+    const currentUserId = useAuthStore((state) => state.user?.id);
+    const inTeam = useTeamsStore((state) => !!state.overview?.myTeam);
     const [inviting, setInviting] = useState(false);
     const [editing, setEditing] = useState(false);
     const [confirmation, setConfirmation] = useState<PendingConfirmation | null>(null);
@@ -100,7 +103,7 @@ function TeamDetails() {
 
     return (
         <section className={`${panelClass} p-6`}>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
                 <h2 className="flex flex-wrap items-center gap-3 text-[22px] font-bold text-white">
                     {details.name}
                     {details.tag && (
@@ -110,6 +113,26 @@ function TeamDetails() {
                     )}
                 </h2>
                 {teamMenu.length > 0 && <ActionMenu label="Team actions" items={teamMenu} />}
+
+                {!myRole && currentUserId && !inTeam && (
+                    <div className="flex shrink-0 items-center gap-3">
+                        {details.myJoinRequestPending ? (
+                            <>
+                                <span className="text-sm text-slate-400">You have asked to join</span>
+                                <button onClick={() => run(store().cancelJoinRequest(teamId))} className={compactSecondaryButtonClass}>
+                                    Cancel request
+                                </button>
+                            </>
+                        ) : (
+                            <BlockableButton
+                                label="Ask to join"
+                                className={compactPrimaryButtonClass}
+                                blockedReason={details.joinRequestBlockedReason ?? null}
+                                onClick={() => run(store().requestToJoin(teamId))}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
 
             {details.description && <p className="mt-3.5 max-w-prose text-sm text-slate-400">{details.description}</p>}
@@ -121,9 +144,9 @@ function TeamDetails() {
                 </p>
             )}
 
-            {!myRole && (
+            {!myRole && !currentUserId && (
                 <p className="mt-3.5 text-xs text-slate-500">
-                    You can join a team only through an invitation from its owner or an admin.
+                    Pilots join a team through an invitation from its owner or an admin, or by asking to join it.
                 </p>
             )}
 
@@ -145,6 +168,14 @@ function TeamDetails() {
                     onRemove={(member) => setConfirmation({ kind: "remove", member })}
                 />
             </div>
+
+            {canManage && details.joinRequests.length > 0 && (
+                <JoinRequests
+                    requests={details.joinRequests}
+                    onApprove={(request: TeamPendingInviteModel) => run(store().approveJoinRequest(teamId, request.userId))}
+                    onReject={(request: TeamPendingInviteModel) => run(store().rejectJoinRequest(teamId, request.userId))}
+                />
+            )}
 
             {canManage && details.pendingInvites.length > 0 && (
                 <PendingInvites

@@ -19,9 +19,19 @@ The owner cannot leave; they delete the team instead.
 - Sent by pilot name (case sensitive) to the user linked to that pilot, so an invitee always has a linked pilot.
 - They never expire. They disappear when accepted, declined or revoked.
 - The invite dialog suggests only pilots that can be invited right now: linked to an account, in no team, and not already invited.
-- A pilot can hold invites from several teams; accepting one is refused while they are in a team. Accepting also checks `MaxTeamSize` again, because an invite can wait for a long time.
-- Joining is by invitation only.
+- A pilot can hold invites from several teams. Accepting one checks `MaxTeamSize` again, because an invite can wait for a long time.
 - An invite also puts a notification in the invitee's bell (`TeamInviteSentNotification`, handled by `InAppTeamInviteHandler`), next to the badge on the Teams menu item.
+
+## Join requests
+
+A pilot can also ask to join a team with "Ask to join" on its page.
+
+- Stored as a `TeamInvite` the user sent to themselves (`UserId == InvitedByUserId`). `TeamInvite.IsJoinRequest` and the `Invitations()` / `JoinRequests()` query extensions keep the two apart, so code never compares the user columns by hand. Accept and Decline only find invitations, so a pilot cannot accept their own request.
+- Allowed for a user with a linked pilot who is in no team, to a public team that is not full. The race days rule for creating a team does not apply. At most `MaxPendingJoinRequests` requests can wait at once; the team page shows the reason when the button is greyed out (`JoinRequestBlockedReason`).
+- The owner and admins see the requests on the team page and approve or reject them. The pilot sees their requests in the banner on the Teams page and can cancel them.
+- Notifications (`InAppTeamJoinRequestHandler`): the owner and admins get one for a new request, the pilot gets one when it is approved.
+- An invite to a pilot who has asked to join approves the request. A pilot the team has already invited cannot ask; the button points them to the invite instead.
+- Joining a team in any way (accepting, approval, being added by a site admin, creating a team) drops all the user's other invites and requests.
 
 ## Limits
 
@@ -33,6 +43,7 @@ The `Teams` section of `appsettings.json` (documented in `appsettings.schema.jso
 | `MinPublicTeamSize` | Members a team needs to be public. Default 3; 0 makes teams public from the start. See Visibility. |
 | `MinRaceDaysToCreate` | Race days a pilot needs before they can create a team. 0 means no requirement. |
 | `AllowPatronsToCreate` | Lets a paying Patreon supporter create a team without the race days. |
+| `MaxPendingJoinRequests` | Join requests a user can have waiting at once. Default 3. |
 
 Creating a team requires a linked pilot, no team yet, and either `MinRaceDaysToCreate` race days or a paying Patreon membership (when `AllowPatronsToCreate` is on). `TeamCreationPolicy` decides it; the Teams overview returns its reason as `CreateBlockedReason`, which the greyed-out Create team button shows on hover. Site admins creating a team from the admin page skip the race days rule.
 
@@ -73,7 +84,7 @@ The admin area has a Teams page (`/TeamManagement`, sidebar: Pilots > Teams). Ad
 - **Create a team**: the admin picks a pilot as the owner, who must be linked to an account and in no team.
 - **Team page**: edit name and description (same rules as users), delete the team.
 - **Members**: add a pilot straight into the team (as a plain member; their pending invite to it is dropped), make a member admin or member again, remove a member. The owner can be neither removed nor demoted.
-- **Pending invites**: revoke.
+- **Pending invites**: revoke. Join requests are listed here too, marked "Asked to join".
 
 Code: `Veloci.Web/Controllers/Admin/Teams` (`TeamManagementController`), `Views/TeamManagement`. It is not named `TeamsController` because the API controller has that name, and the shared route value made links on the admin pages point at `/api/teams/...`. Tests: `TeamManagementTests`, on top of `TeamsTestBase`.
 

@@ -96,6 +96,7 @@ public class TeamManagementController : AdminControllerBase
                 UserId = i.UserId,
                 PilotName = i.User.Pilot != null ? i.User.Pilot.Name : null,
                 InvitedBy = i.InvitedByUser.Pilot != null ? i.InvitedByUser.Pilot.Name : null,
+                IsJoinRequest = i.UserId == i.InvitedByUserId,
                 InvitedOn = i.InvitedOn
             })
             .ToListAsync();

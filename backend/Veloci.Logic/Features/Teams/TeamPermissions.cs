@@ -14,6 +14,8 @@ public static class TeamPermissions
 
     public static bool CanRevokeInvite(TeamMember? actor) => CanEditTeam(actor);
 
+    public static bool CanReviewJoinRequests(TeamMember? actor) => CanEditTeam(actor);
+
     public static bool CanDeleteTeam(TeamMember? actor) => actor?.Role is TeamRole.Owner;
 
     public static bool CanChangeRole(TeamMember? actor, TeamMember target) =>

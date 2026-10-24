@@ -172,7 +172,7 @@ export type NotificationsModel = {
     unreadCount: number;
 };
 
-export type NotificationType = 'General' | 'Achievement' | 'CompetitionResults' | 'LeagueUpdate' | 'TeamInvite';
+export type NotificationType = 'General' | 'Achievement' | 'CompetitionResults' | 'LeagueUpdate' | 'TeamInvite' | 'TeamJoinRequest' | 'TeamJoinRequestApproved';
 
 export type ParticipationModel = {
     days: Array<string>;
@@ -314,6 +314,9 @@ export type TeamDetailsModel = {
     myRole?: null | TeamRole;
     members: Array<TeamMemberModel>;
     pendingInvites: Array<TeamPendingInviteModel>;
+    joinRequests: Array<TeamPendingInviteModel>;
+    myJoinRequestPending: boolean;
+    joinRequestBlockedReason?: null | string;
 };
 
 export type TeamInvitationModel = {
@@ -321,6 +324,12 @@ export type TeamInvitationModel = {
     teamName: string;
     memberCount: number;
     invitedBy?: null | string;
+};
+
+export type TeamJoinRequestSummaryModel = {
+    teamId: number;
+    teamName: string;
+    memberCount: number;
 };
 
 export type TeamMemberModel = {
@@ -360,11 +369,13 @@ export type TeamRole = 'Member' | 'Admin' | 'Owner';
 export type TeamsOverviewModel = {
     myTeam?: null | TeamSummaryModel;
     invitations: Array<TeamInvitationModel>;
+    joinRequests: Array<TeamJoinRequestSummaryModel>;
     createBlockedReason?: null | string;
     maxTeamSize: number;
     minPublicTeamSize: number;
     minRaceDaysToCreate: number;
     allowPatronsToCreate: boolean;
+    maxPendingJoinRequests: number;
 };
 
 export type TeamSummaryModel = {
@@ -454,6 +465,62 @@ export type GetApiTeamsDetailsResponses = {
 };
 
 export type GetApiTeamsDetailsResponse = GetApiTeamsDetailsResponses[keyof GetApiTeamsDetailsResponses];
+
+export type PostApiTeamsRequestToJoinData = {
+    body: TeamReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/RequestToJoin';
+};
+
+export type PostApiTeamsRequestToJoinResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsCancelJoinRequestData = {
+    body: TeamReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/CancelJoinRequest';
+};
+
+export type PostApiTeamsCancelJoinRequestResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsApproveJoinRequestData = {
+    body: TeamMemberReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/ApproveJoinRequest';
+};
+
+export type PostApiTeamsApproveJoinRequestResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiTeamsRejectJoinRequestData = {
+    body: TeamMemberReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/teams/RejectJoinRequest';
+};
+
+export type PostApiTeamsRejectJoinRequestResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type PostApiTeamsCreateData = {
     body: CreateTeamModel;
