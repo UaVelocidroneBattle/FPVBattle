@@ -243,7 +243,7 @@ public class TeamManagementTests : TeamsTestBase
     private TeamManagementController Controller() => new(
         new Repository<Team>(_db),
         new Repository<TeamMember>(_db),
-        new Repository<TeamInvite>(_db),
+        new Repository<TeamMembershipRequest>(_db),
         new Repository<ApplicationUser>(_db),
         new Repository<Pilot>(_db),
         Service(),

@@ -17,7 +17,7 @@ public class TeamManagementController : AdminControllerBase
 {
     private readonly IRepository<Team> _teams;
     private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<TeamInvite> _invites;
+    private readonly IRepository<TeamMembershipRequest> _requests;
     private readonly IRepository<ApplicationUser> _users;
     private readonly IRepository<Pilot> _pilots;
     private readonly TeamService _teamService;
@@ -26,7 +26,7 @@ public class TeamManagementController : AdminControllerBase
     public TeamManagementController(
         IRepository<Team> teams,
         IRepository<TeamMember> members,
-        IRepository<TeamInvite> invites,
+        IRepository<TeamMembershipRequest> requests,
         IRepository<ApplicationUser> users,
         IRepository<Pilot> pilots,
         TeamService teamService,
@@ -34,7 +34,7 @@ public class TeamManagementController : AdminControllerBase
     {
         _teams = teams;
         _members = members;
-        _invites = invites;
+        _requests = requests;
         _users = users;
         _pilots = pilots;
         _teamService = teamService;
@@ -55,7 +55,7 @@ public class TeamManagementController : AdminControllerBase
                     .Select(m => m.User.Pilot != null ? m.User.Pilot.Name : null)
                     .FirstOrDefault(),
                 MemberCount = t.Members.Count,
-                InviteCount = t.Invites.Count,
+                InviteCount = t.MembershipRequests.Count,
                 CreatedOn = t.CreatedOn
             })
             .ToListAsync();
@@ -88,16 +88,16 @@ public class TeamManagementController : AdminControllerBase
             })
             .ToListAsync();
 
-        var invites = await _invites.GetAll()
+        var invites = await _requests.GetAll()
             .Where(i => i.TeamId == id)
-            .OrderBy(i => i.InvitedOn)
+            .OrderBy(i => i.CreatedOn)
             .Select(i => new TeamInviteRow
             {
                 UserId = i.UserId,
                 PilotName = i.User.Pilot != null ? i.User.Pilot.Name : null,
                 InvitedBy = i.InvitedByUser.Pilot != null ? i.InvitedByUser.Pilot.Name : null,
-                IsJoinRequest = i.UserId == i.InvitedByUserId,
-                InvitedOn = i.InvitedOn
+                IsJoinRequest = i.InvitedByUserId == null,
+                CreatedOn = i.CreatedOn
             })
             .ToListAsync();
 
@@ -251,7 +251,7 @@ public class TeamManagementController : AdminControllerBase
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> RevokeInvite(int id, string userId)
     {
-        var invite = await _invites.GetAll().FirstOrDefaultAsync(i => i.TeamId == id && i.UserId == userId);
+        var invite = await _requests.GetAll().FirstOrDefaultAsync(i => i.TeamId == id && i.UserId == userId);
 
         if (invite is null)
             return NotFound();

@@ -25,7 +25,7 @@ public class TeamsController : ControllerBase
     private readonly TeamCreationPolicy _creationPolicy;
     private readonly IRepository<Team> _teams;
     private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<TeamInvite> _invites;
+    private readonly IRepository<TeamMembershipRequest> _requests;
     private readonly IRepository<Pilot> _pilots;
     private readonly TeamSettings _settings;
 
@@ -35,7 +35,7 @@ public class TeamsController : ControllerBase
         TeamCreationPolicy creationPolicy,
         IRepository<Team> teams,
         IRepository<TeamMember> members,
-        IRepository<TeamInvite> invites,
+        IRepository<TeamMembershipRequest> requests,
         IRepository<Pilot> pilots,
         IOptions<TeamSettings> settings)
     {
@@ -44,7 +44,7 @@ public class TeamsController : ControllerBase
         _creationPolicy = creationPolicy;
         _teams = teams;
         _members = members;
-        _invites = invites;
+        _requests = requests;
         _pilots = pilots;
         _settings = settings.Value;
     }
@@ -119,7 +119,7 @@ public class TeamsController : ControllerBase
         return await _userManager.Users
             .Where(u => u.Pilot != null && EF.Functions.Like(u.Pilot.Name, pattern, "\\"))
             .Where(u => !_members.GetAll().Any(m => m.UserId == u.Id))
-            .Where(u => !_invites.GetAll().Any(i => i.TeamId == teamId && i.UserId == u.Id))
+            .Where(u => !_requests.GetAll().Any(i => i.TeamId == teamId && i.UserId == u.Id))
             .OrderBy(u => u.Pilot!.Name)
             .Take(SuggestionsLimit)
             .Select(u => new PilotSuggestionModel { Name = u.Pilot!.Name, Country = u.Pilot.Country })
@@ -172,8 +172,8 @@ public class TeamsController : ControllerBase
             MemberCount = members.Count,
             MyRole = myRole,
             Members = members,
-            PendingInvites = canReviewPending ? await GetPendingOfTeamAsync(_invites.GetAll().Invitations(), teamId) : [],
-            JoinRequests = canReviewPending ? await GetPendingOfTeamAsync(_invites.GetAll().JoinRequests(), teamId) : [],
+            PendingInvites = canReviewPending ? await GetPendingOfTeamAsync(_requests.GetAll().Invitations(), teamId) : [],
+            JoinRequests = canReviewPending ? await GetPendingOfTeamAsync(_requests.GetAll().JoinRequests(), teamId) : [],
             MyJoinRequestPending = user is not null && await FindJoinRequestAsync(teamId, user.Id) is not null,
             JoinRequestBlockedReason = user is null ? null : await FindJoinRequestBlockedReasonAsync(user, teamId, members.Count)
         };
@@ -574,7 +574,7 @@ public class TeamsController : ControllerBase
         if (_settings.MaxTeamSize > 0 && memberCount >= _settings.MaxTeamSize)
             return TeamMessages.TeamFull;
 
-        if (await _invites.GetAll().JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
+        if (await _requests.GetAll().JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
             return TooManyJoinRequestsMessage();
 
         return null;
@@ -585,10 +585,10 @@ public class TeamsController : ControllerBase
 
     private async Task<List<TeamJoinRequestSummaryModel>> GetJoinRequestsOfUserAsync(string userId)
     {
-        return await _invites.GetAll()
+        return await _requests.GetAll()
             .JoinRequests()
             .Where(i => i.UserId == userId)
-            .OrderByDescending(i => i.InvitedOn)
+            .OrderByDescending(i => i.CreatedOn)
             .Select(i => new TeamJoinRequestSummaryModel
             {
                 TeamId = i.TeamId,
@@ -598,28 +598,28 @@ public class TeamsController : ControllerBase
             .ToListAsync();
     }
 
-    private static async Task<List<TeamPendingInviteModel>> GetPendingOfTeamAsync(IQueryable<TeamInvite> pending, int teamId)
+    private static async Task<List<TeamMembershipRequestModel>> GetPendingOfTeamAsync(IQueryable<TeamMembershipRequest> pending, int teamId)
     {
         return await pending
             .Where(i => i.TeamId == teamId)
-            .OrderBy(i => i.InvitedOn)
-            .Select(i => new TeamPendingInviteModel
+            .OrderBy(i => i.CreatedOn)
+            .Select(i => new TeamMembershipRequestModel
             {
                 UserId = i.UserId,
                 PilotName = i.User.Pilot != null ? i.User.Pilot.Name : null,
                 Country = i.User.Pilot != null ? i.User.Pilot.Country : null,
                 InvitedBy = i.InvitedByUser.Pilot != null ? i.InvitedByUser.Pilot.Name : null,
-                InvitedOn = i.InvitedOn
+                CreatedOn = i.CreatedOn
             })
             .ToListAsync();
     }
 
     private async Task<List<TeamInvitationModel>> GetInvitationsOfUserAsync(string userId)
     {
-        return await _invites.GetAll()
+        return await _requests.GetAll()
             .Invitations()
             .Where(i => i.UserId == userId)
-            .OrderByDescending(i => i.InvitedOn)
+            .OrderByDescending(i => i.CreatedOn)
             .Select(i => new TeamInvitationModel
             {
                 TeamId = i.TeamId,
@@ -635,14 +635,14 @@ public class TeamsController : ControllerBase
         return userId is not null && await FindInviteAsync(teamId, userId) is not null;
     }
 
-    private async Task<TeamInvite?> FindInviteAsync(int teamId, string userId)
+    private async Task<TeamMembershipRequest?> FindInviteAsync(int teamId, string userId)
     {
-        return await _invites.GetAll().Invitations().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
+        return await _requests.GetAll().Invitations().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
     }
 
-    private async Task<TeamInvite?> FindJoinRequestAsync(int teamId, string userId)
+    private async Task<TeamMembershipRequest?> FindJoinRequestAsync(int teamId, string userId)
     {
-        return await _invites.GetAll().JoinRequests().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
+        return await _requests.GetAll().JoinRequests().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
     }
 
     private async Task<TeamMember?> FindMemberAsync(int teamId, string userId)

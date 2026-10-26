@@ -69,7 +69,7 @@ public abstract class TeamsTestBase : IDisposable
     protected readonly RecordingPublisher _publisher = new();
 
     protected TeamService Service() => new(
-        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamInvite>(_db), Options.Create(_settings), _publisher);
+        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamMembershipRequest>(_db), Options.Create(_settings), _publisher);
 
     /// <summary>Keeps the published events instead of running their handlers.</summary>
     protected class RecordingPublisher : IPublisher
@@ -106,7 +106,7 @@ public abstract class TeamsTestBase : IDisposable
                 new Repository<Pilot>(_db), new Repository<TeamMember>(_db), new Repository<PatreonSupporter>(_db), Options.Create(_settings)),
             new Repository<Team>(_db),
             new Repository<TeamMember>(_db),
-            new Repository<TeamInvite>(_db),
+            new Repository<TeamMembershipRequest>(_db),
             new Repository<Pilot>(_db),
             Options.Create(_settings));
 

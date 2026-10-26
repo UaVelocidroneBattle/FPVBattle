@@ -26,7 +26,7 @@ The owner cannot leave; they delete the team instead.
 
 A pilot can also ask to join a team with "Ask to join" on its page.
 
-- Stored as a `TeamInvite` the user sent to themselves (`UserId == InvitedByUserId`). `TeamInvite.IsJoinRequest` and the `Invitations()` / `JoinRequests()` query extensions keep the two apart, so code never compares the user columns by hand. Accept and Decline only find invitations, so a pilot cannot accept their own request.
+- Invitations and join requests share one table, `TeamMembershipRequests` (`TeamMembershipRequest`). A join request is a row without an inviter (`InvitedByUserId` is null). `TeamMembershipRequest.IsJoinRequest` and the `Invitations()` / `JoinRequests()` query extensions keep the two apart. Accept and Decline only find invitations, so a pilot cannot accept their own request. The table was called `TeamInvites` before; the `RenameTeamInvitesToMembershipRequests` migration copied its rows across (`TeamMembershipRequestsMigrationTests`).
 - Allowed for a user with a linked pilot who is in no team, to a public team that is not full. The race days rule for creating a team does not apply. At most `MaxPendingJoinRequests` requests can wait at once; the team page shows the reason when the button is greyed out (`JoinRequestBlockedReason`).
 - The owner and admins see the requests on the team page and approve or reject them. The pilot sees their requests in the banner on the Teams page and can cancel them.
 - Notifications (`InAppTeamJoinRequestHandler`): the owner and admins get one for a new request, the pilot gets one when it is approved.
@@ -90,7 +90,7 @@ Code: `Veloci.Web/Controllers/Admin/Teams` (`TeamManagementController`), `Views/
 
 ## Code
 
-- Backend: `Veloci.Logic/Features/Teams` (`TeamService` runs the operations, `TeamPermissions` decides who may run them and is asked by the API controller, `TeamSettings`), `Veloci.Web/Controllers/Api/Teams`, domain `Team`, `TeamMember`, `TeamInvite`.
+- Backend: `Veloci.Logic/Features/Teams` (`TeamService` runs the operations, `TeamPermissions` decides who may run them and is asked by the API controller, `TeamSettings`), `Veloci.Web/Controllers/Api/Teams`, domain `Team`, `TeamMember`, `TeamMembershipRequest`.
 - Frontend: `src/pages/teams`, `src/store/teamsStore.ts`.
 - API: `/api/teams/[action]`. `Overview`, `Search` and `Details` are `[AllowAnonymous]` (a signed-in user is still recognised through the JWT). Every other action requires a signed-in user.
 - Tests: `Veloci.Tests/TeamsTests.cs` runs the controller and service against in-memory SQLite.

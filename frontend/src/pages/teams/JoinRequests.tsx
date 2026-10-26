@@ -1,11 +1,11 @@
-import type { TeamPendingInviteModel } from "@/api/client";
+import type { TeamMembershipRequestModel } from "@/api/client";
 import { formatDate } from "@/lib/utils";
 import { sectionTitleClass } from "./teamStyles";
 
 interface JoinRequestsProps {
-    requests: TeamPendingInviteModel[];
-    onApprove: (request: TeamPendingInviteModel) => void;
-    onReject: (request: TeamPendingInviteModel) => void;
+    requests: TeamMembershipRequestModel[];
+    onApprove: (request: TeamMembershipRequestModel) => void;
+    onReject: (request: TeamMembershipRequestModel) => void;
 }
 
 function JoinRequests({ requests, onApprove, onReject }: JoinRequestsProps) {
@@ -20,7 +20,7 @@ function JoinRequests({ requests, onApprove, onReject }: JoinRequestsProps) {
                     >
                         <span className="flex-1">
                             <span className="font-semibold text-emerald-400">{request.pilotName ?? "-"}</span>{" "}
-                            <span className="text-xs text-slate-500"><span className="mx-1.5">·</span>asked on {formatDate(request.invitedOn)}</span>
+                            <span className="text-xs text-slate-500"><span className="mx-1.5">·</span>asked on {formatDate(request.createdOn)}</span>
                         </span>
                         <button
                             onClick={() => onApprove(request)}

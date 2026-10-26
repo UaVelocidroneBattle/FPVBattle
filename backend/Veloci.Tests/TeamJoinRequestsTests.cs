@@ -35,7 +35,7 @@ public class TeamJoinRequestsTests : TeamsTestBase
 
         (await Controller(pilot).Details(teamB)).Value!.MyRole.Should().Be(TeamRole.Member);
         (await Controller(pilot).Overview()).Value!.Invitations.Should().BeEmpty();
-        _db.Set<TeamInvite>().Should().BeEmpty();
+        _db.Set<TeamMembershipRequest>().Should().BeEmpty();
         _publisher.Published.OfType<TeamJoinRequestApprovedNotification>().Should().ContainSingle(e => e.Member.Id == pilot.Id);
     }
 

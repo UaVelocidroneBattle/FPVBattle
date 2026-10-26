@@ -2869,13 +2869,13 @@
           "pendingInvites": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TeamPendingInviteModel"
+              "$ref": "#/components/schemas/TeamMembershipRequestModel"
             }
           },
           "joinRequests": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TeamPendingInviteModel"
+              "$ref": "#/components/schemas/TeamMembershipRequestModel"
             }
           },
           "myJoinRequestPending": {
@@ -2985,6 +2985,40 @@
           }
         }
       },
+      "TeamMembershipRequestModel": {
+        "required": [
+          "userId",
+          "createdOn"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "pilotName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invitedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "TeamModel": {
         "required": [
           "id",
@@ -3010,40 +3044,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "TeamPendingInviteModel": {
-        "required": [
-          "userId",
-          "invitedOn"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string"
-          },
-          "pilotName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "country": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "invitedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "invitedOn": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },

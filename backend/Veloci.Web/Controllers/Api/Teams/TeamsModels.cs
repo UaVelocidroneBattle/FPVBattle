@@ -119,10 +119,10 @@ public class TeamDetailsModel
     public required List<TeamMemberModel> Members { get; set; }
 
     /// <summary>Only filled for the owner and admins of the team.</summary>
-    public required List<TeamPendingInviteModel> PendingInvites { get; set; }
+    public required List<TeamMembershipRequestModel> PendingInvites { get; set; }
 
     /// <summary>Pilots asking to join. Only filled for the owner and admins of the team.</summary>
-    public required List<TeamPendingInviteModel> JoinRequests { get; set; }
+    public required List<TeamMembershipRequestModel> JoinRequests { get; set; }
 
     /// <summary>Whether the signed-in user, not a member, has asked to join this team.</summary>
     public required bool MyJoinRequestPending { get; set; }
@@ -140,7 +140,7 @@ public class TeamMemberModel
     public string? Country { get; set; }
 }
 
-public class TeamPendingInviteModel
+public class TeamMembershipRequestModel
 {
     public required string UserId { get; set; }
     public string? PilotName { get; set; }
@@ -149,5 +149,5 @@ public class TeamPendingInviteModel
     /// <summary>The pilot name of the inviter. Empty when the inviter has no linked pilot.</summary>
     public string? InvitedBy { get; set; }
 
-    public required DateTime InvitedOn { get; set; }
+    public required DateTime CreatedOn { get; set; }
 }

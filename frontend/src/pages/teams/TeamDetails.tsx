@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TeamMemberModel, TeamPendingInviteModel, TeamRole } from "@/api/client";
+import type { TeamMemberModel, TeamMembershipRequestModel, TeamRole } from "@/api/client";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { Spinner } from "@/components/ui/spinner";
@@ -172,15 +172,15 @@ function TeamDetails() {
             {canManage && details.joinRequests.length > 0 && (
                 <JoinRequests
                     requests={details.joinRequests}
-                    onApprove={(request: TeamPendingInviteModel) => run(store().approveJoinRequest(teamId, request.userId))}
-                    onReject={(request: TeamPendingInviteModel) => run(store().rejectJoinRequest(teamId, request.userId))}
+                    onApprove={(request: TeamMembershipRequestModel) => run(store().approveJoinRequest(teamId, request.userId))}
+                    onReject={(request: TeamMembershipRequestModel) => run(store().rejectJoinRequest(teamId, request.userId))}
                 />
             )}
 
             {canManage && details.pendingInvites.length > 0 && (
                 <PendingInvites
                     invites={details.pendingInvites}
-                    onRevoke={(invite: TeamPendingInviteModel) => run(store().revokeInvitation(teamId, invite.userId))}
+                    onRevoke={(invite: TeamMembershipRequestModel) => run(store().revokeInvitation(teamId, invite.userId))}
                 />
             )}
 

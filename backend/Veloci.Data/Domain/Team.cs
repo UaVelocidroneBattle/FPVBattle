@@ -13,5 +13,5 @@ public class Team
     public string? Description { get; set; }
     public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     public virtual ICollection<TeamMember> Members { get; set; } = [];
-    public virtual ICollection<TeamInvite> Invites { get; set; } = [];
+    public virtual ICollection<TeamMembershipRequest> MembershipRequests { get; set; } = [];
 }

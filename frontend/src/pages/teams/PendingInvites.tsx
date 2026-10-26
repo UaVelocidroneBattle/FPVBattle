@@ -1,10 +1,10 @@
-import type { TeamPendingInviteModel } from "@/api/client";
+import type { TeamMembershipRequestModel } from "@/api/client";
 import { formatDate } from "@/lib/utils";
 import { sectionTitleClass } from "./teamStyles";
 
 interface PendingInvitesProps {
-    invites: TeamPendingInviteModel[];
-    onRevoke: (invite: TeamPendingInviteModel) => void;
+    invites: TeamMembershipRequestModel[];
+    onRevoke: (invite: TeamMembershipRequestModel) => void;
 }
 
 function PendingInvites({ invites, onRevoke }: PendingInvitesProps) {
@@ -20,7 +20,7 @@ function PendingInvites({ invites, onRevoke }: PendingInvitesProps) {
                         <span className="flex-1">
                             <span className="font-semibold text-emerald-400">{invite.pilotName ?? "-"}</span>{" "}
                             <span className="text-xs text-slate-500">
-                                <span className="mx-1.5">·</span>invited {invite.invitedBy && `by ${invite.invitedBy} `}on {formatDate(invite.invitedOn)}
+                                <span className="mx-1.5">·</span>invited {invite.invitedBy && `by ${invite.invitedBy} `}on {formatDate(invite.createdOn)}
                             </span>
                         </span>
                         <button
