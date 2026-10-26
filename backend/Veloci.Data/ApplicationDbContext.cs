@@ -149,20 +149,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<TeamInvite>().ToTable("TeamInvites");
-        builder.Entity<TeamInvite>().HasKey(i => new { i.TeamId, i.UserId });
-        builder.Entity<TeamInvite>().HasIndex(i => i.UserId);
-        builder.Entity<TeamInvite>()
+        builder.Entity<TeamMembershipRequest>().ToTable("TeamMembershipRequests");
+        builder.Entity<TeamMembershipRequest>().HasKey(i => new { i.TeamId, i.UserId });
+        builder.Entity<TeamMembershipRequest>().HasIndex(i => i.UserId);
+        builder.Entity<TeamMembershipRequest>()
             .HasOne(i => i.Team)
-            .WithMany(t => t.Invites)
+            .WithMany(t => t.MembershipRequests)
             .HasForeignKey(i => i.TeamId)
             .OnDelete(DeleteBehavior.Cascade);
-        builder.Entity<TeamInvite>()
+        builder.Entity<TeamMembershipRequest>()
             .HasOne(i => i.User)
             .WithMany()
             .HasForeignKey(i => i.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        builder.Entity<TeamInvite>()
+        builder.Entity<TeamMembershipRequest>()
             .HasOne(i => i.InvitedByUser)
             .WithMany()
             .HasForeignKey(i => i.InvitedByUserId)

@@ -50,5 +50,6 @@ public class TeamInviteRow
     public string UserId { get; set; } = string.Empty;
     public string? PilotName { get; set; }
     public string? InvitedBy { get; set; }
-    public DateTime InvitedOn { get; set; }
+    public bool IsJoinRequest { get; set; }
+    public DateTime CreatedOn { get; set; }
 }

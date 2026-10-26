@@ -26,6 +26,11 @@ public class TeamSettings
     public bool AllowPatronsToCreate { get; set; } = true;
 
     /// <summary>
+    /// Join requests a user can have waiting at once
+    /// </summary>
+    public int MaxPendingJoinRequests { get; set; } = 3;
+
+    /// <summary>
     /// Tags nobody can pick, compared ignoring case.
     /// </summary>
     public List<string> BlacklistedTags { get; set; } = [];

@@ -1,6 +1,7 @@
 import type { TeamRole } from "@/api/client";
+import { bleedOnPhones } from "@/lib/layout";
 
-export const panelClass = "border border-slate-700 bg-slate-800/50 backdrop-blur-sm";
+export const panelClass = `${bleedOnPhones} border-y sm:border border-slate-700 bg-slate-800/50 backdrop-blur-sm`;
 
 export const sectionTitleClass = "text-sm font-semibold uppercase tracking-wide text-slate-400";
 

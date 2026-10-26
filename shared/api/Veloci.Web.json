@@ -175,6 +175,134 @@
         }
       }
     },
+    "/api/teams/RequestToJoin": {
+      "post": {
+        "tags": [
+          "Teams"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReferenceModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReferenceModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReferenceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/teams/CancelJoinRequest": {
+      "post": {
+        "tags": [
+          "Teams"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReferenceModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReferenceModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReferenceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/teams/ApproveJoinRequest": {
+      "post": {
+        "tags": [
+          "Teams"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberReferenceModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberReferenceModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberReferenceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/teams/RejectJoinRequest": {
+      "post": {
+        "tags": [
+          "Teams"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberReferenceModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberReferenceModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberReferenceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/teams/Create": {
       "post": {
         "tags": [
@@ -2154,7 +2282,9 @@
           "Achievement",
           "CompetitionResults",
           "LeagueUpdate",
-          "TeamInvite"
+          "TeamInvite",
+          "TeamJoinRequest",
+          "TeamJoinRequestApproved"
         ]
       },
       "ParticipationModel": {
@@ -2691,7 +2821,9 @@
           "name",
           "memberCount",
           "members",
-          "pendingInvites"
+          "pendingInvites",
+          "joinRequests",
+          "myJoinRequestPending"
         ],
         "type": "object",
         "properties": {
@@ -2737,8 +2869,23 @@
           "pendingInvites": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TeamPendingInviteModel"
+              "$ref": "#/components/schemas/TeamMembershipRequestModel"
             }
+          },
+          "joinRequests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamMembershipRequestModel"
+            }
+          },
+          "myJoinRequestPending": {
+            "type": "boolean"
+          },
+          "joinRequestBlockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2766,6 +2913,27 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "TeamJoinRequestSummaryModel": {
+        "required": [
+          "teamId",
+          "teamName",
+          "memberCount"
+        ],
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -2817,6 +2985,40 @@
           }
         }
       },
+      "TeamMembershipRequestModel": {
+        "required": [
+          "userId",
+          "createdOn"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "pilotName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invitedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "TeamModel": {
         "required": [
           "id",
@@ -2845,40 +3047,6 @@
           }
         }
       },
-      "TeamPendingInviteModel": {
-        "required": [
-          "userId",
-          "invitedOn"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string"
-          },
-          "pilotName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "country": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "invitedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "invitedOn": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "TeamReferenceModel": {
         "required": [
           "teamId"
@@ -2901,10 +3069,12 @@
       "TeamsOverviewModel": {
         "required": [
           "invitations",
+          "joinRequests",
           "maxTeamSize",
           "minPublicTeamSize",
           "minRaceDaysToCreate",
-          "allowPatronsToCreate"
+          "allowPatronsToCreate",
+          "maxPendingJoinRequests"
         ],
         "type": "object",
         "properties": {
@@ -2922,6 +3092,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TeamInvitationModel"
+            }
+          },
+          "joinRequests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamJoinRequestSummaryModel"
             }
           },
           "createBlockedReason": {
@@ -2944,6 +3120,10 @@
           },
           "allowPatronsToCreate": {
             "type": "boolean"
+          },
+          "maxPendingJoinRequests": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

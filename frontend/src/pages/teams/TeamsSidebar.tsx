@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { TeamSummaryModel } from "@/api/client";
 import { useAuthStore } from "@/store/authStore";
 import { useTeamsStore } from "@/store/teamsStore";
-import CreateTeamButton from "./CreateTeamButton";
+import BlockableButton from "./BlockableButton";
 import MemberCount from "./MemberCount";
 import { compactPrimaryButtonClass, inputClass, panelClass, sectionTitleClass } from "./teamStyles";
 
@@ -94,7 +94,7 @@ function TeamsSidebar({ createBlockedReason, onCreateTeam }: TeamsSidebarProps) 
                 <div className={`pt-4 ${myTeam ? "" : "pb-4"}`}>
                     <div className={`flex min-h-[30px] items-center justify-between gap-2 px-4 ${myTeam ? "mb-4" : ""}`}>
                         <h2 className={sectionTitleClass}>Your team</h2>
-                        <CreateTeamButton
+                        <BlockableButton
                             label="Create team"
                             className={compactPrimaryButtonClass}
                             blockedReason={createBlockedReason}

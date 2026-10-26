@@ -4,12 +4,16 @@ import {
     getApiTeamsOverview,
     getApiTeamsSearch,
     postApiTeamsAccept,
+    postApiTeamsApproveJoinRequest,
+    postApiTeamsCancelJoinRequest,
     postApiTeamsCreate,
     postApiTeamsDecline,
     postApiTeamsInvite,
     postApiTeamsLeave,
+    postApiTeamsRejectJoinRequest,
     postApiTeamsRemove,
     postApiTeamsRemoveMember,
+    postApiTeamsRequestToJoin,
     postApiTeamsRevokeInvite,
     postApiTeamsSetRole,
     postApiTeamsUpdate,
@@ -49,6 +53,10 @@ interface TeamsActions {
     revokeInvitation: (teamId: number, userId: string) => Promise<ActionResult>;
     setMemberRole: (teamId: number, userId: string, role: TeamRole) => Promise<ActionResult>;
     removeMember: (teamId: number, userId: string) => Promise<ActionResult>;
+    requestToJoin: (teamId: number) => Promise<ActionResult>;
+    cancelJoinRequest: (teamId: number) => Promise<ActionResult>;
+    approveJoinRequest: (teamId: number, userId: string) => Promise<ActionResult>;
+    rejectJoinRequest: (teamId: number, userId: string) => Promise<ActionResult>;
     /** Drops another user's team when the session ends. */
     reset: () => void;
 }
@@ -222,6 +230,18 @@ export const useTeamsStore = create<TeamsStore>()((set, get) => {
 
         removeMember: (teamId, userId) =>
             perform(() => postApiTeamsRemoveMember({ body: { teamId, userId } }), "Could not remove the member."),
+
+        requestToJoin: (teamId) =>
+            perform(() => postApiTeamsRequestToJoin({ body: { teamId } }), "Could not send the request."),
+
+        cancelJoinRequest: (teamId) =>
+            perform(() => postApiTeamsCancelJoinRequest({ body: { teamId } }), "Could not cancel the request."),
+
+        approveJoinRequest: (teamId, userId) =>
+            perform(() => postApiTeamsApproveJoinRequest({ body: { teamId, userId } }), "Could not approve the request."),
+
+        rejectJoinRequest: (teamId, userId) =>
+            perform(() => postApiTeamsRejectJoinRequest({ body: { teamId, userId } }), "Could not reject the request."),
 
         reset: () => set(initialState),
     };

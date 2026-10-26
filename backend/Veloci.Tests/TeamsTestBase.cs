@@ -1,4 +1,7 @@
+using System.Security.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
@@ -9,6 +12,7 @@ using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Features.Teams.Services;
+using Veloci.Web.Controllers.Api.Teams;
 
 namespace Veloci.Tests;
 
@@ -65,7 +69,7 @@ public abstract class TeamsTestBase : IDisposable
     protected readonly RecordingPublisher _publisher = new();
 
     protected TeamService Service() => new(
-        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamInvite>(_db), Options.Create(_settings), _publisher);
+        new Repository<Team>(_db), new Repository<TeamMember>(_db), new Repository<TeamMembershipRequest>(_db), Options.Create(_settings), _publisher);
 
     /// <summary>Keeps the published events instead of running their handlers.</summary>
     protected class RecordingPublisher : IPublisher
@@ -84,5 +88,38 @@ public abstract class TeamsTestBase : IDisposable
             Published.Add(notification);
             return Task.CompletedTask;
         }
+    }
+
+    protected static TeamMemberReferenceModel MemberRef(int teamId, ApplicationUser user) =>
+        new() { TeamId = teamId, UserId = user.Id };
+
+    protected static SetMemberRoleModel RoleChange(int teamId, ApplicationUser user, TeamRole role) =>
+        new() { TeamId = teamId, UserId = user.Id, Role = role };
+
+    /// <summary>A controller acting as the given user, or as a visitor when there is none.</summary>
+    protected TeamsController Controller(ApplicationUser? user)
+    {
+        var controller = new TeamsController(
+            _userManager,
+            Service(),
+            new TeamCreationPolicy(
+                new Repository<Pilot>(_db), new Repository<TeamMember>(_db), new Repository<PatreonSupporter>(_db), Options.Create(_settings)),
+            new Repository<Team>(_db),
+            new Repository<TeamMember>(_db),
+            new Repository<TeamMembershipRequest>(_db),
+            new Repository<Pilot>(_db),
+            Options.Create(_settings));
+
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(user is null
+                    ? new ClaimsIdentity()
+                    : new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, user.Id)], "test"))
+            }
+        };
+
+        return controller;
     }
 }

@@ -8,6 +8,10 @@ public static class TeamMessages
     public const string TeamNotFound = "Team not found";
     public const string PilotNotFound = "Pilot not found";
     public const string PilotNotRegistered = "This pilot is not registered yet";
+    public const string PilotNotLinked = "Link your Velocidrone pilot first";
+    public const string AlreadyInTeam = "You are already in a team";
+    public const string TeamFull = "The team is full";
+    public const string InvitedToTeam = "You are invited to this team. Accept or decline the invite above";
 
     public static readonly string InvalidName = $"Team name is required and can be up to {Team.NameMaxLength} characters";
     public const string TagTaken = "This tag is already used by another team";

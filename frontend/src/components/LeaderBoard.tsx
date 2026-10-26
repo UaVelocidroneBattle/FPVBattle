@@ -21,9 +21,12 @@ function rankStyle(rank: number): string {
     return "font-medium text-slate-500";
 }
 
+/** Phones keep the columns tight, leaving the room to the pilot's name. */
+const COLUMNS = "grid-cols-[1.5rem_1fr_1.5rem_3.5rem] gap-3 md:grid-cols-[2.5rem_1fr_2rem_4rem] md:gap-6";
+
 function ColumnHeaders() {
     return (
-        <div className="px-4 py-2 border-b border-slate-700 grid grid-cols-[2.5rem_1fr_2rem_4rem] gap-6">
+        <div className={`px-4 py-2 border-b border-slate-700 grid ${COLUMNS}`}>
             <div className="text-xs font-medium text-slate-500 text-right">#</div>
             <div className="text-xs font-medium text-slate-500">Pilot</div>
             <div />
@@ -39,7 +42,7 @@ function ResultRow({ result, index, isHighlighted }: { result: SeasonResult; ind
                 isHighlighted ? "bg-emerald-500/10 border-y border-emerald-400/40" : index % 2 === 0 ? "bg-slate-700/20" : ""
             }`}
         >
-            <div className="grid grid-cols-[2.5rem_1fr_2rem_4rem] items-center gap-6">
+            <div className={`grid ${COLUMNS} items-center`}>
                 <span className={`text-right text-sm tabular-nums ${rankStyle(result.rank ?? 0)}`}>
                     {String(result.rank).padStart(2, "0")}
                 </span>
@@ -57,7 +60,7 @@ function LeagueGroup({ group, hasLeagues, leagueColors, highlightPilotName }: { 
     const rest = group.results?.slice(PAGE_SIZE) ?? [];
 
     return (
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+        <div className="bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 overflow-hidden">
             {hasLeagues && (
                 <div className="px-4 py-2 border-b border-slate-700 bg-slate-700/20">
                     <span
@@ -101,7 +104,7 @@ function LeaderBoard({ leaderboard, leagueColors, highlightPilotName }: LeaderBo
     if (!leaderboard) return <Spinner />;
     if (!leaderboard.length || leaderboard.every(g => !g.results?.length)) {
         return (
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 px-6 py-8 text-slate-400 text-sm">
+            <div className="bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 px-6 py-8 text-slate-400 text-sm">
                 No results yet
             </div>
         );

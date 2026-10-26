@@ -63,12 +63,15 @@ const qualificationColors: Record<RatingQualificationStatus, string> = {
  */
 const trailingColumnWidth = "w-20 sm:w-40";
 
+/** Phones have room for the gap alone; tracks and league show from `sm` up. */
+const desktopOnly = "hidden sm:block";
+
 /** A cup without leagues sends no qualification, and shows no column. */
 function Qualification({ qualification, requiredTracks }: { qualification: RatingQualification | null; requiredTracks: number | null }) {
     if (!qualification || requiredTracks === null) return null;
 
     return (
-        <div className={`${trailingColumnWidth} flex-shrink-0 text-right text-sm font-medium tabular-nums ${qualificationColors[qualification.status]}`}>
+        <div className={`${desktopOnly} ${trailingColumnWidth} flex-shrink-0 text-right text-sm font-medium tabular-nums ${qualificationColors[qualification.status]}`}>
             {qualification.tracksFlown}/{requiredTracks}
         </div>
     );
@@ -76,7 +79,7 @@ function Qualification({ qualification, requiredTracks }: { qualification: Ratin
 
 function TracksHeader({ requiredTracks }: { requiredTracks: number }) {
     return (
-        <div className={`${trailingColumnWidth} flex-shrink-0 flex items-center justify-end gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500`}>
+        <div className={`hidden sm:flex ${trailingColumnWidth} flex-shrink-0 items-center justify-end gap-1 text-xs font-semibold uppercase tracking-wider text-slate-500`}>
             Tracks
             <Tooltip>
                 <TooltipTrigger asChild>
@@ -158,7 +161,7 @@ function RatingRow({ pilot, localRank, leagueColors, showLeague, othersName, req
 
                 {showLeague && (
                     <div
-                        className={`${trailingColumnWidth} flex-shrink-0 text-sm font-medium text-right truncate ${leagueColor ? "" : "text-slate-500"}`}
+                        className={`${desktopOnly} ${trailingColumnWidth} flex-shrink-0 text-sm font-medium text-right truncate ${leagueColor ? "" : "text-slate-500"}`}
                         style={{ color: leagueColor || undefined }}
                     >
                         {pilot.league ?? othersName}
@@ -203,13 +206,13 @@ function RatingsTable({ items, leagueColors, showLeague, othersName, requiredTra
 
     return (
         <TooltipProvider delayDuration={150}>
-            <div className="overflow-hidden -mx-6 sm:mx-0">
+            <div className="overflow-hidden -mx-4 sm:mx-0">
                 <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
                     <div className={`flex-shrink-0 ${positionColumnWidth(withLocalRanks)}`} />
                     <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>
                     {requiredTracks !== null && <TracksHeader requiredTracks={requiredTracks} />}
                     {showLeague && (
-                        <div className={`${trailingColumnWidth} flex-shrink-0 text-right text-xs font-semibold uppercase tracking-wider text-slate-500`}>Current league</div>
+                        <div className={`${desktopOnly} ${trailingColumnWidth} flex-shrink-0 text-right text-xs font-semibold uppercase tracking-wider text-slate-500`}>Current league</div>
                     )}
                     <div className={`${trailingColumnWidth} flex-shrink-0 text-right text-xs font-semibold uppercase tracking-wider text-slate-500`}>Gap</div>
                 </div>
@@ -310,11 +313,12 @@ function CupRating({ cup }: { cup: CupModel }) {
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div>
-                    <div className="flex flex-wrap items-baseline gap-x-3 mb-1">
-                        <h1 className="text-xl font-semibold text-white">{cup.name} global rating</h1>
+                    {/* Phones stack the title and its guide link, centred; wider screens keep them on one line. */}
+                    <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-baseline gap-x-3 mb-1">
+                        <h1 className="text-xl font-semibold text-white text-center sm:text-left">{cup.name} global rating</h1>
                         {/* Grouped so the separator never wraps onto a line of its own. */}
                         <span className="flex items-baseline gap-3">
-                            <span className="text-slate-600">·</span>
+                            <span className="hidden sm:inline text-slate-600">·</span>
                             <Link
                                 to={guidePath(language, 'global-rating')}
                                 className="shrink-0 text-sm text-slate-400 hover:text-emerald-400 transition-colors"
@@ -324,7 +328,7 @@ function CupRating({ cup }: { cup: CupModel }) {
                         </span>
                     </div>
                     {data && (
-                        <p className="text-slate-400 text-sm flex items-center gap-2">
+                        <p className="text-slate-400 text-sm flex items-center justify-center sm:justify-start gap-2">
                             <span>Last update: {formatDate(data.calculatedOn)}</span>
                             <span className="text-slate-600">·</span>
                             <span className="text-emerald-400">new: {data.ratings.filter(p => p.rankChange === null).length}</span>
@@ -335,7 +339,9 @@ function CupRating({ cup }: { cup: CupModel }) {
                 </div>
 
                 {loadingState === "Loaded" && data && (
-                    <CountryFilter options={countryOptions} value={country} onChange={setCountry} size="md" />
+                    <div className="self-end sm:self-auto">
+                        <CountryFilter options={countryOptions} value={country} onChange={setCountry} size="md" />
+                    </div>
                 )}
             </div>
 
@@ -358,7 +364,7 @@ function CupRating({ cup }: { cup: CupModel }) {
                             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
                                 Dropped out
                             </h3>
-                            <ul className="divide-y divide-slate-700/50 -mx-6 sm:mx-0">
+                            <ul className="divide-y divide-slate-700/50 -mx-4 sm:mx-0">
                                 {droppedOutPilots.map((pilot) => (
                                     <li key={pilot.pilotId} className="px-3 py-3">
                                         <PilotWithAvatar name={pilot.pilotName} countryCode={pilot.country} />

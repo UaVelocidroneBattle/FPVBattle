@@ -141,8 +141,8 @@
                     {
                         <tr>
                             <td class="mono">@(invite.PilotName ?? "—")</td>
-                            <td class="mono">@(invite.InvitedBy ?? "—")</td>
-                            <td class="mono">@invite.InvitedOn.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td class="mono">@(invite.IsJoinRequest ? "Asked to join" : invite.InvitedBy ?? "—")</td>
+                            <td class="mono">@invite.CreatedOn.ToString("dd.MM.yyyy HH:mm")</td>
                             <td class="text-end">
                                 <div class="dropdown">
                                     <button type="button" class="btn-icon" data-bs-toggle="dropdown" data-bs-strategy="fixed" aria-expanded="false" aria-label="Actions">

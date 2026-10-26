@@ -14,20 +14,20 @@ public class TeamService
 
     private readonly IRepository<Team> _teams;
     private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<TeamInvite> _invites;
+    private readonly IRepository<TeamMembershipRequest> _requests;
     private readonly TeamSettings _settings;
     private readonly IPublisher _publisher;
 
     public TeamService(
         IRepository<Team> teams,
         IRepository<TeamMember> members,
-        IRepository<TeamInvite> invites,
+        IRepository<TeamMembershipRequest> requests,
         IOptions<TeamSettings> settings,
         IPublisher publisher)
     {
         _teams = teams;
         _members = members;
-        _invites = invites;
+        _requests = requests;
         _settings = settings.Value;
         _publisher = publisher;
     }
@@ -75,6 +75,7 @@ public class TeamService
         });
 
         await _teams.AddAsync(team);
+        await DropPendingOfAsync(owner);
         await _teams.SaveChangesAsync();
 
         Log.Information("User {UserId} created team {TeamName} ({TeamId})", owner.Id, team.Name, team.Id);
@@ -131,7 +132,9 @@ public class TeamService
         if (await _members.GetAll().AnyAsync(m => m.TeamId == team.Id && m.UserId == invitee.Id))
             return InviteToTeamResult.AlreadyMember;
 
-        if (await _invites.GetAll().AnyAsync(i => i.TeamId == team.Id && i.UserId == invitee.Id))
+        var pending = await FindPendingAsync(team.Id, invitee.Id);
+
+        if (pending is { IsJoinRequest: false })
             return InviteToTeamResult.AlreadyInvited;
 
         if (await IsFullAsync(team.Id))
@@ -140,14 +143,21 @@ public class TeamService
         if (await IsInTeamAsync(invitee))
             return InviteToTeamResult.InviteeInAnotherTeam;
 
-        await _invites.AddAsync(new TeamInvite
+        // The pilot has already asked to join, so inviting them means letting them in
+        if (pending is not null)
+        {
+            await ApproveAsync(team, invitee);
+            return InviteToTeamResult.JoinRequestApproved;
+        }
+
+        await _requests.AddAsync(new TeamMembershipRequest
         {
             TeamId = team.Id,
             UserId = invitee.Id,
             InvitedByUserId = inviter.Id
         });
 
-        await _invites.SaveChangesAsync();
+        await _requests.SaveChangesAsync();
 
         Log.Information("User {InviterId} invited user {InviteeId} to team {TeamName} ({TeamId})",
             inviter.Id, invitee.Id, team.Name, team.Id);
@@ -158,7 +168,7 @@ public class TeamService
     }
 
     /// <summary>
-    /// Makes the user a plain member without an invitation. A pending invite of the user to this team is dropped.
+    /// Makes the user a plain member without an invitation.
     /// </summary>
     public async Task<AddMemberResult> AddMemberAsync(Team team, ApplicationUser user)
     {
@@ -171,26 +181,14 @@ public class TeamService
         if (await IsInTeamAsync(user))
             return AddMemberResult.InAnotherTeam;
 
-        await _members.AddAsync(new TeamMember
-        {
-            TeamId = team.Id,
-            UserId = user.Id,
-            Role = TeamRole.Member
-        });
-
-        var invite = await _invites.GetAll().FirstOrDefaultAsync(i => i.TeamId == team.Id && i.UserId == user.Id);
-
-        if (invite is not null)
-            await _invites.RemoveEntryAsync(invite);
-
-        await _members.SaveChangesAsync();
+        await JoinAsync(team.Id, user);
 
         Log.Information("Added user {UserId} to team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
 
         return AddMemberResult.Added;
     }
 
-    public async Task<AcceptInviteResult> AcceptInviteAsync(ApplicationUser user, TeamInvite invite)
+    public async Task<AcceptInviteResult> AcceptInviteAsync(ApplicationUser user, TeamMembershipRequest invite)
     {
         if (await IsFullAsync(invite.TeamId))
             return AcceptInviteResult.TeamFull;
@@ -199,25 +197,86 @@ public class TeamService
         if (await IsInTeamAsync(user))
             return AcceptInviteResult.AlreadyInTeam;
 
-        await _members.AddAsync(new TeamMember
-        {
-            TeamId = invite.TeamId,
-            UserId = user.Id,
-            Role = TeamRole.Member
-        });
-
-        await _invites.RemoveEntryAsync(invite);
-        await _members.SaveChangesAsync();
+        await JoinAsync(invite.TeamId, user);
 
         Log.Information("User {UserId} accepted the invite to team {TeamId}", user.Id, invite.TeamId);
 
         return AcceptInviteResult.Accepted;
     }
 
-    public async Task DeclineInviteAsync(ApplicationUser user, TeamInvite invite)
+    /// <summary>
+    /// Asks a public team to let the user in. A user the team has already invited answers the invite instead.
+    /// </summary>
+    public async Task<RequestToJoinResult> RequestToJoinAsync(ApplicationUser user, Team team)
     {
-        await _invites.RemoveEntryAsync(invite);
-        await _invites.SaveChangesAsync();
+        if (user.PilotId is null)
+            return RequestToJoinResult.PilotNotLinked;
+
+        if (await IsInTeamAsync(user))
+            return RequestToJoinResult.AlreadyInTeam;
+
+        if (await _members.GetAll().CountAsync(m => m.TeamId == team.Id) < _settings.MinPublicTeamSize)
+            return RequestToJoinResult.TeamNotPublic;
+
+        var pending = await FindPendingAsync(team.Id, user.Id);
+
+        if (pending is not null)
+            return pending.IsJoinRequest ? RequestToJoinResult.AlreadyRequested : RequestToJoinResult.AlreadyInvited;
+
+        if (await IsFullAsync(team.Id))
+            return RequestToJoinResult.TeamFull;
+
+        if (await _requests.GetAll().JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
+            return RequestToJoinResult.TooManyRequests;
+
+        await _requests.AddAsync(new TeamMembershipRequest
+        {
+            TeamId = team.Id,
+            UserId = user.Id
+        });
+
+        await _requests.SaveChangesAsync();
+
+        Log.Information("User {UserId} asked to join team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
+
+        await _publisher.Publish(new TeamJoinRequestedNotification(team, user));
+
+        return RequestToJoinResult.Requested;
+    }
+
+    public async Task<ApproveJoinRequestResult> ApproveJoinRequestAsync(TeamMembershipRequest request)
+    {
+        if (await IsFullAsync(request.TeamId))
+            return ApproveJoinRequestResult.TeamFull;
+
+        if (await IsInTeamAsync(request.User))
+            return ApproveJoinRequestResult.AlreadyInTeam;
+
+        await ApproveAsync(request.Team, request.User);
+
+        return ApproveJoinRequestResult.Approved;
+    }
+
+    public async Task RejectJoinRequestAsync(TeamMembershipRequest request)
+    {
+        await _requests.RemoveEntryAsync(request);
+        await _requests.SaveChangesAsync();
+
+        Log.Information("Rejected the join request of user {UserId} to team {TeamId}", request.UserId, request.TeamId);
+    }
+
+    public async Task CancelJoinRequestAsync(TeamMembershipRequest request)
+    {
+        await _requests.RemoveEntryAsync(request);
+        await _requests.SaveChangesAsync();
+
+        Log.Information("User {UserId} cancelled the join request to team {TeamId}", request.UserId, request.TeamId);
+    }
+
+    public async Task DeclineInviteAsync(ApplicationUser user, TeamMembershipRequest invite)
+    {
+        await _requests.RemoveEntryAsync(invite);
+        await _requests.SaveChangesAsync();
 
         Log.Information("User {UserId} declined the invite to team {TeamId}", user.Id, invite.TeamId);
     }
@@ -240,10 +299,10 @@ public class TeamService
         return LeaveTeamResult.Left;
     }
 
-    public async Task RevokeInviteAsync(TeamInvite invite)
+    public async Task RevokeInviteAsync(TeamMembershipRequest invite)
     {
-        await _invites.RemoveEntryAsync(invite);
-        await _invites.SaveChangesAsync();
+        await _requests.RemoveEntryAsync(invite);
+        await _requests.SaveChangesAsync();
 
         Log.Information("Revoked the invite of user {InviteeId} to team {TeamId}", invite.UserId, invite.TeamId);
     }
@@ -337,6 +396,44 @@ public class TeamService
         return await _members.GetAll().CountAsync(m => m.TeamId == teamId) >= _settings.MaxTeamSize;
     }
 
+    private async Task ApproveAsync(Team team, ApplicationUser user)
+    {
+        await JoinAsync(team.Id, user);
+
+        Log.Information("Approved the join request of user {UserId} to team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
+
+        await _publisher.Publish(new TeamJoinRequestApprovedNotification(team, user));
+    }
+
+    /// <summary>
+    /// Adds the user as a plain member. Their other invitations and join requests are dropped: a user is in one team only.
+    /// </summary>
+    private async Task JoinAsync(int teamId, ApplicationUser user)
+    {
+        await _members.AddAsync(new TeamMember
+        {
+            TeamId = teamId,
+            UserId = user.Id,
+            Role = TeamRole.Member
+        });
+
+        await DropPendingOfAsync(user);
+        await _members.SaveChangesAsync();
+    }
+
+    private async Task DropPendingOfAsync(ApplicationUser user)
+    {
+        var pending = await _requests.GetAll().Where(i => i.UserId == user.Id).ToListAsync();
+
+        foreach (var entry in pending)
+            await _requests.RemoveEntryAsync(entry);
+    }
+
+    private async Task<TeamMembershipRequest?> FindPendingAsync(int teamId, string userId)
+    {
+        return await _requests.GetAll().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
+    }
+
     private async Task<bool> IsInTeamAsync(ApplicationUser user)
     {
         return await _members.GetAll().AnyAsync(m => m.UserId == user.Id);
@@ -375,7 +472,8 @@ public enum InviteToTeamResult
     AlreadyMember,
     AlreadyInvited,
     TeamFull,
-    InviteeInAnotherTeam
+    InviteeInAnotherTeam,
+    JoinRequestApproved
 }
 
 public enum AddMemberResult
@@ -389,6 +487,25 @@ public enum AddMemberResult
 public enum AcceptInviteResult
 {
     Accepted,
+    TeamFull,
+    AlreadyInTeam
+}
+
+public enum RequestToJoinResult
+{
+    Requested,
+    PilotNotLinked,
+    AlreadyInTeam,
+    TeamNotPublic,
+    AlreadyRequested,
+    AlreadyInvited,
+    TeamFull,
+    TooManyRequests
+}
+
+public enum ApproveJoinRequestResult
+{
+    Approved,
     TeamFull,
     AlreadyInTeam
 }

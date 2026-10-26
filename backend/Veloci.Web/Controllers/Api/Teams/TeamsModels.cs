@@ -53,6 +53,9 @@ public class TeamsOverviewModel
     public TeamSummaryModel? MyTeam { get; set; }
     public required List<TeamInvitationModel> Invitations { get; set; }
 
+    /// <summary>Teams the user has asked to join and that have not answered yet.</summary>
+    public required List<TeamJoinRequestSummaryModel> JoinRequests { get; set; }
+
     /// <summary>Why the user cannot create a team now. Empty when they can, and for a visitor.</summary>
     public string? CreateBlockedReason { get; set; }
 
@@ -66,6 +69,15 @@ public class TeamsOverviewModel
     public required int MinRaceDaysToCreate { get; set; }
 
     public required bool AllowPatronsToCreate { get; set; }
+
+    public required int MaxPendingJoinRequests { get; set; }
+}
+
+public class TeamJoinRequestSummaryModel
+{
+    public required int TeamId { get; set; }
+    public required string TeamName { get; set; }
+    public required int MemberCount { get; set; }
 }
 
 public class TeamSummaryModel
@@ -107,7 +119,16 @@ public class TeamDetailsModel
     public required List<TeamMemberModel> Members { get; set; }
 
     /// <summary>Only filled for the owner and admins of the team.</summary>
-    public required List<TeamPendingInviteModel> PendingInvites { get; set; }
+    public required List<TeamMembershipRequestModel> PendingInvites { get; set; }
+
+    /// <summary>Pilots asking to join. Only filled for the owner and admins of the team.</summary>
+    public required List<TeamMembershipRequestModel> JoinRequests { get; set; }
+
+    /// <summary>Whether the signed-in user, not a member, has asked to join this team.</summary>
+    public required bool MyJoinRequestPending { get; set; }
+
+    /// <summary>Why the signed-in user, not a member, cannot ask to join now. Empty when they can, and for members and visitors.</summary>
+    public string? JoinRequestBlockedReason { get; set; }
 }
 
 public class TeamMemberModel
@@ -119,7 +140,7 @@ public class TeamMemberModel
     public string? Country { get; set; }
 }
 
-public class TeamPendingInviteModel
+public class TeamMembershipRequestModel
 {
     public required string UserId { get; set; }
     public string? PilotName { get; set; }
@@ -128,5 +149,5 @@ public class TeamPendingInviteModel
     /// <summary>The pilot name of the inviter. Empty when the inviter has no linked pilot.</summary>
     public string? InvitedBy { get; set; }
 
-    public required DateTime InvitedOn { get; set; }
+    public required DateTime CreatedOn { get; set; }
 }
