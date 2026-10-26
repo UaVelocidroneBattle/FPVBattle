@@ -24,10 +24,11 @@ function Separator() {
     return <span className="hidden md:inline text-slate-600 select-none">|</span>;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/** `labelHiddenOnPhones` hands the label's width to a value that reads clearly enough without it. */
+function Field({ label, labelHiddenOnPhones = false, children }: { label: string; labelHiddenOnPhones?: boolean; children: React.ReactNode }) {
     return (
         <span className="flex items-start gap-1.5">
-            <span className="text-emerald-400 shrink-0">{label}:</span>
+            <span className={`text-emerald-400 shrink-0 ${labelHiddenOnPhones ? "hidden sm:inline" : ""}`}>{label}:</span>
             {children}
         </span>
     );
@@ -103,9 +104,13 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                 <>
                     <Separator />
 
-                    <Field label="Track">
-                        <span>
-                            <span className="text-slate-400">{overview.competition.mapName} - </span>
+                    {/* Phones show the track as a title: the map as a caption above the track name. */}
+                    <Field label="Track" labelHiddenOnPhones>
+                        <span className="flex flex-col sm:block">
+                            <span className="text-sm sm:text-base text-slate-400">
+                                {overview.competition.mapName}
+                                <span className="hidden sm:inline"> - </span>
+                            </span>
                             <button
                                 onClick={() => copyTrackName(overview.competition!.trackName)}
                                 className="inline-flex items-center gap-1.5 text-white hover:text-emerald-400 transition-colors group"
@@ -113,8 +118,8 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                             >
                                 {overview.competition.trackName}
                                 {copied
-                                    ? <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                                    : <Copy className="h-4 w-4 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
+                                    ? <Check className="hidden sm:block h-4 w-4 text-emerald-400 shrink-0" />
+                                    : <Copy className="hidden sm:block h-4 w-4 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
                                 }
                             </button>
                         </span>
@@ -137,7 +142,7 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                     <Separator />
 
                     <Link
-                        className="text-sm text-slate-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5"
+                        className="text-sm text-slate-400 hover:text-emerald-400 transition-colors hidden sm:inline-flex items-center gap-1.5"
                         to={`https://www.velocidrone.com/leaderboard/${overview.competition.mapId}/${overview.competition.trackId}/All`}
                         target="_blank"
                     >

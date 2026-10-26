@@ -18,6 +18,7 @@ import { useMyTeamPilots } from '@/hooks/useMyTeamPilots';
 import TeamScopeSwitch from '@/components/TeamScopeSwitch';
 import { usePageMetaOverride } from '@/hooks/usePageMeta';
 import { competitionDayMeta, emptyCompetitionDayMeta } from '@/lib/siteMeta';
+import { bleedOnPhones } from '@/lib/layout';
 
 const TEN_MINUTES = 10 * 60 * 1000;
 
@@ -150,8 +151,8 @@ function CupCompetition({ cupId }: { cupId: string }) {
     const seasonPilots = pilotCount(overview.seasonLeaderboard);
 
     return (
-        <div className="flex flex-col gap-8">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+        <div className="flex flex-col gap-6 sm:gap-8">
+            <div className={`${bleedOnPhones} bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 overflow-hidden`}>
                 <CurrentCompetition
                     cupId={cupId}
                     overview={overview}
@@ -162,14 +163,15 @@ function CupCompetition({ cupId }: { cupId: string }) {
 
             <div className="grid lg:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium pl-1 flex items-baseline gap-2">
+                    {/* Phones have no room for the filters beside the title, so they drop below it, centred. */}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium pl-1 flex justify-center sm:justify-start items-baseline gap-2">
                             TODAY'S LEADERBOARD
                             {todayPilots > 0 && (
-                                <span className="text-xs text-slate-500 normal-case tracking-normal font-normal">{todayPilots} pilots</span>
+                                <span className="hidden sm:inline text-xs text-slate-500 normal-case tracking-normal font-normal">{todayPilots} pilots</span>
                             )}
                         </h3>
-                        <div className="flex items-center gap-4">
+                        <div className="self-center sm:self-auto flex items-center gap-4">
                             {!myTeamOnly && <CountryFilter options={countryOptions} value={country} onChange={setCountry} />}
                             {leaguesEnabled && !myTeamOnly && (
                                 <>
@@ -195,17 +197,21 @@ function CupCompetition({ cupId }: { cupId: string }) {
                             )}
                         </div>
                     </div>
-                    <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat || myTeamOnly} isEnded={overview.competition?.state === COMPETITION_CLOSED} highlightPilotName={highlightPilotName} />
+                    <div className={bleedOnPhones}>
+                        <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat || myTeamOnly} isEnded={overview.competition?.state === COMPETITION_CLOSED} highlightPilotName={highlightPilotName} />
+                    </div>
                 </div>
 
                 <div className="flex flex-col gap-3">
-                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1 flex items-baseline gap-2">
+                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1 flex justify-center sm:justify-start items-baseline gap-2">
                         SEASON LEADERBOARD
                         {seasonPilots > 0 && (
-                            <span className="text-xs text-slate-500 normal-case tracking-normal font-normal">{seasonPilots} pilots</span>
+                            <span className="hidden sm:inline text-xs text-slate-500 normal-case tracking-normal font-normal">{seasonPilots} pilots</span>
                         )}
                     </h3>
-                    <LeaderBoard leaderboard={overview.seasonLeaderboard} leagueColors={leagueColors} highlightPilotName={highlightPilotName} />
+                    <div className={bleedOnPhones}>
+                        <LeaderBoard leaderboard={overview.seasonLeaderboard} leagueColors={leagueColors} highlightPilotName={highlightPilotName} />
+                    </div>
                 </div>
             </div>
         </div>

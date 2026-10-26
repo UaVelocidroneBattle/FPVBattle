@@ -52,13 +52,13 @@ function TeamsPage() {
         <div className="mx-auto w-full max-w-[1100px]">
             <InvitationsBanner />
 
-            <div className="grid items-start gap-6 md:grid-cols-[300px_1fr]">
+            <div className="grid items-start gap-4 sm:gap-6 md:grid-cols-[300px_1fr]">
                 <TeamsSidebar createBlockedReason={blockedReason} onCreateTeam={() => setCreating(true)} />
 
                 {hasSelectedTeam ? (
                     <TeamDetails />
                 ) : (
-                    <section className={`${panelClass} px-6 py-14 text-center`}>
+                    <section className={`${panelClass} px-4 sm:px-6 py-14 text-center`}>
                         {user ? (
                             <>
                                 <h2 className="mb-7 text-xl font-semibold text-white">You're not in a team yet</h2>

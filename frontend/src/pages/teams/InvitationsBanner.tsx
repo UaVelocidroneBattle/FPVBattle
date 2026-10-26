@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { type ActionResult, useTeamsStore } from "@/store/teamsStore";
 import MemberCount from "./MemberCount";
 import { compactPrimaryButtonClass, compactSecondaryButtonClass } from "./teamStyles";
+import { bleedOnPhones } from "@/lib/layout";
 
 interface BannerRowProps {
     teamName: string;
@@ -13,7 +14,7 @@ interface BannerRowProps {
 
 function BannerRow({ teamName, memberCount, maxTeamSize, note, children }: BannerRowProps) {
     return (
-        <div className="flex flex-wrap items-center gap-4 border-b border-emerald-700/30 px-6 py-3.5 last:border-b-0">
+        <div className="flex flex-wrap items-center gap-4 border-b border-emerald-700/30 px-4 sm:px-6 py-3.5 last:border-b-0">
             <div className="min-w-56 flex-1">
                 <div className="flex items-baseline gap-3">
                     <span className="font-semibold text-emerald-400">{teamName}</span>
@@ -51,7 +52,7 @@ function InvitationsBanner() {
     const store = () => useTeamsStore.getState();
 
     return (
-        <section className="mb-6 border border-emerald-700/50 bg-emerald-950/30">
+        <section className={`${bleedOnPhones} mb-4 sm:mb-6 border-y sm:border border-emerald-700/50 bg-emerald-950/30`}>
             {invitations?.map((invitation) => (
                 <BannerRow
                     key={`invite-${invitation.teamId}`}
@@ -95,7 +96,7 @@ function InvitationsBanner() {
                 </BannerRow>
             ))}
 
-            {error && <p className="px-6 pb-3 text-sm text-red-400">{error}</p>}
+            {error && <p className="px-4 sm:px-6 pb-3 text-sm text-red-400">{error}</p>}
         </section>
     );
 }

@@ -102,17 +102,20 @@ function TeamDetails() {
     const dialog = confirmationDialog();
 
     return (
-        <section className={`${panelClass} p-6`}>
-            <div className="flex items-center justify-between gap-4">
-                <h2 className="flex flex-wrap items-center gap-3 text-[22px] font-bold text-white">
-                    {details.name}
-                    {details.tag && (
-                        <span className="border border-emerald-500 px-2 py-0.5 font-mono text-sm font-semibold tracking-wider text-emerald-400">
-                            {details.tag}
-                        </span>
-                    )}
-                </h2>
-                {teamMenu.length > 0 && <ActionMenu label="Team actions" items={teamMenu} />}
+        <section className={`${panelClass} px-4 py-5 sm:p-6`}>
+            {/* Phones give the name the full width, with the join actions on a line of their own below it. */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <div className="flex flex-1 items-center justify-between gap-4">
+                    <h2 className="flex flex-wrap items-center gap-3 text-[22px] font-bold text-white">
+                        {details.name}
+                        {details.tag && (
+                            <span className="border border-emerald-500 px-2 py-0.5 font-mono text-sm font-semibold tracking-wider text-emerald-400">
+                                {details.tag}
+                            </span>
+                        )}
+                    </h2>
+                    {teamMenu.length > 0 && <ActionMenu label="Team actions" items={teamMenu} />}
+                </div>
 
                 {!myRole && currentUserId && !inTeam && (
                     <div className="flex shrink-0 items-center gap-3">
