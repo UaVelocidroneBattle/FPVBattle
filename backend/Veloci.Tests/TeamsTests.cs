@@ -497,6 +497,7 @@ public class TeamsTests : TeamsTestBase
 
         await Service().RemoveUserFromTeamAsync(owner);
         await Service().RemoveUserFromTeamAsync(lonely);
+        _db.ChangeTracker.Clear();
 
         var details = (await Controller(member).Details(teamId)).Value!;
         details.Members.Should().ContainSingle(m => m.PilotName == "pilot_admin" && m.Role == TeamRole.Owner);

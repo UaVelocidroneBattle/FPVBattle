@@ -31,6 +31,11 @@ public class TeamSettings
     public int MaxPendingJoinRequests { get; set; } = 3;
 
     /// <summary>
+    /// Members with a time on the daily track a team needs to be ranked on the team leaderboard
+    /// </summary>
+    public int MinTeamFinishers { get; set; } = 3;
+
+    /// <summary>
     /// Tags nobody can pick, compared ignoring case.
     /// </summary>
     public List<string> BlacklistedTags { get; set; } = [];

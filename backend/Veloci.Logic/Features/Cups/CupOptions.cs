@@ -123,11 +123,6 @@ public class QuadOfTheDayOptions
     public int Probability { get; set; }
 
     /// <summary>
-    /// Bonus points awarded to pilots who fly on quad-of-the-day
-    /// </summary>
-    public int BonusPoints { get; set; }
-
-    /// <summary>
     /// Pool of quad names to randomly select from
     /// </summary>
     public string[] Quads { get; set; } = [];

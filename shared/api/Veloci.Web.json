@@ -1506,6 +1506,52 @@
         }
       }
     },
+    "/api/competitions/team-overview": {
+      "get": {
+        "tags": [
+          "Competitions"
+        ],
+        "parameters": [
+          {
+            "name": "cupId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamOverviewModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamOverviewModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamOverviewModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Google": {
       "post": {
         "tags": [
@@ -2937,6 +2983,49 @@
           }
         }
       },
+      "TeamLeaderboardResultModel": {
+        "required": [
+          "teamName",
+          "pilots"
+        ],
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "teamTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "averageTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "points": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pilots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamPilotTimeModel"
+            }
+          }
+        }
+      },
       "TeamMemberModel": {
         "required": [
           "userId",
@@ -3047,6 +3136,46 @@
           }
         }
       },
+      "TeamOverviewModel": {
+        "required": [
+          "leaderboard",
+          "seasonLeaderboard"
+        ],
+        "type": "object",
+        "properties": {
+          "leaderboard": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamLeaderboardResultModel"
+            }
+          },
+          "seasonLeaderboard": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamSeasonResultModel"
+            }
+          }
+        }
+      },
+      "TeamPilotTimeModel": {
+        "required": [
+          "pilotName",
+          "country"
+        ],
+        "type": "object",
+        "properties": {
+          "pilotName": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "trackTime": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "TeamReferenceModel": {
         "required": [
           "teamId"
@@ -3066,6 +3195,38 @@
           "Owner"
         ]
       },
+      "TeamSeasonResultModel": {
+        "required": [
+          "teamName"
+        ],
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "teamTag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "points": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "TeamsOverviewModel": {
         "required": [
           "invitations",
@@ -3074,7 +3235,8 @@
           "minPublicTeamSize",
           "minRaceDaysToCreate",
           "allowPatronsToCreate",
-          "maxPendingJoinRequests"
+          "maxPendingJoinRequests",
+          "minTeamFinishers"
         ],
         "type": "object",
         "properties": {
@@ -3122,6 +3284,10 @@
             "type": "boolean"
           },
           "maxPendingJoinRequests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minTeamFinishers": {
             "type": "integer",
             "format": "int32"
           }

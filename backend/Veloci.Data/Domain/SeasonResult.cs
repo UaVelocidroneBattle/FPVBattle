@@ -1,5 +1,8 @@
 namespace Veloci.Data.Domain;
 
+/// <summary>
+/// A computed season result for a pilot. Not mapped to DB
+/// </summary>
 public class SeasonResult
 {
     public required string PlayerName { get; set; }

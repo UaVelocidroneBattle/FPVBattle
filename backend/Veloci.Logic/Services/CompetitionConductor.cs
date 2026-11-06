@@ -9,6 +9,7 @@ using Veloci.Logic.API.Dto;
 using Veloci.Logic.Bot.Discord;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.QuadOfTheDay;
+using Veloci.Logic.Features.Teams.Leaderboard;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Services.Tracks;
 
@@ -30,6 +31,7 @@ public class CompetitionConductor
     private readonly TrackQueueService _trackQueueService;
     private readonly QuadOfTheDayService _quadOfTheDayService;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
+    private readonly TeamLeaderboardService _teamLeaderboard;
 
     public CompetitionConductor(
         IRepository<Competition> competitions,
@@ -43,7 +45,8 @@ public class CompetitionConductor
         IDiscordCupMessenger discordCupMessenger,
         TrackQueueService trackQueueService,
         QuadOfTheDayService quadOfTheDayService,
-        ILeaderboardCalculator leaderboardCalculator)
+        ILeaderboardCalculator leaderboardCalculator,
+        TeamLeaderboardService teamLeaderboard)
     {
         _competitions = competitions;
         _resultsConverter = resultsConverter;
@@ -57,6 +60,7 @@ public class CompetitionConductor
         _trackQueueService = trackQueueService;
         _quadOfTheDayService = quadOfTheDayService;
         _leaderboardCalculator = leaderboardCalculator;
+        _teamLeaderboard = teamLeaderboard;
     }
 
     public async Task StartNewAsync(string cupId)
@@ -161,6 +165,7 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Closed;
         competition.CompetitionResults = _leaderboardCalculator.GetLeaderboard(competition);
+        competition.TeamCompetitionResults = await _teamLeaderboard.RankFinishedAsync(competition);
 
         Log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 

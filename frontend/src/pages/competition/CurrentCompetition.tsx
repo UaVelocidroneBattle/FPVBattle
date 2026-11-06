@@ -9,6 +9,8 @@ interface ICurrentCompetitionProps {
     overview: CompetitionOverviewModel;
     selectedDate: string | null;
     onDateChange: (date: string | null) => void;
+    /** Shown at the start of the bar. */
+    modeSwitch?: React.ReactNode;
 }
 
 const today = new Date().toISOString().split('T')[0];
@@ -67,7 +69,7 @@ function DayLink({ date, label, onDateChange, children }: { date: string | null;
     );
 }
 
-function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICurrentCompetitionProps) {
+function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeSwitch }: ICurrentCompetitionProps) {
     const [copied, setCopied] = useState(false);
     const { findCup } = useCups();
 
@@ -91,9 +93,9 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
 
     return (
         <div className="px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-3 text-base">
-            <h1 className="text-xs font-semibold uppercase tracking-wider bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 px-2.5 py-1 shrink-0 text-center">
-                {findCup(cupId)?.name}
-            </h1>
+            {/* The cup is already picked in the navigation; the heading stays for screen readers and search engines */}
+            <h1 className="sr-only">{findCup(cupId)?.name}</h1>
+            {modeSwitch && <div className="flex justify-center shrink-0">{modeSwitch}</div>}
 
             {overview.competition == null ? (
                 <>

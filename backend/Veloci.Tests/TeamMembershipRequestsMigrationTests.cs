@@ -48,7 +48,7 @@ public class TeamMembershipRequestsMigrationTests : IDisposable
     {
         _migrator.Migrate(RenameMigration);
 
-        var rows = _db.Set<TeamMembershipRequest>().AsNoTracking().OrderBy(r => r.UserId).ToList();
+        var rows = _db.Set<TeamMembershipRequest>().AsNoTracking().IgnoreQueryFilters().OrderBy(r => r.UserId).ToList();
 
         rows.Should().HaveCount(2);
         rows[0].Should().BeEquivalentTo(new { TeamId = 2, UserId = "asker", InvitedByUserId = (string?)null, CreatedOn = new DateTime(2026, 10, 2, 11, 30, 0) });

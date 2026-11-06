@@ -332,6 +332,17 @@ export type TeamJoinRequestSummaryModel = {
     memberCount: number;
 };
 
+export type TeamLeaderboardResultModel = {
+    teamId?: number;
+    teamName: string;
+    teamTag?: null | string;
+    isDeleted?: boolean;
+    averageTime?: number;
+    rank?: number;
+    points?: number;
+    pilots: Array<TeamPilotTimeModel>;
+};
+
 export type TeamMemberModel = {
     userId: string;
     role: TeamRole;
@@ -360,11 +371,31 @@ export type TeamModel = {
     description?: null | string;
 };
 
+export type TeamOverviewModel = {
+    leaderboard: Array<TeamLeaderboardResultModel>;
+    seasonLeaderboard: Array<TeamSeasonResultModel>;
+};
+
+export type TeamPilotTimeModel = {
+    pilotName: string;
+    country: string;
+    trackTime?: number;
+};
+
 export type TeamReferenceModel = {
     teamId: number;
 };
 
 export type TeamRole = 'Member' | 'Admin' | 'Owner';
+
+export type TeamSeasonResultModel = {
+    teamId?: number;
+    teamName: string;
+    teamTag?: null | string;
+    isDeleted?: boolean;
+    points?: number;
+    rank?: number;
+};
 
 export type TeamsOverviewModel = {
     myTeam?: null | TeamSummaryModel;
@@ -376,6 +407,7 @@ export type TeamsOverviewModel = {
     minRaceDaysToCreate: number;
     allowPatronsToCreate: boolean;
     maxPendingJoinRequests: number;
+    minTeamFinishers: number;
 };
 
 export type TeamSummaryModel = {
@@ -1064,6 +1096,25 @@ export type GetApiCompetitionsOverviewResponses = {
 };
 
 export type GetApiCompetitionsOverviewResponse = GetApiCompetitionsOverviewResponses[keyof GetApiCompetitionsOverviewResponses];
+
+export type GetApiCompetitionsTeamOverviewData = {
+    body?: never;
+    path?: never;
+    query?: {
+        cupId?: string;
+        date?: string;
+    };
+    url: '/api/competitions/team-overview';
+};
+
+export type GetApiCompetitionsTeamOverviewResponses = {
+    /**
+     * OK
+     */
+    200: TeamOverviewModel;
+};
+
+export type GetApiCompetitionsTeamOverviewResponse = GetApiCompetitionsTeamOverviewResponses[keyof GetApiCompetitionsTeamOverviewResponses];
 
 export type PostApiAuthGoogleData = {
     body: GoogleSignInRequest;

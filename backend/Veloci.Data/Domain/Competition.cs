@@ -3,18 +3,6 @@
 /// <summary>
 /// Represents a daily racing competition on a specific track.
 /// </summary>
-/// <remarks>
-/// <para>
-/// A competition is created each day when a new track is selected and announced
-/// in the chat channels. Throughout the day, the bot monitors pilot times on
-/// the Velocidrone leaderboard, tracking progress via <see cref="InitialResults"/>
-/// (snapshot at start) and <see cref="CurrentResults"/> (latest times).
-/// </para>
-/// <para>
-/// At competition close, final rankings are calculated and stored in
-/// <see cref="CompetitionResults"/>, and pilots earn points based on their placement.
-/// </para>
-/// </remarks>
 public class Competition
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -58,6 +46,7 @@ public class Competition
     public virtual List<TrackTimeDelta> TimeDeltas { get; set; }
 
     public virtual List<CompetitionResults> CompetitionResults { get; set; }
+    public virtual List<TeamCompetitionResult> TeamCompetitionResults { get; set; }
 
     /// <summary>
     /// Flexible key-value store for competition-scoped metadata.

@@ -121,10 +121,10 @@ public class TeamService
 
     public async Task RemoveAsync(Team team)
     {
-        await _teams.RemoveAsync(team.Id);
+        team.MarkDeleted();
         await _teams.SaveChangesAsync();
 
-        Log.Information("Removed team {TeamName} ({TeamId})", team.Name, team.Id);
+        Log.Information("Deleted team {TeamName} ({TeamId})", team.Name, team.Id);
     }
 
     public async Task<InviteToTeamResult> InviteAsync(ApplicationUser inviter, Team team, ApplicationUser invitee)
