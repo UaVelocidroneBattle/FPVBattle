@@ -168,7 +168,7 @@ public class LeaderboardCalculator : ILeaderboardCalculator
             .Select(group => new
             {
                 PlayerName = group.First().Pilot.Name,
-                Points = group.Sum(r => r.Points + r.BonusPoints),
+                Points = group.Sum(r => r.Points),
                 Country = group.First().Pilot.Country,
                 League = leaguesEnabled
                     ? group.First().Pilot.Leagues

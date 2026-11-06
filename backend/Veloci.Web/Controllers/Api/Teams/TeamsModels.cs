@@ -71,6 +71,7 @@ public class TeamsOverviewModel
     public required bool AllowPatronsToCreate { get; set; }
 
     public required int MaxPendingJoinRequests { get; set; }
+    public required int MinTeamFinishers { get; set; }
 }
 
 public class TeamJoinRequestSummaryModel

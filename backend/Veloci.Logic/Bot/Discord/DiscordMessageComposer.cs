@@ -279,9 +279,6 @@ public class DiscordMessageComposer
 
         var points = $"Pts: **{time.Points}**";
 
-        if (time.BonusPoints > 0)
-            points += $" +**{time.BonusPoints}**";
-
         return $"{icon} - **{TextHelper.Trim(time.Pilot.Name, PilotNameMaxLength)}** ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / {points}";
     }
 

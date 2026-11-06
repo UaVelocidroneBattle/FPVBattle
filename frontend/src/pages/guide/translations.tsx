@@ -71,7 +71,7 @@ export interface RulesContent {
 
 export type TeamsGuideSettings = Pick<
     TeamsOverviewModel,
-    'maxTeamSize' | 'minPublicTeamSize' | 'minRaceDaysToCreate' | 'allowPatronsToCreate' | 'maxPendingJoinRequests'
+    'maxTeamSize' | 'minPublicTeamSize' | 'minRaceDaysToCreate' | 'allowPatronsToCreate' | 'maxPendingJoinRequests' | 'minTeamFinishers'
 >;
 
 export interface GuideSection {
@@ -154,7 +154,7 @@ export const translations: Record<Language, RulesContent> = {
         supportText: <>Ви можете підтримати проєкт на нашому {link('https://patreon.com/FPVBattle', 'Patreon')} для покриття різних витрат (хостинг, домен, кава, тощо).</>,
         teamsTitle: 'Команди',
         teamsIntro: <>Група пілотів може створити команду. Усі команди та їхніх учасників можна переглянути на сторінці {internalLink('/teams', 'Команди')}.</>,
-        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests }) => [
+        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests, minTeamFinishers }) => [
             {
                 title: 'Як створити команду',
                 items: [
@@ -195,6 +195,19 @@ export const translations: Record<Language, RulesContent> = {
                 items: [
                     'Тег команди показується в дужках перед ніком пілота.',
                     'Учасники команди бачать над лідербордом дня перемикач All / My team, щоб порівняти результати своєї команди.',
+                    'Перемикач Pilots / Teams на початку панелі треку замінює лідерборди пілотів на командні.',
+                ],
+            },
+            {
+                title: 'Командні змагання',
+                items: [
+                    'Час команди — це середній час усіх її пілотів, які пролетіли трек дня. Рахуються всі, тож повільний час тягне назад усю команду.',
+                    `Щоб команда потрапила в рейтинг дня, потрібна мінімальна кількість пілотів із часом: ${minTeamFinishers}.`,
+                    ...when(minPublicTeamSize > 0, 'Змагаються лише публічні команди.'),
+                    'Якщо оголошено Квад дня, рахуються лише часи, встановлені на ньому.',
+                    'Команди отримують бали за місце так само, як пілоти, і ці бали складаються в місячний командний сезон.',
+                    'Рейтинг дня фіксується, коли змагання закривається: пілот рахується за ту команду, в якій перебуває в цей момент.',
+                    'Відкрийте рядок команди, щоб побачити, хто летів і з яким часом. Поки змагання триває, часи, швидші за середній час команди, позначені зеленим, а повільніші — червоним.',
                 ],
             },
         ],
@@ -269,7 +282,7 @@ export const translations: Record<Language, RulesContent> = {
         supportText: <>You can support the project on our {link('https://patreon.com/FPVBattle', 'Patreon')} to help cover various costs (hosting, domain, coffee, etc.).</>,
         teamsTitle: 'Teams',
         teamsIntro: <>A group of pilots can create a team. Anyone can browse teams and their members on the {internalLink('/teams', 'Teams')} page.</>,
-        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests }) => [
+        teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests, minTeamFinishers }) => [
             {
                 title: 'Creating a team',
                 items: [
@@ -310,6 +323,19 @@ export const translations: Record<Language, RulesContent> = {
                 items: [
                     'The team tag is shown in brackets before the pilot name.',
                     'Team members get an All / My team switch above today\'s leaderboard to compare how their team flies.',
+                    'The Pilots / Teams switch at the start of the track bar replaces the pilot leaderboards with the team ones.',
+                ],
+            },
+            {
+                title: 'Team competition',
+                items: [
+                    'A team\'s time is the average time of all its pilots who flew the track of the day. Everyone counts, so a slow time holds the whole team back.',
+                    `A team needs at least ${minTeamFinishers} pilots with a time to be ranked that day.`,
+                    ...when(minPublicTeamSize > 0, 'Only public teams take part.'),
+                    'When a Quad of the Day is announced, only times set on it count.',
+                    'Teams earn points for their place the same way pilots do, and the points add up to the monthly team season.',
+                    'The day\'s ranking is fixed when the competition closes: a pilot counts for the team they are in at that moment.',
+                    'Open a team\'s row to see who flew and their times. While the competition runs, times faster than the team average are green and slower ones red.',
                 ],
             },
         ],

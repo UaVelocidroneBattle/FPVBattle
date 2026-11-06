@@ -66,15 +66,39 @@ A member of a team gets an All / My team switch above today's leaderboard. "My t
 
 ## Visibility
 
-A team with fewer than `MinPublicTeamSize` members is not public, so a one- or two-pilot team does not expose who flies together. It is hidden from the teams list, its team page is not found by visitors and other users (members and invited pilots still see it, with a notice), its tag is not shown on leaderboards, and it is not listed on its members' pilot profiles. It becomes public by itself once it reaches the size; nothing is stored. The admin pages always show every team.
+A team with fewer than `MinPublicTeamSize` members is not public, so a one- or two-pilot team does not expose who flies together. It is hidden from the teams list, its team page is not found by visitors and other users (members and invited pilots still see it, with a notice), its tag is not shown on leaderboards, and it is not listed on its members' pilot profiles. It becomes public by itself once it reaches the size; nothing is stored. The admin pages show every team that is not deleted.
 
 ## Privacy
 
 Teams are public, so responses must never contain account display names or emails: they come from the Google profile and are usually real names. Members and inviters are identified by pilot name only. `TeamsTests.Responses_NeverContainDisplayNamesOrEmails` guards this.
 
+## Team competition
+
+The daily leaderboard has a team mode next to the pilots' one (`GET /api/competitions/team-overview?cupId&date`).
+
+- **Who takes part**: public teams only (see Visibility).
+- **Team time**: the average time of every member who flew the daily track, in ms. Slower pilots count too, on purpose: the team's time is everyone's business.
+- **Minimum**: a team needs `MinTeamFinishers` members with a time to be ranked.
+- **Quad of the day**: on a quad-of-the-day day only times on that quad count, so a faster quad can't improve a team's time.
+- **Ranking and points**: one flat list per cup, no leagues, ordered by average time; equal averages go to the team with more pilots. Points come from the same table as pilots' (`PointsCalculator`).
+- **Stored at the end of the day**: when a competition closes, `CompetitionConductor.StopAsync` stores the ranking in `TeamCompetitionResults` with membership as it is then, in the same save as the pilots' results, so the two are never stored apart. During the day the ranking is computed live from current membership, so a pilot who switches teams counts only for the team they are in at the close.
+- **Pilots of a team**: each row lists the team's pilots and their times. They come from current membership, so on an old day they may not add up to the stored average; nothing more is stored.
+- **Season**: the month's points per team, like the pilots' season leaderboard. A team that drops below the public size leaves today's board but keeps its season row.
+- **Names**: results store the team id only, so past leaderboards show the current name and tag, just as they show a pilot's current name.
+
+On the website a Pilots / Teams switch above the leaderboards (kept in the URL as `?teams=1`) replaces both boards with the team ones. A team row opens to show its pilots and their times; the user's own team is highlighted. Frontend: `src/pages/competition/TeamBoards.tsx`, `src/store/teamCompetitionStore.ts`.
+
+Code: `Veloci.Logic/Features/Teams/Leaderboard` (`TeamLeaderboardCalculator` does the maths, `TeamRosterLookup` maps pilots to public teams, `TeamLeaderboardService` reads the leaderboards). Tests: `TeamLeaderboardCalculatorTests`, `TeamCompetitionTests`.
+
+## Deletion
+
+Deleting a team is soft. `Team.MarkDeleted` sets `IsDeleted` and removes the members and pending requests, so former members can join or create another team at once. The row stays so the team's past competition results keep its name and tag; they show it with `IsDeleted`.
+
+A global query filter hides deleted teams, and their members, requests and results, from every query. Only the team leaderboard queries opt out with `IgnoreQueryFilters()`. The unique indexes on name and tag cover non-deleted teams only, so a deleted team's name and tag can be taken again.
+
 ## Account deletion
 
-Before an account is deleted, a team the user owns goes to its longest-serving admin, then to its longest-serving member, and is deleted when nobody else is left (`TeamService.RemoveUserFromTeamAsync`).
+Before an account is deleted, a team the user owns goes to its longest-serving admin, then to its longest-serving member, and is deleted (softly, see Deletion) when nobody else is left (`TeamService.RemoveUserFromTeamAsync`).
 
 ## Admin page
 

@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
+import { rankStyle } from "@/lib/rankStyle";
 
 interface LeaderBoardProps {
     leaderboard: LeagueSeasonLeaderboard[];
@@ -13,13 +14,6 @@ interface LeaderBoardProps {
 }
 
 const PAGE_SIZE = 25;
-
-function rankStyle(rank: number): string {
-    if (rank === 1) return "font-bold text-yellow-500";
-    if (rank === 2) return "font-bold text-slate-400";
-    if (rank === 3) return "font-bold text-amber-700";
-    return "font-medium text-slate-500";
-}
 
 /** Phones keep the columns tight, leaving the room to the pilot's name. */
 const COLUMNS = "grid-cols-[1.5rem_1fr_1.5rem_3.5rem] gap-3 md:grid-cols-[2.5rem_1fr_2rem_4rem] md:gap-6";

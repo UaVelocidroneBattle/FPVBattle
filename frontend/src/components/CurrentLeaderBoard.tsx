@@ -3,6 +3,7 @@ import { convertMsToSec } from "../utils/utils";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { rankStyle } from "@/lib/rankStyle";
 
 /** A result of a filtered board keeps the position it held on the full one. */
 export interface LeaderboardResult extends LeaderboardResultModel {
@@ -49,13 +50,6 @@ function columnsFor(isEnded: boolean, withOriginalRanks: boolean): string {
 
 const hasOriginalRanks = (leaderboard: LeagueLeaderboard[]) =>
     leaderboard.some(group => group.results?.some(result => result.originalRank !== undefined));
-
-function rankStyle(localRank: number): string {
-    if (localRank === 1) return "font-bold text-yellow-500";
-    if (localRank === 2) return "font-bold text-slate-400";
-    if (localRank === 3) return "font-bold text-amber-700";
-    return "font-medium text-slate-500";
-}
 
 const formatRank = (rank: number) => String(rank).padStart(2, "0");
 

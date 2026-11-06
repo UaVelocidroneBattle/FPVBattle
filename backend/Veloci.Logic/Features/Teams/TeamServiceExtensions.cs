@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Veloci.Logic.Features.Teams.Leaderboard;
 using Veloci.Logic.Features.Teams.Services;
 
 namespace Veloci.Logic.Features.Teams;
@@ -12,6 +13,9 @@ public static class TeamServiceExtensions
         services.AddScoped<TeamService>();
         services.AddScoped<TeamCreationPolicy>();
         services.AddScoped<TeamTagLookup>();
+        services.AddScoped<TeamRosterLookup>();
+        services.AddScoped<TeamLeaderboardCalculator>();
+        services.AddScoped<TeamLeaderboardService>();
         return services;
     }
 }

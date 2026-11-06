@@ -20,7 +20,7 @@ public class TeamTagLookup
     }
 
     /// <summary>
-    /// Pilot names are case sensitive, hence the ordinal dictionary.
+    /// Pilot names are case-sensitive, hence the ordinal dictionary.
     /// </summary>
     public async Task<IReadOnlyDictionary<string, string>> GetTagsByPilotNameAsync(CancellationToken ct = default)
     {

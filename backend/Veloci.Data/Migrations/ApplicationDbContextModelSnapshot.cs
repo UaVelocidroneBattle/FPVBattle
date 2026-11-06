@@ -288,9 +288,6 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("BonusPoints")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("CompetitionId")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -768,9 +765,15 @@ namespace Veloci.Web.Data.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -786,12 +789,46 @@ namespace Veloci.Web.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("NOT \"IsDeleted\"");
 
                     b.HasIndex("Tag")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("NOT \"IsDeleted\"");
 
                     b.ToTable("Teams", (string)null);
+                });
+
+            modelBuilder.Entity("Veloci.Data.Domain.TeamCompetitionResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AverageTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CompetitionId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("CompetitionId", "TeamId")
+                        .IsUnique();
+
+                    b.ToTable("TeamCompetitionResults", (string)null);
                 });
 
             modelBuilder.Entity("Veloci.Data.Domain.TeamMember", b =>
@@ -1267,6 +1304,25 @@ namespace Veloci.Web.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Veloci.Data.Domain.TeamCompetitionResult", b =>
+                {
+                    b.HasOne("Veloci.Data.Domain.Competition", "Competition")
+                        .WithMany("TeamCompetitionResults")
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Veloci.Data.Domain.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Competition");
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("Veloci.Data.Domain.TeamMember", b =>
                 {
                     b.HasOne("Veloci.Data.Domain.Team", "Team")
@@ -1367,6 +1423,8 @@ namespace Veloci.Web.Data.Migrations
             modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
                 {
                     b.Navigation("CompetitionResults");
+
+                    b.Navigation("TeamCompetitionResults");
 
                     b.Navigation("TimeDeltas");
 

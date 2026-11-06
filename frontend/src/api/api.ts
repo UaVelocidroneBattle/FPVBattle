@@ -1,4 +1,4 @@
-import { client, getApiCompetitionsOverview, getApiLandingGet } from "./client";
+import { client, getApiCompetitionsOverview, getApiCompetitionsTeamOverview, getApiLandingGet } from "./client";
 
 class ApiClient {
   constructor() {
@@ -14,6 +14,10 @@ class ApiClient {
 
   getCompetitionOverview(cupId: string, date?: string) {
     return getApiCompetitionsOverview({ query: { cupId, date } });
+  }
+
+  getTeamCompetitionOverview(cupId: string, date?: string) {
+    return getApiCompetitionsTeamOverview({ query: { cupId, date } });
   }
 
   getLandingData() {

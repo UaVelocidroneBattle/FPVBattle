@@ -68,7 +68,8 @@ public class TeamsController : ControllerBase
             MinPublicTeamSize = _settings.MinPublicTeamSize,
             MinRaceDaysToCreate = _settings.MinRaceDaysToCreate,
             AllowPatronsToCreate = _settings.AllowPatronsToCreate,
-            MaxPendingJoinRequests = _settings.MaxPendingJoinRequests
+            MaxPendingJoinRequests = _settings.MaxPendingJoinRequests,
+            MinTeamFinishers = _settings.MinTeamFinishers
         };
     }
 
