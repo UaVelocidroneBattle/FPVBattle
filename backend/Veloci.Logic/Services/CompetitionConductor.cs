@@ -100,12 +100,11 @@ public class CompetitionConductor
         else
         {
             const int maxAttempts = 10;
-            var trackFilter = new TrackFilter(cupOptions.TrackFilter);
             var attempts = 0;
 
             do
             {
-                track = await _trackService.GetRandomTrackAsync(trackFilter);
+                track = await _trackService.GetRandomKnownTrackAsync(cupId);
                 attempts++;
                 Log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for cup {CupId} (attempt {Attempt}/{MaxAttempts})", track.Name, track.TrackId, cupId, attempts, maxAttempts);
                 resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);

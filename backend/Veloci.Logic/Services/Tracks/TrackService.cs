@@ -9,6 +9,7 @@ namespace Veloci.Logic.Services.Tracks;
 public class TrackService
 {
     private static readonly ILogger _log = Log.ForContext<TrackService>();
+    private const double MinimumGoodRating = 3;
 
     private readonly IRepository<Track> _tracks;
     private readonly IRepository<TrackMap> _maps;
@@ -60,6 +61,29 @@ public class TrackService
                 return dbTrack;
             }
         }
+    }
+
+    // TEMP: Velocidrone's get_official_tracks endpoint returns 403 since 12.11.2026, so pick from tracks
+    // this cup already raced on. Cup history stands in for the track filter, since track types aren't stored.
+    public async Task<Track> GetRandomKnownTrackAsync(string cupId)
+    {
+        var usedTrackIds = await GetUsedTrackIdsAsync();
+
+        var candidates = await _competitions
+            .GetAll(c => c.CupId == cupId && c.Track.Rating != null && c.Track.Rating.Value >= MinimumGoodRating)
+            .Select(c => c.Track)
+            .Where(t => !usedTrackIds.Contains(t.Id))
+            .Distinct()
+            .ToListAsync();
+
+        if (candidates.Count == 0)
+            throw new InvalidOperationException($"No positively rated known tracks left for cup {cupId}");
+
+        var track = GetRandomElement(candidates);
+        _log.Information("✅ Selected known track {TrackName} (ID: {TrackId}) from {CandidateCount} positively rated candidates",
+            track.Name, track.TrackId, candidates.Count);
+
+        return track;
     }
 
     public async Task<Track> GetOrCreateTrackAsync(string mapName, int mapId, string trackName, int trackId)
