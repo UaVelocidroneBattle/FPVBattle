@@ -1,5 +1,5 @@
+using FpvBattle.Application.Features.Notifications.Services;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Notifications.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

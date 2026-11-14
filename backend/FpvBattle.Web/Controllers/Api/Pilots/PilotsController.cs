@@ -1,7 +1,7 @@
 ﻿using FpvBattle.Domain;
-using FpvBattle.Logic.Persistence;
-using FpvBattle.Logic.Services.Pilots;
-using FpvBattle.Logic.Services.Pilots.Models;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Services.Pilots;
+using FpvBattle.Application.Services.Pilots.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

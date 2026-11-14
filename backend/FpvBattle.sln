@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Web", "FpvBattle.Web\FpvBattle.Web.csproj", "{77431762-55DD-4753-8A33-C69D08C82286}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Logic", "FpvBattle.Logic\FpvBattle.Logic.csproj", "{43EB828F-2E60-493B-A927-40C3EABB00BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Application", "FpvBattle.Application\FpvBattle.Application.csproj", "{43EB828F-2E60-493B-A927-40C3EABB00BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Infrastructure", "FpvBattle.Infrastructure\FpvBattle.Infrastructure.csproj", "{63DDC215-09AC-4EE7-9C26-3B7CD82F4A01}"
 EndProject

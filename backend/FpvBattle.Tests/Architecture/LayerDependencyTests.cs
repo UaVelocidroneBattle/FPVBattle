@@ -11,20 +11,20 @@ public class LayerDependencyTests
 {
     private const string Domain = "FpvBattle.Domain";
     private const string Infrastructure = "FpvBattle.Infrastructure";
-    private const string Logic = "FpvBattle.Logic";
+    private const string Application = "FpvBattle.Application";
     private const string Web = "FpvBattle.Web";
     private const string Mcp = "FpvBattle.Mcp";
 
     [Theory]
     [InlineData(Domain, Infrastructure)]
-    [InlineData(Domain, Logic)]
+    [InlineData(Domain, Application)]
     [InlineData(Domain, Web)]
     [InlineData(Domain, Mcp)]
     [InlineData(Infrastructure, Web)]
     [InlineData(Infrastructure, Mcp)]
-    [InlineData(Logic, Infrastructure)]
-    [InlineData(Logic, Web)]
-    [InlineData(Logic, Mcp)]
+    [InlineData(Application, Infrastructure)]
+    [InlineData(Application, Web)]
+    [InlineData(Application, Mcp)]
     [InlineData(Mcp, Infrastructure)]
     [InlineData(Mcp, Web)]
     public void Project_does_not_reference_outer_project(string project, string outerProject)

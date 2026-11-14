@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using FluentAssertions;
-using FpvBattle.Logic.Features.Leagues;
+using FpvBattle.Application.Features.Leagues;
 using Microsoft.Extensions.Configuration;
 
 namespace FpvBattle.Tests;

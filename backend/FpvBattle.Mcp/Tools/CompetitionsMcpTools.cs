@@ -1,9 +1,9 @@
 using System.ComponentModel;
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Notifications;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Services;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Cups;
-using FpvBattle.Logic.Notifications;
-using FpvBattle.Logic.Persistence;
-using FpvBattle.Logic.Services;
 using FpvBattle.Mcp.Dto;
 using Hangfire;
 using MediatR;

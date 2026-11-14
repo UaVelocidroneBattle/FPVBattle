@@ -1,8 +1,8 @@
+using FpvBattle.Application.Features.PilotBinding.Services;
+using FpvBattle.Application.Features.Teams.Services;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.PilotBinding.Services;
-using FpvBattle.Logic.Features.Teams.Services;
-using FpvBattle.Logic.Persistence;
-using FpvBattle.Logic.Persistence.Queries;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

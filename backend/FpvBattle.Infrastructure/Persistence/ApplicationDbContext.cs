@@ -1,5 +1,5 @@
 ﻿using FpvBattle.Domain;
-using FpvBattle.Logic.Persistence;
+using FpvBattle.Application.Persistence;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +12,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     {
     }
 
-    // Explicit implementations keep these sets out of EF's DbSet property discovery,
-    // which would otherwise rename tables to the property names.
     DbSet<Competition> IApplicationDbContext.Competitions => Set<Competition>();
     DbSet<CompetitionResults> IApplicationDbContext.CompetitionResults => Set<CompetitionResults>();
     DbSet<PatreonSupporter> IApplicationDbContext.PatreonSupporters => Set<PatreonSupporter>();

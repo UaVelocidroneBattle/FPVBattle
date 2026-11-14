@@ -1,6 +1,6 @@
+using FpvBattle.Application.Features.Auth.Models;
+using FpvBattle.Application.Features.Auth.Services;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Auth.Models;
-using FpvBattle.Logic.Features.Auth.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

@@ -1,4 +1,4 @@
-using FpvBattle.Logic.Features.Cups;
+using FpvBattle.Application.Features.Cups;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FpvBattle.Web.Controllers.Api.Cups;

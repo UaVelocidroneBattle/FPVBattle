@@ -1,9 +1,9 @@
 using FluentAssertions;
+using FpvBattle.Application.Features.Notifications.Channels;
+using FpvBattle.Application.Features.Notifications.Services;
+using FpvBattle.Application.Features.Teams.NotificationHandlers;
+using FpvBattle.Application.Features.Teams.Notifications;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Notifications.Channels;
-using FpvBattle.Logic.Features.Notifications.Services;
-using FpvBattle.Logic.Features.Teams.NotificationHandlers;
-using FpvBattle.Logic.Features.Teams.Notifications;
 using FpvBattle.Web.Controllers.Api.Teams;
 using Microsoft.AspNetCore.Mvc;
 

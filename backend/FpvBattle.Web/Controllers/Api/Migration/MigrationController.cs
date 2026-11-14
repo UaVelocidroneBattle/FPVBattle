@@ -1,5 +1,5 @@
+using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ILogger = Serilog.ILogger;

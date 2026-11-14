@@ -88,7 +88,7 @@ The daily leaderboard has a team mode next to the pilots' one (`GET /api/competi
 
 On the website a Pilots / Teams switch above the leaderboards (kept in the URL as `?teams=1`) replaces both boards with the team ones. A team row opens to show its pilots and their times; the user's own team is highlighted. Frontend: `src/pages/competition/TeamBoards.tsx`, `src/store/teamCompetitionStore.ts`.
 
-Code: `FpvBattle.Logic/Features/Teams/Leaderboard` (`TeamLeaderboardCalculator` does the maths, `TeamRosterLookup` maps pilots to public teams, `TeamLeaderboardService` reads the leaderboards). Tests: `TeamLeaderboardCalculatorTests`, `TeamCompetitionTests`.
+Code: `FpvBattle.Application/Features/Teams/Leaderboard` (`TeamLeaderboardCalculator` does the maths, `TeamRosterLookup` maps pilots to public teams, `TeamLeaderboardService` reads the leaderboards). Tests: `TeamLeaderboardCalculatorTests`, `TeamCompetitionTests`.
 
 ## Deletion
 
@@ -114,7 +114,7 @@ Code: `FpvBattle.Web/Controllers/Admin/Teams` (`TeamManagementController`), `Vie
 
 ## Code
 
-- Backend: `FpvBattle.Logic/Features/Teams` (`TeamService` runs the operations, `TeamPermissions` decides who may run them and is asked by the API controller, `TeamSettings`), `FpvBattle.Web/Controllers/Api/Teams`, domain `Team`, `TeamMember`, `TeamMembershipRequest`.
+- Backend: `FpvBattle.Application/Features/Teams` (`TeamService` runs the operations, `TeamPermissions` decides who may run them and is asked by the API controller, `TeamSettings`), `FpvBattle.Web/Controllers/Api/Teams`, domain `Team`, `TeamMember`, `TeamMembershipRequest`.
 - Frontend: `src/pages/teams`, `src/store/teamsStore.ts`.
 - API: `/api/teams/[action]`. `Overview`, `Search` and `Details` are `[AllowAnonymous]` (a signed-in user is still recognised through the JWT). Every other action requires a signed-in user.
 - Tests: `FpvBattle.Tests/TeamsTests.cs` runs the controller and service against in-memory SQLite.

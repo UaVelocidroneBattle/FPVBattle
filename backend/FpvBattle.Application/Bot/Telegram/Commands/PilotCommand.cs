@@ -1,0 +1,59 @@
+using FpvBattle.Application.Bot.Telegram.Commands.Core;
+using FpvBattle.Application.Features.Achievements.Base;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Services.Pilots;
+using FpvBattle.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace FpvBattle.Application.Bot.Telegram.Commands;
+
+public class PilotCommand : ITelegramCommand
+{
+    private const string UnknownPilotReply = "Не знаю такого пілота 😕";
+
+    private readonly IApplicationDbContext _db;
+    private readonly IPilotProfileService _pilotProfileService;
+
+    public PilotCommand(
+        IApplicationDbContext db,
+        IPilotProfileService pilotProfileService)
+    {
+        _db = db;
+        _pilotProfileService = pilotProfileService;
+    }
+
+    public string[] Keywords => ["/pilot", "/p"];
+    public string Description => "`/pilot {pilotName}` або `/p {pilotName}` - Pilot's profile";
+    public async Task<string> ExecuteAsync(TelegramCommandContext context)
+    {
+        if (context.Parameters is null || context.Parameters.Length == 0)
+            return "все добре, але не вистачає імені пілота";
+
+        var pilotName = string.Join(' ', context.Parameters);
+        var pilot = await _db.Pilots.ByName(pilotName).FirstOrDefaultAsync();
+
+        if (pilot is null)
+            return UnknownPilotReply;
+
+        var profile = await _pilotProfileService.GetPilotProfileAsync(pilot.Name, CancellationToken.None);
+
+        if (profile is null)
+            return UnknownPilotReply;
+
+        var lastRaceDateText = profile.LastRaceDate.HasValue
+            ? profile.LastRaceDate.Value.ToString("dd MMM yyyy")
+            : "-";
+
+        return $"👤 *{TelegramMarkdown.Escape(pilot.Name)}*{Environment.NewLine}{Environment.NewLine}" +
+               $"Last race date: *{lastRaceDateText}*{Environment.NewLine}" +
+               $"Day streak: *{pilot.DayStreak}*{Environment.NewLine}" +
+               $"Max day streak: *{pilot.MaxDayStreak}*{Environment.NewLine}" +
+               $"Freezies: *{pilot.DayStreakFreezeCount}*{Environment.NewLine}" +
+               $"Total flight days: *{profile.TotalRaceDays}*{Environment.NewLine}" +
+               $"Achievements: *{profile.Achievements.Count(x => x.AchievedOn != null)}/{profile.Achievements.Count}*";
+    }
+
+    public bool RemoveMessageAfterDelay => false;
+    public bool Public => true;
+}

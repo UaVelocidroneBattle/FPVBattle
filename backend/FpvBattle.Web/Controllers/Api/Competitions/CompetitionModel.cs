@@ -1,5 +1,5 @@
 ﻿using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Cups;
+using FpvBattle.Application.Features.Cups;
 
 namespace FpvBattle.Web.Controllers.Api.Competitions;
 

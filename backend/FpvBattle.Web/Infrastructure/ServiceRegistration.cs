@@ -1,20 +1,20 @@
 using FpvBattle.Infrastructure.Persistence;
-using FpvBattle.Logic.API;
-using FpvBattle.Logic.API.Velocidrone;
-using FpvBattle.Logic.Bot.Discord;
-using FpvBattle.Logic.Bot.Telegram;
-using FpvBattle.Logic.Features.Patreon;
-using FpvBattle.Logic.Features.Cups;
-using FpvBattle.Logic.Helpers;
-using FpvBattle.Logic.Services;
-using FpvBattle.Logic.Features.Achievements;
-using FpvBattle.Logic.Features.Leagues;
-using FpvBattle.Logic.Features.QuadOfTheDay;
-using FpvBattle.Logic.Services.Pilots;
-using FpvBattle.Logic.Services.Statistics;
-using FpvBattle.Logic.Services.Tracks;
+using FpvBattle.Application.API;
+using FpvBattle.Application.API.Velocidrone;
+using FpvBattle.Application.Bot.Discord;
+using FpvBattle.Application.Bot.Telegram;
+using FpvBattle.Application.Features.Patreon;
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Helpers;
+using FpvBattle.Application.Services;
+using FpvBattle.Application.Features.Achievements;
+using FpvBattle.Application.Features.Leagues;
+using FpvBattle.Application.Features.QuadOfTheDay;
+using FpvBattle.Application.Services.Pilots;
+using FpvBattle.Application.Services.Statistics;
+using FpvBattle.Application.Services.Tracks;
 using FpvBattle.Web.Controllers.Api.Heatmap;
-using FpvBattle.Logic.Persistence;
+using FpvBattle.Application.Persistence;
 
 namespace FpvBattle.Web.Infrastructure;
 

@@ -1,0 +1,16 @@
+using FpvBattle.Application.Bot.Discord;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace FpvBattle.Application.Bot;
+
+public static class DiscordBotServiceHelper
+{
+    public static void UseDiscordBotService(this IServiceCollection services)
+    {
+        services.AddSingleton<IDiscordBotFactory, DiscordBotFactory>();
+        services.AddScoped<IDiscordCupMessenger, DiscordCupMessenger>();
+        services.AddScoped<IDiscordGeneralMessenger, DiscordGeneralMessenger>();
+
+        services.AddHostedService<DiscordBotHostedService>();
+    }
+}

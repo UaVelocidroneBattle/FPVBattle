@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FpvBattle.Logic.Services.Statistics;
+using FpvBattle.Application.Services.Statistics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FpvBattle.Web.Controllers.Admin.Statistics;

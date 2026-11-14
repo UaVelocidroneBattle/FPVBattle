@@ -64,7 +64,7 @@ var result = _actionService.EditAction(action, model.Date, model.Comment, dictIt
 
 ### Data Access: IApplicationDbContext
 
-`IApplicationDbContext` (`FpvBattle.Logic/Persistence`) is the single unit of work. There are no repositories.
+`IApplicationDbContext` (`FpvBattle.Application/Persistence`) is the single unit of work. There are no repositories.
 
 - **Inject `IApplicationDbContext`**, never `ApplicationDbContext`. It exposes one `DbSet<T>` per entity plus `SaveChangesAsync`.
 - **Stage changes on the sets** (`Add`, `Update`, `Remove`) and **call `SaveChangesAsync` once per use case** in new code.
@@ -87,13 +87,13 @@ await _db.UserNotifications.ForUser(userId).Unread().CountAsync(ct);
 - **No Dependencies**: No EF Core and no project references
 
 ### FpvBattle.Infrastructure (Infrastructure Layer)
-References Domain and Logic; implements Logic's `IApplicationDbContext`. Everything under `Persistence/`:
+References Domain and Application; implements Application's `IApplicationDbContext`. Everything under `Persistence/`:
 - **ApplicationDbContext**: Identity tables plus every configuration in `Configurations/`
 - **Configurations**: One `IEntityTypeConfiguration<T>` per entity holding its Fluent API mapping
 - **Migrations**: Database schema evolution
 
-### FpvBattle.Logic (Business Logic Layer)
-`Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`). Logic references Domain only, never Infrastructure.
+### FpvBattle.Application (Business Logic Layer)
+`Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`). Application references Domain only, never Infrastructure.
 
 Organized by **vertical slices** (business features):
 
@@ -117,7 +117,7 @@ Features/
 ```
 
 ### FpvBattle.Web (Presentation Layer)
-- **Controllers**: Thin HTTP endpoints delegating to Logic layer
+- **Controllers**: Thin HTTP endpoints delegating to the Application layer
 - **Infrastructure**: Cross-cutting concerns (DI, middleware, configuration)
 - **API Surface**: RESTful endpoints with OpenAPI documentation
 

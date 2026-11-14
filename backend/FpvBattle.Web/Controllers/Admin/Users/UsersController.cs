@@ -1,8 +1,8 @@
+using FpvBattle.Application.Features.PilotBinding.Services;
+using FpvBattle.Application.Helpers;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.PilotBinding.Services;
-using FpvBattle.Logic.Helpers;
-using FpvBattle.Logic.Persistence;
-using FpvBattle.Logic.Persistence.Queries;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

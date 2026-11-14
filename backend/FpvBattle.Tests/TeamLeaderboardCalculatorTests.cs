@@ -1,8 +1,8 @@
 using FluentAssertions;
+using FpvBattle.Application.Features.Teams;
+using FpvBattle.Application.Features.Teams.Leaderboard;
+using FpvBattle.Application.Services;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Teams;
-using FpvBattle.Logic.Features.Teams.Leaderboard;
-using FpvBattle.Logic.Services;
 using Microsoft.Extensions.Options;
 
 namespace FpvBattle.Tests;

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Features.Teams;
+using FpvBattle.Application.Features.Teams.Leaderboard;
+using FpvBattle.Application.Services;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Cups;
-using FpvBattle.Logic.Features.Teams;
-using FpvBattle.Logic.Features.Teams.Leaderboard;
-using FpvBattle.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Web.Controllers.Api.Competitions;

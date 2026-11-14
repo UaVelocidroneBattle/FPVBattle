@@ -29,7 +29,7 @@ All metrics include the following attributes for detailed filtering and aggregat
 
 | Attribute | Description | Example |
 |-----------|-------------|---------|
-| `job.type` | Fully qualified job class name | `FpvBattle.Logic.Jobs.CompetitionCheckJob` |
+| `job.type` | Fully qualified job class name | `FpvBattle.Application.Jobs.CompetitionCheckJob` |
 | `job.method` | Job method name | `Execute` |
 | `job.name` | Human-readable job signature | `CompetitionCheckJob.Execute` |
 | `job.status` | Execution status (execution metrics only) | `success`, `failed` |

@@ -1,8 +1,8 @@
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Features.Leagues.Models;
+using FpvBattle.Application.Features.Leagues.Services;
+using FpvBattle.Application.Features.Teams;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Cups;
-using FpvBattle.Logic.Features.Leagues.Models;
-using FpvBattle.Logic.Features.Leagues.Services;
-using FpvBattle.Logic.Features.Teams;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 

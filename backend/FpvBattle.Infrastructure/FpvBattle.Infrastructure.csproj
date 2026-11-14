@@ -13,7 +13,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\FpvBattle.Domain\FpvBattle.Domain.csproj" />
-      <ProjectReference Include="..\FpvBattle.Logic\FpvBattle.Logic.csproj" />
+      <ProjectReference Include="..\FpvBattle.Application\FpvBattle.Application.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-using FpvBattle.Logic.Jobs;
-using FpvBattle.Logic.Services;
+using FpvBattle.Application.Jobs;
+using FpvBattle.Application.Services;
 using Hangfire;
 using Hangfire.Storage;
 using Serilog;

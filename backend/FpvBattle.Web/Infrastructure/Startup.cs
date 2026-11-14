@@ -17,16 +17,16 @@ using Serilog.Sinks.Elasticsearch;
 using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Domain;
 using FpvBattle.Hangfire.Metrics;
-using FpvBattle.Logic.Bot;
-using FpvBattle.Logic.Bot.Telegram;
-using FpvBattle.Logic.Bot.Telegram.Commands.Core;
-using FpvBattle.Logic.Features.Auth;
-using FpvBattle.Logic.Features.PilotBinding;
-using FpvBattle.Logic.Features.Notifications;
-using FpvBattle.Logic.Notifications;
+using FpvBattle.Application.Bot;
+using FpvBattle.Application.Bot.Telegram;
+using FpvBattle.Application.Bot.Telegram.Commands.Core;
+using FpvBattle.Application.Features.Auth;
+using FpvBattle.Application.Features.PilotBinding;
+using FpvBattle.Application.Features.Notifications;
+using FpvBattle.Application.Notifications;
 using ModelContextProtocol.AspNetCore;
-using FpvBattle.Logic.Features.Teams;
-using FpvBattle.Logic.Services;
+using FpvBattle.Application.Features.Teams;
+using FpvBattle.Application.Services;
 using FpvBattle.Mcp.Tools;
 using FpvBattle.Web.Infrastructure.Hangfire;
 using FpvBattle.Web.Infrastructure.Logging;
@@ -101,7 +101,7 @@ public class Startup
             .AddControllersWithViews()
             .ConfigureApplicationPartManager(apm =>
             {
-                var assembly = typeof(FpvBattle.Logic.Features.Patreon.PatreonController).Assembly;
+                var assembly = typeof(FpvBattle.Application.Features.Patreon.PatreonController).Assembly;
                 if (!apm.ApplicationParts.Any(part => part is AssemblyPart assemblyPart && assemblyPart.Assembly == assembly))
                 {
                     apm.ApplicationParts.Add(new AssemblyPart(assembly));

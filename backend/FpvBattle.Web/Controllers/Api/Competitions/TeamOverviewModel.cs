@@ -1,4 +1,4 @@
-using FpvBattle.Logic.Features.Teams.Leaderboard;
+using FpvBattle.Application.Features.Teams.Leaderboard;
 
 namespace FpvBattle.Web.Controllers.Api.Competitions;
 

@@ -1,7 +1,7 @@
 using FluentAssertions;
-using FpvBattle.Logic.Features.Cups;
-using FpvBattle.Logic.Services.Tracks;
-using FpvBattle.Logic.Services.Tracks.Models;
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Services.Tracks;
+using FpvBattle.Application.Services.Tracks.Models;
 
 namespace FpvBattle.Tests;
 

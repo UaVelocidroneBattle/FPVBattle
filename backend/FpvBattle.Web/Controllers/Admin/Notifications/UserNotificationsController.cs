@@ -1,6 +1,6 @@
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Cups;
-using FpvBattle.Logic.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

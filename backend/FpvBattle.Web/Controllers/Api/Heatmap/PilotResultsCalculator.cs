@@ -1,5 +1,5 @@
+using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Web.Controllers.Api.Heatmap;

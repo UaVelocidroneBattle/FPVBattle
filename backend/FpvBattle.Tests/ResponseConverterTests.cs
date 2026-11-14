@@ -1,9 +1,9 @@
 using System.Text.Json;
 using FluentAssertions;
+using FpvBattle.Application.API.Velocidrone.Dto;
+using FpvBattle.Application.Services;
 using FpvBattle.Domain;
 using FpvBattle.Infrastructure.Persistence;
-using FpvBattle.Logic.API.Velocidrone.Dto;
-using FpvBattle.Logic.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

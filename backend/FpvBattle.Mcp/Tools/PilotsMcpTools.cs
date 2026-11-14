@@ -1,10 +1,10 @@
 using System.ComponentModel;
 using System.Text.Json;
+using FpvBattle.Application.Notifications;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Services.Pilots;
+using FpvBattle.Application.Services.Pilots.Models;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Notifications;
-using FpvBattle.Logic.Persistence;
-using FpvBattle.Logic.Services.Pilots;
-using FpvBattle.Logic.Services.Pilots.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ModelContextProtocol.Server;

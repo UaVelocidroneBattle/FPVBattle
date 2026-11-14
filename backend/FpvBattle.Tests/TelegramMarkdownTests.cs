@@ -1,5 +1,5 @@
 using FluentAssertions;
-using FpvBattle.Logic.Bot.Telegram;
+using FpvBattle.Application.Bot.Telegram;
 
 namespace FpvBattle.Tests;
 

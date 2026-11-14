@@ -1,6 +1,6 @@
 using FluentAssertions;
+using FpvBattle.Application.Features.Teams;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Teams;
 using FpvBattle.Web.Controllers.Admin.Teams;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

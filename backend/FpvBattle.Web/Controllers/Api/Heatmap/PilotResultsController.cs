@@ -1,5 +1,5 @@
 ﻿using FpvBattle.Domain;
-using FpvBattle.Logic.Persistence;
+using FpvBattle.Application.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

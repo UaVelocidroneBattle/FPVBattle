@@ -15,14 +15,14 @@ The feature was no longer needed and added unnecessary scheduling complexity.
 ## What Was Removed
 
 ### Files deleted
-- `FpvBattle.Logic/Notifications/VoteReminder.cs` — MediatR notification record: `public record VoteReminder(Competition Competition) : INotification;`
+- `FpvBattle.Application/Notifications/VoteReminder.cs` — MediatR notification record: `public record VoteReminder(Competition Competition) : INotification;`
 
 ### Code removed
 
-**`FpvBattle.Logic/Bot/ChatMessage.cs`**
+**`FpvBattle.Application/Bot/ChatMessage.cs`**
 - `VoteReminder` value from the `ChatMessageType` enum
 
-**`FpvBattle.Logic/Services/CompetitionConductor.cs`**
+**`FpvBattle.Application/Services/CompetitionConductor.cs`**
 ```csharp
 public async Task VoteReminder(string cupId)
 {
@@ -40,7 +40,7 @@ public async Task VoteReminder(string cupId)
 }
 ```
 
-**`FpvBattle.Logic/Features/Cups/CupOptions.cs`** — property on `ScheduleOptions`:
+**`FpvBattle.Application/Features/Cups/CupOptions.cs`** — property on `ScheduleOptions`:
 ```csharp
 /// <summary>
 /// Vote reminder time in HH:mm format (e.g., "14:30"). Optional - if not set, no vote reminder will be sent for this cup.
@@ -48,7 +48,7 @@ public async Task VoteReminder(string cupId)
 public string? VoteReminderTime { get; set; }
 ```
 
-**`FpvBattle.Logic/Features/Cups/Jobs/CupJobRegistrar.cs`** — job registration block:
+**`FpvBattle.Application/Features/Cups/Jobs/CupJobRegistrar.cs`** — job registration block:
 ```csharp
 // Register vote reminder job (if configured)
 if (!string.IsNullOrEmpty(cupOptions.Schedule.VoteReminderTime))
@@ -73,7 +73,7 @@ if (!string.IsNullOrEmpty(cupOptions.Schedule.VoteReminderTime))
 }
 ```
 
-**`FpvBattle.Logic/Bot/Discord/DiscordMessageEventHandler.cs`**
+**`FpvBattle.Application/Bot/Discord/DiscordMessageEventHandler.cs`**
 - `INotificationHandler<VoteReminder>` removed from the class interface list
 - Handler method:
 ```csharp
@@ -90,7 +90,7 @@ public async Task Handle(VoteReminder notification, CancellationToken cancellati
 }
 ```
 
-**`FpvBattle.Logic/Bot/Discord/DiscordChatMessages.cs`** — 8 English messages:
+**`FpvBattle.Application/Bot/Discord/DiscordChatMessages.cs`** — 8 English messages:
 ```csharp
 Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "👌 Don't forget to rate the track"));
 Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Rating tracks matters 👆"));
@@ -102,7 +102,7 @@ Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Got 10 seconds for a
 Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "🧐 Rating the track is no harder than liking something on TikTok. Give it a try."));
 ```
 
-**`FpvBattle.Logic/Bot/Telegram/TelegramChatMessages.cs`** — 9 Ukrainian messages:
+**`FpvBattle.Application/Bot/Telegram/TelegramChatMessages.cs`** — 9 Ukrainian messages:
 ```csharp
 Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "👌 Не забудь оцінити трек"));
 Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "Оцінювати треки важливо 👆"));
@@ -132,7 +132,7 @@ Messages.Add(new ChatMessage(ChatMessageType.VoteReminder, "🧠 Навіть т
 ## How to Restore
 
 1. Re-add `VoteReminder` to the `ChatMessageType` enum in `ChatMessage.cs`
-2. Recreate `FpvBattle.Logic/Notifications/VoteReminder.cs`
+2. Recreate `FpvBattle.Application/Notifications/VoteReminder.cs`
 3. Add `VoteReminder()` method back to `CompetitionConductor`
 4. Restore `VoteReminderTime` property to `ScheduleOptions` in `CupOptions.cs`
 5. Add the job registration block back to `CupJobRegistrar.RegisterJobsForCup()`

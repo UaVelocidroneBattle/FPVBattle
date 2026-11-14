@@ -1,5 +1,5 @@
 using FluentAssertions;
-using FpvBattle.Logic.Services;
+using FpvBattle.Application.Services;
 
 namespace FpvBattle.Tests;
 

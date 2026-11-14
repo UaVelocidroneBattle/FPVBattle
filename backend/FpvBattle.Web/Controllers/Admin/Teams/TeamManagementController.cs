@@ -1,9 +1,9 @@
+using FpvBattle.Application.Features.Teams;
+using FpvBattle.Application.Features.Teams.Services;
+using FpvBattle.Application.Helpers;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Teams;
-using FpvBattle.Logic.Features.Teams.Services;
-using FpvBattle.Logic.Helpers;
-using FpvBattle.Logic.Persistence;
-using FpvBattle.Logic.Persistence.Queries;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

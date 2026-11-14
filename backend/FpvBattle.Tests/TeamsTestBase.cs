@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Teams;
-using FpvBattle.Logic.Features.Teams.Services;
+using FpvBattle.Application.Features.Teams;
+using FpvBattle.Application.Features.Teams.Services;
 using FpvBattle.Web.Controllers.Api.Teams;
 
 namespace FpvBattle.Tests;

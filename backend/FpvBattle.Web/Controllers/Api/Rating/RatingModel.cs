@@ -1,4 +1,4 @@
-using FpvBattle.Logic.Features.Leagues.Models;
+using FpvBattle.Application.Features.Leagues.Models;
 
 namespace FpvBattle.Web.Controllers.Api.Rating;
 
