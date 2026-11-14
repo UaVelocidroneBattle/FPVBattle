@@ -1,5 +1,5 @@
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Logic.Services.Statistics;

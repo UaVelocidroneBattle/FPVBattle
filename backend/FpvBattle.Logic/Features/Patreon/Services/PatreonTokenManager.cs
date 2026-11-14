@@ -1,6 +1,6 @@
 using System.Text.Json;
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Patreon.Exceptions;
 using FpvBattle.Logic.Features.Patreon.Models;
 using Microsoft.EntityFrameworkCore;

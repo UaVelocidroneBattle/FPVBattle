@@ -1,6 +1,6 @@
 using FluentAssertions;
-using FpvBattle.Data;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

@@ -1,5 +1,5 @@
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Patreon.Models;
 using FpvBattle.Logic.Features.Patreon.Notifications;
 using FpvBattle.Logic.Features.Patreon.Services;

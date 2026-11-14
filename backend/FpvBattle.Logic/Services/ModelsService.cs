@@ -1,5 +1,5 @@
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using Microsoft.EntityFrameworkCore;

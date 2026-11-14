@@ -102,8 +102,10 @@ _actions.GetAll().ForLoan(loan).Where(a => a.Date < DateTime.Now).ToListAsync()
 - **Query Extensions**: Pure LINQ extensions only (e.g. `ByName`), nothing that needs EF Core to run
 - **No Dependencies**: No EF Core and no project references
 
-### FpvBattle.Data (Persistence Layer)
-- **DbContext**: Centralized EF configuration via Fluent API
+### FpvBattle.Infrastructure (Infrastructure Layer)
+Everything under `Persistence/`:
+- **ApplicationDbContext**: Identity tables plus every configuration in `Configurations/`
+- **Configurations**: One `IEntityTypeConfiguration<T>` per entity holding its Fluent API mapping
 - **Repositories**: Generic repository pattern for data access
 - **Queries**: Query extensions that need EF Core (`Include`, `ToListAsync`, etc.), e.g. `PilotQueries`
 - **Migrations**: Database schema evolution
@@ -184,17 +186,16 @@ Features/Achievements/
 ## Entity Framework Guidelines
 
 ### Fluent API Configuration
-All EF configuration in `ApplicationDbContext.OnModelCreating()`:
+Each entity's EF configuration lives in its own class under `FpvBattle.Infrastructure/Persistence/Configurations/`. `ApplicationDbContext.OnModelCreating()` picks them all up with `ApplyConfigurationsFromAssembly`, so a new entity only needs a new configuration class:
 ```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
+public sealed class PilotConfiguration : IEntityTypeConfiguration<Pilot>
 {
-    // Configure entities via Fluent API
-    modelBuilder.Entity<Pilot>(entity =>
+    public void Configure(EntityTypeBuilder<Pilot> builder)
     {
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
-        entity.HasIndex(e => e.UserId);
-    });
+        builder.ToTable("Pilots");
+        builder.HasKey(p => p.Id);
+        builder.Property(p => p.Name).HasMaxLength(128);
+    }
 }
 ```
 

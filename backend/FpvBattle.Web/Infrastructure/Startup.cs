@@ -14,7 +14,7 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
-using FpvBattle.Data;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Domain;
 using FpvBattle.Hangfire.Metrics;
 using FpvBattle.Logic.Bot;

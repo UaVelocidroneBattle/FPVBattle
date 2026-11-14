@@ -1,4 +1,4 @@
-using FpvBattle.Data.Repositories;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.Bot.Discord;

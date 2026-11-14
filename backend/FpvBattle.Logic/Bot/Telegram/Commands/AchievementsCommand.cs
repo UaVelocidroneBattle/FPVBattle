@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using FpvBattle.Data.Repositories;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Domain;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;

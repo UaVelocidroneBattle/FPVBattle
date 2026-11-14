@@ -1,5 +1,5 @@
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.EntityFrameworkCore;

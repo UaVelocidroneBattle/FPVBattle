@@ -1,6 +1,6 @@
 using FluentAssertions;
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Teams.Leaderboard;
 using FpvBattle.Logic.Services;
 using FpvBattle.Web.Controllers.Api.Teams;

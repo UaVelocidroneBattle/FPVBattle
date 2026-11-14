@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Services.Pilots;
 using FpvBattle.Logic.Services.Pilots.Models;
 using Microsoft.EntityFrameworkCore;

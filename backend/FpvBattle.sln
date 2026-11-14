@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Web", "FpvBattle.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Logic", "FpvBattle.Logic\FpvBattle.Logic.csproj", "{43EB828F-2E60-493B-A927-40C3EABB00BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Data", "FpvBattle.Data\FpvBattle.Data.csproj", "{63DDC215-09AC-4EE7-9C26-3B7CD82F4A01}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Infrastructure", "FpvBattle.Infrastructure\FpvBattle.Infrastructure.csproj", "{63DDC215-09AC-4EE7-9C26-3B7CD82F4A01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FpvBattle.Tests", "FpvBattle.Tests\FpvBattle.Tests.csproj", "{44510327-1548-4DF1-8766-6A2AB14245D0}"
 EndProject

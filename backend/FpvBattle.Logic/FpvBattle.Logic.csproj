@@ -26,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FpvBattle.Data\FpvBattle.Data.csproj" />
+      <ProjectReference Include="..\FpvBattle.Infrastructure\FpvBattle.Infrastructure.csproj" />
       <ProjectReference Include="..\FpvBattle.Domain\FpvBattle.Domain.csproj" />
     </ItemGroup>
 

@@ -11,7 +11,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Directory.Build.props", "./"]
 COPY ["FpvBattle.Web/FpvBattle.Web.csproj", "FpvBattle.Web/"]
-COPY ["FpvBattle.Data/FpvBattle.Data.csproj", "FpvBattle.Data/"]
+COPY ["FpvBattle.Infrastructure/FpvBattle.Infrastructure.csproj", "FpvBattle.Infrastructure/"]
 COPY ["FpvBattle.Domain/FpvBattle.Domain.csproj", "FpvBattle.Domain/"]
 COPY ["FpvBattle.Logic/FpvBattle.Logic.csproj", "FpvBattle.Logic/"]
 COPY ["FpvBattle.Hangfire.Metrics/FpvBattle.Hangfire.Metrics.csproj", "FpvBattle.Hangfire.Metrics/"]

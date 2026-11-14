@@ -64,7 +64,7 @@ When code duplication or quality issues are identified:
 - **See @backend/CLAUDE.md for detailed backend guidelines**
 
 ### Entity Framework Configuration
-- All Entity Framework configuration (MaxLength, Key, indexes, etc.) is done via Fluent API in ApplicationDbContext.OnModelCreating()
+- All Entity Framework configuration (MaxLength, Key, indexes, etc.) is done via Fluent API, one `IEntityTypeConfiguration<T>` class per entity in `FpvBattle.Infrastructure/Persistence/Configurations/`
 - Domain models are kept as clean POCOs without data annotation attributes like [MaxLength], [Key], etc.
 - This approach provides better separation of concerns and keeps domain models independent of persistence concerns
 

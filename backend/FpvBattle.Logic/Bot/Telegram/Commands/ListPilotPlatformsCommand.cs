@@ -1,6 +1,6 @@
 using System.Text;
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;
 
 namespace FpvBattle.Logic.Bot.Telegram.Commands;

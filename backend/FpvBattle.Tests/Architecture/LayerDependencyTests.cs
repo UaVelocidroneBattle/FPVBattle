@@ -10,19 +10,19 @@ namespace FpvBattle.Tests.Architecture;
 public class LayerDependencyTests
 {
     private const string Domain = "FpvBattle.Domain";
-    private const string Data = "FpvBattle.Data";
+    private const string Infrastructure = "FpvBattle.Infrastructure";
     private const string Logic = "FpvBattle.Logic";
     private const string Web = "FpvBattle.Web";
     private const string Mcp = "FpvBattle.Mcp";
 
     [Theory]
-    [InlineData(Domain, Data)]
+    [InlineData(Domain, Infrastructure)]
     [InlineData(Domain, Logic)]
     [InlineData(Domain, Web)]
     [InlineData(Domain, Mcp)]
-    [InlineData(Data, Logic)]
-    [InlineData(Data, Web)]
-    [InlineData(Data, Mcp)]
+    [InlineData(Infrastructure, Logic)]
+    [InlineData(Infrastructure, Web)]
+    [InlineData(Infrastructure, Mcp)]
     [InlineData(Logic, Web)]
     [InlineData(Logic, Mcp)]
     [InlineData(Mcp, Web)]

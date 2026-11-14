@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
 using System.Text.Json;
 using FluentAssertions;
-using FpvBattle.Data.Repositories;
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.API.Velocidrone.Dto;
 using FpvBattle.Logic.Services;
 using Microsoft.Extensions.Options;
