@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -10,20 +10,14 @@ namespace FpvBattle.Logic.Features.Teams;
 /// </summary>
 public class TeamCreationPolicy
 {
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<PatreonSupporter> _supporters;
+    private readonly IApplicationDbContext _db;
     private readonly TeamSettings _settings;
 
     public TeamCreationPolicy(
-        IRepository<Pilot> pilots,
-        IRepository<TeamMember> members,
-        IRepository<PatreonSupporter> supporters,
+        IApplicationDbContext db,
         IOptions<TeamSettings> settings)
     {
-        _pilots = pilots;
-        _members = members;
-        _supporters = supporters;
+        _db = db;
         _settings = settings.Value;
     }
 
@@ -32,7 +26,7 @@ public class TeamCreationPolicy
         if (user.PilotId is not { } pilotId)
             return TeamCreationBlocker.PilotNotLinked;
 
-        if (await _members.GetAll().AnyAsync(m => m.UserId == user.Id))
+        if (await _db.TeamMembers.AnyAsync(m => m.UserId == user.Id))
             return TeamCreationBlocker.AlreadyInTeam;
 
         if (await HasEnoughRaceDaysAsync(pilotId) || await IsAllowedPatronAsync(pilotId))
@@ -43,12 +37,12 @@ public class TeamCreationPolicy
 
     private async Task<bool> HasEnoughRaceDaysAsync(int pilotId)
     {
-        return await _pilots.GetAll().AnyAsync(p => p.Id == pilotId && p.TotalRaceDays >= _settings.MinRaceDaysToCreate);
+        return await _db.Pilots.AnyAsync(p => p.Id == pilotId && p.TotalRaceDays >= _settings.MinRaceDaysToCreate);
     }
 
     private async Task<bool> IsAllowedPatronAsync(int pilotId)
     {
-        return _settings.AllowPatronsToCreate && await _supporters.GetAll().Paying().AnyAsync(s => s.PilotId == pilotId);
+        return _settings.AllowPatronsToCreate && await _db.PatreonSupporters.Paying().AnyAsync(s => s.PilotId == pilotId);
     }
 }
 

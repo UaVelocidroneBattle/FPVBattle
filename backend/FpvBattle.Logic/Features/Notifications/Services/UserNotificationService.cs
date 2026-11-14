@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Notifications.Channels;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -15,12 +15,12 @@ public class UserNotificationService
     private static readonly ILogger Log = Serilog.Log.ForContext<UserNotificationService>();
 
     private readonly IEnumerable<INotificationChannel> _channels;
-    private readonly IRepository<ApplicationUser> _users;
+    private readonly IApplicationDbContext _db;
 
-    public UserNotificationService(IEnumerable<INotificationChannel> channels, IRepository<ApplicationUser> users)
+    public UserNotificationService(IEnumerable<INotificationChannel> channels, IApplicationDbContext db)
     {
         _channels = channels;
-        _users = users;
+        _db = db;
     }
 
     public async Task NotifyAsync(IReadOnlyCollection<UserNotificationMessage> messages, CancellationToken ct)
@@ -71,8 +71,7 @@ public class UserNotificationService
     {
         var pilotIds = pilots.Select(pilot => pilot.Id).Distinct().ToList();
 
-        return await _users
-            .GetAll(user => user.PilotId != null && pilotIds.Contains(user.PilotId.Value))
+        return await _db.Users.Where(user => user.PilotId != null && pilotIds.Contains(user.PilotId.Value))
             .ToDictionaryAsync(user => user.PilotId!.Value, user => user.Id, ct);
     }
 }

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -12,11 +12,11 @@ public class NotificationCleanupJob
     public static readonly TimeSpan ReadRetention = TimeSpan.FromDays(30);
     public static readonly TimeSpan UnreadRetention = TimeSpan.FromDays(90);
 
-    private readonly IRepository<UserNotification> _notifications;
+    private readonly IApplicationDbContext _db;
 
-    public NotificationCleanupJob(IRepository<UserNotification> notifications)
+    public NotificationCleanupJob(IApplicationDbContext db)
     {
-        _notifications = notifications;
+        _db = db;
     }
 
     public async Task ExecuteAsync(CancellationToken ct)
@@ -25,8 +25,7 @@ public class NotificationCleanupJob
         var readBefore = now - ReadRetention;
         var createdBefore = now - UnreadRetention;
 
-        var deleted = await _notifications
-            .GetAll(n => n.ReadOn <= readBefore || n.CreatedOn <= createdBefore)
+        var deleted = await _db.UserNotifications.Where(n => n.ReadOn <= readBefore || n.CreatedOn <= createdBefore)
             .ExecuteDeleteAsync(ct);
 
         if (deleted > 0)

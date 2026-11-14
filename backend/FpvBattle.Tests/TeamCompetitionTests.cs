@@ -101,16 +101,14 @@ public class TeamCompetitionTests : TeamsTestBase
     }
 
     private TeamLeaderboardService Service() => new(
-        new Repository<Competition>(_db),
-        new Repository<TeamCompetitionResult>(_db),
-        new Repository<Team>(_db),
+        _db,
         _liveLeaderboard,
         Calculator(),
         Roster());
 
     private TeamLeaderboardCalculator Calculator() => new(new PointsCalculator(), Options.Create(_settings));
 
-    private TeamRosterLookup Roster() => new(new Repository<TeamMember>(_db), Options.Create(_settings));
+    private TeamRosterLookup Roster() => new(_db, Options.Create(_settings));
 
     private async Task FinishAsync(Competition competition)
     {

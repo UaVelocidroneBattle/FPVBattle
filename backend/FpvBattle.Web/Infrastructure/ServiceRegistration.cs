@@ -1,3 +1,4 @@
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
@@ -22,6 +23,7 @@ public static class ServiceRegistration
     public static IServiceCollection RegisterCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         services.AddVelocidroneClient(configuration);
         services.AddScoped<CompetitionService>();
         services.AddScoped<CompetitionConductor>();

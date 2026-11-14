@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,24 +14,18 @@ public record TeamSeasonStanding(Team Team, int Points, int Rank);
 /// </summary>
 public class TeamLeaderboardService
 {
-    private readonly IRepository<Competition> _competitions;
-    private readonly IRepository<TeamCompetitionResult> _results;
-    private readonly IRepository<Team> _teams;
+    private readonly IApplicationDbContext _db;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
     private readonly TeamLeaderboardCalculator _calculator;
     private readonly TeamRosterLookup _roster;
 
     public TeamLeaderboardService(
-        IRepository<Competition> competitions,
-        IRepository<TeamCompetitionResult> results,
-        IRepository<Team> teams,
+        IApplicationDbContext db,
         ILeaderboardCalculator leaderboardCalculator,
         TeamLeaderboardCalculator calculator,
         TeamRosterLookup roster)
     {
-        _competitions = competitions;
-        _results = results;
-        _teams = teams;
+        _db = db;
         _leaderboardCalculator = leaderboardCalculator;
         _calculator = calculator;
         _roster = roster;
@@ -51,7 +45,7 @@ public class TeamLeaderboardService
 
         var teamResults = isRunning
             ? _calculator.Rank(competition.Id, pilotsByTeam)
-            : await _results.GetAll().IgnoreQueryFilters().Where(r => r.CompetitionId == competition.Id).ToListAsync(ct);
+            : await _db.TeamCompetitionResults.IgnoreQueryFilters().Where(r => r.CompetitionId == competition.Id).ToListAsync(ct);
 
         var teams = await FindTeamsAsync(teamResults.Select(r => r.TeamId), ct);
 
@@ -74,8 +68,7 @@ public class TeamLeaderboardService
 
     public async Task<List<TeamSeasonStanding>> GetSeasonAsync(string cupId, DateTime from, DateTime to, CancellationToken ct = default)
     {
-        var teamPoints = await _competitions
-            .GetAll(c => c.StartedOn >= from && c.StartedOn <= to)
+        var teamPoints = await _db.Competitions.Where(c => c.StartedOn >= from && c.StartedOn <= to)
             .IgnoreQueryFilters()
             .ForCup(cupId)
             .NotCancelled()
@@ -96,7 +89,7 @@ public class TeamLeaderboardService
     {
         var ids = teamIds.ToList();
 
-        return await _teams.GetAll()
+        return await _db.Teams
             .IgnoreQueryFilters()
             .Where(t => ids.Contains(t.Id))
             .ToDictionaryAsync(t => t.Id, ct);

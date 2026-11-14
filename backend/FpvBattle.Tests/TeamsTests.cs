@@ -219,7 +219,7 @@ public class TeamsTests : TeamsTestBase
         var invitee = AddUser("invitee");
         var team = (await Service().CreateAsync(owner, "Alpha", NextTag(), null)).Team!;
         var notifications = new UserNotificationService(
-            [new InAppNotificationChannel(new Repository<UserNotification>(_db))], new Repository<ApplicationUser>(_db));
+            [new InAppNotificationChannel(_db)], _db);
 
         await new InAppTeamInviteHandler(notifications).Handle(new TeamInviteSentNotification(team, owner, invitee), CancellationToken.None);
 
@@ -324,7 +324,7 @@ public class TeamsTests : TeamsTestBase
         _settings.MinPublicTeamSize = 3;
         var owner = AddUser("owner");
         await Controller(owner).Create(new CreateTeamModel { Tag = "TNY", Name = "Tiny" });
-        var lookup = new TeamTagLookup(new Repository<TeamMember>(_db), Options.Create(_settings));
+        var lookup = new TeamTagLookup(_db, Options.Create(_settings));
 
         (await lookup.GetTagsByPilotNameAsync()).Should().BeEmpty();
 

@@ -1,22 +1,21 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Logic.Features.Notifications.Services;
 
 public class InAppNotificationService
 {
-    private readonly IRepository<UserNotification> _notifications;
+    private readonly IApplicationDbContext _db;
 
-    public InAppNotificationService(IRepository<UserNotification> notifications)
+    public InAppNotificationService(IApplicationDbContext db)
     {
-        _notifications = notifications;
+        _db = db;
     }
 
     public async Task<IReadOnlyCollection<UserNotification>> GetNewestAsync(string userId, int take, CancellationToken ct)
     {
-        return await _notifications
-            .GetAll()
+        return await _db.UserNotifications
             .ForUser(userId)
             .Newest()
             .Take(take)
@@ -25,8 +24,7 @@ public class InAppNotificationService
 
     public async Task<int> GetUnreadCountAsync(string userId, CancellationToken ct)
     {
-        return await _notifications
-            .GetAll()
+        return await _db.UserNotifications
             .ForUser(userId)
             .Unread()
             .CountAsync(ct);
@@ -36,8 +34,7 @@ public class InAppNotificationService
     {
         var now = DateTime.UtcNow;
 
-        await _notifications
-            .GetAll()
+        await _db.UserNotifications
             .ForUser(userId)
             .Unread()
             .Where(n => ids.Contains(n.Id))
@@ -48,8 +45,7 @@ public class InAppNotificationService
     {
         var now = DateTime.UtcNow;
 
-        await _notifications
-            .GetAll()
+        await _db.UserNotifications
             .ForUser(userId)
             .Unread()
             .ExecuteUpdateAsync(n => n.SetProperty(x => x.ReadOn, now), ct);

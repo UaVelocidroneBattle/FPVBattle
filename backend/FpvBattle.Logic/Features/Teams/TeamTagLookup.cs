@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -10,12 +10,12 @@ namespace FpvBattle.Logic.Features.Teams;
 /// </summary>
 public class TeamTagLookup
 {
-    private readonly IRepository<TeamMember> _teamMembers;
+    private readonly IApplicationDbContext _db;
     private readonly TeamSettings _settings;
 
-    public TeamTagLookup(IRepository<TeamMember> teamMembers, IOptions<TeamSettings> settings)
+    public TeamTagLookup(IApplicationDbContext db, IOptions<TeamSettings> settings)
     {
-        _teamMembers = teamMembers;
+        _db = db;
         _settings = settings.Value;
     }
 
@@ -24,7 +24,7 @@ public class TeamTagLookup
     /// </summary>
     public async Task<IReadOnlyDictionary<string, string>> GetTagsByPilotNameAsync(CancellationToken ct = default)
     {
-        return await _teamMembers.GetAll()
+        return await _db.TeamMembers
             .Where(m => m.Team.Tag != null && m.User.Pilot != null && m.Team.Members.Count >= _settings.MinPublicTeamSize)
             .Select(m => new { PilotName = m.User.Pilot!.Name, Tag = m.Team.Tag! })
             .ToDictionaryAsync(m => m.PilotName, m => m.Tag, StringComparer.Ordinal, ct);

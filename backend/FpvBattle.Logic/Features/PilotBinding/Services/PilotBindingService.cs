@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -21,28 +21,22 @@ public class PilotBindingService
     /// <summary>How long a claim stays open waiting for the verification race.</summary>
     public static readonly TimeSpan ClaimLifetime = TimeSpan.FromHours(48);
 
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<PilotClaim> _claims;
-    private readonly IRepository<ApplicationUser> _users;
+    private readonly IApplicationDbContext _db;
 
     public PilotBindingService(
-        IRepository<Pilot> pilots,
-        IRepository<PilotClaim> claims,
-        IRepository<ApplicationUser> users)
+        IApplicationDbContext db)
     {
-        _pilots = pilots;
-        _claims = claims;
-        _users = users;
+        _db = db;
     }
 
     public async Task<bool> IsPilotLinkedAsync(int pilotId)
     {
-        return await _users.GetAll().AnyAsync(u => u.PilotId == pilotId);
+        return await _db.Users.AnyAsync(u => u.PilotId == pilotId);
     }
 
     public async Task<PilotClaim?> GetClaimAsync(ApplicationUser user)
     {
-        return await _claims.GetAll().FirstOrDefaultAsync(c => c.UserId == user.Id);
+        return await _db.PilotClaims.FirstOrDefaultAsync(c => c.UserId == user.Id);
     }
 
     public async Task<ClaimPilotResult> ClaimAsync(ApplicationUser user, string pilotName)
@@ -51,7 +45,7 @@ public class PilotBindingService
             return ClaimPilotResult.AlreadyLinked;
 
         var normalizedName = pilotName.Trim();
-        var pilot = await _pilots.GetAll().FindByNameAsync(normalizedName);
+        var pilot = await _db.Pilots.FindByNameAsync(normalizedName);
 
         if (pilot is not null && await IsPilotLinkedAsync(pilot.Id))
             return ClaimPilotResult.PilotTaken;
@@ -68,9 +62,9 @@ public class PilotBindingService
         claim.ExpiresOn = claim.CreatedOn + ClaimLifetime;
 
         if (isNew)
-            await _claims.AddAsync(claim);
+            _db.PilotClaims.Add(claim);
 
-        await _claims.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} claimed pilot {PilotName}, awaiting verification race until {ExpiresOn}",
             user.Id, claim.PilotName, claim.ExpiresOn);
@@ -83,8 +77,7 @@ public class PilotBindingService
         // Pilot names are case sensitive, hence the in-memory ordinal check on top
         // of the collation-dependent database filter.
         var now = DateTime.UtcNow;
-        var candidateNames = await _claims
-            .GetAll(c => c.UserId != user.Id && c.PilotName == pilotName && c.ExpiresOn > now)
+        var candidateNames = await _db.PilotClaims.Where(c => c.UserId != user.Id && c.PilotName == pilotName && c.ExpiresOn > now)
             .Select(c => c.PilotName)
             .ToListAsync();
 
@@ -98,8 +91,8 @@ public class PilotBindingService
         if (claim is null)
             return;
 
-        await _claims.RemoveAsync(claim.Id);
-        await _claims.SaveChangesAsync();
+        await RemoveClaimAsync(claim.Id);
+        await _db.SaveChangesAsync();
         Log.Information("User {UserId} cancelled the claim for pilot {PilotName}", user.Id, claim.PilotName);
     }
 
@@ -116,14 +109,14 @@ public class PilotBindingService
             throw new InvalidOperationException($"Pilot {pilot.Name} is already linked to another user");
 
         user.PilotId = pilot.Id;
-        await _users.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         var claim = await GetClaimAsync(user);
 
         if (claim is not null)
         {
-            await _claims.RemoveAsync(claim.Id);
-            await _claims.SaveChangesAsync();
+            await RemoveClaimAsync(claim.Id);
+            await _db.SaveChangesAsync();
         }
 
         Log.Information("Manually linked user {UserId} to pilot {PilotName} ({PilotId})", user.Id, pilot.Name, pilot.Id);
@@ -139,7 +132,7 @@ public class PilotBindingService
 
         var pilotId = user.PilotId;
         user.PilotId = null;
-        await _users.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Unlinked user {UserId} from pilot {PilotId}", user.Id, pilotId);
     }
@@ -149,8 +142,8 @@ public class PilotBindingService
     /// </summary>
     public async Task DeleteClaimAsync(PilotClaim claim)
     {
-        await _claims.RemoveAsync(claim.Id);
-        await _claims.SaveChangesAsync();
+        await RemoveClaimAsync(claim.Id);
+        await _db.SaveChangesAsync();
         Log.Information("Deleted claim of user {UserId} for pilot {PilotName}", claim.UserId, claim.PilotName);
     }
 
@@ -161,7 +154,7 @@ public class PilotBindingService
     public async Task CompleteClaimsAsync(IReadOnlyCollection<Pilot> racedPilots, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
-        var activeClaims = await _claims.GetAll(c => c.ExpiresOn > now).ToListAsync(ct);
+        var activeClaims = await _db.PilotClaims.Where(c => c.ExpiresOn > now).ToListAsync(ct);
 
         foreach (var claim in activeClaims)
         {
@@ -178,27 +171,35 @@ public class PilotBindingService
     {
         if (await IsPilotLinkedAsync(pilot.Id))
         {
-            await _claims.RemoveAsync(claim.Id);
-            await _claims.SaveChangesAsync(ct);
+            await RemoveClaimAsync(claim.Id);
+            await _db.SaveChangesAsync(ct);
             Log.Warning("Removed claim of user {UserId} for pilot {PilotName}: the pilot is already linked to another account",
                 claim.UserId, pilot.Name);
             return;
         }
 
-        var user = await _users.FindAsync(claim.UserId);
+        var user = await _db.Users.FindAsync(claim.UserId);
 
         if (user is null || user.PilotId is not null)
         {
-            await _claims.RemoveAsync(claim.Id);
-            await _claims.SaveChangesAsync(ct);
+            await RemoveClaimAsync(claim.Id);
+            await _db.SaveChangesAsync(ct);
             return;
         }
 
         user.PilotId = pilot.Id;
-        await _claims.RemoveAsync(claim.Id);
-        await _users.SaveChangesAsync(ct);
+        await RemoveClaimAsync(claim.Id);
+        await _db.SaveChangesAsync(ct);
 
         Log.Information("Linked user {UserId} to pilot {PilotName} ({PilotId}) after a verified race",
             user.Id, pilot.Name, pilot.Id);
+    }
+
+    private async Task RemoveClaimAsync(int claimId)
+    {
+        var claim = await _db.PilotClaims.FindAsync(claimId)
+            ?? throw new NullReferenceException($"Record with id: {claimId} does not exist");
+
+        _db.PilotClaims.Remove(claim);
     }
 }

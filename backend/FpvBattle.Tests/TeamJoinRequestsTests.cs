@@ -141,8 +141,8 @@ public class TeamJoinRequestsTests : TeamsTestBase
         await Service().AddMemberAsync(team, member);
         await Service().SetRoleAsync(_db.Set<TeamMember>().Single(m => m.UserId == admin.Id), TeamRole.Admin);
         var handler = new InAppTeamJoinRequestHandler(
-            new UserNotificationService([new InAppNotificationChannel(new Repository<UserNotification>(_db))], new Repository<ApplicationUser>(_db)),
-            new Repository<TeamMember>(_db));
+            new UserNotificationService([new InAppNotificationChannel(_db)], _db),
+            _db);
 
         await handler.Handle(new TeamJoinRequestedNotification(team, pilot), CancellationToken.None);
         await handler.Handle(new TeamJoinRequestApprovedNotification(team, pilot), CancellationToken.None);

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Notifications;
 using FpvBattle.Logic.Features.Notifications.Services;
 using FpvBattle.Logic.Features.Teams.Notifications;
@@ -13,18 +13,18 @@ public class InAppTeamJoinRequestHandler :
     INotificationHandler<TeamJoinRequestApprovedNotification>
 {
     private readonly UserNotificationService _notifications;
-    private readonly IRepository<TeamMember> _members;
+    private readonly IApplicationDbContext _db;
 
-    public InAppTeamJoinRequestHandler(UserNotificationService notifications, IRepository<TeamMember> members)
+    public InAppTeamJoinRequestHandler(UserNotificationService notifications, IApplicationDbContext db)
     {
         _notifications = notifications;
-        _members = members;
+        _db = db;
     }
 
     /// <summary>The owner and admins are the ones who can approve the request.</summary>
     public async Task Handle(TeamJoinRequestedNotification notification, CancellationToken cancellationToken)
     {
-        var approverIds = await _members.GetAll()
+        var approverIds = await _db.TeamMembers
             .Where(m => m.TeamId == notification.Team.Id && (m.Role == TeamRole.Owner || m.Role == TeamRole.Admin))
             .Select(m => m.UserId)
             .ToListAsync(cancellationToken);

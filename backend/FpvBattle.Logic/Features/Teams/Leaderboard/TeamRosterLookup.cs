@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -10,18 +10,18 @@ namespace FpvBattle.Logic.Features.Teams.Leaderboard;
 /// </summary>
 public class TeamRosterLookup
 {
-    private readonly IRepository<TeamMember> _teamMembers;
+    private readonly IApplicationDbContext _db;
     private readonly TeamSettings _settings;
 
-    public TeamRosterLookup(IRepository<TeamMember> teamMembers, IOptions<TeamSettings> settings)
+    public TeamRosterLookup(IApplicationDbContext db, IOptions<TeamSettings> settings)
     {
-        _teamMembers = teamMembers;
+        _db = db;
         _settings = settings.Value;
     }
 
     public async Task<IReadOnlyDictionary<int, int>> GetTeamIdsByPilotIdAsync(CancellationToken ct = default)
     {
-        return await _teamMembers.GetAll()
+        return await _db.TeamMembers
             .Where(m => m.User.PilotId != null && m.Team.Members.Count >= _settings.MinPublicTeamSize)
             .ToDictionaryAsync(m => m.User.PilotId!.Value, m => m.TeamId, ct);
     }

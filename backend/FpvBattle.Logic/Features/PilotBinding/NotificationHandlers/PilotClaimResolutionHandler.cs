@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.PilotBinding.Services;
 using FpvBattle.Logic.Notifications;
 using MediatR;
@@ -14,12 +14,12 @@ namespace FpvBattle.Logic.Features.PilotBinding.NotificationHandlers;
 public class PilotClaimResolutionHandler : INotificationHandler<CurrentResultUpdated>
 {
     private readonly PilotBindingService _bindingService;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
-    public PilotClaimResolutionHandler(PilotBindingService bindingService, IRepository<Pilot> pilots)
+    public PilotClaimResolutionHandler(PilotBindingService bindingService, IApplicationDbContext db)
     {
         _bindingService = bindingService;
-        _pilots = pilots;
+        _db = db;
     }
 
     public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
@@ -29,8 +29,7 @@ public class PilotClaimResolutionHandler : INotificationHandler<CurrentResultUpd
             .Distinct()
             .ToList();
 
-        var racedPilots = await _pilots
-            .GetAll(p => pilotIds.Contains(p.Id))
+        var racedPilots = await _db.Pilots.Where(p => pilotIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
 
         await _bindingService.CompleteClaimsAsync(racedPilots, cancellationToken);

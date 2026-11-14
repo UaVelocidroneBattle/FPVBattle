@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Teams.Notifications;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,22 +12,16 @@ public class TeamService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<TeamService>();
 
-    private readonly IRepository<Team> _teams;
-    private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<TeamMembershipRequest> _requests;
+    private readonly IApplicationDbContext _db;
     private readonly TeamSettings _settings;
     private readonly IPublisher _publisher;
 
     public TeamService(
-        IRepository<Team> teams,
-        IRepository<TeamMember> members,
-        IRepository<TeamMembershipRequest> requests,
+        IApplicationDbContext db,
         IOptions<TeamSettings> settings,
         IPublisher publisher)
     {
-        _teams = teams;
-        _members = members;
-        _requests = requests;
+        _db = db;
         _settings = settings.Value;
         _publisher = publisher;
     }
@@ -52,13 +46,13 @@ public class TeamService
         if (await IsInTeamAsync(owner))
             return new CreateTeamResult(CreateTeamStatus.AlreadyInTeam);
 
-        if (await _teams.GetAll().AnyAsync(t => t.Name == normalizedName))
+        if (await _db.Teams.AnyAsync(t => t.Name == normalizedName))
             return new CreateTeamResult(CreateTeamStatus.NameTaken);
 
         if (IsBlacklistedTag(normalizedTag))
             return new CreateTeamResult(CreateTeamStatus.TagNotAllowed);
 
-        if (await _teams.GetAll().AnyAsync(t => t.Tag == normalizedTag))
+        if (await _db.Teams.AnyAsync(t => t.Tag == normalizedTag))
             return new CreateTeamResult(CreateTeamStatus.TagTaken);
 
         var team = new Team
@@ -74,9 +68,9 @@ public class TeamService
             Role = TeamRole.Owner
         });
 
-        await _teams.AddAsync(team);
+        _db.Teams.Add(team);
         await DropPendingOfAsync(owner);
-        await _teams.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} created team {TeamName} ({TeamId})", owner.Id, team.Name, team.Id);
 
@@ -97,7 +91,7 @@ public class TeamService
         if (!IsValidTag(normalizedTag))
             return UpdateTeamResult.InvalidTag;
 
-        if (await _teams.GetAll().AnyAsync(t => t.Id != team.Id && t.Name == normalizedName))
+        if (await _db.Teams.AnyAsync(t => t.Id != team.Id && t.Name == normalizedName))
             return UpdateTeamResult.NameTaken;
 
         // A tag blacklisted after the team took it stays usable, so the team can still be edited.
@@ -106,13 +100,13 @@ public class TeamService
         if (!keepsOwnTag && IsBlacklistedTag(normalizedTag))
             return UpdateTeamResult.TagNotAllowed;
 
-        if (await _teams.GetAll().AnyAsync(t => t.Id != team.Id && t.Tag == normalizedTag))
+        if (await _db.Teams.AnyAsync(t => t.Id != team.Id && t.Tag == normalizedTag))
             return UpdateTeamResult.TagTaken;
 
         team.Name = normalizedName;
         team.Tag = normalizedTag;
         team.Description = normalizedDescription;
-        await _teams.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Updated team {TeamName} ({TeamId})", team.Name, team.Id);
 
@@ -122,14 +116,14 @@ public class TeamService
     public async Task RemoveAsync(Team team)
     {
         team.MarkDeleted();
-        await _teams.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Deleted team {TeamName} ({TeamId})", team.Name, team.Id);
     }
 
     public async Task<InviteToTeamResult> InviteAsync(ApplicationUser inviter, Team team, ApplicationUser invitee)
     {
-        if (await _members.GetAll().AnyAsync(m => m.TeamId == team.Id && m.UserId == invitee.Id))
+        if (await _db.TeamMembers.AnyAsync(m => m.TeamId == team.Id && m.UserId == invitee.Id))
             return InviteToTeamResult.AlreadyMember;
 
         var pending = await FindPendingAsync(team.Id, invitee.Id);
@@ -150,14 +144,14 @@ public class TeamService
             return InviteToTeamResult.JoinRequestApproved;
         }
 
-        await _requests.AddAsync(new TeamMembershipRequest
+        _db.TeamMembershipRequests.Add(new TeamMembershipRequest
         {
             TeamId = team.Id,
             UserId = invitee.Id,
             InvitedByUserId = inviter.Id
         });
 
-        await _requests.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("User {InviterId} invited user {InviteeId} to team {TeamName} ({TeamId})",
             inviter.Id, invitee.Id, team.Name, team.Id);
@@ -172,7 +166,7 @@ public class TeamService
     /// </summary>
     public async Task<AddMemberResult> AddMemberAsync(Team team, ApplicationUser user)
     {
-        if (await _members.GetAll().AnyAsync(m => m.TeamId == team.Id && m.UserId == user.Id))
+        if (await _db.TeamMembers.AnyAsync(m => m.TeamId == team.Id && m.UserId == user.Id))
             return AddMemberResult.AlreadyMember;
 
         if (await IsFullAsync(team.Id))
@@ -215,7 +209,7 @@ public class TeamService
         if (await IsInTeamAsync(user))
             return RequestToJoinResult.AlreadyInTeam;
 
-        if (await _members.GetAll().CountAsync(m => m.TeamId == team.Id) < _settings.MinPublicTeamSize)
+        if (await _db.TeamMembers.CountAsync(m => m.TeamId == team.Id) < _settings.MinPublicTeamSize)
             return RequestToJoinResult.TeamNotPublic;
 
         var pending = await FindPendingAsync(team.Id, user.Id);
@@ -226,16 +220,16 @@ public class TeamService
         if (await IsFullAsync(team.Id))
             return RequestToJoinResult.TeamFull;
 
-        if (await _requests.GetAll().JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
+        if (await _db.TeamMembershipRequests.JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
             return RequestToJoinResult.TooManyRequests;
 
-        await _requests.AddAsync(new TeamMembershipRequest
+        _db.TeamMembershipRequests.Add(new TeamMembershipRequest
         {
             TeamId = team.Id,
             UserId = user.Id
         });
 
-        await _requests.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} asked to join team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
 
@@ -259,31 +253,31 @@ public class TeamService
 
     public async Task RejectJoinRequestAsync(TeamMembershipRequest request)
     {
-        await _requests.RemoveEntryAsync(request);
-        await _requests.SaveChangesAsync();
+        _db.TeamMembershipRequests.Remove(request);
+        await _db.SaveChangesAsync();
 
         Log.Information("Rejected the join request of user {UserId} to team {TeamId}", request.UserId, request.TeamId);
     }
 
     public async Task CancelJoinRequestAsync(TeamMembershipRequest request)
     {
-        await _requests.RemoveEntryAsync(request);
-        await _requests.SaveChangesAsync();
+        _db.TeamMembershipRequests.Remove(request);
+        await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} cancelled the join request to team {TeamId}", request.UserId, request.TeamId);
     }
 
     public async Task DeclineInviteAsync(ApplicationUser user, TeamMembershipRequest invite)
     {
-        await _requests.RemoveEntryAsync(invite);
-        await _requests.SaveChangesAsync();
+        _db.TeamMembershipRequests.Remove(invite);
+        await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} declined the invite to team {TeamId}", user.Id, invite.TeamId);
     }
 
     public async Task<LeaveTeamResult> LeaveAsync(ApplicationUser user, Team team)
     {
-        var membership = await _members.GetAll().FirstOrDefaultAsync(m => m.TeamId == team.Id && m.UserId == user.Id);
+        var membership = await _db.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == team.Id && m.UserId == user.Id);
 
         if (membership is null)
             return LeaveTeamResult.NotMember;
@@ -291,8 +285,8 @@ public class TeamService
         if (membership.Role is TeamRole.Owner)
             return LeaveTeamResult.OwnerCannotLeave;
 
-        await _members.RemoveEntryAsync(membership);
-        await _members.SaveChangesAsync();
+        _db.TeamMembers.Remove(membership);
+        await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} left team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
 
@@ -301,8 +295,8 @@ public class TeamService
 
     public async Task RevokeInviteAsync(TeamMembershipRequest invite)
     {
-        await _requests.RemoveEntryAsync(invite);
-        await _requests.SaveChangesAsync();
+        _db.TeamMembershipRequests.Remove(invite);
+        await _db.SaveChangesAsync();
 
         Log.Information("Revoked the invite of user {InviteeId} to team {TeamId}", invite.UserId, invite.TeamId);
     }
@@ -313,7 +307,7 @@ public class TeamService
             return SetMemberRoleResult.OwnerRoleIsFixed;
 
         target.Role = role;
-        await _members.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Made user {TargetId} {Role} in team {TeamId}", target.UserId, role, target.TeamId);
 
@@ -325,8 +319,8 @@ public class TeamService
         if (target.Role is TeamRole.Owner)
             return RemoveMemberResult.OwnerCannotBeRemoved;
 
-        await _members.RemoveEntryAsync(target);
-        await _members.SaveChangesAsync();
+        _db.TeamMembers.Remove(target);
+        await _db.SaveChangesAsync();
 
         Log.Information("Removed user {TargetId} from team {TeamId}", target.UserId, target.TeamId);
 
@@ -339,14 +333,14 @@ public class TeamService
     /// </summary>
     public async Task RemoveUserFromTeamAsync(ApplicationUser user)
     {
-        var membership = await _members.GetAll().FirstOrDefaultAsync(m => m.UserId == user.Id);
+        var membership = await _db.TeamMembers.FirstOrDefaultAsync(m => m.UserId == user.Id);
 
         if (membership is null)
             return;
 
         if (membership.Role is TeamRole.Owner)
         {
-            var successor = await _members.GetAll()
+            var successor = await _db.TeamMembers
                 .Where(m => m.TeamId == membership.TeamId && m.UserId != user.Id)
                 .OrderByDescending(m => m.Role)
                 .ThenBy(m => m.JoinedOn)
@@ -361,8 +355,8 @@ public class TeamService
             successor.Role = TeamRole.Owner;
         }
 
-        await _members.RemoveEntryAsync(membership);
-        await _members.SaveChangesAsync();
+        _db.TeamMembers.Remove(membership);
+        await _db.SaveChangesAsync();
 
         Log.Information("Removed user {UserId} from team {TeamId} before account deletion", user.Id, membership.TeamId);
     }
@@ -393,7 +387,7 @@ public class TeamService
         if (_settings.MaxTeamSize <= 0)
             return false;
 
-        return await _members.GetAll().CountAsync(m => m.TeamId == teamId) >= _settings.MaxTeamSize;
+        return await _db.TeamMembers.CountAsync(m => m.TeamId == teamId) >= _settings.MaxTeamSize;
     }
 
     private async Task ApproveAsync(Team team, ApplicationUser user)
@@ -410,7 +404,7 @@ public class TeamService
     /// </summary>
     private async Task JoinAsync(int teamId, ApplicationUser user)
     {
-        await _members.AddAsync(new TeamMember
+        _db.TeamMembers.Add(new TeamMember
         {
             TeamId = teamId,
             UserId = user.Id,
@@ -418,25 +412,25 @@ public class TeamService
         });
 
         await DropPendingOfAsync(user);
-        await _members.SaveChangesAsync();
+        await _db.SaveChangesAsync();
     }
 
     private async Task DropPendingOfAsync(ApplicationUser user)
     {
-        var pending = await _requests.GetAll().Where(i => i.UserId == user.Id).ToListAsync();
+        var pending = await _db.TeamMembershipRequests.Where(i => i.UserId == user.Id).ToListAsync();
 
         foreach (var entry in pending)
-            await _requests.RemoveEntryAsync(entry);
+            _db.TeamMembershipRequests.Remove(entry);
     }
 
     private async Task<TeamMembershipRequest?> FindPendingAsync(int teamId, string userId)
     {
-        return await _requests.GetAll().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
+        return await _db.TeamMembershipRequests.FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
     }
 
     private async Task<bool> IsInTeamAsync(ApplicationUser user)
     {
-        return await _members.GetAll().AnyAsync(m => m.UserId == user.Id);
+        return await _db.TeamMembers.AnyAsync(m => m.UserId == user.Id);
     }
 }
 

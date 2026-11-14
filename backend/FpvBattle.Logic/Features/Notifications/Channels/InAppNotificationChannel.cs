@@ -1,15 +1,15 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 
 namespace FpvBattle.Logic.Features.Notifications.Channels;
 
 public class InAppNotificationChannel : INotificationChannel
 {
-    private readonly IRepository<UserNotification> _notifications;
+    private readonly IApplicationDbContext _db;
 
-    public InAppNotificationChannel(IRepository<UserNotification> notifications)
+    public InAppNotificationChannel(IApplicationDbContext db)
     {
-        _notifications = notifications;
+        _db = db;
     }
 
     public async Task SendAsync(IReadOnlyCollection<UserNotificationMessage> messages, CancellationToken ct)
@@ -25,7 +25,7 @@ public class InAppNotificationChannel : INotificationChannel
             CreatedOn = now
         });
 
-        await _notifications.AddRangeAsync(notifications);
-        await _notifications.SaveChangesAsync(ct);
+        _db.UserNotifications.AddRange(notifications);
+        await _db.SaveChangesAsync(ct);
     }
 }
