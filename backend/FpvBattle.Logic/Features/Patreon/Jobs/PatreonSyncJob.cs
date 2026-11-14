@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Patreon.Models;
 using FpvBattle.Logic.Features.Patreon.Notifications;
 using FpvBattle.Logic.Features.Patreon.Services;
@@ -17,16 +17,16 @@ public class PatreonSyncJob
     private readonly IMediator _mediator;
     private readonly PatreonOptions _options;
     private readonly IPatreonService _patreonService;
-    private readonly IRepository<PatreonSupporter> _supportersRepository;
+    private readonly IApplicationDbContext _db;
 
     public PatreonSyncJob(
         IPatreonService patreonService,
-        IRepository<PatreonSupporter> supportersRepository,
+        IApplicationDbContext db,
         IMediator mediator,
         IOptions<PatreonOptions> options)
     {
         _patreonService = patreonService;
-        _supportersRepository = supportersRepository;
+        _db = db;
         _mediator = mediator;
         _options = options.Value;
     }
@@ -59,8 +59,7 @@ public class PatreonSyncJob
 
         Log.Information("Retrieved {Count} supporters from Patreon API", supportersFromApi.Length);
 
-        var existingSupporters = await _supportersRepository
-            .GetAll()
+        var existingSupporters = await _db.PatreonSupporters
             .ToDictionaryAsync(s => s.PatreonId, ct);
 
         var newSupporters = new List<PatreonSupporter>();
@@ -97,8 +96,8 @@ public class PatreonSyncJob
 
         if (newSupporters.Any())
         {
-            await _supportersRepository.AddRangeAsync(newSupporters);
-            await _supportersRepository.SaveChangesAsync(ct);
+            _db.PatreonSupporters.AddRange(newSupporters);
+            await _db.SaveChangesAsync(ct);
             Log.Information("Added {Count} new supporters", newSupporters.Count);
         }
 
@@ -107,13 +106,13 @@ public class PatreonSyncJob
         {
             foreach (var updatedSupporter in updatedSupporters)
             {
-                await _supportersRepository.UpdateAsync(updatedSupporter);
+                _db.PatreonSupporters.Update(updatedSupporter);
             }
 
             Log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
         }
 
-        await _supportersRepository.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(ct);
 
         foreach (var newlyPayingSupporter in newlyPayingSupporters)
         {

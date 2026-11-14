@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Services.Pilots.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,13 +7,13 @@ namespace FpvBattle.Logic.Features.Leagues.Services;
 
 public class RatingService
 {
-    private readonly IRepository<PilotPaceRating> _ratings;
+    private readonly IApplicationDbContext _db;
 
     public RatingService(
-        IRepository<PilotPaceRating> ratings
+        IApplicationDbContext db
         )
     {
-        _ratings = ratings;
+        _db = db;
     }
 
     public async Task<IList<PilotPaceRating>> GetRatingsForCupAsync(string cupId)
@@ -38,8 +38,7 @@ public class RatingService
 
     public async Task<IList<PilotPaceRating>> GetRatingsForCupAsync(string cupId, DateTime date)
     {
-        return await _ratings
-            .GetAll(r => r.CupId == cupId && r.CalculatedOn == date)
+        return await _db.PilotPaceRatings.Where(r => r.CupId == cupId && r.CalculatedOn == date)
             .OrderBy(r => r.Rank)
             .Include(r => r.Pilot)
             .ThenInclude(p => p.Leagues)
@@ -53,8 +52,7 @@ public class RatingService
         if (lastDate is null)
             return null;
 
-        var pilotRank = await _ratings
-            .GetAll(r => r.CupId == cupId && r.CalculatedOn == lastDate.Value)
+        var pilotRank = await _db.PilotPaceRatings.Where(r => r.CupId == cupId && r.CalculatedOn == lastDate.Value)
             .FirstOrDefaultAsync(r => r.PilotId == pilotId);
 
         return pilotRank?.Rank;
@@ -62,8 +60,7 @@ public class RatingService
 
     public async Task<List<PilotRatingHistoryPoint>> GetPilotRatingHistoryAsync(string cupId, int pilotId)
     {
-        return await _ratings
-            .GetAll(r => r.CupId == cupId && r.PilotId == pilotId)
+        return await _db.PilotPaceRatings.Where(r => r.CupId == cupId && r.PilotId == pilotId)
             .OrderBy(r => r.CalculatedOn)
             .Select(r => new PilotRatingHistoryPoint
             {
@@ -76,8 +73,7 @@ public class RatingService
 
     private async Task<DateTime?> GetLastCalculationDateAsync(string cupId, int skip = 0)
     {
-        return await _ratings
-            .GetAll(r => r.CupId == cupId)
+        return await _db.PilotPaceRatings.Where(r => r.CupId == cupId)
             .Select(r => (DateTime?)r.CalculatedOn)
             .Distinct()
             .OrderByDescending(d => d)

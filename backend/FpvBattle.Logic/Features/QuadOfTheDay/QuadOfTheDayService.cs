@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -9,14 +9,12 @@ namespace FpvBattle.Logic.Features.QuadOfTheDay;
 public class QuadOfTheDayService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<QuadOfTheDayService>();
-    private readonly IRepository<QuadModel> _quadModels;
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private static readonly Random Random = new();
 
-    public QuadOfTheDayService(IRepository<QuadModel> quadModels, IRepository<Competition> competitions)
+    public QuadOfTheDayService(IApplicationDbContext db)
     {
-        _quadModels = quadModels;
-        _competitions = competitions;
+        _db = db;
     }
 
     public async Task<QuadModel?> DetectQuadFromTrackNameAsync(string trackName, CupOptions cupOptions)
@@ -34,8 +32,7 @@ public class QuadOfTheDayService
 
         Log.Information("Detected quad {QuadName} from track name '{TrackName}'", matchedName, trackName);
 
-        var quad = await _quadModels
-            .GetAll()
+        var quad = await _db.QuadModels
             .FirstOrDefaultAsync(q => q.Name == matchedName);
 
         if (quad is null)
@@ -65,8 +62,7 @@ public class QuadOfTheDayService
         var quadName = options.Quads[Random.Next(options.Quads.Length)];
         Log.Information("Quad-of-the-day triggered: selected {QuadName}", quadName);
 
-        var quad = await _quadModels
-            .GetAll()
+        var quad = await _db.QuadModels
             .FirstOrDefaultAsync(q => q.Name == quadName);
 
         if (quad is null)
@@ -77,8 +73,7 @@ public class QuadOfTheDayService
 
     private async Task<bool> LastCompetitionWasQuadOfTheDayAsync(string cupId)
     {
-        var lastCompetition = await _competitions
-            .GetAll()
+        var lastCompetition = await _db.Competitions
             .Closed()
             .ForCup(cupId)
             .OrderByDescending(c => c.StartedOn)

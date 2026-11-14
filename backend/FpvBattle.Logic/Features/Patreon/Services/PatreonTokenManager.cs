@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Patreon.Exceptions;
 using FpvBattle.Logic.Features.Patreon.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,15 +14,15 @@ public class PatreonTokenManager : IPatreonTokenManager
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<PatreonTokenManager> _logger;
     private readonly PatreonOptions _options;
-    private readonly IRepository<PatreonTokens> _tokensRepository;
+    private readonly IApplicationDbContext _db;
 
     public PatreonTokenManager(IHttpClientFactory httpClientFactory, IOptions<PatreonOptions> options,
-        ILogger<PatreonTokenManager> logger, IRepository<PatreonTokens> tokensRepository)
+        ILogger<PatreonTokenManager> logger, IApplicationDbContext db)
     {
         _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _logger = logger;
-        _tokensRepository = tokensRepository;
+        _db = db;
     }
 
     public async Task<PatreonTokens> GetCurrentTokensAsync(CancellationToken ct = default)
@@ -30,7 +30,7 @@ public class PatreonTokenManager : IPatreonTokenManager
         try
         {
             // First try to get tokens from database (most up-to-date)
-            var dbTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync(ct);
+            var dbTokens = await _db.PatreonTokens.FirstOrDefaultAsync(ct);
 
             if (dbTokens != null)
             {
@@ -160,22 +160,22 @@ public class PatreonTokenManager : IPatreonTokenManager
 
         try
         {
-            var existingTokens = await _tokensRepository.GetAll().FirstOrDefaultAsync(ct);
+            var existingTokens = await _db.PatreonTokens.FirstOrDefaultAsync(ct);
             isUpdate = existingTokens != null;
 
             if (existingTokens != null)
             {
                 existingTokens.UpdateFromTokenResponse(accessToken, refreshToken, expiresIn, scope);
-                await _tokensRepository.UpdateAsync(existingTokens);
-                await _tokensRepository.SaveChangesAsync(ct);
+                _db.PatreonTokens.Update(existingTokens);
+                await _db.SaveChangesAsync(ct);
                 _logger.LogInformation("Updated existing Patreon tokens in database");
             }
             else
             {
                 var newTokens = new PatreonTokens();
                 newTokens.UpdateFromTokenResponse(accessToken, refreshToken, expiresIn, scope);
-                await _tokensRepository.AddAsync(newTokens);
-                await _tokensRepository.SaveChangesAsync(ct);
+                _db.PatreonTokens.Add(newTokens);
+                await _db.SaveChangesAsync(ct);
                 _logger.LogInformation("Stored new Patreon tokens in database");
             }
         }

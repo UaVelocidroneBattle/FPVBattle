@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Patreon.Notifications;
 using Hangfire;
 using MediatR;
@@ -12,21 +12,20 @@ public class MonthlyPatreonSupportersJob
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
     private readonly IMediator _mediator;
-    private readonly IRepository<PatreonSupporter> _supportersRepository;
+    private readonly IApplicationDbContext _db;
 
     public MonthlyPatreonSupportersJob(
-        IRepository<PatreonSupporter> supportersRepository,
+        IApplicationDbContext db,
         IMediator mediator)
     {
-        _supportersRepository = supportersRepository;
+        _db = db;
         _mediator = mediator;
     }
 
     [DisableConcurrentExecution("MonthlyPatreonSupporters", 60)]
     public async Task Handle(CancellationToken ct)
     {
-        var allActiveSupporters = await _supportersRepository
-            .GetAll()
+        var allActiveSupporters = await _db.PatreonSupporters
             .Paying()
             .ToListAsync(ct);
 

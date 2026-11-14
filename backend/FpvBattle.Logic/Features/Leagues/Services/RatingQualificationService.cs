@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Leagues.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -8,12 +8,12 @@ namespace FpvBattle.Logic.Features.Leagues.Services;
 
 public class RatingQualificationService
 {
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly PaceRatingSettings _settings;
 
-    public RatingQualificationService(IRepository<Competition> competitions, IOptions<PaceRatingSettings> settings)
+    public RatingQualificationService(IApplicationDbContext db, IOptions<PaceRatingSettings> settings)
     {
-        _competitions = competitions;
+        _db = db;
         _settings = settings.Value;
     }
 
@@ -23,7 +23,7 @@ public class RatingQualificationService
         var nextDistribution = new DateTime(today.Year, today.Month, 1).AddMonths(1);
         var windowStart = _settings.LookBackPeriod.StartOfWindowEndingAt(nextDistribution);
 
-        var competitions = await _competitions.GetAll()
+        var competitions = await _db.Competitions
             .ForCup(cupId)
             .InRange(windowStart, nextDistribution)
             .Closed()

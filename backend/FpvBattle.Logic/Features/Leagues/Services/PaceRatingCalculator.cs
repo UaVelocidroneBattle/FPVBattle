@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Services;
 using Microsoft.EntityFrameworkCore;
@@ -12,22 +12,19 @@ public class PaceRatingCalculator
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<PaceRatingCalculator>();
 
-    private readonly IRepository<Competition> _competitions;
-    private readonly IRepository<PilotPaceRating> _ratings;
+    private readonly IApplicationDbContext _db;
     private readonly ICupService _cupService;
     private readonly RatingService _ratingService;
     private readonly PaceRatingSettings _settings;
 
     public PaceRatingCalculator(
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         ICupService cupService,
-        IRepository<PilotPaceRating> ratings,
         RatingService ratingService,
         IOptions<PaceRatingSettings> settings)
     {
-        _competitions = competitions;
+        _db = db;
         _cupService = cupService;
-        _ratings = ratings;
         _ratingService = ratingService;
         _settings = settings.Value;
     }
@@ -56,7 +53,7 @@ public class PaceRatingCalculator
         var today = DateTime.Today;
         var since = _settings.LookBackPeriod.StartOfWindowEndingAt(today);
 
-        var alreadyCalculatedToday = await _ratings.GetAll()
+        var alreadyCalculatedToday = await _db.PilotPaceRatings
             .AnyAsync(r => r.CupId == cupId && r.CalculatedOn == today);
 
         if (alreadyCalculatedToday)
@@ -67,7 +64,7 @@ public class PaceRatingCalculator
 
         var previousRatings = await _ratingService.GetRatingsForCupAsync(cupId);
 
-        var competitions = await _competitions.GetAll()
+        var competitions = await _db.Competitions
             .ForCup(cupId)
             .Where(c => c.StartedOn >= since)
             .Closed()
@@ -108,8 +105,8 @@ public class PaceRatingCalculator
 
         Log.Information("Cup {CupId}: storing {RatingCount} pilot ratings", cupId, ratings.Count);
 
-        await _ratings.AddRangeAsync(ratings);
-        await _ratings.SaveChangesAsync();
+        _db.PilotPaceRatings.AddRange(ratings);
+        await _db.SaveChangesAsync();
     }
 
     private IEnumerable<PilotStats> ComputeCompetitionStats(Competition competition)

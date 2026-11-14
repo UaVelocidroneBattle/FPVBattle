@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Auth.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -17,12 +17,12 @@ namespace FpvBattle.Logic.Features.Auth.Services;
 /// </summary>
 public class TokenService
 {
-    private readonly IRepository<RefreshToken> _refreshTokens;
+    private readonly IApplicationDbContext _db;
     private readonly IOptions<AuthOptions> _options;
 
-    public TokenService(IRepository<RefreshToken> refreshTokens, IOptions<AuthOptions> options)
+    public TokenService(IApplicationDbContext db, IOptions<AuthOptions> options)
     {
-        _refreshTokens = refreshTokens;
+        _db = db;
         _options = options;
     }
 
@@ -32,14 +32,14 @@ public class TokenService
         var expiresAt = DateTime.UtcNow.AddMinutes(options.AccessTokenLifetimeMinutes);
         var refreshToken = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(64));
 
-        await _refreshTokens.AddAsync(new RefreshToken
+        _db.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
             TokenHash = Hash(refreshToken),
             CreatedOn = DateTime.UtcNow,
             ExpiresOn = DateTime.UtcNow.AddDays(options.RefreshTokenLifetimeDays)
         });
-        await _refreshTokens.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         return new AuthTokensModel
         {
@@ -52,7 +52,7 @@ public class TokenService
     public async Task<RefreshToken?> FindActiveTokenAsync(string refreshToken)
     {
         var tokenHash = Hash(refreshToken);
-        var stored = await _refreshTokens.GetAll(t => t.TokenHash == tokenHash).FirstOrDefaultAsync();
+        var stored = await _db.RefreshTokens.Where(t => t.TokenHash == tokenHash).FirstOrDefaultAsync();
 
         return stored?.IsActive == true ? stored : null;
     }
@@ -60,8 +60,8 @@ public class TokenService
     public async Task RevokeAsync(RefreshToken token)
     {
         token.RevokedOn = DateTime.UtcNow;
-        await _refreshTokens.UpdateAsync(token);
-        await _refreshTokens.SaveChangesAsync();
+        _db.RefreshTokens.Update(token);
+        await _db.SaveChangesAsync();
     }
 
     private string CreateAccessToken(ApplicationUser user, DateTime expiresAt)

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Patreon.Models;
 using FpvBattle.Logic.Features.Patreon.Notifications;
 using Hangfire;
@@ -13,19 +13,18 @@ public class AccrueFreeziesToPatronsJob
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
     private readonly IMediator _mediator;
-    private readonly IRepository<PatreonSupporter> _supportersRepository;
+    private readonly IApplicationDbContext _db;
 
-    public AccrueFreeziesToPatronsJob(IMediator mediator, IRepository<PatreonSupporter> supportersRepository)
+    public AccrueFreeziesToPatronsJob(IMediator mediator, IApplicationDbContext db)
     {
         _mediator = mediator;
-        _supportersRepository = supportersRepository;
+        _db = db;
     }
 
     [DisableConcurrentExecution("MonthlyPatreonSupporters", 60)]
     public async Task Handle(CancellationToken ct)
     {
-        var allActiveSupporters = await _supportersRepository
-            .GetAll()
+        var allActiveSupporters = await _db.PatreonSupporters
             .Paying()
             .ToListAsync(ct);
 
@@ -66,7 +65,7 @@ public class AccrueFreeziesToPatronsJob
         if (accruedFreezies.Count == 0)
             return;
 
-        await _supportersRepository.SaveChangesAsync(ct);
+        await _db.SaveChangesAsync(ct);
         await _mediator.Publish(new MonthlyAccruedFreeziesNotification(accruedFreezies), ct);
     }
 

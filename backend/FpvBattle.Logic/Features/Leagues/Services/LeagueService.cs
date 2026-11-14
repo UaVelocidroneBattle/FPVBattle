@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Features.Leagues.Models;
 using FpvBattle.Logic.Features.Leagues.Notifications;
@@ -15,20 +15,20 @@ public class LeagueService
     private static readonly ILogger Log = Serilog.Log.ForContext<LeagueService>();
     private readonly ICupService _cupService;
     private readonly RatingService _ratingService;
-    private readonly IRepository<PilotLeague> _pilotLeagues;
+    private readonly IApplicationDbContext _db;
     private readonly PaceRatingCalculator _paceRatingCalculator;
     private readonly IMediator _mediator;
 
     public LeagueService(
         ICupService cupService,
         RatingService ratingService,
-        IRepository<PilotLeague> pilotLeagues,
+        IApplicationDbContext db,
         PaceRatingCalculator paceRatingCalculator,
         IMediator mediator)
     {
         _cupService = cupService;
         _ratingService = ratingService;
-        _pilotLeagues = pilotLeagues;
+        _db = db;
         _paceRatingCalculator = paceRatingCalculator;
         _mediator = mediator;
     }
@@ -61,8 +61,7 @@ public class LeagueService
 
         foreach (var (pilotId, league, pilot) in leagueDistribution)
         {
-            var pilotLeagueRecord = await _pilotLeagues
-                .GetAll()
+            var pilotLeagueRecord = await _db.PilotLeagues
                 .ForCup(cupId)
                 .ForPilot(pilotId)
                 .Active()
@@ -75,7 +74,7 @@ public class LeagueService
 
             pilotLeagueRecord?.Status = LeagueRecordStatus.Historical;
 
-            await _pilotLeagues.AddAsync(new PilotLeague
+            _db.PilotLeagues.Add(new PilotLeague
             {
                 CupId = cupId,
                 PilotId = pilotId,
@@ -95,8 +94,7 @@ public class LeagueService
 
         var distributedPilotIds = leagueDistribution.Select(x => x.PilotId).ToHashSet();
 
-        var recordsToRetire = await _pilotLeagues
-            .GetAll()
+        var recordsToRetire = await _db.PilotLeagues
             .ForCup(cupId)
             .Active()
             .Where(r => r.League != null && !distributedPilotIds.Contains(r.PilotId))
@@ -111,7 +109,7 @@ public class LeagueService
             // Records a dated "no league" marker, mirroring how a league change works, so that
             // date-based lookups (e.g. leaderboards for past competitions) stop resolving to the
             // pilot's last league once they've been retired from all leagues.
-            await _pilotLeagues.AddAsync(new PilotLeague
+            _db.PilotLeagues.Add(new PilotLeague
             {
                 CupId = cupId,
                 PilotId = record.PilotId,
@@ -129,7 +127,7 @@ public class LeagueService
             });
         }
 
-        await _pilotLeagues.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         if (leagueUpdates.Count != 0)
         {
