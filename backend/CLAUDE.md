@@ -308,6 +308,11 @@ public class AchievementServiceTests
 }
 ```
 
+### Architecture Tests
+`Veloci.Tests/Architecture` guards the structure of the solution:
+- `ModelSnapshotTests` fails when the EF model differs from the latest migration. Production data depends on it, so never change the model without a migration.
+- `LayerDependencyTests` pins which project may reference which, and keeps EF Core out of domain types. Tighten the rules as layers are separated; never loosen them to make a change pass.
+
 ### Integration Testing
 Test cross-feature communication via events:
 ```csharp
