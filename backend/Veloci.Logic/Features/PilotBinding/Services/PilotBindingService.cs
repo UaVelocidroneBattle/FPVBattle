@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Veloci.Data.Domain;
+using Veloci.Data.Queries;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 
 namespace Veloci.Logic.Features.PilotBinding.Services;
 

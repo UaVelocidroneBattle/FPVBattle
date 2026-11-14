@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.API.Velocidrone.Dto;
 
 namespace Veloci.Logic.Mappings;

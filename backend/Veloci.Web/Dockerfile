@@ -12,6 +12,7 @@ WORKDIR /src
 COPY ["Directory.Build.props", "./"]
 COPY ["Veloci.Web/Veloci.Web.csproj", "Veloci.Web/"]
 COPY ["Veloci.Data/Veloci.Data.csproj", "Veloci.Data/"]
+COPY ["Veloci.Domain/Veloci.Domain.csproj", "Veloci.Domain/"]
 COPY ["Veloci.Logic/Veloci.Logic.csproj", "Veloci.Logic/"]
 COPY ["Veloci.Hangfire.Metrics/Veloci.Hangfire.Metrics.csproj", "Veloci.Hangfire.Metrics/"]
 COPY ["Veloci.Mcp/Veloci.Mcp.csproj", "Veloci.Mcp/"]

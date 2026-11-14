@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Features.Notifications.Channels;
 using Veloci.Logic.Features.Notifications.Services;
 using Veloci.Logic.Features.Teams.NotificationHandlers;

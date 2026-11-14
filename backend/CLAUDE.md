@@ -97,10 +97,15 @@ _actions.GetAll().ForLoan(loan).Where(a => a.Date < DateTime.Now).ToListAsync()
 
 ## Project Structure
 
+### Veloci.Domain (Domain Layer)
+- **Entities**: Clean POCOs carrying their own business rules (day streak, freezies, leagues, teams)
+- **Query Extensions**: Pure LINQ extensions only (e.g. `ByName`), nothing that needs EF Core to run
+- **No Dependencies**: No EF Core and no project references
+
 ### Veloci.Data (Persistence Layer)
-- **Domain Models**: Clean POCOs representing business entities
 - **DbContext**: Centralized EF configuration via Fluent API
 - **Repositories**: Generic repository pattern for data access
+- **Queries**: Query extensions that need EF Core (`Include`, `ToListAsync`, etc.), e.g. `PilotQueries`
 - **Migrations**: Database schema evolution
 
 ### Veloci.Logic (Business Logic Layer)
@@ -311,7 +316,7 @@ public class AchievementServiceTests
 ### Architecture Tests
 `Veloci.Tests/Architecture` guards the structure of the solution:
 - `ModelSnapshotTests` fails when the EF model differs from the latest migration. Production data depends on it, so never change the model without a migration.
-- `LayerDependencyTests` pins which project may reference which, and keeps EF Core out of domain types. Tighten the rules as layers are separated; never loosen them to make a change pass.
+- `LayerDependencyTests` pins which project may reference which, and keeps EF Core out of Veloci.Domain. Tighten the rules as layers are separated; never loosen them to make a change pass.
 
 ### Integration Testing
 Test cross-feature communication via events:

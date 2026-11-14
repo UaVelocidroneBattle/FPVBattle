@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Web.Controllers.Api.Competitions;
 

@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Leagues;
 using Veloci.Logic.Services;

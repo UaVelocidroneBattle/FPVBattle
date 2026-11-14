@@ -1,5 +1,5 @@
 using System.Text;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Helpers;
 using Veloci.Logic.Services.Statistics;

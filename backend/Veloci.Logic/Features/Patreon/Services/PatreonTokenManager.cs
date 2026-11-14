@@ -2,8 +2,8 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Features.Patreon.Exceptions;
 using Veloci.Logic.Features.Patreon.Models;
 

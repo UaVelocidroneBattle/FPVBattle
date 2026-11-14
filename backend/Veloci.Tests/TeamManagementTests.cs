@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Features.Teams;
 using Veloci.Web.Controllers.Admin.Teams;
 

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using ILogger = Serilog.ILogger;
 
 namespace Veloci.Web.Controllers.Api.Migration;

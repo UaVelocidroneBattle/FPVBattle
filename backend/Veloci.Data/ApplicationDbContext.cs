@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Data;
 

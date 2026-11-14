@@ -15,7 +15,7 @@ using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Hangfire.Metrics;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;

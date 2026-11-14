@@ -1,5 +1,5 @@
 using MediatR;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Logic.Notifications;
 

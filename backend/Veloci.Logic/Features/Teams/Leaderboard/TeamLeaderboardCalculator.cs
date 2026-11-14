@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Services;
 
 namespace Veloci.Logic.Features.Teams.Leaderboard;

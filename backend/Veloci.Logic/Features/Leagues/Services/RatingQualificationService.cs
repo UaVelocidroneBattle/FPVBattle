@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Features.Leagues.Models;
 
 namespace Veloci.Logic.Features.Leagues.Services;

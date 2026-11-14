@@ -13,6 +13,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Veloci.Data\Veloci.Data.csproj" />
       <ProjectReference Include="..\Veloci.Logic\Veloci.Logic.csproj" />
+      <ProjectReference Include="..\Veloci.Domain\Veloci.Domain.csproj" />
     </ItemGroup>
 
 </Project>

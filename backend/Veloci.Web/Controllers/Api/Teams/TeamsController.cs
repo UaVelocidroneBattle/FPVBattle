@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
+using Veloci.Data.Queries;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Features.Teams.Services;
 

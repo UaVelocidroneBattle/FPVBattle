@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Auth.Models;
 using Veloci.Logic.Features.Auth.Services;
 

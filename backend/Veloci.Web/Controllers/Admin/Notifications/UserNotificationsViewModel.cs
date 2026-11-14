@@ -1,4 +1,4 @@
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Web.Controllers.Admin.Notifications;
 

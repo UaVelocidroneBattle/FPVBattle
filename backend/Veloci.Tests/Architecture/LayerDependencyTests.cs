@@ -1,6 +1,5 @@
 using System.Reflection;
 using FluentAssertions;
-using NetArchTest.Rules;
 
 namespace Veloci.Tests.Architecture;
 
@@ -10,23 +9,17 @@ namespace Veloci.Tests.Architecture;
 /// </summary>
 public class LayerDependencyTests
 {
+    private const string Domain = "Veloci.Domain";
     private const string Data = "Veloci.Data";
     private const string Logic = "Veloci.Logic";
     private const string Web = "Veloci.Web";
     private const string Mcp = "Veloci.Mcp";
-    private const string DomainNamespace = "Veloci.Data.Domain";
-    private const string EntityFramework = "Microsoft.EntityFrameworkCore";
-
-    /// <summary>
-    /// Domain types that still use EF Core. Stage 1 moves their query helpers out of the domain and empties this list;
-    /// until then a new entry fails the test, and so does an entry that no longer needs to be here.
-    /// </summary>
-    private static readonly string[] DomainTypesKnownToUseEntityFramework =
-    [
-        "Veloci.Data.Domain.PilotExtensions",
-    ];
 
     [Theory]
+    [InlineData(Domain, Data)]
+    [InlineData(Domain, Logic)]
+    [InlineData(Domain, Web)]
+    [InlineData(Domain, Mcp)]
     [InlineData(Data, Logic)]
     [InlineData(Data, Web)]
     [InlineData(Data, Mcp)]
@@ -41,28 +34,11 @@ public class LayerDependencyTests
     }
 
     [Fact]
-    public void Domain_does_not_depend_on_persistence()
+    public void Domain_does_not_reference_entity_framework()
     {
-        var result = DomainTypes()
-            .ShouldNot()
-            .HaveDependencyOnAny($"{Data}.Repositories", $"{Data}.ApplicationDbContext")
-            .GetResult();
+        var references = Assembly.Load(Domain).GetReferencedAssemblies().Select(reference => reference.Name);
 
-        result.FailingTypeNames.Should().BeNullOrEmpty("domain types must not know how they are stored");
+        references.Should().NotContain(name => name!.StartsWith("Microsoft.EntityFrameworkCore"),
+            "domain types must not know how they are stored");
     }
-
-    [Fact]
-    public void Domain_does_not_take_new_dependencies_on_entity_framework()
-    {
-        var result = DomainTypes()
-            .ShouldNot()
-            .HaveDependencyOn(EntityFramework)
-            .GetResult();
-
-        (result.FailingTypeNames ?? []).Should().BeEquivalentTo(DomainTypesKnownToUseEntityFramework,
-            "domain types must not use EF Core; move query helpers that need it out of the domain");
-    }
-
-    private static PredicateList DomainTypes() =>
-        Types.InAssembly(Assembly.Load(Data)).That().ResideInNamespace(DomainNamespace);
 }

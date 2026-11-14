@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Features.Leagues.Services;

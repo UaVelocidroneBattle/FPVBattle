@@ -153,7 +153,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.ApplicationUser", b =>
+            modelBuilder.Entity("Veloci.Domain.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -234,7 +234,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
+            modelBuilder.Entity("Veloci.Domain.Competition", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -283,7 +283,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("Competitions", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.CompetitionResults", b =>
+            modelBuilder.Entity("Veloci.Domain.CompetitionResults", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -320,7 +320,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("CompetitionResults", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.CompetitionVariable", b =>
+            modelBuilder.Entity("Veloci.Domain.CompetitionVariable", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -356,7 +356,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("CompetitionVariables", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.DayStreakFreeze", b =>
+            modelBuilder.Entity("Veloci.Domain.DayStreakFreeze", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -378,7 +378,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("DayStreakFreezes", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PatreonSupporter", b =>
+            modelBuilder.Entity("Veloci.Domain.PatreonSupporter", b =>
                 {
                     b.Property<string>("PatreonId")
                         .HasMaxLength(128)
@@ -421,7 +421,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PatreonSupporters", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PatreonTokens", b =>
+            modelBuilder.Entity("Veloci.Domain.PatreonTokens", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -458,7 +458,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PatreonTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Pilot", b =>
+            modelBuilder.Entity("Veloci.Domain.Pilot", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
@@ -498,7 +498,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("Pilots", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotAchievement", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotAchievement", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -521,7 +521,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotAchievements", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotClaim", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -550,7 +550,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotLeague", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotLeague", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -581,7 +581,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotLeagues", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotNameHistoryRow", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotNameHistoryRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -610,7 +610,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotNameHistory", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotPaceRating", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotPaceRating", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -646,7 +646,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotPaceRatings", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotPlatformAccount", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotPlatformAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -670,7 +670,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("PilotPlatformAccounts", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.QuadModel", b =>
+            modelBuilder.Entity("Veloci.Domain.QuadModel", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
@@ -688,7 +688,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("QuadModels", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.QueuedTrack", b =>
+            modelBuilder.Entity("Veloci.Domain.QueuedTrack", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -723,7 +723,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackQueue", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.RefreshToken", b =>
+            modelBuilder.Entity("Veloci.Domain.RefreshToken", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -756,7 +756,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Team", b =>
+            modelBuilder.Entity("Veloci.Domain.Team", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -799,7 +799,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("Teams", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TeamCompetitionResult", b =>
+            modelBuilder.Entity("Veloci.Domain.TeamCompetitionResult", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -831,7 +831,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TeamCompetitionResults", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TeamMember", b =>
+            modelBuilder.Entity("Veloci.Domain.TeamMember", b =>
                 {
                     b.Property<int>("TeamId")
                         .HasColumnType("INTEGER");
@@ -853,7 +853,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TeamMembers", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TeamMembershipRequest", b =>
+            modelBuilder.Entity("Veloci.Domain.TeamMembershipRequest", b =>
                 {
                     b.Property<int>("TeamId")
                         .HasColumnType("INTEGER");
@@ -876,7 +876,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TeamMembershipRequests", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Track", b =>
+            modelBuilder.Entity("Veloci.Domain.Track", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -904,7 +904,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("Tracks", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackMap", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackMap", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -921,7 +921,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackMaps", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackRating", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackRating", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -937,7 +937,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackRating");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackResults", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackResults", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -947,7 +947,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackResults", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackTime", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackTime", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -996,7 +996,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackTimes", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackTimeDelta", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackTimeDelta", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -1049,7 +1049,7 @@ namespace Veloci.Web.Data.Migrations
                     b.ToTable("TrackTimeDeltas", (string)null);
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.UserNotification", b =>
+            modelBuilder.Entity("Veloci.Domain.UserNotification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1095,7 +1095,7 @@ namespace Veloci.Web.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1104,7 +1104,7 @@ namespace Veloci.Web.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1119,7 +1119,7 @@ namespace Veloci.Web.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1128,16 +1128,16 @@ namespace Veloci.Web.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.ApplicationUser", b =>
+            modelBuilder.Entity("Veloci.Domain.ApplicationUser", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany()
                         .HasForeignKey("PilotId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1145,21 +1145,21 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
+            modelBuilder.Entity("Veloci.Domain.Competition", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.TrackResults", "CurrentResults")
+                    b.HasOne("Veloci.Domain.TrackResults", "CurrentResults")
                         .WithMany()
                         .HasForeignKey("CurrentResultsId");
 
-                    b.HasOne("Veloci.Data.Domain.TrackResults", "InitialResults")
+                    b.HasOne("Veloci.Domain.TrackResults", "InitialResults")
                         .WithMany()
                         .HasForeignKey("InitialResultsId");
 
-                    b.HasOne("Veloci.Data.Domain.QuadModel", "QuadOfTheDay")
+                    b.HasOne("Veloci.Domain.QuadModel", "QuadOfTheDay")
                         .WithMany()
                         .HasForeignKey("QuadOfTheDayId");
 
-                    b.HasOne("Veloci.Data.Domain.Track", "Track")
+                    b.HasOne("Veloci.Domain.Track", "Track")
                         .WithMany()
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1174,15 +1174,15 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.CompetitionResults", b =>
+            modelBuilder.Entity("Veloci.Domain.CompetitionResults", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Competition", "Competition")
+                    b.HasOne("Veloci.Domain.Competition", "Competition")
                         .WithMany("CompetitionResults")
                         .HasForeignKey("CompetitionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany()
                         .HasForeignKey("PilotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1193,54 +1193,54 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.CompetitionVariable", b =>
+            modelBuilder.Entity("Veloci.Domain.CompetitionVariable", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Competition", null)
+                    b.HasOne("Veloci.Domain.Competition", null)
                         .WithMany("Variables")
                         .HasForeignKey("CompetitionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.DayStreakFreeze", b =>
+            modelBuilder.Entity("Veloci.Domain.DayStreakFreeze", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany("DayStreakFreezes")
                         .HasForeignKey("PilotId");
 
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PatreonSupporter", b =>
+            modelBuilder.Entity("Veloci.Domain.PatreonSupporter", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany()
                         .HasForeignKey("PilotId");
 
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotAchievement", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotAchievement", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany("Achievements")
                         .HasForeignKey("PilotId");
 
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotClaim", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotClaim", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotLeague", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotLeague", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany("Leagues")
                         .HasForeignKey("PilotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1249,16 +1249,16 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotNameHistoryRow", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotNameHistoryRow", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", null)
+                    b.HasOne("Veloci.Domain.Pilot", null)
                         .WithMany("NameHistory")
                         .HasForeignKey("PilotId");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotPaceRating", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotPaceRating", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany()
                         .HasForeignKey("PilotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1267,9 +1267,9 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.PilotPlatformAccount", b =>
+            modelBuilder.Entity("Veloci.Domain.PilotPlatformAccount", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany("PlatformAccounts")
                         .HasForeignKey("PilotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1278,13 +1278,13 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.QueuedTrack", b =>
+            modelBuilder.Entity("Veloci.Domain.QueuedTrack", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.QuadModel", "Quad")
+                    b.HasOne("Veloci.Domain.QuadModel", "Quad")
                         .WithMany()
                         .HasForeignKey("QuadId");
 
-                    b.HasOne("Veloci.Data.Domain.Track", "Track")
+                    b.HasOne("Veloci.Domain.Track", "Track")
                         .WithMany()
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1295,24 +1295,24 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.RefreshToken", b =>
+            modelBuilder.Entity("Veloci.Domain.RefreshToken", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TeamCompetitionResult", b =>
+            modelBuilder.Entity("Veloci.Domain.TeamCompetitionResult", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Competition", "Competition")
+                    b.HasOne("Veloci.Domain.Competition", "Competition")
                         .WithMany("TeamCompetitionResults")
                         .HasForeignKey("CompetitionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.Team", "Team")
+                    b.HasOne("Veloci.Domain.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1323,15 +1323,15 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Team");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TeamMember", b =>
+            modelBuilder.Entity("Veloci.Domain.TeamMember", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Team", "Team")
+                    b.HasOne("Veloci.Domain.Team", "Team")
                         .WithMany("Members")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", "User")
+                    b.HasOne("Veloci.Domain.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1342,20 +1342,20 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TeamMembershipRequest", b =>
+            modelBuilder.Entity("Veloci.Domain.TeamMembershipRequest", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", "InvitedByUser")
+                    b.HasOne("Veloci.Domain.ApplicationUser", "InvitedByUser")
                         .WithMany()
                         .HasForeignKey("InvitedByUserId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Veloci.Data.Domain.Team", "Team")
+                    b.HasOne("Veloci.Domain.Team", "Team")
                         .WithMany("MembershipRequests")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", "User")
+                    b.HasOne("Veloci.Domain.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1368,15 +1368,15 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Track", b =>
+            modelBuilder.Entity("Veloci.Domain.Track", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.TrackMap", "Map")
+                    b.HasOne("Veloci.Domain.TrackMap", "Map")
                         .WithMany("Tracks")
                         .HasForeignKey("MapId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.TrackRating", "Rating")
+                    b.HasOne("Veloci.Domain.TrackRating", "Rating")
                         .WithMany()
                         .HasForeignKey("RatingId");
 
@@ -1385,22 +1385,22 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Rating");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackTime", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackTime", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.TrackResults", null)
+                    b.HasOne("Veloci.Domain.TrackResults", null)
                         .WithMany("Times")
                         .HasForeignKey("TrackResultsId");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackTimeDelta", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackTimeDelta", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.Competition", "Competition")
+                    b.HasOne("Veloci.Domain.Competition", "Competition")
                         .WithMany("TimeDeltas")
                         .HasForeignKey("CompetitionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Veloci.Data.Domain.Pilot", "Pilot")
+                    b.HasOne("Veloci.Domain.Pilot", "Pilot")
                         .WithMany()
                         .HasForeignKey("PilotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1411,16 +1411,16 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.UserNotification", b =>
+            modelBuilder.Entity("Veloci.Domain.UserNotification", b =>
                 {
-                    b.HasOne("Veloci.Data.Domain.ApplicationUser", null)
+                    b.HasOne("Veloci.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Competition", b =>
+            modelBuilder.Entity("Veloci.Domain.Competition", b =>
                 {
                     b.Navigation("CompetitionResults");
 
@@ -1431,7 +1431,7 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("Variables");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Pilot", b =>
+            modelBuilder.Entity("Veloci.Domain.Pilot", b =>
                 {
                     b.Navigation("Achievements");
 
@@ -1444,19 +1444,19 @@ namespace Veloci.Web.Data.Migrations
                     b.Navigation("PlatformAccounts");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.Team", b =>
+            modelBuilder.Entity("Veloci.Domain.Team", b =>
                 {
                     b.Navigation("Members");
 
                     b.Navigation("MembershipRequests");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackMap", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackMap", b =>
                 {
                     b.Navigation("Tracks");
                 });
 
-            modelBuilder.Entity("Veloci.Data.Domain.TrackResults", b =>
+            modelBuilder.Entity("Veloci.Domain.TrackResults", b =>
                 {
                     b.Navigation("Times");
                 });

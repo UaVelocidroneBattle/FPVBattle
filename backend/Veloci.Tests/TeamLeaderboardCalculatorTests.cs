@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Features.Teams.Leaderboard;
 using Veloci.Logic.Services;

@@ -1,4 +1,4 @@
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Leagues.Models;
 
 namespace Veloci.Logic.Features.Achievements.Base;

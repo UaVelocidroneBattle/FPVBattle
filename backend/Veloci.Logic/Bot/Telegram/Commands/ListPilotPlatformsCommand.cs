@@ -1,6 +1,6 @@
 using System.Text;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
 
 namespace Veloci.Logic.Bot.Telegram.Commands;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Teams;
 using Veloci.Logic.Features.Teams.Leaderboard;

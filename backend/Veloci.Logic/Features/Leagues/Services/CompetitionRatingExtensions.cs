@@ -1,4 +1,4 @@
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Logic.Features.Leagues.Services;
 

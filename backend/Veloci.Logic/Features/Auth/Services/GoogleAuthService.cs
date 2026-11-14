@@ -2,7 +2,7 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Serilog;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Auth.Models;
 
 namespace Veloci.Logic.Features.Auth.Services;

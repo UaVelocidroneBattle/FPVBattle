@@ -1,5 +1,5 @@
 using MediatR;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Features.Achievements.Notifications;
 using Veloci.Logic.Features.Achievements.Services;
 using Veloci.Logic.Features.Notifications;

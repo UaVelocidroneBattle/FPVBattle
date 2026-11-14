@@ -1,5 +1,5 @@
 using System.Text;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 using Veloci.Logic.Bot.Telegram;
 
 namespace Veloci.Logic.Features.Achievements.Services;

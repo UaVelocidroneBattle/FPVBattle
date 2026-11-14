@@ -1,4 +1,4 @@
-﻿using Veloci.Data.Domain;
+﻿using Veloci.Domain;
 using Veloci.Logic.Features.Cups;
 
 namespace Veloci.Web.Controllers.Api.Competitions;

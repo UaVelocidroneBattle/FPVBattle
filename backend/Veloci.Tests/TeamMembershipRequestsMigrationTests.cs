@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Veloci.Data;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Tests;
 

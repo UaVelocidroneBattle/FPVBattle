@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Features.Teams.Leaderboard;
 using Veloci.Logic.Services;
 using Veloci.Web.Controllers.Api.Teams;

@@ -1,5 +1,5 @@
 using System.Text;
-using Veloci.Data.Domain;
+using Veloci.Domain;
 
 namespace Veloci.Logic.Features.Achievements.Services;
 

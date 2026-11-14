@@ -2,8 +2,8 @@ using System.Globalization;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
+using Veloci.Domain;
 using Veloci.Logic.Notifications;
 
 namespace Veloci.Logic.Services.Statistics;
