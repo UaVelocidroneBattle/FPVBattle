@@ -97,18 +97,18 @@ _actions.GetAll().ForLoan(loan).Where(a => a.Date < DateTime.Now).ToListAsync()
 
 ## Project Structure
 
-### Veloci.Domain (Domain Layer)
+### FpvBattle.Domain (Domain Layer)
 - **Entities**: Clean POCOs carrying their own business rules (day streak, freezies, leagues, teams)
 - **Query Extensions**: Pure LINQ extensions only (e.g. `ByName`), nothing that needs EF Core to run
 - **No Dependencies**: No EF Core and no project references
 
-### Veloci.Data (Persistence Layer)
+### FpvBattle.Data (Persistence Layer)
 - **DbContext**: Centralized EF configuration via Fluent API
 - **Repositories**: Generic repository pattern for data access
 - **Queries**: Query extensions that need EF Core (`Include`, `ToListAsync`, etc.), e.g. `PilotQueries`
 - **Migrations**: Database schema evolution
 
-### Veloci.Logic (Business Logic Layer)
+### FpvBattle.Logic (Business Logic Layer)
 Organized by **vertical slices** (business features):
 
 ```
@@ -130,7 +130,7 @@ Features/
     └── Commands/         # Bot command handlers
 ```
 
-### Veloci.Web (Presentation Layer)
+### FpvBattle.Web (Presentation Layer)
 - **Controllers**: Thin HTTP endpoints delegating to Logic layer
 - **Infrastructure**: Cross-cutting concerns (DI, middleware, configuration)
 - **API Surface**: RESTful endpoints with OpenAPI documentation
@@ -262,13 +262,13 @@ Controllers/
 ```
 
 ### OpenAPI Integration
-- API specification auto-generated to `shared/api/Veloci.Web.json`
+- API specification auto-generated to `shared/api/FpvBattle.Web.json`
 - Frontend consumes generated TypeScript client
 - Keep API models separate from domain models
 
 ## Admin Pages (Razor Views)
 
-The admin dashboard (`Veloci.Web/Views/**`, e.g. Users, Pilot Claims, Track Queue) is server-rendered Razor/Bootstrap 5, not React.
+The admin dashboard (`FpvBattle.Web/Views/**`, e.g. Users, Pilot Claims, Track Queue) is server-rendered Razor/Bootstrap 5, not React.
 
 - **Date format**: always European `dd.MM.yyyy` (add `HH:mm` when time matters), e.g. `@entity.CreatedOn.ToString("dd.MM.yyyy HH:mm")`. Never `yyyy-MM-dd` or culture-default `ToString()`/`ToShortDateString()`.
 - Shared styling lives in `wwwroot/css/site.css` (design tokens under `:root`); reuse existing classes (`.panel`, `.table`, `.btn-icon`, `.dropdown-menu`, etc.) instead of inline styles.
@@ -314,9 +314,9 @@ public class AchievementServiceTests
 ```
 
 ### Architecture Tests
-`Veloci.Tests/Architecture` guards the structure of the solution:
+`FpvBattle.Tests/Architecture` guards the structure of the solution:
 - `ModelSnapshotTests` fails when the EF model differs from the latest migration. Production data depends on it, so never change the model without a migration.
-- `LayerDependencyTests` pins which project may reference which, and keeps EF Core out of Veloci.Domain. Tighten the rules as layers are separated; never loosen them to make a change pass.
+- `LayerDependencyTests` pins which project may reference which, and keeps EF Core out of FpvBattle.Domain. Tighten the rules as layers are separated; never loosen them to make a change pass.
 
 ### Integration Testing
 Test cross-feature communication via events:

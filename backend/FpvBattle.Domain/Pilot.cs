@@ -1,0 +1,157 @@
+namespace FpvBattle.Domain;
+
+public class Pilot
+{
+    public Pilot()
+    {
+    }
+
+    public Pilot(string name)
+    {
+        Name = name;
+    }
+
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastRaceDate { get; set; }
+    public int TotalRaceDays { get; set; }
+    public int DayStreak { get; set; }
+    public int MaxDayStreak { get; set; }
+    public DateTime? DayStreakFrozenUntil { get; set; }
+    public string Country { get; set; }
+    public virtual ICollection<PilotAchievement> Achievements { get; set; }
+    public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
+    public int DayStreakFreezeCount => DayStreakFreezes.Count(fr => fr.SpentOn == null);
+    public virtual ICollection<PilotNameHistoryRow> NameHistory { get; set; }
+    public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
+    public virtual ICollection<PilotLeague> Leagues { get; set; } = [];
+
+    public void OnRaceFlown(DateTime today)
+    {
+        if (LastRaceDate.HasValue && LastRaceDate.Value.Date == today.Date)
+            return;
+
+        LastRaceDate = today;
+
+        IncrementDayStreak();
+
+        AddFreezie(today);
+
+        TotalRaceDays++;
+    }
+
+    private void IncrementDayStreak()
+    {
+        DayStreak++;
+
+        if (DayStreak > MaxDayStreak)
+            MaxDayStreak = DayStreak;
+    }
+
+    private void AddFreezie(DateTime today)
+    {
+        // Every 30 days, the pilot gets a day streak freeze
+        if (DayStreak % 30 == 0)
+        {
+            DayStreakFreezes.Add(new DayStreakFreeze(today));
+        }
+    }
+
+    /// <summary>
+    /// Resets pilot's daystreak.
+    /// If there are available freezes, spends a freezie.
+    /// If freezie has already been spent on this day, just skip it.
+    /// </summary>
+    /// <param name="today"></param>
+    public void ResetDayStreak(DateTime today)
+    {
+        if (IsDayStreakFrozenOn(today))
+            return;
+
+        if (SpendFreeze(today))
+            return;
+
+        DayStreak = 0;
+    }
+
+    public bool IsDayStreakFrozenOn(DateTime date)
+    {
+        return DayStreakFrozenUntil.HasValue && date.Date <= DayStreakFrozenUntil.Value.Date;
+    }
+
+    private bool SpendFreeze(DateTime today)
+    {
+        if (HasFreezieSpentOn(today)) return true;
+
+        var freeze = GetFirstSpareFreezie();
+
+        if (freeze == null) return false;
+
+        freeze.SpentOn = today;
+
+        return true;
+    }
+
+    private DayStreakFreeze? GetFirstSpareFreezie()
+    {
+        return DayStreakFreezes
+            .OrderBy(fr => fr.CreatedOn)
+            .FirstOrDefault(fr => fr.SpentOn == null);
+    }
+
+    private bool HasFreezieSpentOn(DateTime today)
+    {
+        return DayStreakFreezes.Any(fr => fr.SpentOn.HasValue && fr.SpentOn.Value.Date == today.Date);
+    }
+
+
+    public bool HasAchievement(string achievementName)
+    {
+        Achievements ??= new List<PilotAchievement>();
+        return Achievements.Any(achievement => achievement.Name == achievementName);
+    }
+
+    public void ChangeName(string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+            throw new ArgumentException("Pilot name cannot be null or empty.", nameof(newName));
+
+        if (Name == newName) return;
+
+        NameHistory ??= new List<PilotNameHistoryRow>();
+        NameHistory.Add(new PilotNameHistoryRow
+        {
+            OldName = Name,
+            NewName = newName,
+            ChangedOn = DateTime.Now
+        });
+
+        Name = newName;
+    }
+
+    public string? GetCurrentLeague(string cupId, DateTime? date = null)
+    {
+        var records = Leagues.Where(l => l.CupId == cupId);
+
+        return date is null
+            ? records.FirstOrDefault(l => l.Status == LeagueRecordStatus.Current)?.League
+            : records.Where(l => l.Date.Date <= date.Value.Date).MaxBy(l => l.Date)?.League;
+    }
+}
+
+public static class PilotExtensions
+{
+    extension(IQueryable<Pilot> allPilots)
+    {
+        public IQueryable<Pilot> ByName(string name)
+        {
+            return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        }
+
+        public IQueryable<IGrouping<string, Pilot>> GroupedByCountry()
+        {
+            return allPilots.Where(p => !string.IsNullOrEmpty(p.Country)).GroupBy(p => p.Country);
+        }
+    }
+}

@@ -1,0 +1,158 @@
+using FpvBattle.Logic.Helpers;
+using FpvBattle.Logic.Notifications;
+using Hangfire;
+using MediatR;
+
+namespace FpvBattle.Logic.Bot.Telegram;
+
+public class TelegramMessageEventHandler :
+    INotificationHandler<IntermediateCompetitionResult>,
+    INotificationHandler<CurrentResultUpdated>,
+    INotificationHandler<CompetitionFinished>,
+    INotificationHandler<CompetitionStarted>,
+    INotificationHandler<TempSeasonResults>,
+    INotificationHandler<SeasonFinished>,
+    INotificationHandler<BadTrack>,
+    INotificationHandler<CheerUp>,
+    INotificationHandler<YearResults>,
+    INotificationHandler<DayStreakPotentialLose>,
+    INotificationHandler<NewPilot>,
+    INotificationHandler<PilotRenamed>,
+    INotificationHandler<EndOfSeasonStatisticsNotification>,
+    INotificationHandler<FreezieAdded>,
+    INotificationHandler<TrackRestart>
+{
+    private readonly TelegramMessageComposer _messageComposer;
+    private readonly ITelegramCupMessenger _cupMessenger;
+    private readonly TelegramChatMessages _chatMessages;
+
+    public TelegramMessageEventHandler(
+        TelegramMessageComposer messageComposer,
+        ITelegramCupMessenger cupMessenger,
+        TelegramChatMessages chatMessages)
+    {
+        _messageComposer = messageComposer;
+        _cupMessenger = cupMessenger;
+        _chatMessages = chatMessages;
+    }
+
+    public async Task Handle(IntermediateCompetitionResult notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.TempLeaderboard(notification.Leaderboard, notification.Competition.Track, notification.Competition.QuadOfTheDay?.Name);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
+    }
+
+    public async Task Handle(CurrentResultUpdated notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.TimeUpdate(notification.Deltas);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
+    }
+
+    public async Task Handle(CompetitionFinished notification, CancellationToken cancellationToken)
+    {
+        var competition = notification.Competition;
+
+        if (competition.CompetitionResults.Count == 0)
+            return;
+
+        var resultsMessage = _messageComposer.Leaderboard(notification.Leaderboard, competition.Track.FullName);
+        await _cupMessenger.SendMessageToCupAsync(competition.CupId, resultsMessage);
+    }
+
+    public async Task Handle(CompetitionStarted notification, CancellationToken cancellationToken)
+    {
+        var startCompetitionMessage = _messageComposer.StartCompetition(notification.Track, notification.Competition.QuadOfTheDay?.Name);
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, startCompetitionMessage);
+    }
+
+    public async Task Handle(TempSeasonResults notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.TempSeasonResults(notification.Results);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
+    }
+
+    public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.SeasonResults(notification.Results);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
+
+        // disabled for now
+        // var imageStream = new MemoryStream(notification.Image);
+        // await _cupMessenger.SendPhotoToCupAsync(notification.CupId, imageStream);
+    }
+
+    public async Task Handle(BadTrack notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.BadTrackRating();
+        await _cupMessenger.SendMessageToCupAsync(notification.Competition.CupId, message);
+    }
+
+    public async Task Handle(CheerUp notification, CancellationToken cancellationToken)
+    {
+        var cheerUpMessage = _chatMessages.GetRandomByTypeWithProbability(notification.Type);
+
+        if (cheerUpMessage is null)
+        {
+            return;
+        }
+
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, cheerUpMessage.Text);
+    }
+
+    public async Task Handle(YearResults notification, CancellationToken cancellationToken)
+    {
+        var messageSet = _messageComposer.YearResults(notification.Results);
+        const int delaySec = 10;
+
+        foreach (var message in messageSet)
+        {
+            await _cupMessenger.SendMessageToAllCupsAsync(message);
+            await Task.Delay(TimeSpan.FromSeconds(delaySec), cancellationToken);
+        }
+    }
+
+
+    public async Task Handle(DayStreakPotentialLose notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.DayStreakPotentialLose(notification.Pilots);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
+    }
+
+    public async Task Handle(NewPilot notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.NewPilot(notification.Pilot);
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
+    }
+
+    public async Task Handle(PilotRenamed notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.PilotRenamed(notification.OldName, notification.NewName);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
+    }
+
+    public async Task Handle(EndOfSeasonStatisticsNotification notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.EndOfSeasonStatistics(notification.Statistics);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
+    }
+
+    /// <summary>
+    /// Public method for Hangfire to call - sends medal count message to a specific cup
+    /// </summary>
+    public async Task SendMedalCountToCupAsync(string cupId, string message)
+    {
+        await _cupMessenger.SendMessageToCupAsync(cupId, message);
+    }
+
+    public async Task Handle(FreezieAdded notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.FreezieAdded(notification.PilotName);
+        await _cupMessenger.SendMessageToAllCupsAsync(message);
+    }
+
+    public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
+    {
+        var message = _messageComposer.RestartTrack();
+        await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
+    }
+}

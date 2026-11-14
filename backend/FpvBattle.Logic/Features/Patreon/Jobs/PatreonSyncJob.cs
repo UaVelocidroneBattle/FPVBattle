@@ -1,0 +1,168 @@
+using FpvBattle.Data.Repositories;
+using FpvBattle.Domain;
+using FpvBattle.Logic.Features.Patreon.Models;
+using FpvBattle.Logic.Features.Patreon.Notifications;
+using FpvBattle.Logic.Features.Patreon.Services;
+using Hangfire;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Serilog;
+
+namespace FpvBattle.Logic.Features.Patreon.Jobs;
+
+public class PatreonSyncJob
+{
+    private static readonly ILogger Log = Serilog.Log.ForContext<PatreonSyncJob>();
+    private readonly IMediator _mediator;
+    private readonly PatreonOptions _options;
+    private readonly IPatreonService _patreonService;
+    private readonly IRepository<PatreonSupporter> _supportersRepository;
+
+    public PatreonSyncJob(
+        IPatreonService patreonService,
+        IRepository<PatreonSupporter> supportersRepository,
+        IMediator mediator,
+        IOptions<PatreonOptions> options)
+    {
+        _patreonService = patreonService;
+        _supportersRepository = supportersRepository;
+        _mediator = mediator;
+        _options = options.Value;
+    }
+
+    [DisableConcurrentExecution("PatreonSync", 60)]
+    public async Task Handle(CancellationToken ct)
+    {
+        if (!_options.EnableSync)
+        {
+            return;
+        }
+
+        // Get campaigns first
+        var campaigns = await _patreonService.GetCampaignsAsync(ct);
+
+        if (!campaigns.Any())
+        {
+            Log.Information("No campaigns found in Patreon API");
+            return;
+        }
+
+        var campaignId = campaigns.First().Id;
+        var supportersFromApi = await _patreonService.GetCampaignMembersAsync(campaignId, ct);
+
+        if (!supportersFromApi.Any())
+        {
+            Log.Information("No supporters received from Patreon API");
+            return;
+        }
+
+        Log.Information("Retrieved {Count} supporters from Patreon API", supportersFromApi.Length);
+
+        var existingSupporters = await _supportersRepository
+            .GetAll()
+            .ToDictionaryAsync(s => s.PatreonId, ct);
+
+        var newSupporters = new List<PatreonSupporter>();
+        var updatedSupporters = new List<PatreonSupporter>();
+        var newlyPayingSupporters = new List<PatreonSupporter>();
+
+        foreach (var supporter in supportersFromApi)
+        {
+            if (existingSupporters.TryGetValue(supporter.PatreonId, out var existingSupporter))
+            {
+                var wasPaying = existingSupporter.IsPaying;
+                var hasChanges = UpdateSupporterData(existingSupporter, supporter);
+
+                if (hasChanges)
+                {
+                    updatedSupporters.Add(existingSupporter);
+                }
+
+                if (!wasPaying && existingSupporter.IsPaying)
+                {
+                    newlyPayingSupporters.Add(existingSupporter);
+                }
+            }
+            else
+            {
+                newSupporters.Add(supporter);
+
+                if (supporter.IsPaying)
+                {
+                    newlyPayingSupporters.Add(supporter);
+                }
+            }
+        }
+
+        if (newSupporters.Any())
+        {
+            await _supportersRepository.AddRangeAsync(newSupporters);
+            await _supportersRepository.SaveChangesAsync(ct);
+            Log.Information("Added {Count} new supporters", newSupporters.Count);
+        }
+
+        // Update existing supporters
+        if (updatedSupporters.Any())
+        {
+            foreach (var updatedSupporter in updatedSupporters)
+            {
+                await _supportersRepository.UpdateAsync(updatedSupporter);
+            }
+
+            Log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
+        }
+
+        await _supportersRepository.SaveChangesAsync(ct);
+
+        foreach (var newlyPayingSupporter in newlyPayingSupporters)
+        {
+            await _mediator.Publish(new NewPatreonSupporterNotification(newlyPayingSupporter), ct);
+        }
+
+        Log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
+            newSupporters.Count, updatedSupporters.Count);
+    }
+
+    private static bool UpdateSupporterData(PatreonSupporter existing, PatreonSupporter updated)
+    {
+        var hasChanges = false;
+
+        if (existing.Name != updated.Name)
+        {
+            existing.Name = updated.Name;
+            hasChanges = true;
+        }
+
+        if (existing.Email != updated.Email)
+        {
+            existing.Email = updated.Email;
+            hasChanges = true;
+        }
+
+        if (existing.TierName != updated.TierName)
+        {
+            existing.TierName = updated.TierName;
+            hasChanges = true;
+        }
+
+        if (existing.Amount != updated.Amount)
+        {
+            existing.Amount = updated.Amount;
+            hasChanges = true;
+        }
+
+        if (existing.Status != updated.Status)
+        {
+            existing.Status = updated.Status;
+            hasChanges = true;
+        }
+
+        if (hasChanges)
+        {
+            existing.LastUpdated = DateTime.UtcNow;
+        }
+
+        return hasChanges;
+    }
+}

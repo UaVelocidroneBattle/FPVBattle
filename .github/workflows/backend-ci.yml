@@ -20,10 +20,10 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore dependencies
-      run: dotnet restore backend/Veloci.sln
+      run: dotnet restore backend/FpvBattle.sln
 
     - name: Build solution
-      run: dotnet build backend/Veloci.sln --configuration Release --no-restore
+      run: dotnet build backend/FpvBattle.sln --configuration Release --no-restore
 
     - name: Run tests
-      run: dotnet test backend/Veloci.Tests/Veloci.Tests.csproj --configuration Release --no-restore --verbosity normal
+      run: dotnet test backend/FpvBattle.Tests/FpvBattle.Tests.csproj --configuration Release --no-restore --verbosity normal

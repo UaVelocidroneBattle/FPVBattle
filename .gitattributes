@@ -59,7 +59,7 @@ docker-compose*.yml text
 # OpenAPI
 ###############################################################################
 *.openapi   text
-Veloci.Web.json text eol=lf
+FpvBattle.Web.json text eol=lf
 
 ###############################################################################
 # Binary Files

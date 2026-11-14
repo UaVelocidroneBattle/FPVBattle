@@ -11,14 +11,14 @@
     {
       "name": "Backend (HTTP)",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Veloci.Web", "--launch-profile", "http"],
+      "runtimeArgs": ["run", "--project", "FpvBattle.Web", "--launch-profile", "http"],
       "cwd": "backend",
       "port": 5056
     },
     {
       "name": "Backend (HTTPS)",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Veloci.Web", "--launch-profile", "https"],
+      "runtimeArgs": ["run", "--project", "FpvBattle.Web", "--launch-profile", "https"],
       "cwd": "backend",
       "port": 7284
     }

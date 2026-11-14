@@ -8,6 +8,6 @@ riderModule.iml
 *.user
 *.pubxml
 *.DotSettings.user
-Veloci.Web/DB/
+FpvBattle.Web/DB/
 appsettings.Development.json
 .mcp.json

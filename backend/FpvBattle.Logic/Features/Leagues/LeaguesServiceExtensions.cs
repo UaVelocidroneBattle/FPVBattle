@@ -1,0 +1,27 @@
+using FpvBattle.Logic.Features.Leagues.Jobs;
+using FpvBattle.Logic.Features.Leagues.NotificationHandlers;
+using FpvBattle.Logic.Features.Leagues.Services;
+using FpvBattle.Logic.Jobs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace FpvBattle.Logic.Features.Leagues;
+
+public static class LeaguesServiceExtensions
+{
+    public static IServiceCollection AddLeagues(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddScoped<IJobRegistrar, LeagueJobsRegistrar>();
+        services.Configure<PaceRatingSettings>(configuration.GetSection(PaceRatingSettings.SectionName));
+        services.AddScoped<PaceRatingCalculator>();
+        services.AddScoped<RatingService>();
+        services.AddScoped<RatingQualificationService>();
+        services.AddScoped<LeagueService>();
+        services.AddScoped<TelegramLeagueHandler>();
+        services.AddScoped<DiscordLeagueHandler>();
+        services.AddScoped<InAppLeagueHandler>();
+        services.AddScoped<InAppLeagueMessageComposer>();
+
+        return services;
+    }
+}
