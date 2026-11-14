@@ -1,0 +1,22 @@
+using FpvBattle.Application.Features.Achievements.Base;
+using FpvBattle.Domain;
+
+namespace FpvBattle.Application.Features.Achievements.Collection;
+
+public class LastInRaceAchievement : IAchievementAfterCompetition
+{
+    public string Name => "LastInRace";
+    public string Title => "Longest Ride";
+    public string Description => "Slowest time in a race";
+    public string? CupId => null;
+
+    public async Task<bool> CheckAsync(Pilot pilot, Competition competition)
+    {
+        if (pilot.HasAchievement(Name))
+        {
+            return false;
+        }
+
+        return competition.GetSlowest()?.PilotId == pilot.Id;
+    }
+}

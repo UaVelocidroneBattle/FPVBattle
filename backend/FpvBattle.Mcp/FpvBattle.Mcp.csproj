@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.5.0-preview.1" />
+      <PackageReference Include="Serilog" Version="4.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FpvBattle.Application\FpvBattle.Application.csproj" />
+      <ProjectReference Include="..\FpvBattle.Domain\FpvBattle.Domain.csproj" />
+    </ItemGroup>
+
+</Project>

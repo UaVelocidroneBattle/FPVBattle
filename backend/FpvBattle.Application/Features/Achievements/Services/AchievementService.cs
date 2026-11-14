@@ -1,0 +1,276 @@
+using FpvBattle.Application.Features.Achievements.Base;
+using FpvBattle.Application.Features.Achievements.Notifications;
+using FpvBattle.Application.Features.Leagues.Models;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Domain;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+
+namespace FpvBattle.Application.Features.Achievements.Services;
+
+public class AchievementService
+{
+    private static readonly ILogger Log = Serilog.Log.ForContext<AchievementService>();
+
+    private readonly IApplicationDbContext _db;
+    private readonly IEnumerable<IAchievement> _achievements;
+    private readonly IMediator _mediator;
+
+    public AchievementService(
+        IApplicationDbContext db,
+        IServiceProvider serviceProvider,
+        IMediator mediator)
+    {
+        _db = db;
+        _mediator = mediator;
+        _achievements = serviceProvider.GetServices<IAchievement>();
+    }
+
+    public async Task CheckAfterLeagueUpdateAsync(string cupId, IList<LeagueUpdateModel> leagueUpdates, CancellationToken cancellationToken)
+    {
+        Log.Information("Checking achievements after league update for cup {CupId}", cupId);
+
+        await CheckAndPublishAchievementsAsync<IAchievementAfterLeagueUpdate>(
+            achievement => CheckAchievementAfterLeagueUpdate(achievement, leagueUpdates, cupId),
+            cupId,
+            cancellationToken
+        );
+    }
+
+    private async Task<AchievementCheckResults> CheckAchievementAfterLeagueUpdate(IAchievementAfterLeagueUpdate achievement, IList<LeagueUpdateModel> leagueUpdates, string cupId)
+    {
+        var results = new AchievementCheckResults();
+        Log.Debug("Checking achievement {AchievementName}", achievement.Name);
+
+        foreach (var leagueUpdate in leagueUpdates)
+        {
+            var pilot = leagueUpdate.Pilot;
+            var triggered = await achievement.CheckAsync(leagueUpdate);
+
+            if (!triggered)
+            {
+                continue;
+            }
+
+            Log.Information("🏅 Pilot {PilotName} earned achievement {AchievementName}", pilot.Name, achievement.Name);
+            pilot.AddAchievement(achievement);
+            results.Add(new AchievementCheckResult(pilot, achievement, cupId));
+        }
+
+        Log.Debug("Achievement {AchievementName} check completed: {TriggeredCount} pilots earned it", achievement.Name, results.Count);
+        return results;
+    }
+
+    public async Task CheckAfterCompetitionAsync(Competition competition, CancellationToken cancellationToken)
+    {
+        Log.Information("Checking achievements after competition {CompetitionId} for track {TrackName}",
+            competition.Id, competition.Track.Name);
+
+        await CheckAndPublishAchievementsAsync<IAchievementAfterCompetition>(
+            achievement => CheckAchievementAfterCompetition(achievement, competition),
+            competition.CupId,
+            cancellationToken
+        );
+    }
+
+    private async Task<AchievementCheckResults> CheckAchievementAfterCompetition(IAchievementAfterCompetition achievement, Competition competition)
+    {
+        var results = new AchievementCheckResults();
+        Log.Debug("Checking achievement {AchievementName} for {PilotCount} pilots",
+            achievement.Name, competition.CompetitionResults.Count);
+
+        foreach (var result in competition.CompetitionResults)
+        {
+            var pilot = result.Pilot;
+            var triggered = await achievement.CheckAsync(pilot, competition);
+
+            if (!triggered)
+            {
+                continue;
+            }
+
+            Log.Information("🏅 Pilot {PilotName} earned achievement {AchievementName}", pilot.Name, achievement.Name);
+            pilot.AddAchievement(achievement);
+            results.Add(new AchievementCheckResult(pilot, achievement, competition.CupId));
+        }
+
+        Log.Debug("Achievement {AchievementName} check completed: {TriggeredCount} pilots earned it", achievement.Name, results.Count);
+        return results;
+    }
+
+    public async Task CheckAfterSeasonAsync(List<LeagueSeasonLeaderboard> leaderboards, string cupId, CancellationToken cancellationToken)
+    {
+        Log.Information("Checking achievements after season completion for cup {CupId} with {LeagueCount} leagues", cupId, leaderboards.Count);
+
+        await CheckAndPublishAchievementsAsync<IAchievementAfterSeason>(
+            achievement => CheckAchievementAfterSeason(achievement, leaderboards, cupId),
+            cupId,
+            cancellationToken
+        );
+    }
+
+    private async Task<AchievementCheckResults> CheckAchievementAfterSeason(IAchievementAfterSeason achievement,
+        List<LeagueSeasonLeaderboard> leaderboards, string cupId)
+    {
+        var checkResults = new AchievementCheckResults();
+        var results = leaderboards.SelectMany(l => l.Results).ToList();
+        Log.Debug("Checking season achievement {AchievementName} for cup {CupId} with {PilotCount} pilots",
+            achievement.Name, cupId, results.Count);
+
+        foreach (var result in results)
+        {
+            var pilot = await _db.Pilots.ByName(result.PlayerName).FirstOrDefaultAsync();
+
+            if (pilot is null)
+            {
+                throw new Exception("Pilot not found");
+            }
+
+            var triggered = await achievement.CheckAsync(pilot, leaderboards);
+
+            if (!triggered)
+            {
+                continue;
+            }
+
+            Log.Information("🏆 Pilot {PilotName} earned season achievement {AchievementName} in cup {CupId}", pilot.Name,
+                achievement.Name, cupId);
+            pilot.AddAchievement(achievement);
+            checkResults.Add(new AchievementCheckResult(pilot, achievement, cupId));
+        }
+
+        Log.Debug("Season achievement {AchievementName} check completed for cup {CupId}: {TriggeredCount} pilots earned it",
+            achievement.Name, cupId, checkResults.Count);
+        return checkResults;
+    }
+
+    public async Task CheckAfterTimeUpdateAsync(Competition competition, List<TrackTimeDelta> deltas, CancellationToken cancellationToken)
+    {
+        Log.Information("Checking achievements after time updates for {DeltaCount} result changes", deltas.Count);
+
+        await CheckAndPublishAchievementsAsync<IAchievementAfterTimeUpdate>(
+            achievement => CheckAchievementAfterTimeUpdate(achievement, deltas, competition.CupId),
+            competition.CupId,
+            cancellationToken
+        );
+    }
+
+    private async Task<AchievementCheckResults> CheckAchievementAfterTimeUpdate(IAchievementAfterTimeUpdate achievement,
+        List<TrackTimeDelta> deltas, string cupId)
+    {
+        var checkResults = new AchievementCheckResults();
+        Log.Debug("Checking time update achievement {AchievementName} for {DeltaCount} time changes",
+            achievement.Name, deltas.Count);
+
+        foreach (var delta in deltas)
+        {
+            var pilot = delta.Pilot;
+
+            if (pilot is null)
+            {
+                throw new Exception("Pilot not found");
+            }
+
+            var triggered = await achievement.CheckAsync(pilot, deltas);
+
+            if (!triggered)
+            {
+                continue;
+            }
+
+            Log.Information("⏱️ Pilot {PilotName} earned time-based achievement {AchievementName}", pilot.Name,
+                achievement.Name);
+            pilot.AddAchievement(achievement);
+            checkResults.Add(new AchievementCheckResult(pilot, achievement, cupId));
+        }
+
+        Log.Debug("Time update achievement {AchievementName} check completed: {TriggeredCount} pilots earned it",
+            achievement.Name, checkResults.Count);
+        return checkResults;
+    }
+
+    public async Task CheckGlobalsAsync(CancellationToken cancellationToken)
+    {
+        var results = new AchievementCheckResults();
+        var achievements = GetAchievements<IGlobalAchievement>().ToList();
+        Log.Information("Checking {GlobalAchievementCount} global achievements", achievements.Count);
+
+        foreach (var achievement in achievements)
+        {
+            Log.Debug("Checking global achievement {AchievementName}", achievement.Name);
+            var pilot = await achievement.CheckAsync();
+
+            if (pilot is null)
+            {
+                continue;
+            }
+
+            results.Add(new AchievementCheckResult(pilot, achievement));
+        }
+
+        await SaveAndPublishAsync(results, cancellationToken);
+
+        Log.Debug("Global achievement check completed");
+    }
+
+    private async Task SaveAndPublishAsync(AchievementCheckResults results, CancellationToken cancellationToken)
+    {
+        await _db.SaveChangesAsync(cancellationToken);
+
+        if (!results.Any())
+        {
+            Log.Debug("No achievements were triggered in this check");
+            return;
+        }
+
+        var uniquePilots = results.Select(r => r.Pilot.Name).Distinct().Count();
+        Log.Information("Achievement check completed: {TriggeredCount} achievements awarded to {PilotCount} pilots",
+            results.Count, uniquePilots);
+        await _mediator.Publish(new GotAchievements(results), cancellationToken);
+    }
+
+    private IEnumerable<T> GetAchievements<T>() where T : IAchievement
+    {
+        return _achievements.OfType<T>();
+    }
+
+    private async Task CheckAndPublishAchievementsAsync<T>(
+        Func<T, Task<AchievementCheckResults>> processor,
+        string? cupId,
+        CancellationToken cancellationToken
+    ) where T : IAchievement
+    {
+        var achievements = GetAchievements<T>()
+            .Where(a => cupId == null || a.CupId == cupId || a.CupId == null)
+            .ToList();
+
+        Log.Debug("Processing {AchievementCount} achievements of type {AchievementType}", achievements.Count, typeof(T).Name);
+
+        var allResults = new AchievementCheckResults();
+
+        foreach (var achievement in achievements)
+        {
+            var results = await processor(achievement);
+
+            if (results.Any())
+            {
+                allResults.AddRange(results);
+            }
+        }
+
+        await SaveAndPublishAsync(allResults, cancellationToken);
+    }
+}
+
+public class AchievementCheckResults : List<AchievementCheckResult>
+{
+}
+
+public class AchievementCheckResult(Pilot pilot, IAchievement achievement, string? cupId = null)
+{
+    public Pilot Pilot { get; set; } = pilot;
+    public IAchievement Achievement { get; set; } = achievement;
+    public string? CupId { get; set; } = cupId;
+}

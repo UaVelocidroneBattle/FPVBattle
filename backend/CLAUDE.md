@@ -21,7 +21,7 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 
 #### Don't Repeat Yourself (DRY)
 - **If you spot duplicate code (same helper method in 3+ files), create a task to refactor it AFTER completing the main work**
-- Use extension methods for shared logic (follow the repository pattern shown below)
+- Use extension methods for shared logic (see the query extensions under "Data Access" below)
 - Place extensions in the appropriate domain namespace (e.g., cup logic → `Features/Cups/CupServiceExtensions.cs`)
 
 **Workflow when spotting violations:**
@@ -33,14 +33,14 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 
 **Preferred approach for this project:**
 
-#### Controller Responsibilities (Application Layer)
-- Handle data access (repository calls, entity fetching)
+#### Controller Responsibilities (Web)
+- Handle data access (queries through `IApplicationDbContext`, entity fetching)
 - Converts DTO to domain classes and vice versa
 - Coordinate between different services
 - Handle HTTP concerns (model binding, routing, etc.)
 - Pass already-fetched entities to services
 
-#### Service Responsibilities (Domain Layer)
+#### Service Responsibilities (Application)
 - Focus on pure business logic
 - Accept entities as parameters, not IDs
 - Return result objects when needed
@@ -48,7 +48,7 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 #### Example Pattern:
 ```csharp
 // Controller handles data access
-var action = await _actions.FindAsync(model.ActionId);
+var action = await _db.Actions.FindAsync(model.ActionId);
 var user = await GetCurrentUser<ApplicationUser>();
 var dictItem = FindDictItemById(model.DictItemId);
 
@@ -62,71 +62,68 @@ var result = _actionService.EditAction(action, model.Date, model.Comment, dictIt
 - Services focused on business rules
 - Controllers control data fetching optimization
 
-### TKL Repository Pattern
+### Data Access: IApplicationDbContext
 
-**Prefer thin repositories with extension methods over fat repositories.**
+`IApplicationDbContext` (`FpvBattle.Application/Persistence`) is the single unit of work. There are no repositories.
 
-#### Fat Repository (Avoid)
-- Contains many specific methods like `FindLoansByDate()`, `CountActiveUsers()`
-- Becomes unmanageable as codebase grows
-- Code duplication across similar methods
-- Hard to compose queries
-- Example: `El.Business.Repositories.LoanRepository.cs`
+- **Inject `IApplicationDbContext`**, never `ApplicationDbContext`. It exposes one `DbSet<T>` per entity plus `SaveChangesAsync`.
+- **Stage changes on the sets** (`Add`, `Update`, `Remove`) and **call `SaveChangesAsync` once per use case** in new code.
+- **Adding a set**: declare it on the interface and implement it explicitly in `ApplicationDbContext` (`DbSet<Pilot> IApplicationDbContext.Pilots => Set<Pilot>();`). A public `DbSet` property would be picked up by EF's convention and rename the table.
+- **Query filters** stay as composable `IQueryable<T>` extension methods next to their feature: one concern each, descriptive names, chainable.
 
-#### Thin Repository (Preferred)
-- Only contains basic CRUD operations (`GetAll()`, `FindAsync()`, `Add()`, etc.)
-- Uses extension methods for composable query filters
-- Each extension does ONE thing and returns `IQueryable<T>`
-- Can chain extensions: `.Active().ByDate(now).ForUser(user).ToListAsync()`
-
-#### Extension Method Rules:
-- Create in `[Entity]Extensions.cs` or `[Entity]QueryExtensions.cs`
-- Take `IQueryable<T>` as first parameter, return `IQueryable<T>`
-- Use descriptive names: `Active()`, `ByDate()`, `ForLoan()`
-- Keep simple and focused on single concern
-
-#### Example:
 ```csharp
-// Good: Extension methods (El.DomainEntities.Actions.Action.cs)
-public static IQueryable<Action> ForLoan(this IQueryable<Action> query, Loan loan)
-    => query.Where(a => a.LoanId == loan.Id);
+public static IQueryable<UserNotification> ForUser(this IQueryable<UserNotification> query, string userId)
+    => query.Where(n => n.UserId == userId);
 
 // Usage
-_actions.GetAll().ForLoan(loan).Where(a => a.Date < DateTime.Now).ToListAsync()
+await _db.UserNotifications.ForUser(userId).Unread().CountAsync(ct);
 ```
 
 ## Project Structure
 
-### Veloci.Data (Persistence Layer)
-- **Domain Models**: Clean POCOs representing business entities
-- **DbContext**: Centralized EF configuration via Fluent API
-- **Repositories**: Generic repository pattern for data access
-- **Migrations**: Database schema evolution
+Four projects, each depending only on the ones above it:
 
-### Veloci.Logic (Business Logic Layer)
+### FpvBattle.Domain
+- **Entities**: Clean POCOs carrying their own business rules (day streak, freezies, leagues, teams)
+- **Query Extensions**: Pure LINQ extensions only (e.g. `ByName`), nothing that needs EF Core to run
+- **No Dependencies**: No EF Core and no project references
+
+### FpvBattle.Application
+Business logic and **ports**: interfaces such as `IVelocidroneClient`, `ITelegramMessenger`, `IDiscordBotFactory`, `IPatreonApiClient`, `IGoogleTokenValidator` and `IWinnerImageRenderer`. A port's signature uses no third-party SDK types. References Domain only.
+- `Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`)
+- `Hangfire.Core` and EF Core are the two accepted infrastructure-flavoured packages here: jobs, their attributes and `BackgroundJob` calls stay with their feature. Telegram, Discord, Google, ImageSharp and ASP.NET Core MVC do not belong here (`LayerDependencyTests` enforces it)
+
 Organized by **vertical slices** (business features):
 
 ```
-Features/
-├── Achievements/          # Achievement system slice
-│   ├── Collection/        # Achievement implementations
-│   ├── Jobs/             # Background job handlers
-│   ├── NotificationHandlers/ # Event handlers
-│   ├── Services/         # Business logic services
-│   └── Notifications/    # Domain events
-├── Patreon/              # Patreon integration slice
-│   ├── Services/         # Patreon API integration
-│   ├── Jobs/             # Sync and processing jobs
-│   ├── Models/           # Patreon-specific DTOs
-│   └── NotificationHandlers/ # Event handlers
-└── Bot/                  # Bot communication slice
-    ├── Discord/          # Discord-specific implementation
-    ├── Telegram/         # Telegram-specific implementation
-    └── Commands/         # Bot command handlers
+FpvBattle.Application/
+├── Features/
+│   ├── Achievements/          # Achievement system slice
+│   │   ├── Collection/        # Achievement implementations
+│   │   ├── Jobs/              # Background job handlers
+│   │   ├── NotificationHandlers/ # Event handlers
+│   │   ├── Services/          # Business logic services
+│   │   └── Notifications/     # Domain events
+│   └── Patreon/               # Patreon integration slice
+│       ├── Services/          # Patreon ports and business logic
+│       ├── Jobs/              # Sync and processing jobs
+│       ├── Models/            # Patreon-specific DTOs
+│       └── NotificationHandlers/ # Event handlers
+└── Bot/                       # Bot messaging: ports, composers, cup messengers
+    ├── Discord/
+    └── Telegram/
+        └── Commands/          # Bot command handlers
 ```
 
-### Veloci.Web (Presentation Layer)
-- **Controllers**: Thin HTTP endpoints delegating to Logic layer
+### FpvBattle.Infrastructure
+**Adapters** implementing Application's ports, one folder per external system (`Auth/`, `Discord/`, `Imaging/`, `Patreon/`, `Telegram/`, `Velocidrone/`), each with a registration extension (`AddTelegramBot`, `AddDiscordBot`, `AddVelocidroneClient`, `AddPatreonApi`, `AddTokenAuthentication`, `AddImaging`). References Domain and Application. Everything database-related lives under `Persistence/`:
+- **ApplicationDbContext**: Identity tables plus every configuration in `Configurations/`; implements `IApplicationDbContext`
+- **Configurations**: One `IEntityTypeConfiguration<T>` per entity holding its Fluent API mapping
+- **Migrations**: Database schema evolution
+
+### FpvBattle.Web
+The composition root: calls the Application and Infrastructure registration extensions.
+- **Controllers**: Thin HTTP endpoints delegating to the Application layer
 - **Infrastructure**: Cross-cutting concerns (DI, middleware, configuration)
 - **API Surface**: RESTful endpoints with OpenAPI documentation
 
@@ -142,7 +139,7 @@ Each feature slice should contain:
 
 ### Example: Achievements Feature Slice
 ```
-Features/Achievements/
+FpvBattle.Application/Features/Achievements/
 ├── Base/
 │   └── IAchievement.cs           # Achievement interface
 ├── Collection/
@@ -179,17 +176,16 @@ Features/Achievements/
 ## Entity Framework Guidelines
 
 ### Fluent API Configuration
-All EF configuration in `ApplicationDbContext.OnModelCreating()`:
+Each entity's EF configuration lives in its own class under `FpvBattle.Infrastructure/Persistence/Configurations/`. `ApplicationDbContext.OnModelCreating()` picks them all up with `ApplyConfigurationsFromAssembly`, so a new entity only needs a new configuration class:
 ```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
+public sealed class PilotConfiguration : IEntityTypeConfiguration<Pilot>
 {
-    // Configure entities via Fluent API
-    modelBuilder.Entity<Pilot>(entity =>
+    public void Configure(EntityTypeBuilder<Pilot> builder)
     {
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
-        entity.HasIndex(e => e.UserId);
-    });
+        builder.ToTable("Pilots");
+        builder.HasKey(p => p.Id);
+        builder.Property(p => p.Name).HasMaxLength(128);
+    }
 }
 ```
 
@@ -257,13 +253,13 @@ Controllers/
 ```
 
 ### OpenAPI Integration
-- API specification auto-generated to `shared/api/Veloci.Web.json`
+- API specification auto-generated to `shared/api/FpvBattle.Web.json`
 - Frontend consumes generated TypeScript client
 - Keep API models separate from domain models
 
 ## Admin Pages (Razor Views)
 
-The admin dashboard (`Veloci.Web/Views/**`, e.g. Users, Pilot Claims, Track Queue) is server-rendered Razor/Bootstrap 5, not React.
+The admin dashboard (`FpvBattle.Web/Views/**`, e.g. Users, Pilot Claims, Track Queue) is server-rendered Razor/Bootstrap 5, not React.
 
 - **Date format**: always European `dd.MM.yyyy` (add `HH:mm` when time matters), e.g. `@entity.CreatedOn.ToString("dd.MM.yyyy HH:mm")`. Never `yyyy-MM-dd` or culture-default `ToString()`/`ToShortDateString()`.
 - Shared styling lives in `wwwroot/css/site.css` (design tokens under `:root`); reuse existing classes (`.panel`, `.table`, `.btn-icon`, `.dropdown-menu`, etc.) instead of inline styles.
@@ -307,6 +303,11 @@ public class AchievementServiceTests
     }
 }
 ```
+
+### Architecture Tests
+`FpvBattle.Tests/Architecture` guards the structure of the solution:
+- `ModelSnapshotTests` fails when the EF model differs from the latest migration. Production data depends on it, so never change the model without a migration.
+- `LayerDependencyTests` pins which project may reference which, keeps EF Core out of FpvBattle.Domain and external SDKs out of FpvBattle.Application. Tighten the rules as layers are separated; never loosen them to make a change pass.
 
 ### Integration Testing
 Test cross-feature communication via events:

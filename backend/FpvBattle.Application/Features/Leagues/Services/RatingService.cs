@@ -1,0 +1,83 @@
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Services.Pilots.Models;
+using FpvBattle.Domain;
+using Microsoft.EntityFrameworkCore;
+
+namespace FpvBattle.Application.Features.Leagues.Services;
+
+public class RatingService
+{
+    private readonly IApplicationDbContext _db;
+
+    public RatingService(
+        IApplicationDbContext db
+        )
+    {
+        _db = db;
+    }
+
+    public async Task<IList<PilotPaceRating>> GetRatingsForCupAsync(string cupId)
+    {
+        var lastDate = await GetLastCalculationDateAsync(cupId);
+
+        if (lastDate is null)
+            return [];
+
+        return await GetRatingsForCupAsync(cupId, lastDate.Value);
+    }
+
+    public async Task<IList<PilotPaceRating>> GetPreviousRatingsForCupAsync(string cupId)
+    {
+        var previousDate = await GetLastCalculationDateAsync(cupId, 1);
+
+        if (previousDate is null)
+            return [];
+
+        return await GetRatingsForCupAsync(cupId, previousDate.Value);
+    }
+
+    public async Task<IList<PilotPaceRating>> GetRatingsForCupAsync(string cupId, DateTime date)
+    {
+        return await _db.PilotPaceRatings.Where(r => r.CupId == cupId && r.CalculatedOn == date)
+            .OrderBy(r => r.Rank)
+            .Include(r => r.Pilot)
+            .ThenInclude(p => p.Leagues)
+            .ToListAsync();
+    }
+
+    public async Task<int?> GetPilotRankAsync(string cupId, int pilotId)
+    {
+        var lastDate = await GetLastCalculationDateAsync(cupId);
+
+        if (lastDate is null)
+            return null;
+
+        var pilotRank = await _db.PilotPaceRatings.Where(r => r.CupId == cupId && r.CalculatedOn == lastDate.Value)
+            .FirstOrDefaultAsync(r => r.PilotId == pilotId);
+
+        return pilotRank?.Rank;
+    }
+
+    public async Task<List<PilotRatingHistoryPoint>> GetPilotRatingHistoryAsync(string cupId, int pilotId)
+    {
+        return await _db.PilotPaceRatings.Where(r => r.CupId == cupId && r.PilotId == pilotId)
+            .OrderBy(r => r.CalculatedOn)
+            .Select(r => new PilotRatingHistoryPoint
+            {
+                Date = r.CalculatedOn,
+                GapPercent = r.AverageGapPercent,
+                Rank = r.Rank
+            })
+            .ToListAsync();
+    }
+
+    private async Task<DateTime?> GetLastCalculationDateAsync(string cupId, int skip = 0)
+    {
+        return await _db.PilotPaceRatings.Where(r => r.CupId == cupId)
+            .Select(r => (DateTime?)r.CalculatedOn)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .Skip(skip)
+            .FirstOrDefaultAsync();
+    }
+}

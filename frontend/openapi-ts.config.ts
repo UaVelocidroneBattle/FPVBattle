@@ -3,7 +3,7 @@ import { defaultPlugins } from "@hey-api/openapi-ts";
 
 export default defineConfig({
   client: "@hey-api/client-fetch",
-  input: "../shared/api/Veloci.Web.json",
+  input: "../shared/api/FpvBattle.Web.json",
   output: "src/api/client",
   experimentalParser: true,
   plugins: [

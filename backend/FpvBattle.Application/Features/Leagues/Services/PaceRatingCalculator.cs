@@ -1,0 +1,135 @@
+using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Services;
+using FpvBattle.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Serilog;
+
+namespace FpvBattle.Application.Features.Leagues.Services;
+
+public class PaceRatingCalculator
+{
+    private static readonly ILogger Log = Serilog.Log.ForContext<PaceRatingCalculator>();
+
+    private readonly IApplicationDbContext _db;
+    private readonly ICupService _cupService;
+    private readonly RatingService _ratingService;
+    private readonly PaceRatingSettings _settings;
+
+    public PaceRatingCalculator(
+        IApplicationDbContext db,
+        ICupService cupService,
+        RatingService ratingService,
+        IOptions<PaceRatingSettings> settings)
+    {
+        _db = db;
+        _cupService = cupService;
+        _ratingService = ratingService;
+        _settings = settings.Value;
+    }
+
+    public async Task CalculateAsync()
+    {
+        var cupIds = _cupService.GetEnabledCupIds().ToList();
+
+        Log.Information("Starting pace rating calculation for {CupCount} cups", cupIds.Count);
+
+        foreach (var cupId in cupIds)
+        {
+            try
+            {
+                await CalculateForCupAsync(cupId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to calculate pace ratings for cup {CupId}", cupId);
+            }
+        }
+    }
+
+    public async Task CalculateForCupAsync(string cupId)
+    {
+        var today = DateTime.Today;
+        var since = _settings.LookBackPeriod.StartOfWindowEndingAt(today);
+
+        var alreadyCalculatedToday = await _db.PilotPaceRatings
+            .AnyAsync(r => r.CupId == cupId && r.CalculatedOn == today);
+
+        if (alreadyCalculatedToday)
+        {
+            Log.Information("Cup {CupId}: pace ratings already calculated today, skipping", cupId);
+            return;
+        }
+
+        var previousRatings = await _ratingService.GetRatingsForCupAsync(cupId);
+
+        var competitions = await _db.Competitions
+            .ForCup(cupId)
+            .Where(c => c.StartedOn >= since)
+            .Closed()
+            .Include(c => c.CompetitionResults)
+            .Include(c => c.QuadOfTheDay)
+            .ToListAsync();
+
+        Log.Information("Cup {CupId}: found {CompetitionCount} competitions since {Since:yyyy-MM-dd}, the last {LookBackPeriod}",
+            cupId, competitions.Count, since, _settings.LookBackPeriod);
+
+        var ratings = competitions
+            .SelectMany(ComputeCompetitionStats)
+            .GroupBy(s => s.PilotId)
+            .Where(g => g.Count() >= _settings.MinDaysForRelevance)
+            .Select(g => new PilotPaceRating
+            {
+                PilotId = g.Key,
+                CupId = cupId,
+                AverageGapPercent = AverageGapExcludingWorstDays(g.Select(x => x.Gap)),
+                CalculatedOn = today
+            })
+            .OrderBy(r => r.AverageGapPercent)
+            .ToList();
+
+        for (var i = 0; i < ratings.Count; i++)
+            ratings[i].Rank = i + 1;
+
+        foreach (var rating in ratings)
+        {
+            var prev = previousRatings.FirstOrDefault(p => p.PilotId == rating.PilotId);
+
+            if (prev is null)
+                continue;
+
+            rating.AverageGapChange = rating.AverageGapPercent - prev.AverageGapPercent;
+            rating.RankChange = rating.Rank - prev.Rank;
+        }
+
+        Log.Information("Cup {CupId}: storing {RatingCount} pilot ratings", cupId, ratings.Count);
+
+        _db.PilotPaceRatings.AddRange(ratings);
+        await _db.SaveChangesAsync();
+    }
+
+    private IEnumerable<PilotStats> ComputeCompetitionStats(Competition competition)
+    {
+        var eligibleResults = competition.RatingEligibleResults.ToList();
+
+        var referenceTime = ReferenceTimeCalculator.GetTopPilotsAverageTime(
+            eligibleResults.Select(r => r.TrackTime), _settings.TopPilotsForReference, minimumCount: 1);
+
+        if (referenceTime is null)
+            return [];
+
+        return eligibleResults
+            .Select(r => new PilotStats(r.PilotId, ReferenceTimeCalculator.GapPercent(r.TrackTime, referenceTime.Value)));
+    }
+
+    private double AverageGapExcludingWorstDays(IEnumerable<double> gaps)
+    {
+        var orderedGaps = gaps.OrderBy(g => g).ToList();
+        var daysToDrop = Math.Min(_settings.DropWorstDaysCount, orderedGaps.Count - 1);
+
+        return orderedGaps.Take(orderedGaps.Count - daysToDrop).Average();
+    }
+
+    private record PilotStats(int PilotId, double Gap);
+}

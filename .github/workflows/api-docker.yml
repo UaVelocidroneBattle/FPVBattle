@@ -40,5 +40,5 @@ jobs:
         workdir: backend
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        dockerfile: Veloci.Web/Dockerfile
+        dockerfile: FpvBattle.Web/Dockerfile
         tags: ${{ steps.docker_tags.outputs.tags }}

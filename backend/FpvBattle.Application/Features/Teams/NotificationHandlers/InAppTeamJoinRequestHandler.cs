@@ -1,0 +1,50 @@
+using FpvBattle.Application.Features.Notifications;
+using FpvBattle.Application.Features.Notifications.Services;
+using FpvBattle.Application.Features.Teams.Notifications;
+using FpvBattle.Application.Persistence;
+using FpvBattle.Domain;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace FpvBattle.Application.Features.Teams.NotificationHandlers;
+
+public class InAppTeamJoinRequestHandler :
+    INotificationHandler<TeamJoinRequestedNotification>,
+    INotificationHandler<TeamJoinRequestApprovedNotification>
+{
+    private readonly UserNotificationService _notifications;
+    private readonly IApplicationDbContext _db;
+
+    public InAppTeamJoinRequestHandler(UserNotificationService notifications, IApplicationDbContext db)
+    {
+        _notifications = notifications;
+        _db = db;
+    }
+
+    /// <summary>The owner and admins are the ones who can approve the request.</summary>
+    public async Task Handle(TeamJoinRequestedNotification notification, CancellationToken cancellationToken)
+    {
+        var approverIds = await _db.TeamMembers
+            .Where(m => m.TeamId == notification.Team.Id && (m.Role == TeamRole.Owner || m.Role == TeamRole.Admin))
+            .Select(m => m.UserId)
+            .ToListAsync(cancellationToken);
+
+        var pilotName = notification.Requester.Pilot?.Name ?? "A pilot";
+        var text = $"{pilotName} asked to join your team {notification.Team.Name}";
+
+        var messages = approverIds
+            .Select(userId => new UserNotificationMessage(userId, NotificationType.TeamJoinRequest, text))
+            .ToList();
+
+        await _notifications.NotifyAsync(messages, cancellationToken);
+    }
+
+    public async Task Handle(TeamJoinRequestApprovedNotification notification, CancellationToken cancellationToken)
+    {
+        var text = $"Your request to join the team {notification.Team.Name} was approved";
+
+        await _notifications.NotifyAsync(
+            [new UserNotificationMessage(notification.Member.Id, NotificationType.TeamJoinRequestApproved, text)],
+            cancellationToken);
+    }
+}

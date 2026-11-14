@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "gen": "npx @hey-api/openapi-ts",
-    "gen:full": "dotnet build ../backend/Veloci.Web/Veloci.Web.csproj /p:OpenApiGenerateDocuments=true && npx @hey-api/openapi-ts"
+    "gen:full": "dotnet build ../backend/FpvBattle.Web/FpvBattle.Web.csproj /p:OpenApiGenerateDocuments=true && npx @hey-api/openapi-ts"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.6.0",

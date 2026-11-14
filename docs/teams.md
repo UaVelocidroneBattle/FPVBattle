@@ -88,7 +88,7 @@ The daily leaderboard has a team mode next to the pilots' one (`GET /api/competi
 
 On the website a Pilots / Teams switch above the leaderboards (kept in the URL as `?teams=1`) replaces both boards with the team ones. A team row opens to show its pilots and their times; the user's own team is highlighted. Frontend: `src/pages/competition/TeamBoards.tsx`, `src/store/teamCompetitionStore.ts`.
 
-Code: `Veloci.Logic/Features/Teams/Leaderboard` (`TeamLeaderboardCalculator` does the maths, `TeamRosterLookup` maps pilots to public teams, `TeamLeaderboardService` reads the leaderboards). Tests: `TeamLeaderboardCalculatorTests`, `TeamCompetitionTests`.
+Code: `FpvBattle.Application/Features/Teams/Leaderboard` (`TeamLeaderboardCalculator` does the maths, `TeamRosterLookup` maps pilots to public teams, `TeamLeaderboardService` reads the leaderboards). Tests: `TeamLeaderboardCalculatorTests`, `TeamCompetitionTests`.
 
 ## Deletion
 
@@ -110,14 +110,14 @@ The admin area has a Teams page (`/TeamManagement`, sidebar: Pilots > Teams). Ad
 - **Members**: add a pilot straight into the team (as a plain member; their pending invite to it is dropped), make a member admin or member again, remove a member. The owner can be neither removed nor demoted.
 - **Pending invites**: revoke. Join requests are listed here too, marked "Asked to join".
 
-Code: `Veloci.Web/Controllers/Admin/Teams` (`TeamManagementController`), `Views/TeamManagement`. It is not named `TeamsController` because the API controller has that name, and the shared route value made links on the admin pages point at `/api/teams/...`. Tests: `TeamManagementTests`, on top of `TeamsTestBase`.
+Code: `FpvBattle.Web/Controllers/Admin/Teams` (`TeamManagementController`), `Views/TeamManagement`. It is not named `TeamsController` because the API controller has that name, and the shared route value made links on the admin pages point at `/api/teams/...`. Tests: `TeamManagementTests`, on top of `TeamsTestBase`.
 
 ## Code
 
-- Backend: `Veloci.Logic/Features/Teams` (`TeamService` runs the operations, `TeamPermissions` decides who may run them and is asked by the API controller, `TeamSettings`), `Veloci.Web/Controllers/Api/Teams`, domain `Team`, `TeamMember`, `TeamMembershipRequest`.
+- Backend: `FpvBattle.Application/Features/Teams` (`TeamService` runs the operations, `TeamPermissions` decides who may run them and is asked by the API controller, `TeamSettings`), `FpvBattle.Web/Controllers/Api/Teams`, domain `Team`, `TeamMember`, `TeamMembershipRequest`.
 - Frontend: `src/pages/teams`, `src/store/teamsStore.ts`.
 - API: `/api/teams/[action]`. `Overview`, `Search` and `Details` are `[AllowAnonymous]` (a signed-in user is still recognised through the JWT). Every other action requires a signed-in user.
-- Tests: `Veloci.Tests/TeamsTests.cs` runs the controller and service against in-memory SQLite.
+- Tests: `FpvBattle.Tests/TeamsTests.cs` runs the controller and service against in-memory SQLite.
 
 ## Not built
 
