@@ -1,10 +1,8 @@
-namespace Veloci.Logic.API.Dto;
+namespace Veloci.Logic.API.Velocidrone.Dto;
 
-public class ModelsDto
+public class ModelsDto : VelocidroneResponse
 {
     public ICollection<ModelDto> models { get; set; }
-    public bool success { get; set; }
-    public string message { get; set; }
 }
 
 public class ModelDto

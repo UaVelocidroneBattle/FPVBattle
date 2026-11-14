@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.API.Dto;
+using Veloci.Logic.API.Velocidrone.Dto;
 
 namespace Veloci.Logic.Services;
 

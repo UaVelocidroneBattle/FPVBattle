@@ -5,6 +5,7 @@ using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
+using Veloci.Logic.API.Velocidrone;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Notifications;
@@ -15,7 +16,7 @@ public class CompetitionService
 {
     private static readonly ILogger _log = Log.ForContext<CompetitionService>();
 
-    private readonly Velocidrone _velocidrone;
+    private readonly VelocidroneClient _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
@@ -29,7 +30,7 @@ public class CompetitionService
         RaceResultsConverter resultsConverter,
         RaceResultDeltaAnalyzer analyzer,
         IMediator mediator,
-        Velocidrone velocidrone,
+        VelocidroneClient velocidrone,
         PilotService pilotService,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator)

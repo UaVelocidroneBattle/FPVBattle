@@ -5,7 +5,8 @@ using Serilog;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
-using Veloci.Logic.API.Dto;
+using Veloci.Logic.API.Velocidrone;
+using Veloci.Logic.API.Velocidrone.Dto;
 using Veloci.Logic.Bot.Discord;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.QuadOfTheDay;
@@ -19,7 +20,7 @@ public class CompetitionConductor
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionConductor>();
 
-    private readonly Velocidrone _velocidrone;
+    private readonly VelocidroneClient _velocidrone;
     private readonly IRepository<Competition> _competitions;
     private readonly TrackService _trackService;
     private readonly IMediator _mediator;
@@ -40,7 +41,7 @@ public class CompetitionConductor
         ImageService imageService,
         TrackService trackService,
         IMediator mediator,
-        Velocidrone velocidrone,
+        VelocidroneClient velocidrone,
         ICupService cupService,
         IDiscordCupMessenger discordCupMessenger,
         TrackQueueService trackQueueService,
@@ -100,11 +101,12 @@ public class CompetitionConductor
         else
         {
             const int maxAttempts = 10;
+            var suitableTracks = await _trackService.GetSuitableTracksAsync(new TrackFilter(cupOptions.TrackFilter));
             var attempts = 0;
 
             do
             {
-                track = await _trackService.GetRandomKnownTrackAsync(cupId);
+                track = await _trackService.GetRandomTrackAsync(suitableTracks);
                 attempts++;
                 Log.Information("🎯 Selected track {TrackName} (ID: {TrackId}) for cup {CupId} (attempt {Attempt}/{MaxAttempts})", track.Name, track.TrackId, cupId, attempts, maxAttempts);
                 resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);

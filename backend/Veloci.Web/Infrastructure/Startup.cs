@@ -17,7 +17,6 @@ using Serilog.Sinks.Elasticsearch;
 using Veloci.Data;
 using Veloci.Data.Domain;
 using Veloci.Hangfire.Metrics;
-using Veloci.Logic.API.Options;
 using Veloci.Logic.Bot;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Bot.Telegram.Commands.Core;
@@ -119,7 +118,6 @@ public class Startup
         });
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
-        services.Configure<ApiSettings>(Configuration.GetSection("API"));
         services.Configure<ResultsOptions>(Configuration.GetSection(ResultsOptions.SectionName));
 
         services.Configure<IdentityOptions>(options =>

@@ -2,15 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
+using Veloci.Logic.API.Velocidrone;
 
 namespace Veloci.Logic.Services;
 
 public class ModelsService
 {
-    private readonly Velocidrone _velocidrone;
+    private readonly VelocidroneClient _velocidrone;
     private readonly IRepository<QuadModel> _quadModels;
 
-    public ModelsService(Velocidrone velocidrone, IRepository<QuadModel> quadModels)
+    public ModelsService(VelocidroneClient velocidrone, IRepository<QuadModel> quadModels)
     {
         _velocidrone = velocidrone;
         _quadModels = quadModels;

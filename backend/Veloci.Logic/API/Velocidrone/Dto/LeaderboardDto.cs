@@ -1,4 +1,10 @@
-namespace Veloci.Logic.API.Dto;
+namespace Veloci.Logic.API.Velocidrone.Dto;
+
+public class LeaderboardDto : VelocidroneResponse
+{
+    public ICollection<TrackTimeDto> tracktimes { get; set; }
+    public string message_title { get; set; }
+}
 
 public class TrackTimeDto
 {
