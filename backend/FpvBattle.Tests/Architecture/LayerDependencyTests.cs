@@ -34,6 +34,21 @@ public class LayerDependencyTests
         references.Should().NotContain(outerProject, $"{project} must not reference {outerProject}");
     }
 
+    [Theory]
+    [InlineData("Telegram.Bot")]
+    [InlineData("Discord")]
+    [InlineData("SixLabors")]
+    [InlineData("Google.Apis")]
+    [InlineData("RestSharp")]
+    [InlineData("Microsoft.AspNetCore.Mvc")]
+    public void Application_does_not_reference_external_sdk(string sdkPrefix)
+    {
+        var references = Assembly.Load(Application).GetReferencedAssemblies().Select(reference => reference.Name);
+
+        references.Should().NotContain(name => name!.StartsWith(sdkPrefix),
+            "external SDKs belong in Infrastructure adapters behind Application ports");
+    }
+
     [Fact]
     public void Domain_does_not_reference_entity_framework()
     {

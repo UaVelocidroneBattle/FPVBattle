@@ -3,7 +3,6 @@ using Hangfire;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -100,25 +99,7 @@ public class Startup
         services.AddNotifications();
         services.AddTeams(Configuration);
 
-        services
-            .AddControllersWithViews()
-            .ConfigureApplicationPartManager(apm =>
-            {
-                var assembly = typeof(FpvBattle.Application.Features.Patreon.PatreonController).Assembly;
-                if (!apm.ApplicationParts.Any(part => part is AssemblyPart assemblyPart && assemblyPart.Assembly == assembly))
-                {
-                    apm.ApplicationParts.Add(new AssemblyPart(assembly));
-                }
-            });
-
-        // Configure view location formats to support Features folder structure in RCL
-        services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
-        {
-            // Add our Features folder patterns to view discovery
-            // {0} = action name, {1} = controller name
-            options.ViewLocationFormats.Add("/Features/{1}/Views/{1}/{0}.cshtml");
-            options.ViewLocationFormats.Add("/Features/{1}/Views/Shared/{0}.cshtml");
-        });
+        services.AddControllersWithViews();
 
         services.Configure<LoggerConfig>(Configuration.GetSection("Logger"));
         services.Configure<ResultsOptions>(Configuration.GetSection(ResultsOptions.SectionName));

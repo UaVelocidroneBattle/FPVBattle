@@ -33,14 +33,14 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 
 **Preferred approach for this project:**
 
-#### Controller Responsibilities (Application Layer)
+#### Controller Responsibilities (Web)
 - Handle data access (queries through `IApplicationDbContext`, entity fetching)
 - Converts DTO to domain classes and vice versa
 - Coordinate between different services
 - Handle HTTP concerns (model binding, routing, etc.)
 - Pass already-fetched entities to services
 
-#### Service Responsibilities (Domain Layer)
+#### Service Responsibilities (Application)
 - Focus on pure business logic
 - Accept entities as parameters, not IDs
 - Return result objects when needed
@@ -81,42 +81,48 @@ await _db.UserNotifications.ForUser(userId).Unread().CountAsync(ct);
 
 ## Project Structure
 
-### FpvBattle.Domain (Domain Layer)
+Four projects, each depending only on the ones above it:
+
+### FpvBattle.Domain
 - **Entities**: Clean POCOs carrying their own business rules (day streak, freezies, leagues, teams)
 - **Query Extensions**: Pure LINQ extensions only (e.g. `ByName`), nothing that needs EF Core to run
 - **No Dependencies**: No EF Core and no project references
 
-### FpvBattle.Infrastructure (Infrastructure Layer)
-References Domain and Application; implements Application's `IApplicationDbContext`. Everything under `Persistence/`:
-- **ApplicationDbContext**: Identity tables plus every configuration in `Configurations/`
-- **Configurations**: One `IEntityTypeConfiguration<T>` per entity holding its Fluent API mapping
-- **Migrations**: Database schema evolution
-
-### FpvBattle.Application (Business Logic Layer)
-`Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`). Application references Domain only, never Infrastructure.
+### FpvBattle.Application
+Business logic and **ports**: interfaces such as `IVelocidroneClient`, `ITelegramMessenger`, `IDiscordBotFactory`, `IPatreonApiClient`, `IGoogleTokenValidator` and `IWinnerImageRenderer`. A port's signature uses no third-party SDK types. References Domain only.
+- `Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`)
+- `Hangfire.Core` and EF Core are the two accepted infrastructure-flavoured packages here: jobs, their attributes and `BackgroundJob` calls stay with their feature. Telegram, Discord, Google, ImageSharp and ASP.NET Core MVC do not belong here (`LayerDependencyTests` enforces it)
 
 Organized by **vertical slices** (business features):
 
 ```
-Features/
-├── Achievements/          # Achievement system slice
-│   ├── Collection/        # Achievement implementations
-│   ├── Jobs/             # Background job handlers
-│   ├── NotificationHandlers/ # Event handlers
-│   ├── Services/         # Business logic services
-│   └── Notifications/    # Domain events
-├── Patreon/              # Patreon integration slice
-│   ├── Services/         # Patreon API integration
-│   ├── Jobs/             # Sync and processing jobs
-│   ├── Models/           # Patreon-specific DTOs
-│   └── NotificationHandlers/ # Event handlers
-└── Bot/                  # Bot communication slice
-    ├── Discord/          # Discord-specific implementation
-    ├── Telegram/         # Telegram-specific implementation
-    └── Commands/         # Bot command handlers
+FpvBattle.Application/
+├── Features/
+│   ├── Achievements/          # Achievement system slice
+│   │   ├── Collection/        # Achievement implementations
+│   │   ├── Jobs/              # Background job handlers
+│   │   ├── NotificationHandlers/ # Event handlers
+│   │   ├── Services/          # Business logic services
+│   │   └── Notifications/     # Domain events
+│   └── Patreon/               # Patreon integration slice
+│       ├── Services/          # Patreon ports and business logic
+│       ├── Jobs/              # Sync and processing jobs
+│       ├── Models/            # Patreon-specific DTOs
+│       └── NotificationHandlers/ # Event handlers
+└── Bot/                       # Bot messaging: ports, composers, cup messengers
+    ├── Discord/
+    └── Telegram/
+        └── Commands/          # Bot command handlers
 ```
 
-### FpvBattle.Web (Presentation Layer)
+### FpvBattle.Infrastructure
+**Adapters** implementing Application's ports, one folder per external system (`Auth/`, `Discord/`, `Imaging/`, `Patreon/`, `Telegram/`, `Velocidrone/`), each with a registration extension (`AddTelegramBot`, `AddDiscordBot`, `AddVelocidroneClient`, `AddPatreonApi`, `AddTokenAuthentication`, `AddImaging`). References Domain and Application. Everything database-related lives under `Persistence/`:
+- **ApplicationDbContext**: Identity tables plus every configuration in `Configurations/`; implements `IApplicationDbContext`
+- **Configurations**: One `IEntityTypeConfiguration<T>` per entity holding its Fluent API mapping
+- **Migrations**: Database schema evolution
+
+### FpvBattle.Web
+The composition root: calls the Application and Infrastructure registration extensions.
 - **Controllers**: Thin HTTP endpoints delegating to the Application layer
 - **Infrastructure**: Cross-cutting concerns (DI, middleware, configuration)
 - **API Surface**: RESTful endpoints with OpenAPI documentation
@@ -133,7 +139,7 @@ Each feature slice should contain:
 
 ### Example: Achievements Feature Slice
 ```
-Features/Achievements/
+FpvBattle.Application/Features/Achievements/
 ├── Base/
 │   └── IAchievement.cs           # Achievement interface
 ├── Collection/
@@ -301,7 +307,7 @@ public class AchievementServiceTests
 ### Architecture Tests
 `FpvBattle.Tests/Architecture` guards the structure of the solution:
 - `ModelSnapshotTests` fails when the EF model differs from the latest migration. Production data depends on it, so never change the model without a migration.
-- `LayerDependencyTests` pins which project may reference which, and keeps EF Core out of FpvBattle.Domain. Tighten the rules as layers are separated; never loosen them to make a change pass.
+- `LayerDependencyTests` pins which project may reference which, keeps EF Core out of FpvBattle.Domain and external SDKs out of FpvBattle.Application. Tighten the rules as layers are separated; never loosen them to make a change pass.
 
 ### Integration Testing
 Test cross-feature communication via events:

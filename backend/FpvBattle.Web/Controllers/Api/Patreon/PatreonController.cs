@@ -2,7 +2,7 @@ using FpvBattle.Application.Features.Patreon.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace FpvBattle.Application.Features.Patreon;
+namespace FpvBattle.Web.Controllers.Api.Patreon;
 
 public class PatreonController : Controller
 {

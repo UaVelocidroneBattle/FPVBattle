@@ -58,7 +58,9 @@ When code duplication or quality issues are identified:
 
 ### Backend Architecture (Vertical Slices)
 - **Modular Monolith**: Single deployable unit with clear feature boundaries
-- **Vertical Slices**: Features organized by business capability (Achievements, Patreon, Bot) rather than technical layers
+- **Four Projects**: `FpvBattle.Domain` (entities), `FpvBattle.Application` (business logic and ports), `FpvBattle.Infrastructure` (adapters: database, Telegram, Discord, Velocidrone, Patreon, Google, imaging) and `FpvBattle.Web` (composition root, controllers)
+- **Ports and Adapters**: Application declares an interface for anything external, with no third-party SDK types in its signature; Infrastructure implements it. Hangfire.Core and EF Core are the only infrastructure-flavoured packages allowed in Application
+- **Vertical Slices**: Inside Application, features organized by business capability (Achievements, Patreon, Bot) rather than technical layers
 - **Feature Isolation**: Each feature slice contains its own services, models, jobs, and event handlers
 - **Cross-Feature Communication**: Use domain events and well-defined interfaces, avoid direct dependencies
 - **See @backend/CLAUDE.md for detailed backend guidelines**
