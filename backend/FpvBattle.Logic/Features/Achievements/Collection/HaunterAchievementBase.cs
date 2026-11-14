@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +8,7 @@ namespace FpvBattle.Logic.Features.Achievements.Collection;
 /// <summary>
 /// Base for achievements awarded to pilots who raced in every competition of a cup during the season.
 /// </summary>
-public abstract class HaunterAchievementBase(IRepository<Competition> competitions) : IAchievementAfterSeason
+public abstract class HaunterAchievementBase(IApplicationDbContext db) : IAchievementAfterSeason
 {
     public abstract string Name { get; }
     public abstract string Title { get; }
@@ -26,7 +26,7 @@ public abstract class HaunterAchievementBase(IRepository<Competition> competitio
         var seasonEnd = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
         var seasonStart = seasonEnd.AddMonths(-1);
 
-        var seasonCompetitions = competitions.GetAll()
+        var seasonCompetitions = db.Competitions
             .InRange(seasonStart, seasonEnd)
             .ForCup(CupId!)
             .Closed();

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Achievements.Services;
 using Microsoft.EntityFrameworkCore;
@@ -8,15 +8,12 @@ namespace FpvBattle.Logic.Features.Achievements.Collection;
 
 public class BiggestDayStreakAchievement : IGlobalAchievement
 {
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<PilotAchievement> _pilotAchievements;
+    private readonly IApplicationDbContext _db;
 
     public BiggestDayStreakAchievement(
-        IRepository<Pilot> pilots,
-        IRepository<PilotAchievement> pilotAchievements)
+        IApplicationDbContext db)
     {
-        _pilots = pilots;
-        _pilotAchievements = pilotAchievements;
+        _db = db;
     }
 
     public string Name => "BiggestDayStreak";
@@ -26,8 +23,7 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
 
     public async Task<Pilot?> CheckAsync()
     {
-        var topPilots = await _pilots
-            .GetAll()
+        var topPilots = await _db.Pilots
             .Where(p => p.MaxDayStreak > 0)
             .OrderByDescending(p => p.MaxDayStreak)
             .Take(2)
@@ -47,8 +43,7 @@ public class BiggestDayStreakAchievement : IGlobalAchievement
             return null;
         }
 
-        var currentAchievement = await _pilotAchievements
-            .GetAll()
+        var currentAchievement = await _db.PilotAchievements
             .FindByName(Name)
             .SingleOrDefaultAsync();
 

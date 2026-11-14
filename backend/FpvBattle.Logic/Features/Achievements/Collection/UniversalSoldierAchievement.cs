@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +8,11 @@ namespace FpvBattle.Logic.Features.Achievements.Collection;
 
 public class UniversalSoldierAchievement : IAchievementAfterTimeUpdate
 {
-    private readonly IRepository<TrackTimeDelta> _timeDeltas;
+    private readonly IApplicationDbContext _db;
 
-    public UniversalSoldierAchievement(IRepository<TrackTimeDelta> timeDeltas)
+    public UniversalSoldierAchievement(IApplicationDbContext db)
     {
-        _timeDeltas = timeDeltas;
+        _db = db;
     }
 
     public string Name => "UniversalSoldier";
@@ -25,7 +25,7 @@ public class UniversalSoldierAchievement : IAchievementAfterTimeUpdate
         if (pilot.HasAchievement(Name))
             return false;
 
-        var cupsFlownToday = await _timeDeltas.GetAll()
+        var cupsFlownToday = await _db.TrackTimeDeltas
             .Where(d => d.PilotId == pilot.Id && d.Competition.State == CompetitionState.Started)
             .Select(d => d.Competition.CupId)
             .Distinct()

@@ -1,10 +1,9 @@
-using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 
 namespace FpvBattle.Logic.Features.Achievements.Collection.WhoopClass;
 
-public class Haunter_Whoop_Achievement(IRepository<Competition> competitions) : HaunterAchievementBase(competitions)
+public class Haunter_Whoop_Achievement(IApplicationDbContext db) : HaunterAchievementBase(db)
 {
     public override string Name => "HaunterWhoopClass";
     public override string Title => "Haunter (whoop class)";

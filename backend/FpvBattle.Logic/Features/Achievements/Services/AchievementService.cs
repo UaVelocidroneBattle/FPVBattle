@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Achievements.Notifications;
 using FpvBattle.Logic.Features.Leagues.Models;
@@ -14,16 +14,16 @@ public class AchievementService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<AchievementService>();
 
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly IEnumerable<IAchievement> _achievements;
     private readonly IMediator _mediator;
 
     public AchievementService(
-        IRepository<Pilot> pilots,
+        IApplicationDbContext db,
         IServiceProvider serviceProvider,
         IMediator mediator)
     {
-        _pilots = pilots;
+        _db = db;
         _mediator = mediator;
         _achievements = serviceProvider.GetServices<IAchievement>();
     }
@@ -121,7 +121,7 @@ public class AchievementService
 
         foreach (var result in results)
         {
-            var pilot = await _pilots.GetAll().ByName(result.PlayerName).FirstOrDefaultAsync();
+            var pilot = await _db.Pilots.ByName(result.PlayerName).FirstOrDefaultAsync();
 
             if (pilot is null)
             {
@@ -217,7 +217,7 @@ public class AchievementService
 
     private async Task SaveAndPublishAsync(AchievementCheckResults results, CancellationToken cancellationToken)
     {
-        await _pilots.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
 
         if (!results.Any())
         {
