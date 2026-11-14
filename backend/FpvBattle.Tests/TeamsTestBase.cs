@@ -8,7 +8,6 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using FpvBattle.Infrastructure.Persistence;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Domain;
 using FpvBattle.Logic.Features.Teams;
 using FpvBattle.Logic.Features.Teams.Services;
@@ -102,10 +101,7 @@ public abstract class TeamsTestBase : IDisposable
             _userManager,
             Service(),
             new TeamCreationPolicy(_db, Options.Create(_settings)),
-            new Repository<Team>(_db),
-            new Repository<TeamMember>(_db),
-            new Repository<TeamMembershipRequest>(_db),
-            new Repository<Pilot>(_db),
+            _db,
             Options.Create(_settings));
 
         controller.ControllerContext = new ControllerContext

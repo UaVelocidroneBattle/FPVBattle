@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +10,17 @@ namespace FpvBattle.Web.Controllers.Api.Countries;
 [Route("/api/countries/[action]")]
 public class CountriesController : ControllerBase
 {
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
-    public CountriesController(IRepository<Pilot> pilots)
+    public CountriesController(IApplicationDbContext db)
     {
-        _pilots = pilots;
+        _db = db;
     }
 
     [HttpGet]
     public async Task<List<CountryModel>> All()
     {
-        var pilotsByCountry = await _pilots
-            .GetAll()
+        var pilotsByCountry = await _db.Pilots
             .GroupedByCountry()
             .Select(g => new { CountryCode = g.Key, PilotsCount = g.Count() })
             .OrderByDescending(g => g.PilotsCount)
@@ -40,8 +39,7 @@ public class CountriesController : ControllerBase
     [HttpGet]
     public async Task<List<CountryPilotModel>> Pilots(string countryCode)
     {
-        return await _pilots
-            .GetAll(p => p.Country == countryCode)
+        return await _db.Pilots.Where(p => p.Country == countryCode)
             .OrderBy(p => p.Name)
             .Select(p => new CountryPilotModel
             {

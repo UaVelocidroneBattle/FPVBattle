@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,25 +10,22 @@ public class UserNotificationsController : AdminControllerBase
 {
     private const int MaxRows = 500;
 
-    private readonly IRepository<UserNotification> _notifications;
-    private readonly IRepository<ApplicationUser> _users;
+    private readonly IApplicationDbContext _db;
     private readonly ICupService _cupService;
 
     public UserNotificationsController(
-        IRepository<UserNotification> notifications,
-        IRepository<ApplicationUser> users,
+        IApplicationDbContext db,
         ICupService cupService)
     {
-        _notifications = notifications;
-        _users = users;
+        _db = db;
         _cupService = cupService;
     }
 
     public async Task<IActionResult> Index(string? search)
     {
         var query =
-            from notification in _notifications.GetAll()
-            join user in _users.GetAll() on notification.UserId equals user.Id
+            from notification in _db.UserNotifications
+            join user in _db.Users on notification.UserId equals user.Id
             select new { Notification = notification, User = user };
 
         if (!string.IsNullOrWhiteSpace(search))

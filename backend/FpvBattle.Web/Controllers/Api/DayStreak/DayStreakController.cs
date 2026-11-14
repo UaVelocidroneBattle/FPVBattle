@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,17 +9,17 @@ namespace FpvBattle.Web.Controllers.Api.DayStreak;
 [Route("/api/daystreak/[action]")]
 public class DayStreakController : ControllerBase
 {
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
-    public DayStreakController(IRepository<Pilot> pilots)
+    public DayStreakController(IApplicationDbContext db)
     {
-        _pilots = pilots;
+        _db = db;
     }
 
     [HttpGet]
     public async Task<List<DayStreakLeaderboardRow>> Leaderboard()
     {
-        return await _pilots.GetAll(p => p.DayStreak > 0)
+        return await _db.Pilots.Where(p => p.DayStreak > 0)
             .OrderByDescending(l => l.DayStreak)
             .Select(p => new DayStreakLeaderboardRow
             {

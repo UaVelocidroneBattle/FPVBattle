@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.PilotBinding.Services;
 using FpvBattle.Logic.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -10,23 +10,20 @@ namespace FpvBattle.Web.Controllers.Admin.Users;
 
 public class UsersController : AdminControllerBase
 {
-    private readonly IRepository<ApplicationUser> _users;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly PilotBindingService _bindingService;
 
     public UsersController(
-        IRepository<ApplicationUser> users,
-        IRepository<Pilot> pilots,
+        IApplicationDbContext db,
         PilotBindingService bindingService)
     {
-        _users = users;
-        _pilots = pilots;
+        _db = db;
         _bindingService = bindingService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var users = await _users.GetAll()
+        var users = await _db.Users
             .Include(u => u.Pilot)
             .ThenInclude(p => p.DayStreakFreezes)
             .OrderBy(u => u.Email)
@@ -53,9 +50,9 @@ public class UsersController : AdminControllerBase
     {
         try
         {
-            var user = await _users.FindAsync(userId)
+            var user = await _db.Users.FindAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
-            var pilot = await _pilots.GetAll().FindByNameAsync(pilotName)
+            var pilot = await _db.Pilots.FindByNameAsync(pilotName)
                         ?? throw new InvalidOperationException($"Pilot '{pilotName}' not found (names are case sensitive)");
 
             await _bindingService.LinkAsync(user, pilot);
@@ -73,7 +70,7 @@ public class UsersController : AdminControllerBase
     {
         try
         {
-            var user = await _users.FindAsync(userId)
+            var user = await _db.Users.FindAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
 
             await _bindingService.UnlinkAsync(user);
@@ -91,7 +88,7 @@ public class UsersController : AdminControllerBase
     {
         try
         {
-            var user = await _users.FindAsync(userId)
+            var user = await _db.Users.FindAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
             var pilot = user.Pilot
                         ?? throw new InvalidOperationException("User is not linked to a pilot");
@@ -105,7 +102,7 @@ public class UsersController : AdminControllerBase
                 pilot.DayStreakFreezes.Add(new DayStreakFreeze(today));
             }
 
-            await _users.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -120,14 +117,14 @@ public class UsersController : AdminControllerBase
     {
         try
         {
-            var user = await _users.FindAsync(userId)
+            var user = await _db.Users.FindAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
             var pilot = user.Pilot
                         ?? throw new InvalidOperationException("User is not linked to a pilot");
 
             pilot.DayStreakFrozenUntil = until?.Date;
 
-            await _users.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
         catch (Exception ex)
         {

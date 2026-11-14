@@ -1,6 +1,5 @@
 using FluentAssertions;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Notifications.Channels;
 using FpvBattle.Logic.Features.Notifications.Services;
 using FpvBattle.Logic.Features.Teams.NotificationHandlers;

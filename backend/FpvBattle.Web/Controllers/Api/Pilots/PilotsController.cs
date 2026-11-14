@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+﻿using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Services.Pilots;
 using FpvBattle.Logic.Services.Pilots.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Web.Controllers.Api.Pilots;
@@ -11,25 +11,21 @@ namespace FpvBattle.Web.Controllers.Api.Pilots;
 [Route("/api/pilots/[action]")]
 public class PilotsController : ControllerBase
 {
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly IPilotProfileService _pilotProfileService;
-    private readonly IRepository<Pilot> _pilots;
 
     public PilotsController(
-        IRepository<Competition> competitions,
-        IPilotProfileService pilotProfileService,
-        IRepository<Pilot> pilots)
+        IApplicationDbContext db,
+        IPilotProfileService pilotProfileService)
     {
-        _competitions = competitions;
+        _db = db;
         _pilotProfileService = pilotProfileService;
-        _pilots = pilots;
     }
 
     [HttpGet]
     public async Task<List<string>> All()
     {
-        return await _pilots
-            .GetAll()
+        return await _db.Pilots
             .OrderBy(p => p.Name)
             .Select(p => p.Name)
             .ToListAsync();

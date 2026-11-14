@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+﻿using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Web.Controllers.Api.Heatmap;
@@ -10,18 +10,18 @@ namespace FpvBattle.Web.Controllers.Api.Heatmap;
 public class PilotResultsController : ControllerBase
 {
     private readonly PilotResultsCalculator _calculator;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
-    public PilotResultsController(PilotResultsCalculator calculator, IRepository<Pilot> pilots)
+    public PilotResultsController(PilotResultsCalculator calculator, IApplicationDbContext db)
     {
         _calculator = calculator;
-        _pilots = pilots;
+        _db = db;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<PilotResult>>> ForPilot([FromQuery]string pilotName, CancellationToken ct)
     {
-        var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync(cancellationToken: ct);
+        var pilot = await _db.Pilots.ByName(pilotName).FirstOrDefaultAsync(cancellationToken: ct);
 
         if (pilot is null)
         {

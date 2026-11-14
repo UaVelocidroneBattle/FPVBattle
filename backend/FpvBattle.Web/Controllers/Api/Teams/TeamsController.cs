@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Teams;
 using FpvBattle.Logic.Features.Teams.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,29 +24,20 @@ public class TeamsController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly TeamService _teamService;
     private readonly TeamCreationPolicy _creationPolicy;
-    private readonly IRepository<Team> _teams;
-    private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<TeamMembershipRequest> _requests;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly TeamSettings _settings;
 
     public TeamsController(
         UserManager<ApplicationUser> userManager,
         TeamService teamService,
         TeamCreationPolicy creationPolicy,
-        IRepository<Team> teams,
-        IRepository<TeamMember> members,
-        IRepository<TeamMembershipRequest> requests,
-        IRepository<Pilot> pilots,
+        IApplicationDbContext db,
         IOptions<TeamSettings> settings)
     {
         _userManager = userManager;
         _teamService = teamService;
         _creationPolicy = creationPolicy;
-        _teams = teams;
-        _members = members;
-        _requests = requests;
-        _pilots = pilots;
+        _db = db;
         _settings = settings.Value;
     }
 
@@ -83,7 +74,7 @@ public class TeamsController : ControllerBase
     {
         var userId = _userManager.GetUserId(User);
 
-        var teams = _teams.GetAll().Public(_settings.MinPublicTeamSize);
+        var teams = _db.Teams.Public(_settings.MinPublicTeamSize);
 
         if (userId is not null)
             teams = teams.Where(t => t.Members.All(m => m.UserId != userId));
@@ -120,8 +111,8 @@ public class TeamsController : ControllerBase
 
         return await _userManager.Users
             .Where(u => u.Pilot != null && EF.Functions.Like(u.Pilot.Name, pattern, "\\"))
-            .Where(u => !_members.GetAll().Any(m => m.UserId == u.Id))
-            .Where(u => !_requests.GetAll().Any(i => i.TeamId == teamId && i.UserId == u.Id))
+            .Where(u => !_db.TeamMembers.Any(m => m.UserId == u.Id))
+            .Where(u => !_db.TeamMembershipRequests.Any(i => i.TeamId == teamId && i.UserId == u.Id))
             .OrderBy(u => u.Pilot!.Name)
             .Take(SuggestionsLimit)
             .Select(u => new PilotSuggestionModel { Name = u.Pilot!.Name, Country = u.Pilot.Country })
@@ -138,12 +129,12 @@ public class TeamsController : ControllerBase
     {
         var userId = _userManager.GetUserId(User);
 
-        var team = await _teams.FindAsync(teamId);
+        var team = await _db.Teams.FindAsync(teamId);
 
         if (team is null)
             return NotFound(TeamMessages.TeamNotFound);
 
-        var members = await _members.GetAll()
+        var members = await _db.TeamMembers
             .Where(m => m.TeamId == teamId)
             .OrderByDescending(m => m.Role)
             .ThenBy(m => m.JoinedOn)
@@ -174,8 +165,8 @@ public class TeamsController : ControllerBase
             MemberCount = members.Count,
             MyRole = myRole,
             Members = members,
-            PendingInvites = canReviewPending ? await GetPendingOfTeamAsync(_requests.GetAll().Invitations(), teamId) : [],
-            JoinRequests = canReviewPending ? await GetPendingOfTeamAsync(_requests.GetAll().JoinRequests(), teamId) : [],
+            PendingInvites = canReviewPending ? await GetPendingOfTeamAsync(_db.TeamMembershipRequests.Invitations(), teamId) : [],
+            JoinRequests = canReviewPending ? await GetPendingOfTeamAsync(_db.TeamMembershipRequests.JoinRequests(), teamId) : [],
             MyJoinRequestPending = user is not null && await FindJoinRequestAsync(teamId, user.Id) is not null,
             JoinRequestBlockedReason = user is null ? null : await FindJoinRequestBlockedReasonAsync(user, teamId, members.Count)
         };
@@ -192,7 +183,7 @@ public class TeamsController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        var team = await _teams.FindAsync(model.TeamId);
+        var team = await _db.Teams.FindAsync(model.TeamId);
 
         if (team is null)
             return NotFound(TeamMessages.TeamNotFound);
@@ -321,7 +312,7 @@ public class TeamsController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        var team = await _teams.FindAsync(model.TeamId);
+        var team = await _db.Teams.FindAsync(model.TeamId);
 
         if (team is null)
             return NotFound(TeamMessages.TeamNotFound);
@@ -354,7 +345,7 @@ public class TeamsController : ControllerBase
         if (string.IsNullOrWhiteSpace(model.PilotName))
             return BadRequest("Pilot name is required");
 
-        var team = await _teams.FindAsync(model.TeamId);
+        var team = await _db.Teams.FindAsync(model.TeamId);
 
         if (team is null)
             return NotFound(TeamMessages.TeamNotFound);
@@ -362,7 +353,7 @@ public class TeamsController : ControllerBase
         if (!TeamPermissions.CanInvite(await FindMemberAsync(team.Id, inviter.Id)))
             return Forbid();
 
-        var pilot = await _pilots.GetAll().FindByNameAsync(model.PilotName);
+        var pilot = await _db.Pilots.FindByNameAsync(model.PilotName);
 
         if (pilot is null)
             return NotFound(TeamMessages.PilotNotFound);
@@ -392,7 +383,7 @@ public class TeamsController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        var team = await _teams.FindAsync(model.TeamId);
+        var team = await _db.Teams.FindAsync(model.TeamId);
 
         if (team is null)
             return NotFound(TeamMessages.TeamNotFound);
@@ -454,7 +445,7 @@ public class TeamsController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        var team = await _teams.FindAsync(model.TeamId);
+        var team = await _db.Teams.FindAsync(model.TeamId);
 
         if (team is null)
             return NotFound(TeamMessages.TeamNotFound);
@@ -547,7 +538,7 @@ public class TeamsController : ControllerBase
 
     private async Task<TeamSummaryModel?> GetTeamOfUserAsync(string userId)
     {
-        return await _members.GetAll()
+        return await _db.TeamMembers
             .Where(m => m.UserId == userId)
             .Select(m => new TeamSummaryModel
             {
@@ -567,7 +558,7 @@ public class TeamsController : ControllerBase
         if (user.PilotId is null)
             return TeamMessages.PilotNotLinked;
 
-        if (await _members.GetAll().AnyAsync(m => m.UserId == user.Id))
+        if (await _db.TeamMembers.AnyAsync(m => m.UserId == user.Id))
             return TeamMessages.AlreadyInTeam;
 
         if (memberCount < _settings.MinPublicTeamSize)
@@ -576,7 +567,7 @@ public class TeamsController : ControllerBase
         if (_settings.MaxTeamSize > 0 && memberCount >= _settings.MaxTeamSize)
             return TeamMessages.TeamFull;
 
-        if (await _requests.GetAll().JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
+        if (await _db.TeamMembershipRequests.JoinRequests().CountAsync(i => i.UserId == user.Id) >= _settings.MaxPendingJoinRequests)
             return TooManyJoinRequestsMessage();
 
         return null;
@@ -587,7 +578,7 @@ public class TeamsController : ControllerBase
 
     private async Task<List<TeamJoinRequestSummaryModel>> GetJoinRequestsOfUserAsync(string userId)
     {
-        return await _requests.GetAll()
+        return await _db.TeamMembershipRequests
             .JoinRequests()
             .Where(i => i.UserId == userId)
             .OrderByDescending(i => i.CreatedOn)
@@ -618,7 +609,7 @@ public class TeamsController : ControllerBase
 
     private async Task<List<TeamInvitationModel>> GetInvitationsOfUserAsync(string userId)
     {
-        return await _requests.GetAll()
+        return await _db.TeamMembershipRequests
             .Invitations()
             .Where(i => i.UserId == userId)
             .OrderByDescending(i => i.CreatedOn)
@@ -639,16 +630,16 @@ public class TeamsController : ControllerBase
 
     private async Task<TeamMembershipRequest?> FindInviteAsync(int teamId, string userId)
     {
-        return await _requests.GetAll().Invitations().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
+        return await _db.TeamMembershipRequests.Invitations().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
     }
 
     private async Task<TeamMembershipRequest?> FindJoinRequestAsync(int teamId, string userId)
     {
-        return await _requests.GetAll().JoinRequests().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
+        return await _db.TeamMembershipRequests.JoinRequests().FirstOrDefaultAsync(i => i.TeamId == teamId && i.UserId == userId);
     }
 
     private async Task<TeamMember?> FindMemberAsync(int teamId, string userId)
     {
-        return await _members.GetAll().FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId);
+        return await _db.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId);
     }
 }

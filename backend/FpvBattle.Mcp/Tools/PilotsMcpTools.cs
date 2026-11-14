@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Notifications;
 using FpvBattle.Logic.Services.Pilots;
 using FpvBattle.Logic.Services.Pilots.Models;
@@ -17,19 +17,16 @@ public class PilotsMcpTools
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static readonly ILogger Log = Serilog.Log.ForContext<PilotsMcpTools>();
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<TrackTimeDelta> _deltas;
+    private readonly IApplicationDbContext _db;
     private readonly IPilotProfileService _pilotProfileService;
     private readonly IMediator _mediator;
 
     public PilotsMcpTools(
-        IRepository<Pilot> pilots,
-        IRepository<TrackTimeDelta> deltas,
+        IApplicationDbContext db,
         IPilotProfileService pilotProfileService,
         IMediator mediator)
     {
-        _pilots = pilots;
-        _deltas = deltas;
+        _db = db;
         _pilotProfileService = pilotProfileService;
         _mediator = mediator;
     }
@@ -40,8 +37,7 @@ public class PilotsMcpTools
     {
         Log.Information("Getting all pilots");
 
-        var result = await _pilots
-            .GetAll()
+        var result = await _db.Pilots
             .OrderBy(p => p.Name)
             .Select(p => new
             {
@@ -91,8 +87,7 @@ public class PilotsMcpTools
         if (string.IsNullOrEmpty(pilotName))
             throw new ArgumentException("'pilotName' cannot be null or empty.");
 
-        var pilot = await _pilots
-            .GetAll()
+        var pilot = await _db.Pilots
             .ByName(pilotName)
             .FirstOrDefaultAsync();
 
@@ -102,7 +97,7 @@ public class PilotsMcpTools
             throw new Exception("Pilot not found");
         }
 
-        var deltaDates = await _deltas.GetAll()
+        var deltaDates = await _db.TrackTimeDeltas
             .Where(d => d.PilotId == pilot.Id)
             .Select(d => d.Date)
             .ToListAsync();
@@ -141,8 +136,7 @@ public class PilotsMcpTools
         if (dayStreak < 0)
             throw new ArgumentException("'dayStreak' cannot be negative.");
 
-        var pilot = await _pilots
-            .GetAll()
+        var pilot = await _db.Pilots
             .ByName(pilotName)
             .FirstOrDefaultAsync();
 
@@ -158,7 +152,7 @@ public class PilotsMcpTools
         if (dayStreak > pilot.MaxDayStreak)
             pilot.MaxDayStreak = dayStreak;
 
-        await _pilots.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Day streak for pilot {PilotName} updated from {Previous} to {DayStreak}", pilotName, previous, dayStreak);
 
@@ -178,8 +172,7 @@ public class PilotsMcpTools
             throw new ArgumentException("'pilotName' cannot be null or empty.");
         }
 
-        var pilot = await _pilots
-            .GetAll()
+        var pilot = await _db.Pilots
             .ByName(pilotName)
             .FirstOrDefaultAsync();
 
@@ -191,7 +184,7 @@ public class PilotsMcpTools
 
         var today = DateTime.Today;
         pilot.DayStreakFreezes.Add(new DayStreakFreeze(today));
-        await _pilots.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Freezie added for pilot {PilotName}", pilotName);
 

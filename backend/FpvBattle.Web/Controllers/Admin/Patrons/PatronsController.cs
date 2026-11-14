@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.PilotBinding.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,26 +9,20 @@ namespace FpvBattle.Web.Controllers.Admin.Patrons;
 
 public class PatronsController : AdminControllerBase
 {
-    private readonly IRepository<PatreonSupporter> _supporters;
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<ApplicationUser> _users;
+    private readonly IApplicationDbContext _db;
     private readonly PilotBindingService _bindingService;
 
     public PatronsController(
-        IRepository<PatreonSupporter> supporters,
-        IRepository<Pilot> pilots,
-        IRepository<ApplicationUser> users,
+        IApplicationDbContext db,
         PilotBindingService bindingService)
     {
-        _supporters = supporters;
-        _pilots = pilots;
-        _users = users;
+        _db = db;
         _bindingService = bindingService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var supporters = await _supporters.GetAll()
+        var supporters = await _db.PatreonSupporters
             .Include(s => s.Pilot)
             .OrderBy(s => s.Name)
             .ToListAsync();
@@ -64,7 +58,7 @@ public class PatronsController : AdminControllerBase
             };
         }).ToList();
 
-        var unlinkedPilotNames = await _pilots.GetAll()
+        var unlinkedPilotNames = await _db.Pilots
             .Where(p => !linkedPilotIds.Contains(p.Id))
             .OrderBy(p => p.Name)
             .Select(p => p.Name)
@@ -82,7 +76,7 @@ public class PatronsController : AdminControllerBase
             .Distinct()
             .ToList();
 
-        var users = await _users.GetAll()
+        var users = await _db.Users
             .Where(u => u.NormalizedEmail != null && normalizedEmails.Contains(u.NormalizedEmail))
             .Include(u => u.Pilot)
             .ToListAsync();
@@ -95,13 +89,13 @@ public class PatronsController : AdminControllerBase
     {
         try
         {
-            var supporter = await _supporters.FindAsync(patreonId)
+            var supporter = await _db.PatreonSupporters.FindAsync(patreonId)
                             ?? throw new InvalidOperationException("Patron not found");
-            var pilot = await _pilots.GetAll().FindByNameAsync(pilotName)
+            var pilot = await _db.Pilots.FindByNameAsync(pilotName)
                         ?? throw new InvalidOperationException($"Pilot '{pilotName}' not found (names are case sensitive)");
 
             supporter.PilotId = pilot.Id;
-            await _supporters.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -116,11 +110,11 @@ public class PatronsController : AdminControllerBase
     {
         try
         {
-            var supporter = await _supporters.FindAsync(patreonId)
+            var supporter = await _db.PatreonSupporters.FindAsync(patreonId)
                             ?? throw new InvalidOperationException("Patron not found");
 
             supporter.PilotId = null;
-            await _supporters.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
         catch (Exception ex)
         {

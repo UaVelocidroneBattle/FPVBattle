@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ILogger = Serilog.ILogger;
@@ -11,19 +11,17 @@ namespace FpvBattle.Web.Controllers.Api.Migration;
 public class MigrationController : ControllerBase
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<MigrationController>();
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<CompetitionResults> _competitionResults;
+    private readonly IApplicationDbContext _db;
 
-    public MigrationController(IRepository<Pilot> pilots, IRepository<CompetitionResults> competitionResults)
+    public MigrationController(IApplicationDbContext db)
     {
-        _pilots = pilots;
-        _competitionResults = competitionResults;
+        _db = db;
     }
 
     [HttpGet]
     public async Task CalculatePilotProperties()
     {
-        var pilots = await _pilots.GetAll().ToListAsync();
+        var pilots = await _db.Pilots.ToListAsync();
         Log.Information("Starting pilot properties migration for {PilotCount} pilots", pilots.Count);
 
         var updated = 0;
@@ -31,7 +29,7 @@ public class MigrationController : ControllerBase
 
         foreach (var pilot in pilots)
         {
-            var raceDates = _competitionResults.GetAll()
+            var raceDates = _db.CompetitionResults
                 .Where(cr => cr.PilotId == pilot.Id && cr.Competition.State == CompetitionState.Closed)
                 .Select(cr => cr.Competition.StartedOn.Date)
                 .Distinct();
@@ -51,7 +49,7 @@ public class MigrationController : ControllerBase
             updated++;
         }
 
-        await _pilots.SaveChangesAsync();
+        await _db.SaveChangesAsync();
         Log.Information("Pilot properties migration complete. Updated: {Updated}, Skipped: {Skipped}", updated, skipped);
     }
 }

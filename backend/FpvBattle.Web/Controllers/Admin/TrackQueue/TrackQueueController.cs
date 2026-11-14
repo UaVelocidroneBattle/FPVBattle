@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Services.Tracks;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +13,13 @@ public class TrackQueueController : AdminControllerBase
 
     private readonly TrackQueueService _trackQueueService;
     private readonly ICupService _cupService;
-    private readonly IRepository<QuadModel> _quads;
+    private readonly IApplicationDbContext _db;
 
-    public TrackQueueController(TrackQueueService trackQueueService, ICupService cupService, IRepository<QuadModel> quads)
+    public TrackQueueController(TrackQueueService trackQueueService, ICupService cupService, IApplicationDbContext db)
     {
         _trackQueueService = trackQueueService;
         _cupService = cupService;
-        _quads = quads;
+        _db = db;
     }
 
     public async Task<IActionResult> Index()
@@ -33,7 +33,7 @@ public class TrackQueueController : AdminControllerBase
             Tracks = await _trackQueueService.GetQueueAsync(kv.Key)
         }));
 
-        var quads = await _quads.GetAll().OrderBy(q => q.Name).ToListAsync();
+        var quads = await _db.QuadModels.OrderBy(q => q.Name).ToListAsync();
 
         return View(new TrackQueueViewModel { Cups = [..cupModels], Quads = quads });
     }

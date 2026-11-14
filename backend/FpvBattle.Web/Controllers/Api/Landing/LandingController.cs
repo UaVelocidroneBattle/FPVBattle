@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +14,14 @@ public class LandingController : ControllerBase
     private const string CacheKey = "landing-data";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
 
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<CompetitionResults> _competitionResults;
+    private readonly IApplicationDbContext _db;
     private readonly IMemoryCache _cache;
 
     public LandingController(
-        IRepository<Pilot> pilots,
-        IRepository<CompetitionResults> competitionResults,
+        IApplicationDbContext db,
         IMemoryCache cache)
     {
-        _pilots = pilots;
-        _competitionResults = competitionResults;
+        _db = db;
         _cache = cache;
     }
 
@@ -46,7 +43,7 @@ public class LandingController : ControllerBase
 
         return new LandingDataModel
         {
-            TotalPilots = await _pilots.GetAll().CountAsync(),
+            TotalPilots = await _db.Pilots.CountAsync(),
             TotalCountries = countryPilots.Count,
             DailyActivePilots = await GetDailyActivePilotsAsync(),
             CountryPilots = countryPilots
@@ -62,8 +59,7 @@ public class LandingController : ControllerBase
         var today = DateTime.Today;
         var startFrom = today.AddDays(-watchInPastDays);
 
-        var dailyPilotCounts = await _competitionResults
-            .GetAll(r => r.Competition.State == CompetitionState.Closed)
+        var dailyPilotCounts = await _db.CompetitionResults.Where(r => r.Competition.State == CompetitionState.Closed)
             .Where(r => r.Competition.StartedOn >= startFrom)
             .Select(r => new { Day = r.Competition.StartedOn.Date, r.PilotId })
             .Distinct()
@@ -78,8 +74,7 @@ public class LandingController : ControllerBase
 
     private async Task<List<CountryPilotsModel>> GetCountryPilotsAsync()
     {
-        var pilotsByCountry = await _pilots
-            .GetAll()
+        var pilotsByCountry = await _db.Pilots
             .GroupedByCountry()
             .Select(g => new { CountryCode = g.Key, Pilots = g.Count() })
             .OrderByDescending(g => g.Pilots)

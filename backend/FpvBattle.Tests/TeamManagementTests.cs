@@ -1,6 +1,5 @@
 using FluentAssertions;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Teams;
 using FpvBattle.Web.Controllers.Admin.Teams;
 using Microsoft.AspNetCore.Http;
@@ -241,11 +240,7 @@ public class TeamManagementTests : TeamsTestBase
     }
 
     private TeamManagementController Controller() => new(
-        new Repository<Team>(_db),
-        new Repository<TeamMember>(_db),
-        new Repository<TeamMembershipRequest>(_db),
-        new Repository<ApplicationUser>(_db),
-        new Repository<Pilot>(_db),
+        _db,
         Service(),
         Options.Create(_settings))
     {

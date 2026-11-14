@@ -8,7 +8,6 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using FpvBattle.Infrastructure.Persistence;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Domain;
 using FpvBattle.Logic.Features.Teams;
 using FpvBattle.Logic.Features.Notifications.Channels;

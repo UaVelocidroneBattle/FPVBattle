@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.PilotBinding.Services;
 using FpvBattle.Logic.Features.Teams.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,18 +20,18 @@ public class ProfileController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly PilotBindingService _bindingService;
     private readonly TeamService _teamService;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
     public ProfileController(
         UserManager<ApplicationUser> userManager,
         PilotBindingService bindingService,
         TeamService teamService,
-        IRepository<Pilot> pilots)
+        IApplicationDbContext db)
     {
         _userManager = userManager;
         _bindingService = bindingService;
         _teamService = teamService;
-        _pilots = pilots;
+        _db = db;
     }
 
     [HttpGet]
@@ -54,7 +54,7 @@ public class ProfileController : ControllerBase
         if (string.IsNullOrWhiteSpace(pilotName))
             return BadRequest("Pilot name is required");
 
-        var pilot = await _pilots.GetAll().FindByNameAsync(pilotName);
+        var pilot = await _db.Pilots.FindByNameAsync(pilotName);
 
         Log.Information("User {UserId} looked up pilot {PilotName}: {LookupResult}",
             _userManager.GetUserId(User), pilotName, pilot is null ? "not found" : "found");
@@ -147,7 +147,7 @@ public class ProfileController : ControllerBase
 
     private async Task<ProfileModel> BuildProfileAsync(ApplicationUser user)
     {
-        var pilot = user.PilotId is null ? null : await _pilots.FindAsync(user.PilotId.Value);
+        var pilot = user.PilotId is null ? null : await _db.Pilots.FindAsync(user.PilotId.Value);
         var claim = await _bindingService.GetClaimAsync(user);
         var email = user.Email ?? string.Empty;
 

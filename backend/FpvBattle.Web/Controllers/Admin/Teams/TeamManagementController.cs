@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.Teams;
 using FpvBattle.Logic.Features.Teams.Services;
 using FpvBattle.Logic.Helpers;
@@ -16,35 +16,23 @@ namespace FpvBattle.Web.Controllers.Admin.Teams;
 /// </summary>
 public class TeamManagementController : AdminControllerBase
 {
-    private readonly IRepository<Team> _teams;
-    private readonly IRepository<TeamMember> _members;
-    private readonly IRepository<TeamMembershipRequest> _requests;
-    private readonly IRepository<ApplicationUser> _users;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly TeamService _teamService;
     private readonly TeamSettings _settings;
 
     public TeamManagementController(
-        IRepository<Team> teams,
-        IRepository<TeamMember> members,
-        IRepository<TeamMembershipRequest> requests,
-        IRepository<ApplicationUser> users,
-        IRepository<Pilot> pilots,
+        IApplicationDbContext db,
         TeamService teamService,
         IOptions<TeamSettings> settings)
     {
-        _teams = teams;
-        _members = members;
-        _requests = requests;
-        _users = users;
-        _pilots = pilots;
+        _db = db;
         _teamService = teamService;
         _settings = settings.Value;
     }
 
     public async Task<IActionResult> Index()
     {
-        var rows = await _teams.GetAll()
+        var rows = await _db.Teams
             .OrderBy(t => t.Name)
             .Select(t => new TeamRow
             {
@@ -71,12 +59,12 @@ public class TeamManagementController : AdminControllerBase
 
     public async Task<IActionResult> Details(int id)
     {
-        var team = await _teams.FindAsync(id);
+        var team = await _db.Teams.FindAsync(id);
 
         if (team is null)
             return NotFound();
 
-        var members = await _members.GetAll()
+        var members = await _db.TeamMembers
             .Where(m => m.TeamId == id)
             .OrderByDescending(m => m.Role)
             .ThenBy(m => m.JoinedOn)
@@ -89,7 +77,7 @@ public class TeamManagementController : AdminControllerBase
             })
             .ToListAsync();
 
-        var invites = await _requests.GetAll()
+        var invites = await _db.TeamMembershipRequests
             .Where(i => i.TeamId == id)
             .OrderBy(i => i.CreatedOn)
             .Select(i => new TeamInviteRow
@@ -152,7 +140,7 @@ public class TeamManagementController : AdminControllerBase
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, string name, string tag, string? description)
     {
-        var team = await _teams.FindAsync(id);
+        var team = await _db.Teams.FindAsync(id);
 
         if (team is null)
             return NotFound();
@@ -178,7 +166,7 @@ public class TeamManagementController : AdminControllerBase
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var team = await _teams.FindAsync(id);
+        var team = await _db.Teams.FindAsync(id);
 
         if (team is null)
             return NotFound();
@@ -193,7 +181,7 @@ public class TeamManagementController : AdminControllerBase
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> AddMember(int id, string pilotName)
     {
-        var team = await _teams.FindAsync(id);
+        var team = await _db.Teams.FindAsync(id);
 
         if (team is null)
             return NotFound();
@@ -252,7 +240,7 @@ public class TeamManagementController : AdminControllerBase
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> RevokeInvite(int id, string userId)
     {
-        var invite = await _requests.GetAll().FirstOrDefaultAsync(i => i.TeamId == id && i.UserId == userId);
+        var invite = await _db.TeamMembershipRequests.FirstOrDefaultAsync(i => i.TeamId == id && i.UserId == userId);
 
         if (invite is null)
             return NotFound();
@@ -276,8 +264,8 @@ public class TeamManagementController : AdminControllerBase
     /// <summary>Pilots linked to an account that is in no team yet.</summary>
     private Task<List<string>> FindPilotsWithoutTeamAsync()
     {
-        return _users.GetAll()
-            .Where(u => u.Pilot != null && !_members.GetAll().Any(m => m.UserId == u.Id))
+        return _db.Users
+            .Where(u => u.Pilot != null && !_db.TeamMembers.Any(m => m.UserId == u.Id))
             .Select(u => u.Pilot!.Name)
             .OrderBy(name => name)
             .ToListAsync();
@@ -285,7 +273,7 @@ public class TeamManagementController : AdminControllerBase
 
     private async Task<TeamMember?> FindMemberAsync(int teamId, string userId)
     {
-        return await _members.GetAll().FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId);
+        return await _db.TeamMembers.FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId);
     }
 
     /// <summary>The account linked to the pilot. Leaves an error message for the page when there is none.</summary>
@@ -293,7 +281,7 @@ public class TeamManagementController : AdminControllerBase
     {
         var pilot = string.IsNullOrWhiteSpace(pilotName)
             ? null
-            : await _pilots.GetAll().FindByNameAsync(pilotName.Trim());
+            : await _db.Pilots.FindByNameAsync(pilotName.Trim());
 
         if (pilot is null)
         {
@@ -301,7 +289,7 @@ public class TeamManagementController : AdminControllerBase
             return null;
         }
 
-        var user = await _users.GetAll().FirstOrDefaultAsync(u => u.PilotId == pilot.Id);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.PilotId == pilot.Id);
 
         if (user is null)
             TempData["Error"] = TeamMessages.PilotNotRegistered;

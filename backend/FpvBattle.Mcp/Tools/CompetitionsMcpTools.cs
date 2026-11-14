@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Notifications;
 using FpvBattle.Logic.Services;
@@ -20,20 +20,20 @@ public class CompetitionsMcpTools
     private readonly CompetitionService _competitionService;
     private readonly CompetitionConductor _competitionConductor;
     private readonly ICupService _cupService;
-    private readonly IRepository<Competition> _competitionRepository;
+    private readonly IApplicationDbContext _db;
     private readonly IMediator _mediator;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
 
     public CompetitionsMcpTools(
         CompetitionService competitionService,
-        IRepository<Competition> competitionRepository,
+        IApplicationDbContext db,
         CompetitionConductor competitionConductor,
         IMediator mediator,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator)
     {
         _competitionService = competitionService;
-        _competitionRepository = competitionRepository;
+        _db = db;
         _competitionConductor = competitionConductor;
         _mediator = mediator;
         _cupService = cupService;
@@ -101,8 +101,7 @@ public class CompetitionsMcpTools
         var startDay = startDate.Date;
         var nextDay = startDay.AddDays(1);
 
-        var competition = await _competitionRepository
-            .GetAll()
+        var competition = await _db.Competitions
             .NotCancelled()
             .ForCup(cupId)
             .InRange(startDay, nextDay)

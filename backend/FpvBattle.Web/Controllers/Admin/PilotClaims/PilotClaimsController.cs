@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Features.PilotBinding.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,36 +9,29 @@ namespace FpvBattle.Web.Controllers.Admin.PilotClaims;
 
 public class PilotClaimsController : AdminControllerBase
 {
-    private readonly IRepository<PilotClaim> _claims;
-    private readonly IRepository<ApplicationUser> _users;
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly PilotBindingService _bindingService;
 
     public PilotClaimsController(
-        IRepository<PilotClaim> claims,
-        IRepository<ApplicationUser> users,
-        IRepository<Pilot> pilots,
+        IApplicationDbContext db,
         PilotBindingService bindingService)
     {
-        _claims = claims;
-        _users = users;
-        _pilots = pilots;
+        _db = db;
         _bindingService = bindingService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var claims = await _claims.GetAll().OrderBy(c => c.ExpiresOn).ToListAsync();
+        var claims = await _db.PilotClaims.OrderBy(c => c.ExpiresOn).ToListAsync();
 
         var userIds = claims.Select(c => c.UserId).Distinct().ToList();
-        var users = await _users.GetAll(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id);
+        var users = await _db.Users.Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id);
 
         var claimedNames = claims.Select(c => c.PilotName).Distinct().ToList();
-        var pilots = await _pilots.GetAll(p => claimedNames.Contains(p.Name)).ToListAsync();
+        var pilots = await _db.Pilots.Where(p => claimedNames.Contains(p.Name)).ToListAsync();
 
         var pilotIds = pilots.Select(p => p.Id).ToList();
-        var linkedPilotIds = await _users
-            .GetAll(u => u.PilotId != null && pilotIds.Contains(u.PilotId.Value))
+        var linkedPilotIds = await _db.Users.Where(u => u.PilotId != null && pilotIds.Contains(u.PilotId.Value))
             .Select(u => u.PilotId!.Value)
             .ToListAsync();
 
@@ -70,11 +63,11 @@ public class PilotClaimsController : AdminControllerBase
     {
         try
         {
-            var claim = await _claims.FindAsync(claimId)
+            var claim = await _db.PilotClaims.FindAsync(claimId)
                         ?? throw new InvalidOperationException("Claim not found");
-            var user = await _users.FindAsync(claim.UserId)
+            var user = await _db.Users.FindAsync(claim.UserId)
                        ?? throw new InvalidOperationException("The claiming user no longer exists");
-            var pilot = await _pilots.GetAll().FindByNameAsync(claim.PilotName)
+            var pilot = await _db.Pilots.FindByNameAsync(claim.PilotName)
                         ?? throw new InvalidOperationException($"Pilot '{claim.PilotName}' has no results yet, there is nothing to link");
 
             // LinkAsync also removes the user's pending claim
@@ -93,7 +86,7 @@ public class PilotClaimsController : AdminControllerBase
     {
         try
         {
-            var claim = await _claims.FindAsync(claimId)
+            var claim = await _db.PilotClaims.FindAsync(claimId)
                         ?? throw new InvalidOperationException("Claim not found");
 
             await _bindingService.DeleteClaimAsync(claim);
