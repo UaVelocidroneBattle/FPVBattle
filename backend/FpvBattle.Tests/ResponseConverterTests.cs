@@ -1,17 +1,29 @@
-using System.Linq.Expressions;
 using System.Text.Json;
 using FluentAssertions;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API.Velocidrone.Dto;
 using FpvBattle.Logic.Services;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FpvBattle.Tests;
 
-public class ResponseConverterTests
+public class ResponseConverterTests : IDisposable
 {
-    private readonly RaceResultsConverter _converter = CreateConverter();
+    private readonly List<IDisposable> _databases = [];
+    private readonly RaceResultsConverter _converter;
+
+    public ResponseConverterTests()
+    {
+        _converter = CreateConverter();
+    }
+
+    public void Dispose()
+    {
+        _databases.ForEach(database => database.Dispose());
+    }
 
     [Fact]
     public async Task can_calculate_ranks()
@@ -405,7 +417,7 @@ public class ResponseConverterTests
         times.Should().HaveCount(2);
     }
 
-    private static RaceResultsConverter CreateConverter(
+    private RaceResultsConverter CreateConverter(
         int[] pilotIds = null!,
         PilotClaim[] claims = null!,
         string[] blacklistedCountries = null!,
@@ -416,14 +428,38 @@ public class ResponseConverterTests
             CountriesBlackList = blacklistedCountries?.ToList() ?? []
         });
 
-        // Sarah (1003) is intentionally not registered — tests rely on unknown pilots being filtered out
-        var pilots = (pilotIds ?? [1001, 1002, 1004]).Select(id => new Pilot { Id = id });
+        var db = CreateDatabase();
 
-        return new RaceResultsConverter(
-            new FakeRepository<QuadModel>(quadModels ?? []),
-            new FakeRepository<Pilot>(pilots),
-            new FakeRepository<PilotClaim>(claims ?? []),
-            options);
+        // Sarah (1003) is intentionally not registered — tests rely on unknown pilots being filtered out
+        db.Set<Pilot>().AddRange((pilotIds ?? [1001, 1002, 1004]).Select(id => new Pilot($"pilot_{id}") { Id = id, Country = "UA" }));
+        db.Set<QuadModel>().AddRange(quadModels ?? []);
+
+        foreach (var (claim, index) in (claims ?? []).Select((claim, index) => (claim, index)))
+        {
+            var claimant = new ApplicationUser { Id = $"claimant_{index}", UserName = $"claimant_{index}" };
+            db.Users.Add(claimant);
+            claim.UserId = claimant.Id;
+            db.Set<PilotClaim>().Add(claim);
+        }
+
+        db.SaveChanges();
+        return new RaceResultsConverter(db, options);
+    }
+
+    private ApplicationDbContext CreateDatabase()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+
+        var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseLazyLoadingProxies()
+            .UseSqlite(connection)
+            .Options);
+        db.Database.EnsureCreated();
+
+        _databases.Add(db);
+        _databases.Add(connection);
+        return db;
     }
 
     private static PilotClaim ActiveClaim(string pilotName) => new()
@@ -437,82 +473,4 @@ public class ResponseConverterTests
         PilotName = pilotName,
         ExpiresOn = DateTime.UtcNow.AddHours(-1)
     };
-
-    private sealed class FakeRepository<T> : IRepository<T> where T : class
-    {
-        private readonly IQueryable<T> _items;
-
-        public FakeRepository(IEnumerable<T> items)
-        {
-            _items = new TestAsyncEnumerable<T>(items);
-        }
-
-        public IQueryable<T> GetAll() => _items;
-
-        public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate) => _items.Where(predicate);
-
-        public ValueTask<T?> FindAsync(object id) => throw new NotImplementedException();
-        public Task AddAsync(T entry) => throw new NotImplementedException();
-        public Task AddRangeAsync(IEnumerable<T> entries) => throw new NotImplementedException();
-        public Task UpdateAsync(T entry) => throw new NotImplementedException();
-        public Task RemoveAsync(object id) => throw new NotImplementedException();
-        public Task RemoveEntryAsync(T entry) => throw new NotImplementedException();
-        public Task SaveChangesAsync() => throw new NotImplementedException();
-        public Task SaveChangesAsync(CancellationToken ct) => throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Wraps an in-memory collection so EF Core async operators (ToListAsync, ToHashSetAsync)
-    /// work against the fake repositories.
-    /// </summary>
-    private sealed class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
-    {
-        public TestAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable) { }
-
-        public TestAsyncEnumerable(Expression expression) : base(expression) { }
-
-        IQueryProvider IQueryable.Provider => new TestAsyncQueryProvider<T>(this);
-
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-            => new TestAsyncEnumerator<T>(((IEnumerable<T>)this).GetEnumerator());
-    }
-
-    private sealed class TestAsyncQueryProvider<T> : IQueryProvider
-    {
-        private readonly IQueryProvider _inner;
-
-        public TestAsyncQueryProvider(IQueryProvider inner)
-        {
-            _inner = inner;
-        }
-
-        public IQueryable CreateQuery(Expression expression) => CreateQuery<T>(expression);
-
-        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-            => new TestAsyncEnumerable<TElement>(expression);
-
-        public object? Execute(Expression expression) => _inner.Execute(expression);
-
-        public TResult Execute<TResult>(Expression expression) => _inner.Execute<TResult>(expression);
-    }
-
-    private sealed class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
-    {
-        private readonly IEnumerator<T> _inner;
-
-        public TestAsyncEnumerator(IEnumerator<T> inner)
-        {
-            _inner = inner;
-        }
-
-        public T Current => _inner.Current;
-
-        public ValueTask<bool> MoveNextAsync() => ValueTask.FromResult(_inner.MoveNext());
-
-        public ValueTask DisposeAsync()
-        {
-            _inner.Dispose();
-            return ValueTask.CompletedTask;
-        }
-    }
 }

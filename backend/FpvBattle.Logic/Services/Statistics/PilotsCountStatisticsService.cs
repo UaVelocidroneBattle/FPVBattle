@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Logic.Services.Statistics;
@@ -15,11 +15,11 @@ namespace FpvBattle.Logic.Services.Statistics;
 /// </remarks>
 public class PilotsCountStatisticsService
 {
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
-    public PilotsCountStatisticsService(IRepository<Pilot> pilots)
+    public PilotsCountStatisticsService(IApplicationDbContext db)
     {
-        _pilots = pilots;
+        _db = db;
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class PilotsCountStatisticsService
     /// </remarks>
     private async Task<Dictionary<DateTime, int>> JoinsPerDayAsync()
     {
-        var joins = await _pilots.GetAll()
+        var joins = await _db.Pilots
             .GroupBy(pilot => pilot.CreatedAt.Date)
             .Select(group => new { Day = group.Key, Count = group.Count() })
             .ToListAsync();
@@ -101,7 +101,7 @@ public class PilotsCountStatisticsService
 
     private async Task<Dictionary<DateTime, int>> JoinsPerMonthAsync()
     {
-        var joins = await _pilots.GetAll()
+        var joins = await _db.Pilots
             .GroupBy(pilot => new { pilot.CreatedAt.Year, pilot.CreatedAt.Month })
             .Select(group => new { group.Key.Year, group.Key.Month, Count = group.Count() })
             .ToListAsync();

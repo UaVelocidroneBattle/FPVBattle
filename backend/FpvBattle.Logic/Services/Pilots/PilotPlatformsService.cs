@@ -1,20 +1,20 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 
 namespace FpvBattle.Logic.Services.Pilots;
 
 public class PilotPlatformsService
 {
-    private readonly IRepository<PilotPlatformAccount> _pilotPlatforms;
+    private readonly IApplicationDbContext _db;
 
-    public PilotPlatformsService(IRepository<PilotPlatformAccount> pilotPlatforms)
+    public PilotPlatformsService(IApplicationDbContext db)
     {
-        _pilotPlatforms = pilotPlatforms;
+        _db = db;
     }
 
     public async Task AddOrUpdatePlatformAsync(Pilot pilot, PlatformNames platform, string username)
     {
-        var account = _pilotPlatforms.GetAll(pp => pp.PilotId == pilot.Id)
+        var account = _db.PilotPlatformAccounts.Where(pp => pp.PilotId == pilot.Id)
             .SingleOrDefault(pp => pp.PlatformName == platform);
 
         if (account is null)
@@ -26,12 +26,12 @@ public class PilotPlatformsService
                 Username = username
             };
 
-            await _pilotPlatforms.AddAsync(newAccount);
-            await _pilotPlatforms.SaveChangesAsync();
+            _db.PilotPlatformAccounts.Add(newAccount);
+            await _db.SaveChangesAsync();
             return;
         }
 
         account.Username = username;
-        await _pilotPlatforms.SaveChangesAsync();
+        await _db.SaveChangesAsync();
     }
 }

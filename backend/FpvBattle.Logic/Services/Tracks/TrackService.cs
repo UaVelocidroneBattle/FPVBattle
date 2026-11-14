@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.API.Velocidrone.Dto;
 using FpvBattle.Logic.Services.Tracks.Models;
@@ -13,21 +13,15 @@ public class TrackService
     private static readonly ILogger Log = Serilog.Log.ForContext<TrackService>();
     private const double MinimumGoodRating = 3;
 
-    private readonly IRepository<Track> _tracks;
-    private readonly IRepository<TrackMap> _maps;
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly VelocidroneClient _velocidrone;
     private List<string>? _usedTrackIds;
 
     public TrackService(
-        IRepository<Track> tracks,
-        IRepository<TrackMap> maps,
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         VelocidroneClient velocidrone)
     {
-        _tracks = tracks;
-        _maps = maps;
-        _competitions = competitions;
+        _db = db;
         _velocidrone = velocidrone;
     }
 
@@ -81,8 +75,7 @@ public class TrackService
     {
         var usedTrackIds = await GetUsedTrackIdsAsync();
 
-        var candidates = await _competitions
-            .GetAll(c => c.CupId == cupId && c.Track.Rating != null && c.Track.Rating.Value >= MinimumGoodRating)
+        var candidates = await _db.Competitions.Where(c => c.CupId == cupId && c.Track.Rating != null && c.Track.Rating.Value >= MinimumGoodRating)
             .Select(c => c.Track)
             .Where(t => !usedTrackIds.Contains(t.Id))
             .Distinct()
@@ -100,8 +93,7 @@ public class TrackService
 
     public async Task<Track> GetOrCreateTrackAsync(string mapName, int mapId, string trackName, int trackId)
     {
-        var dbTrack = await _tracks
-                .GetAll()
+        var dbTrack = await _db.Tracks
                 .FirstOrDefaultAsync(t => t.TrackId == trackId);
 
         return dbTrack ?? await CreateNewTrackAsync(mapName, mapId, trackName, trackId);
@@ -111,8 +103,7 @@ public class TrackService
     {
         Log.Debug("Creating new track {TrackName} (ID: {TrackId}) in map {MapName}", trackName, trackId, mapName);
 
-        var dbMap = await _maps
-                        .GetAll()
+        var dbMap = await _db.TrackMaps
                         .FirstOrDefaultAsync(m => m.Name == mapName)
                     ?? await CreateNewMapAsync(mapName, mapId);
 
@@ -129,8 +120,8 @@ public class TrackService
             TrackId = trackId
         };
 
-        await _tracks.AddAsync(track);
-        await _tracks.SaveChangesAsync();
+        _db.Tracks.Add(track);
+        await _db.SaveChangesAsync();
         Log.Information("✨ Created new track {TrackName} (ID: {TrackId}) in map {MapName}", trackName, trackId, mapName);
 
         return track;
@@ -147,8 +138,7 @@ public class TrackService
         var start = DateTime.Now.AddMonths(-6);
         Log.Debug("Querying for tracks used since {StartDate}", start.ToString("yyyy-MM-dd"));
 
-        var ids = await _competitions
-            .GetAll(comp => comp.StartedOn > start)
+        var ids = await _db.Competitions.Where(comp => comp.StartedOn > start)
             .Select(comp => comp.Track.Id)
             .ToListAsync();
 
@@ -168,8 +158,8 @@ public class TrackService
             MapId = mapId
         };
 
-        await _maps.AddAsync(map);
-        await _maps.SaveChangesAsync();
+        _db.TrackMaps.Add(map);
+        await _db.SaveChangesAsync();
         Log.Debug("Successfully created map {MapName}", name);
 
         return map;

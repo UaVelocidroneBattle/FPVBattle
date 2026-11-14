@@ -1,17 +1,17 @@
 using System.Text;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;
 
 namespace FpvBattle.Logic.Bot.Telegram.Commands;
 
 public class ListPilotPlatformsCommand : ITelegramCommand
 {
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
 
-    public ListPilotPlatformsCommand(IRepository<Pilot> pilots)
+    public ListPilotPlatformsCommand(IApplicationDbContext db)
     {
-        _pilots = pilots;
+        _db = db;
     }
 
     public string[] Keywords => ["/list-pilot-platforms"];
@@ -19,8 +19,7 @@ public class ListPilotPlatformsCommand : ITelegramCommand
     public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
         // Admin command - works in any chat regardless of cup binding
-        var pilots = _pilots
-            .GetAll(p => p.PlatformAccounts.Any())
+        var pilots = _db.Pilots.Where(p => p.PlatformAccounts.Any())
             .ToList();
 
         if (pilots.Count == 0)

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Bot;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Notifications;
@@ -33,7 +33,7 @@ public class DiscordMessageEventHandler :
     private readonly IDiscordBotFactory _botFactory;
     private readonly IDiscordCupMessenger _cupMessenger;
     private readonly IDiscordGeneralMessenger _generalMessenger;
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
     private readonly ICupService _cupService;
     private readonly DiscordChatMessages _chatMessages;
@@ -43,7 +43,7 @@ public class DiscordMessageEventHandler :
         IDiscordBotFactory botFactory,
         IDiscordCupMessenger cupMessenger,
         IDiscordGeneralMessenger generalMessenger,
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         ILeaderboardCalculator leaderboardCalculator,
         ICupService cupService,
         DiscordChatMessages chatMessages)
@@ -52,7 +52,7 @@ public class DiscordMessageEventHandler :
         _botFactory = botFactory;
         _cupMessenger = cupMessenger;
         _generalMessenger = generalMessenger;
-        _competitions = competitions;
+        _db = db;
         _leaderboardCalculator = leaderboardCalculator;
         _cupService = cupService;
         _chatMessages = chatMessages;
@@ -85,9 +85,9 @@ public class DiscordMessageEventHandler :
                 notification.Competition.AddOrUpdateVariable(CompetitionVariables.DiscordTimeUpdatesMessageId, messageId.Value);
         }
 
-        await _competitions.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
         await CreatePoll(track, notification.Competition);
-        await _competitions.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
         await bot.ChangeChannelTopicAsync(notification.Track.FullName);
     }
 

@@ -1,6 +1,6 @@
 using System.Globalization;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Notifications;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +11,12 @@ namespace FpvBattle.Logic.Services.Statistics;
 public class StatisticsService
 {
     private static readonly ILogger _log = Log.ForContext<StatisticsService>();
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly IMediator _mediator;
 
-    public StatisticsService(IRepository<Competition> competitions, IMediator mediator)
+    public StatisticsService(IApplicationDbContext db, IMediator mediator)
     {
-        _competitions = competitions;
+        _db = db;
         _mediator = mediator;
     }
 
@@ -78,8 +78,7 @@ public class StatisticsService
 
     private IQueryable<Competition> CompetitionsQuery(DateTime from, DateTime to)
     {
-        return _competitions
-            .GetAll()
+        return _db.Competitions
             .InRange(from, to)
             .NotCancelled();
     }

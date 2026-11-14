@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Features.Leagues.Services;
@@ -21,26 +21,20 @@ public interface IPilotProfileService
 
 public class PilotProfileService : IPilotProfileService
 {
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<TeamMember> _teamMembers;
-    private readonly IRepository<PatreonSupporter> _patreonSupporters;
+    private readonly IApplicationDbContext _db;
     private readonly TeamSettings _teamSettings;
     private readonly IEnumerable<IAchievement> _allAchievements;
     private readonly RatingService _ratingService;
     private readonly ICupService _cupService;
 
     public PilotProfileService(
-        IRepository<Pilot> pilots,
-        IRepository<TeamMember> teamMembers,
-        IRepository<PatreonSupporter> patreonSupporters,
+        IApplicationDbContext db,
         IOptions<TeamSettings> teamSettings,
         IServiceProvider serviceProvider,
         RatingService ratingService,
         ICupService cupService)
     {
-        _pilots = pilots;
-        _teamMembers = teamMembers;
-        _patreonSupporters = patreonSupporters;
+        _db = db;
         _teamSettings = teamSettings.Value;
         _ratingService = ratingService;
         _cupService = cupService;
@@ -49,7 +43,7 @@ public class PilotProfileService : IPilotProfileService
 
     public async Task<PilotProfileModel?> GetPilotProfileAsync(string pilotName, CancellationToken ct)
     {
-        var pilot = await _pilots.GetAll()
+        var pilot = await _db.Pilots
             .Include(p => p.DayStreakFreezes)
             .ByName(pilotName)
             .FirstOrDefaultAsync(ct);
@@ -82,13 +76,13 @@ public class PilotProfileService : IPilotProfileService
     }
 
     private Task<PilotTeamModel?> GetTeamAsync(Pilot pilot, CancellationToken ct)
-        => _teamMembers.GetAll()
+        => _db.TeamMembers
             .Where(m => m.User.PilotId == pilot.Id && m.Team.Members.Count >= _teamSettings.MinPublicTeamSize)
             .Select(m => new PilotTeamModel { Id = m.TeamId, Name = m.Team.Name })
             .FirstOrDefaultAsync(ct);
 
     private Task<bool> IsPatronAsync(Pilot pilot, CancellationToken ct)
-        => _patreonSupporters.GetAll()
+        => _db.PatreonSupporters
             .Paying()
             .AnyAsync(s => s.PilotId == pilot.Id, ct);
 

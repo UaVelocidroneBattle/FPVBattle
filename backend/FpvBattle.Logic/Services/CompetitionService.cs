@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.Bot;
@@ -17,7 +17,7 @@ public class CompetitionService
     private static readonly ILogger _log = Log.ForContext<CompetitionService>();
 
     private readonly VelocidroneClient _velocidrone;
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
     private readonly IMediator _mediator;
@@ -26,7 +26,7 @@ public class CompetitionService
     private readonly ILeaderboardCalculator  _leaderboardCalculator;
 
     public CompetitionService(
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         RaceResultsConverter resultsConverter,
         RaceResultDeltaAnalyzer analyzer,
         IMediator mediator,
@@ -35,7 +35,7 @@ public class CompetitionService
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator)
     {
-        _competitions = competitions;
+        _db = db;
         _resultsConverter = resultsConverter;
         _analyzer = analyzer;
         _mediator = mediator;
@@ -49,8 +49,7 @@ public class CompetitionService
     [AutomaticRetry(Attempts = 2, DelaysInSeconds = [20, 120])]
     public async Task UpdateResultsAsync()
     {
-        var activeCompetitions = await _competitions
-            .GetAll(c => c.State == CompetitionState.Started)
+        var activeCompetitions = await _db.Competitions.Where(c => c.State == CompetitionState.Started)
             .ToListAsync();
 
         if (!activeCompetitions.Any())
@@ -94,7 +93,7 @@ public class CompetitionService
         competition.CurrentResults = results;
         competition.TimeDeltas.AddRange(deltas);
         competition.ResultsPosted = false;
-        await _competitions.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         _log.Information("Updated results for competition {CompetitionId} (cup {CupId}): {DeltaCount} new results added", competition.Id, competition.CupId, deltas.Count);
         await _mediator.Publish(new CurrentResultUpdated(competition, deltas, cupOptions));
@@ -146,7 +145,7 @@ public class CompetitionService
         await _mediator.Publish(new IntermediateCompetitionResult(leaderboard, competition));
 
         competition.ResultsPosted = true;
-        await _competitions.SaveChangesAsync();
+        await _db.SaveChangesAsync();
         _log.Debug("Marked leaderboard as published for competition {CompetitionId}", competition.Id);
     }
 
@@ -168,8 +167,7 @@ public class CompetitionService
 
     public IQueryable<Competition> GetCurrentCompetitions()
     {
-        return _competitions
-            .GetAll(c => c.State == CompetitionState.Started)
+        return _db.Competitions.Where(c => c.State == CompetitionState.Started)
             .OrderByDescending(x => x.StartedOn);
     }
 
@@ -178,8 +176,7 @@ public class CompetitionService
         var dayStart = date.ToDateTime(TimeOnly.MinValue);
         var dayEnd = date.ToDateTime(TimeOnly.MaxValue);
 
-        return _competitions
-            .GetAll(c => c.StartedOn >= dayStart && c.StartedOn <= dayEnd)
+        return _db.Competitions.Where(c => c.StartedOn >= dayStart && c.StartedOn <= dayEnd)
             .OrderByDescending(x => x.StartedOn);
     }
 }

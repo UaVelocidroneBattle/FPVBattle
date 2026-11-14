@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;
 using FpvBattle.Logic.Services.Pilots;
 using Microsoft.EntityFrameworkCore;
@@ -8,12 +8,12 @@ namespace FpvBattle.Logic.Bot.Telegram.Commands;
 
 public class ConnectPilotToPlatformCommand : ITelegramCommand
 {
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly PilotPlatformsService _pilotPlatformsService;
 
-    public ConnectPilotToPlatformCommand(IRepository<Pilot> pilots, PilotPlatformsService pilotPlatformsService)
+    public ConnectPilotToPlatformCommand(IApplicationDbContext db, PilotPlatformsService pilotPlatformsService)
     {
-        _pilots = pilots;
+        _db = db;
         _pilotPlatformsService = pilotPlatformsService;
     }
 
@@ -35,7 +35,7 @@ public class ConnectPilotToPlatformCommand : ITelegramCommand
             return $"Error: {ex.Message}";
         }
 
-        var pilot = await _pilots.GetAll()
+        var pilot = await _db.Pilots
             .ByName(parsed.PilotName)
             .FirstOrDefaultAsync();
 

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,7 @@ namespace FpvBattle.Logic.Services.Statistics.YearResults;
 
 public class YearResultsService
 {
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly CompetitionService _competitionService;
     private readonly IMediator _mediator;
     private readonly ICupService _cupService;
@@ -17,12 +17,12 @@ public class YearResultsService
     private readonly DateTime _to;
 
     public YearResultsService(
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         IMediator mediator,
         CompetitionService competitionService,
         ICupService cupService)
     {
-        _competitions = competitions;
+        _db = db;
         _mediator = mediator;
         _competitionService = competitionService;
         _cupService = cupService;
@@ -82,8 +82,7 @@ public class YearResultsService
 
     private async Task<int> GetTotalTrackCountAsync(string cupId)
     {
-        return await _competitions
-            .GetAll()
+        return await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
@@ -92,8 +91,7 @@ public class YearResultsService
 
     private async Task<int> GetUniqueTrackCountAsync(string cupId)
     {
-        return await _competitions
-            .GetAll()
+        return await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
@@ -104,8 +102,7 @@ public class YearResultsService
 
     private async Task<int> GetTracksSkippedAsync(string cupId)
     {
-        return await _competitions
-            .GetAll()
+        return await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .Where(comp => comp.State == CompetitionState.Cancelled)
@@ -114,8 +111,7 @@ public class YearResultsService
 
     private async Task<(string name, int count)> GetPilotWhoCameTheLeastAsync(string cupId)
     {
-        var result = await _competitions
-            .GetAll()
+        var result = await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
@@ -137,8 +133,7 @@ public class YearResultsService
 
     private async Task<(string name, int count)> GetPilotWhoCameTheMostAsync(string cupId)
     {
-        var result = await _competitions
-            .GetAll()
+        var result = await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
@@ -160,8 +155,7 @@ public class YearResultsService
 
     private async Task<string> GetFavoriteTrackAsync(string cupId)
     {
-        var favoriteMap = await _competitions
-            .GetAll()
+        var favoriteMap = await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()
@@ -178,8 +172,7 @@ public class YearResultsService
 
     private async Task<int> GetTotalPilotCountAsync(string cupId)
     {
-        return await _competitions
-            .GetAll()
+        return await _db.Competitions
             .ForCup(cupId)
             .InRange(_from, _to)
             .NotCancelled()

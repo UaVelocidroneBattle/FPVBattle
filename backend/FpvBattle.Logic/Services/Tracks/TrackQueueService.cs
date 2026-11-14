@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -11,19 +11,16 @@ public class TrackQueueService
     private static readonly ILogger Log = Serilog.Log.ForContext<TrackQueueService>();
     private readonly ICupService _cupService;
     private readonly TrackService _trackService;
-    private readonly IRepository<QueuedTrack> _trackQueue;
-    private readonly IRepository<QuadModel> _quads;
+    private readonly IApplicationDbContext _db;
 
     public TrackQueueService(
         ICupService cupService,
-        IRepository<QueuedTrack> trackQueue,
-        TrackService trackService,
-        IRepository<QuadModel> quads)
+        IApplicationDbContext db,
+        TrackService trackService)
     {
         _cupService = cupService;
-        _trackQueue = trackQueue;
+        _db = db;
         _trackService = trackService;
-        _quads = quads;
     }
 
     public async Task QueueTrackAsync(string cupId, string trackName, DateTime? scheduleOn, int? quadId)
@@ -57,7 +54,7 @@ public class TrackQueueService
 
         if (quadId is not null)
         {
-            quad = await _quads.FindAsync(quadId.Value);
+            quad = await _db.QuadModels.FindAsync(quadId.Value);
         }
 
         var queuedTrack = new QueuedTrack
@@ -69,8 +66,8 @@ public class TrackQueueService
             Quad = quad
         };
 
-        await _trackQueue.AddAsync(queuedTrack);
-        await _trackQueue.SaveChangesAsync();
+        _db.QueuedTracks.Add(queuedTrack);
+        await _db.SaveChangesAsync();
 
         Log.Information("✅ Track '{TrackName}' (ID: {TrackId}) queued for cup {CupId}, scheduled on {ScheduledOn}",
             dbTrack.Name, dbTrack.TrackId, cupId, (object?)scheduleOn ?? "next available date");
@@ -80,14 +77,14 @@ public class TrackQueueService
     {
         var today = DateTime.Today;
 
-        var nextTrack = await _trackQueue.GetAll()
+        var nextTrack = await _db.QueuedTracks
             .ForCup(cupId)
             .NotUsed()
             .Include(x => x.Track)
             .Include(x => x.Quad)
             .FirstOrDefaultAsync(x => x.ScheduledOn == today);
 
-        nextTrack ??= await _trackQueue.GetAll()
+        nextTrack ??= await _db.QueuedTracks
             .ForCup(cupId)
             .NotUsed()
             .Where(x => x.ScheduledOn == null)
@@ -103,7 +100,7 @@ public class TrackQueueService
         }
 
         nextTrack.Used = true;
-        await _trackQueue.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         Log.Information("Picked queued track '{TrackName}' for cup {CupId} (scheduled: {WasScheduled})",
             nextTrack.Track.Name, cupId, nextTrack.ScheduledOn.HasValue);
@@ -113,7 +110,7 @@ public class TrackQueueService
 
     public async Task<List<QueuedTrack>> GetQueueAsync(string cupId)
     {
-        return await _trackQueue.GetAll()
+        return await _db.QueuedTracks
             .ForCup(cupId)
             .NotUsed()
             .Include(x => x.Track)
@@ -126,13 +123,16 @@ public class TrackQueueService
     public async Task RemoveFromQueueAsync(Guid id)
     {
         Log.Information("Removing queued track {Id} from queue", id);
-        await _trackQueue.RemoveAsync(id);
-        await _trackQueue.SaveChangesAsync();
+        var queuedTrack = await _db.QueuedTracks.FindAsync(id)
+            ?? throw new NullReferenceException($"Record with id: {id} does not exist");
+
+        _db.QueuedTracks.Remove(queuedTrack);
+        await _db.SaveChangesAsync();
     }
 
     private bool AlreadyScheduledOnTheDate(string cupId, DateTime date)
     {
-        return _trackQueue.GetAll().ForCup(cupId).Any(x => x.ScheduledOn == date);
+        return _db.QueuedTracks.ForCup(cupId).Any(x => x.ScheduledOn == date);
     }
 }
 

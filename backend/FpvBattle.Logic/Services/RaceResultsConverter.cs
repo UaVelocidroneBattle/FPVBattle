@@ -1,6 +1,6 @@
 using System.Globalization;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API.Velocidrone.Dto;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -10,28 +10,22 @@ namespace FpvBattle.Logic.Services;
 public class RaceResultsConverter
 {
     private static readonly Mappings.DtoMapper Mapper = new();
-    private readonly IRepository<QuadModel> _quadModels;
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<PilotClaim> _claims;
+    private readonly IApplicationDbContext _db;
     private readonly ResultsOptions _options;
 
     public RaceResultsConverter(
-        IRepository<QuadModel> quadModels,
-        IRepository<Pilot> pilots,
-        IRepository<PilotClaim> claims,
+        IApplicationDbContext db,
         IOptions<ResultsOptions> options)
     {
-        _quadModels = quadModels;
-        _pilots = pilots;
-        _claims = claims;
+        _db = db;
         _options = options.Value;
     }
 
     public async Task<List<TrackTime>> ConvertTrackTimesAsync(IEnumerable<TrackTimeDto> timesDtos, int[] allowedQuadClasses, QuadModel? quadOfTheDay = null)
     {
-        var pilotIds = await _pilots.GetAll().Select(x => x.Id).ToHashSetAsync();
+        var pilotIds = await _db.Pilots.Select(x => x.Id).ToHashSetAsync();
         var claimedPilotNames = await GetActiveClaimNamesAsync();
-        var modelClassByName = _quadModels.GetAll()
+        var modelClassByName = _db.QuadModels
             .ToDictionary(m => m.Name, m => m.Class, StringComparer.OrdinalIgnoreCase);
 
         return timesDtos
@@ -56,7 +50,7 @@ public class RaceResultsConverter
     private async Task<IReadOnlySet<string>> GetActiveClaimNamesAsync()
     {
         var now = DateTime.UtcNow;
-        var names = await _claims.GetAll(c => c.ExpiresOn > now)
+        var names = await _db.PilotClaims.Where(c => c.ExpiresOn > now)
             .Select(c => c.PilotName)
             .ToListAsync();
 

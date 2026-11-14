@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using Microsoft.EntityFrameworkCore;
@@ -9,19 +9,19 @@ namespace FpvBattle.Logic.Services;
 public class ModelsService
 {
     private readonly VelocidroneClient _velocidrone;
-    private readonly IRepository<QuadModel> _quadModels;
+    private readonly IApplicationDbContext _db;
 
-    public ModelsService(VelocidroneClient velocidrone, IRepository<QuadModel> quadModels)
+    public ModelsService(VelocidroneClient velocidrone, IApplicationDbContext db)
     {
         _velocidrone = velocidrone;
-        _quadModels = quadModels;
+        _db = db;
     }
 
     public async Task UpdateModelsAsync()
     {
         var dtos = await _velocidrone.ModelsAsync();
 
-        var existingModels = _quadModels.GetAll()
+        var existingModels = _db.QuadModels
             .ToDictionary(m => m.Id);
 
         var newModels = new List<QuadModel>();
@@ -41,14 +41,14 @@ public class ModelsService
 
         if (newModels.Count > 0)
         {
-            await _quadModels.AddRangeAsync(newModels);
-            await _quadModels.SaveChangesAsync();
+            _db.QuadModels.AddRange(newModels);
+            await _db.SaveChangesAsync();
         }
     }
 
     public async Task<int?> GetQuadClassAsync(string quadName)
     {
-        var quad = await _quadModels.GetAll().FirstOrDefaultAsync(x => x.Name == quadName);
+        var quad = await _db.QuadModels.FirstOrDefaultAsync(x => x.Name == quadName);
         return quad?.Class;
     }
 

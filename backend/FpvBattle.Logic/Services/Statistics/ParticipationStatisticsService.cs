@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,12 +10,12 @@ namespace FpvBattle.Logic.Services.Statistics;
 /// </summary>
 public class ParticipationStatisticsService
 {
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly ICupService _cupService;
 
-    public ParticipationStatisticsService(IRepository<Competition> competitions, ICupService cupService)
+    public ParticipationStatisticsService(IApplicationDbContext db, ICupService cupService)
     {
-        _competitions = competitions;
+        _db = db;
         _cupService = cupService;
     }
 
@@ -70,7 +70,7 @@ public class ParticipationStatisticsService
     /// </summary>
     private IQueryable<Competition> CompetitionsQuery(int? lastDays)
     {
-        var competitions = _competitions.GetAll().Closed();
+        var competitions = _db.Competitions.Closed();
 
         if (lastDays is null)
             return competitions;

@@ -1,6 +1,6 @@
 using System.Globalization;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.API.Velocidrone.Dto;
@@ -21,7 +21,7 @@ public class CompetitionConductor
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionConductor>();
 
     private readonly VelocidroneClient _velocidrone;
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly TrackService _trackService;
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
@@ -35,7 +35,7 @@ public class CompetitionConductor
     private readonly TeamLeaderboardService _teamLeaderboard;
 
     public CompetitionConductor(
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         RaceResultsConverter resultsConverter,
         DiscordMessageComposer discordMessageComposer,
         ImageService imageService,
@@ -49,7 +49,7 @@ public class CompetitionConductor
         ILeaderboardCalculator leaderboardCalculator,
         TeamLeaderboardService teamLeaderboard)
     {
-        _competitions = competitions;
+        _db = db;
         _resultsConverter = resultsConverter;
         _discordMessageComposer = discordMessageComposer;
         _imageService = imageService;
@@ -142,8 +142,8 @@ public class CompetitionConductor
 
         competition.QuadOfTheDay = quad;
 
-        await _competitions.AddAsync(competition);
-        await _competitions.SaveChangesAsync();
+        _db.Competitions.Add(competition);
+        await _db.SaveChangesAsync();
 
         Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} on track {TrackName}", competition.Id, cupId, track.Name);
 
@@ -170,7 +170,7 @@ public class CompetitionConductor
 
         Log.Information("🏁 Competition {CompetitionId} stopped with {ResultCount} final results in cup {CupId}", competition.Id, competition.CompetitionResults.Count, cupId);
 
-        await _competitions.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         var leaderboard = _leaderboardCalculator.GetLeagueLeaderboard(competition);
         await _mediator.Publish(new CompetitionFinished(competition, leaderboard));
@@ -187,7 +187,7 @@ public class CompetitionConductor
         Log.Information("Cancelling a competition {competitionId} in cup {CupId}", competition.Id, cupId);
 
         competition.State = CompetitionState.Cancelled;
-        await _competitions.SaveChangesAsync();
+        await _db.SaveChangesAsync();
         await _mediator.Publish(new CompetitionCancelled(competition));
     }
 
@@ -234,7 +234,7 @@ public class CompetitionConductor
             competition.Track.Rating.PollMessageId, competition.Track.FullName, rating?.ToString("F2") ?? "no votes");
 
         competition.Track.Rating.Value = rating;
-        await _competitions.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         if (rating is null or >= 3)
             return;
@@ -317,8 +317,7 @@ public class CompetitionConductor
 
     private async Task<Competition?> GetActiveCompetitionAsync(string cupId)
     {
-        return await _competitions
-            .GetAll(c => c.State == CompetitionState.Started)
+        return await _db.Competitions.Where(c => c.State == CompetitionState.Started)
             .ForCup(cupId)
             .FirstOrDefaultAsync();
     }

@@ -1,6 +1,6 @@
 using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Persistence.Queries;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.Notifications;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,18 +11,15 @@ namespace FpvBattle.Logic.Services;
 public class PilotService
 {
     private static readonly ILogger _log = Log.ForContext<PilotService>();
-    private readonly IRepository<Pilot> _pilots;
-    private readonly IRepository<TrackTimeDelta> _deltas;
+    private readonly IApplicationDbContext _db;
     private readonly IMediator _mediator;
 
     public PilotService(
-        IRepository<Pilot> pilots,
-        IMediator mediator,
-        IRepository<TrackTimeDelta> deltas)
+        IApplicationDbContext db,
+        IMediator mediator)
     {
-        _pilots = pilots;
+        _db = db;
         _mediator = mediator;
-        _deltas = deltas;
     }
 
     public async Task UpdatePilotsAsync(List<TrackTimeDelta> deltas, Dictionary<int, string> pilotNames, string cupId)
@@ -39,7 +36,7 @@ public class PilotService
     {
         var pilotName = pilotNames[delta.PilotId];
         _log.Debug("Updating pilot: {Pilot} in cup {CupId}", pilotName, cupId);
-        var pilot = await _pilots.FindAsync(delta.PilotId);
+        var pilot = await _db.Pilots.FindAsync(delta.PilotId);
 
         if (pilot is null)
         {
@@ -53,8 +50,8 @@ public class PilotService
                 CreatedAt = DateTime.UtcNow,
             };
 
-            await _pilots.AddAsync(newPilot);
-            await _pilots.SaveChangesAsync();
+            _db.Pilots.Add(newPilot);
+            await _db.SaveChangesAsync();
             await _mediator.Publish(new NewPilot(newPilot, cupId));
             return;
         }
@@ -80,7 +77,7 @@ public class PilotService
 
         if (nameChanged || countryChanged)
         {
-            await _pilots.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
 
         if (renamedEvent is not null)
@@ -95,15 +92,13 @@ public class PilotService
         var todayStart = today.AddMinutes(2);
         var tomorrow = today.AddDays(1);
 
-        var participatedPilotIds = await _deltas
-            .GetAll()
+        var participatedPilotIds = await _db.TrackTimeDeltas
             .Where(d => d.Date >= todayStart && d.Date < tomorrow)
             .Select(d => d.PilotId)
             .Distinct()
             .ToListAsync();
 
-        var pilotsToNotify = await _pilots
-            .GetAll(p => p.DayStreak > 10)
+        var pilotsToNotify = await _db.Pilots.Where(p => p.DayStreak > 10)
             .Where(p => participatedPilotIds.All(l => l != p.Id))
             .Where(p => p.DayStreakFrozenUntil == null || p.DayStreakFrozenUntil < today)
             .ToListAsync();
@@ -127,13 +122,13 @@ public class PilotService
         var today = DateTime.UtcNow.Date;
         var yesterday = today.AddDays(-1);
 
-        var pilotIds = await _deltas.GetAll()
+        var pilotIds = await _db.TrackTimeDeltas
             .Where(d => d.Date >= yesterday && d.Date < today.AddMinutes(2))
             .Select(d => d.PilotId)
             .Distinct()
             .ToListAsync();
 
-        var pilots = await _pilots.GetAll()
+        var pilots = await _db.Pilots
             .Include(p => p.DayStreakFreezes)
             .Where(p => pilotIds.Contains(p.Id))
             .ToListAsync();
@@ -143,9 +138,9 @@ public class PilotService
             pilot.OnRaceFlown(yesterday);
         }
 
-        await _pilots.SaveChangesAsync();
-        await _pilots.GetAll().ResetDayStreaksAsync(yesterday);
-        await _pilots.SaveChangesAsync();
+        await _db.SaveChangesAsync();
+        await _db.Pilots.ResetDayStreaksAsync(yesterday);
+        await _db.SaveChangesAsync();
 
         _log.Information("Updated day streaks: {ActiveCount} pilots flew, streaks reset for inactive pilots", pilots.Count);
     }

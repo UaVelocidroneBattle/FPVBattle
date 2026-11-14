@@ -1,20 +1,20 @@
+using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
+using FpvBattle.Logic.Bot.Telegram.Commands.Core;
+using FpvBattle.Logic.Features.Achievements.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using FpvBattle.Infrastructure.Persistence.Repositories;
-using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Achievements.Base;
-using FpvBattle.Logic.Bot.Telegram.Commands.Core;
 
 namespace FpvBattle.Logic.Bot.Telegram.Commands;
 
 public class AchievementsCommand : ITelegramCommand
 {
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly IEnumerable<IAchievement> _achievements;
 
-    public AchievementsCommand(IRepository<Pilot> pilots, IServiceProvider serviceProvider)
+    public AchievementsCommand(IApplicationDbContext db, IServiceProvider serviceProvider)
     {
-        _pilots = pilots;
+        _db = db;
         _achievements = serviceProvider.GetServices<IAchievement>();
     }
 
@@ -26,7 +26,7 @@ public class AchievementsCommand : ITelegramCommand
             return "все добре, але не вистачає імені пілота";
 
         var pilotName = string.Join(' ', context.Parameters);
-        var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
+        var pilot = await _db.Pilots.ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)
             return "Не знаю такого пілота 😕";

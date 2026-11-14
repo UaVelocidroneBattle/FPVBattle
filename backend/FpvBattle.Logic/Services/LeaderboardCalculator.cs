@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Features.Leagues;
 using Microsoft.EntityFrameworkCore;
@@ -16,18 +16,18 @@ public interface ILeaderboardCalculator
 
 public class LeaderboardCalculator : ILeaderboardCalculator
 {
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
     private readonly ICupService _cupService;
     private readonly PointsCalculator _pointsCalculator;
     private readonly PaceRatingSettings _settings;
 
     public LeaderboardCalculator(
-        IRepository<Competition> competitions,
+        IApplicationDbContext db,
         ICupService cupService,
         PointsCalculator pointsCalculator,
         IOptions<PaceRatingSettings> settings)
     {
-        _competitions = competitions;
+        _db = db;
         _cupService = cupService;
         _pointsCalculator = pointsCalculator;
         _settings = settings.Value;
@@ -159,8 +159,7 @@ public class LeaderboardCalculator : ILeaderboardCalculator
         var leaguesEnabled = cupOptions.Leagues.Enabled;
         var leagueOrder = cupOptions.Leagues.Definitions.ToDictionary(d => d.Name, d => d.Order);
 
-        var pilotResults = await _competitions
-            .GetAll(comp => comp.StartedOn >= from && comp.StartedOn <= to)
+        var pilotResults = await _db.Competitions.Where(comp => comp.StartedOn >= from && comp.StartedOn <= to)
             .ForCup(cupId)
             .NotCancelled()
             .SelectMany(comp => comp.CompetitionResults)

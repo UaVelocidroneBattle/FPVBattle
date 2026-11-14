@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence.Repositories;
+using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;
 using FpvBattle.Logic.Features.Cups;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +8,11 @@ namespace FpvBattle.Logic.Bot.Telegram.Commands;
 
 public class CurrentTrackCommand : ITelegramCommand
 {
-    private readonly IRepository<Competition> _competitions;
+    private readonly IApplicationDbContext _db;
 
-    public CurrentTrackCommand(IRepository<Competition> competitions)
+    public CurrentTrackCommand(IApplicationDbContext db)
     {
-        _competitions = competitions;
+        _db = db;
     }
 
     public string[] Keywords => ["/current-track", "/ct"];
@@ -20,8 +20,7 @@ public class CurrentTrackCommand : ITelegramCommand
 
     public async Task<string> ExecuteAsync(TelegramCommandContext context)
     {
-        var activeCompetitions = _competitions
-            .GetAll(c => c.State == CompetitionState.Started)
+        var activeCompetitions = _db.Competitions.Where(c => c.State == CompetitionState.Started)
             .Include(c => c.Track)
             .ThenInclude(t => t.Map);
 

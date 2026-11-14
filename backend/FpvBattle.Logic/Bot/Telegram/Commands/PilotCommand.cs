@@ -1,10 +1,10 @@
+using FpvBattle.Domain;
+using FpvBattle.Infrastructure.Persistence;
+using FpvBattle.Logic.Bot.Telegram.Commands.Core;
+using FpvBattle.Logic.Features.Achievements.Base;
+using FpvBattle.Logic.Services.Pilots;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using FpvBattle.Infrastructure.Persistence.Repositories;
-using FpvBattle.Domain;
-using FpvBattle.Logic.Features.Achievements.Base;
-using FpvBattle.Logic.Bot.Telegram.Commands.Core;
-using FpvBattle.Logic.Services.Pilots;
 
 namespace FpvBattle.Logic.Bot.Telegram.Commands;
 
@@ -12,14 +12,14 @@ public class PilotCommand : ITelegramCommand
 {
     private const string UnknownPilotReply = "Не знаю такого пілота 😕";
 
-    private readonly IRepository<Pilot> _pilots;
+    private readonly IApplicationDbContext _db;
     private readonly IPilotProfileService _pilotProfileService;
 
     public PilotCommand(
-        IRepository<Pilot> pilots,
+        IApplicationDbContext db,
         IPilotProfileService pilotProfileService)
     {
-        _pilots = pilots;
+        _db = db;
         _pilotProfileService = pilotProfileService;
     }
 
@@ -31,7 +31,7 @@ public class PilotCommand : ITelegramCommand
             return "все добре, але не вистачає імені пілота";
 
         var pilotName = string.Join(' ', context.Parameters);
-        var pilot = await _pilots.GetAll().ByName(pilotName).FirstOrDefaultAsync();
+        var pilot = await _db.Pilots.ByName(pilotName).FirstOrDefaultAsync();
 
         if (pilot is null)
             return UnknownPilotReply;
