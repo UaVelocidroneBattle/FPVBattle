@@ -1,3 +1,4 @@
+using FpvBattle.Application.Services;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -5,9 +6,9 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 
-namespace FpvBattle.Application.Services;
+namespace FpvBattle.Infrastructure.Imaging;
 
-public class ImageService
+public class WinnerImageRenderer : IWinnerImageRenderer
 {
     public async Task<byte[]> CreateWinnerImageAsync(string season, string[] winners)
     {

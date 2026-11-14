@@ -1,12 +1,13 @@
 using System.Net;
 using System.Text.Json;
+using FpvBattle.Application.API.Velocidrone;
 using FpvBattle.Application.API.Velocidrone.Dto;
 using FpvBattle.Application.API.Velocidrone.Exceptions;
 using Serilog;
 
-namespace FpvBattle.Application.API.Velocidrone;
+namespace FpvBattle.Infrastructure.Velocidrone;
 
-public class VelocidroneClient
+public class VelocidroneClient : IVelocidroneClient
 {
     public static readonly Uri BaseAddress = new("https://velocidrone.co.uk");
 

@@ -1,6 +1,6 @@
 using System.Web;
 
-namespace FpvBattle.Application.Features.Patreon.Services;
+namespace FpvBattle.Infrastructure.Patreon;
 
 /// <summary>
 ///     Builds Patreon API URLs with proper encoding, field selection, and relationship inclusion.

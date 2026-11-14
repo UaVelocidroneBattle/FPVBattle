@@ -1,8 +1,5 @@
-using FpvBattle.Application.Features.Auth.Models;
 using FpvBattle.Domain;
-using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace FpvBattle.Application.Features.Auth.Services;
@@ -18,12 +15,12 @@ public class GoogleAuthService
     private static readonly ILogger Log = Serilog.Log.ForContext<GoogleAuthService>();
 
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IOptions<AuthOptions> _options;
+    private readonly IGoogleTokenValidator _tokenValidator;
 
-    public GoogleAuthService(UserManager<ApplicationUser> userManager, IOptions<AuthOptions> options)
+    public GoogleAuthService(UserManager<ApplicationUser> userManager, IGoogleTokenValidator tokenValidator)
     {
         _userManager = userManager;
-        _options = options;
+        _tokenValidator = tokenValidator;
     }
 
     /// <summary>
@@ -31,7 +28,7 @@ public class GoogleAuthService
     /// </summary>
     public async Task<ApplicationUser?> AuthenticateAsync(string idToken)
     {
-        var payload = await ValidateIdTokenAsync(idToken);
+        var payload = await _tokenValidator.ValidateAsync(idToken);
 
         if (payload is null)
             return null;
@@ -47,26 +44,10 @@ public class GoogleAuthService
         return await CreateOrLinkUserAsync(payload);
     }
 
-    private async Task<GoogleJsonWebSignature.Payload?> ValidateIdTokenAsync(string idToken)
-    {
-        try
-        {
-            return await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
-            {
-                Audience = _options.Value.GoogleClientIds
-            });
-        }
-        catch (InvalidJwtException ex)
-        {
-            Log.Warning(ex, "Rejected invalid Google ID token");
-            return null;
-        }
-    }
-
     /// <summary>
     /// Keeps the profile in sync with Google, so renames there show up here on next sign-in.
     /// </summary>
-    private async Task SyncProfileAsync(ApplicationUser user, GoogleJsonWebSignature.Payload payload)
+    private async Task SyncProfileAsync(ApplicationUser user, GoogleIdentity payload)
     {
         var displayName = payload.Name ?? user.DisplayName;
         var locale = payload.Locale ?? user.Locale;
@@ -79,7 +60,7 @@ public class GoogleAuthService
         await _userManager.UpdateAsync(user);
     }
 
-    private async Task<ApplicationUser?> CreateOrLinkUserAsync(GoogleJsonWebSignature.Payload payload)
+    private async Task<ApplicationUser?> CreateOrLinkUserAsync(GoogleIdentity payload)
     {
         // Only trust the email for matching an existing account when Google verified it
         var user = payload.EmailVerified

@@ -1,4 +1,4 @@
-namespace FpvBattle.Application.API.Velocidrone.Options;
+namespace FpvBattle.Infrastructure.Velocidrone;
 
 public class ApiSettings
 {

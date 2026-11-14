@@ -3,9 +3,10 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using FpvBattle.Application.Features.Patreon.Exceptions;
 using FpvBattle.Application.Features.Patreon.Models;
+using FpvBattle.Application.Features.Patreon.Services;
 using Microsoft.Extensions.Logging;
 
-namespace FpvBattle.Application.Features.Patreon.Services;
+namespace FpvBattle.Infrastructure.Patreon;
 
 public class PatreonApiClient : IPatreonApiClient
 {

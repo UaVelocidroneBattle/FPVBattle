@@ -16,7 +16,7 @@ public class CompetitionService
 {
     private static readonly ILogger _log = Log.ForContext<CompetitionService>();
 
-    private readonly VelocidroneClient _velocidrone;
+    private readonly IVelocidroneClient _velocidrone;
     private readonly IApplicationDbContext _db;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
@@ -30,7 +30,7 @@ public class CompetitionService
         RaceResultsConverter resultsConverter,
         RaceResultDeltaAnalyzer analyzer,
         IMediator mediator,
-        VelocidroneClient velocidrone,
+        IVelocidroneClient velocidrone,
         PilotService pilotService,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator)

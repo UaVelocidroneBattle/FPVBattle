@@ -20,13 +20,13 @@ public class CompetitionConductor
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionConductor>();
 
-    private readonly VelocidroneClient _velocidrone;
+    private readonly IVelocidroneClient _velocidrone;
     private readonly IApplicationDbContext _db;
     private readonly TrackService _trackService;
     private readonly IMediator _mediator;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly DiscordMessageComposer _discordMessageComposer;
-    private readonly ImageService _imageService;
+    private readonly IWinnerImageRenderer _imageService;
     private readonly ICupService _cupService;
     private readonly IDiscordCupMessenger _discordCupMessenger;
     private readonly TrackQueueService _trackQueueService;
@@ -38,10 +38,10 @@ public class CompetitionConductor
         IApplicationDbContext db,
         RaceResultsConverter resultsConverter,
         DiscordMessageComposer discordMessageComposer,
-        ImageService imageService,
+        IWinnerImageRenderer imageService,
         TrackService trackService,
         IMediator mediator,
-        VelocidroneClient velocidrone,
+        IVelocidroneClient velocidrone,
         ICupService cupService,
         IDiscordCupMessenger discordCupMessenger,
         TrackQueueService trackQueueService,

@@ -1,10 +1,10 @@
 using System.Net.Http.Headers;
-using FpvBattle.Application.API.Velocidrone.Options;
+using FpvBattle.Application.API.Velocidrone;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace FpvBattle.Application.API.Velocidrone;
+namespace FpvBattle.Infrastructure.Velocidrone;
 
 public static class VelocidroneServiceExtensions
 {
@@ -14,7 +14,7 @@ public static class VelocidroneServiceExtensions
             .Bind(configuration.GetSection(ApiSettings.SectionName))
             .Validate(settings => !string.IsNullOrWhiteSpace(settings.Token), "Velocidrone API token (API:Token) is not configured");
 
-        services.AddHttpClient<VelocidroneClient>((provider, client) =>
+        services.AddHttpClient<IVelocidroneClient, VelocidroneClient>((provider, client) =>
         {
             var token = provider.GetRequiredService<IOptions<ApiSettings>>().Value.Token;
 

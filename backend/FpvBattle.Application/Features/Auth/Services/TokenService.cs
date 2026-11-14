@@ -1,5 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 using FpvBattle.Application.Features.Auth.Models;
@@ -7,7 +6,6 @@ using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace FpvBattle.Application.Features.Auth.Services;
 
@@ -18,11 +16,13 @@ namespace FpvBattle.Application.Features.Auth.Services;
 public class TokenService
 {
     private readonly IApplicationDbContext _db;
+    private readonly IAccessTokenIssuer _accessTokenIssuer;
     private readonly IOptions<AuthOptions> _options;
 
-    public TokenService(IApplicationDbContext db, IOptions<AuthOptions> options)
+    public TokenService(IApplicationDbContext db, IAccessTokenIssuer accessTokenIssuer, IOptions<AuthOptions> options)
     {
         _db = db;
+        _accessTokenIssuer = accessTokenIssuer;
         _options = options;
     }
 
@@ -30,7 +30,7 @@ public class TokenService
     {
         var options = _options.Value;
         var expiresAt = DateTime.UtcNow.AddMinutes(options.AccessTokenLifetimeMinutes);
-        var refreshToken = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(64));
+        var refreshToken = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(64));
 
         _db.RefreshTokens.Add(new RefreshToken
         {
@@ -43,7 +43,7 @@ public class TokenService
 
         return new AuthTokensModel
         {
-            AccessToken = CreateAccessToken(user, expiresAt),
+            AccessToken = _accessTokenIssuer.CreateAccessToken(user, expiresAt),
             AccessTokenExpiresAt = expiresAt,
             RefreshToken = refreshToken
         };
@@ -62,28 +62,6 @@ public class TokenService
         token.RevokedOn = DateTime.UtcNow;
         _db.RefreshTokens.Update(token);
         await _db.SaveChangesAsync();
-    }
-
-    private string CreateAccessToken(ApplicationUser user, DateTime expiresAt)
-    {
-        var options = _options.Value;
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.JwtSigningKey));
-
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: options.JwtIssuer,
-            audience: options.JwtAudience,
-            claims: claims,
-            expires: expiresAt,
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private static string Hash(string token)

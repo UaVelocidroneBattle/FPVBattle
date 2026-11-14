@@ -1,6 +1,8 @@
+using FpvBattle.Infrastructure.Imaging;
+using FpvBattle.Infrastructure.Patreon;
 using FpvBattle.Infrastructure.Persistence;
+using FpvBattle.Infrastructure.Velocidrone;
 using FpvBattle.Application.API;
-using FpvBattle.Application.API.Velocidrone;
 using FpvBattle.Application.Bot.Discord;
 using FpvBattle.Application.Bot.Telegram;
 using FpvBattle.Application.Features.Patreon;
@@ -32,7 +34,6 @@ public static class ServiceRegistration
         services.AddSingleton<TelegramChatMessages>();
         services.AddSingleton<DiscordChatMessages>();
         services.AddScoped<RaceResultDeltaAnalyzer>();
-        services.AddScoped<ImageService>();
         services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
         services.AddScoped<PilotService>();
@@ -47,6 +48,8 @@ public static class ServiceRegistration
 
         services.AddAchievementsServices(configuration);
         services.AddPatreonServices(configuration);
+        services.AddPatreonApi();
+        services.AddImaging();
         services.AddCups(configuration);
         services.AddLeagues(configuration);
         services.AddQuadOfTheDay();

@@ -14,12 +14,12 @@ public class TrackService
     private const double MinimumGoodRating = 3;
 
     private readonly IApplicationDbContext _db;
-    private readonly VelocidroneClient _velocidrone;
+    private readonly IVelocidroneClient _velocidrone;
     private List<string>? _usedTrackIds;
 
     public TrackService(
         IApplicationDbContext db,
-        VelocidroneClient velocidrone)
+        IVelocidroneClient velocidrone)
     {
         _db = db;
         _velocidrone = velocidrone;

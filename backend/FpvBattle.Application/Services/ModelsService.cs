@@ -8,10 +8,10 @@ namespace FpvBattle.Application.Services;
 
 public class ModelsService
 {
-    private readonly VelocidroneClient _velocidrone;
+    private readonly IVelocidroneClient _velocidrone;
     private readonly IApplicationDbContext _db;
 
-    public ModelsService(VelocidroneClient velocidrone, IApplicationDbContext db)
+    public ModelsService(IVelocidroneClient velocidrone, IApplicationDbContext db)
     {
         _velocidrone = velocidrone;
         _db = db;

@@ -1,13 +1,14 @@
 using System.Text.Json;
 using FpvBattle.Application.Features.Patreon.Exceptions;
 using FpvBattle.Application.Features.Patreon.Models;
+using FpvBattle.Application.Features.Patreon.Services;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace FpvBattle.Application.Features.Patreon.Services;
+namespace FpvBattle.Infrastructure.Patreon;
 
 public class PatreonTokenManager : IPatreonTokenManager
 {

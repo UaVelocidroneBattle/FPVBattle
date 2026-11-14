@@ -15,32 +15,13 @@ public static class PatreonServiceExtensions
         services.Configure<PatreonOptions>(configuration.GetSection(PatreonOptions.SectionName));
 
         // Register core services
-        services.AddScoped<IPatreonTokenManager, PatreonTokenManager>();
-        services.AddScoped<IPatreonApiClient, PatreonApiClient>();
         services.AddScoped<IPatreonService, PatreonService>();
-        services.AddScoped<IPatreonOAuthService, PatreonOAuthService>();
 
         // Register MediatR command handler
         services.AddScoped<PatreonSyncJob>();
 
         // Register job registrar
         services.AddScoped<IJobRegistrar, PatreonJobRegistrar>();
-
-        // Configure HttpClient for Patreon API (used by PatreonApiClient)
-        services.AddHttpClient<IPatreonApiClient, PatreonApiClient>("PatreonClient", client =>
-        {
-            client.BaseAddress = new Uri("https://www.patreon.com/api/oauth2/v2/");
-            client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("User-Agent", "FpvBattle/1.0");
-        });
-
-        // Configure HttpClient for PatreonController OAuth flow (used by PatreonTokenManager)
-        services.AddHttpClient("PatreonOAuth", client =>
-        {
-            client.BaseAddress = new Uri("https://www.patreon.com/api/oauth2/");
-            client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("User-Agent", "FpvBattle/1.0");
-        });
 
         return services;
     }

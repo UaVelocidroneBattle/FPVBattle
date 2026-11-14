@@ -14,6 +14,7 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
+using FpvBattle.Infrastructure.Auth;
 using FpvBattle.Infrastructure.Discord;
 using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Infrastructure.Telegram;
@@ -94,6 +95,7 @@ public class Startup
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddAuthFeature(Configuration);
+        services.AddTokenAuthentication(Configuration);
         services.AddPilotBinding();
         services.AddNotifications();
         services.AddTeams(Configuration);
