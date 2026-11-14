@@ -1,10 +1,12 @@
+using FpvBattle.Application.Bot.Telegram;
+using FpvBattle.Application.Bot.Telegram.Commands.Core;
 using FpvBattle.Application.Features.Cups;
 using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Telegram.Bot.Types;
 
-namespace FpvBattle.Application.Bot.Telegram.Commands.Core;
+namespace FpvBattle.Infrastructure.Telegram;
 
 public class TelegramCommandProcessor
 {

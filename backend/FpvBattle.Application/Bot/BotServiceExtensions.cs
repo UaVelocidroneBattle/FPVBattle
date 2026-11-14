@@ -1,16 +1,17 @@
 using FpvBattle.Application.Bot.Discord;
+using FpvBattle.Application.Bot.Telegram;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FpvBattle.Application.Bot;
 
-public static class DiscordBotServiceHelper
+public static class BotServiceExtensions
 {
-    public static void UseDiscordBotService(this IServiceCollection services)
+    public static IServiceCollection AddBotMessaging(this IServiceCollection services)
     {
-        services.AddSingleton<IDiscordBotFactory, DiscordBotFactory>();
+        services.AddScoped<ITelegramCupMessenger, TelegramCupMessenger>();
         services.AddScoped<IDiscordCupMessenger, DiscordCupMessenger>();
         services.AddScoped<IDiscordGeneralMessenger, DiscordGeneralMessenger>();
 
-        services.AddHostedService<DiscordBotHostedService>();
+        return services;
     }
 }

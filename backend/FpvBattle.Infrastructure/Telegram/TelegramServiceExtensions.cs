@@ -1,13 +1,14 @@
+using FpvBattle.Application.Bot.Telegram;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Telegram.Bot;
 
-namespace FpvBattle.Application.Bot.Telegram;
+namespace FpvBattle.Infrastructure.Telegram;
 
-public static class TelegramBotServiceHelper
+public static class TelegramServiceExtensions
 {
-    public static IServiceCollection UseTelegramBotService(this IServiceCollection services)
+    public static IServiceCollection AddTelegramBot(this IServiceCollection services)
     {
         // Register ITelegramBotClient as singleton (required - application will fail to start if not configured)
         services.AddSingleton<ITelegramBotClient>(provider =>
@@ -26,9 +27,9 @@ public static class TelegramBotServiceHelper
         });
 
         services.AddScoped<ITelegramMessenger, TelegramMessenger>();
-        services.AddScoped<ITelegramCupMessenger, TelegramCupMessenger>();
         services.AddHostedService<TelegramBotHostedService>();
         services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
+        services.AddScoped<TelegramCommandProcessor>();
 
         return services;
     }

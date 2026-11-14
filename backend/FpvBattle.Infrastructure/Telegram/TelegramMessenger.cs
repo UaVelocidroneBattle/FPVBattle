@@ -1,10 +1,11 @@
+using FpvBattle.Application.Bot.Telegram;
 using FpvBattle.Application.Helpers;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace FpvBattle.Application.Bot.Telegram;
+namespace FpvBattle.Infrastructure.Telegram;
 
 /// <summary>
 /// Implementation of ITelegramMessenger that sends messages via the shared ITelegramBotClient.

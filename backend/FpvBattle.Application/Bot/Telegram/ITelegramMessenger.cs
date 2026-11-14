@@ -1,5 +1,4 @@
 using FpvBattle.Application.Services;
-using Telegram.Bot.Types;
 
 namespace FpvBattle.Application.Bot.Telegram;
 

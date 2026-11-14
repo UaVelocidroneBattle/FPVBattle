@@ -5,7 +5,7 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
-namespace FpvBattle.Application.Bot.Telegram;
+namespace FpvBattle.Infrastructure.Telegram;
 
 /// <summary>
 /// Manages Telegram bot lifecycle - starts receiving updates on startup, stops on shutdown

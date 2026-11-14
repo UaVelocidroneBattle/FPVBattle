@@ -2,7 +2,7 @@ using FpvBattle.Application.Bot.Discord;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace FpvBattle.Application.Bot;
+namespace FpvBattle.Infrastructure.Discord;
 
 /// <summary>
 /// Manages Discord bot factory lifecycle - initializes connection on startup, disconnects on shutdown

@@ -1,10 +1,11 @@
 using Discord;
 using Discord.WebSocket;
 using FpvBattle.Application.Bot;
+using FpvBattle.Application.Bot.Discord;
 using FpvBattle.Application.Helpers;
 using Serilog;
 
-namespace FpvBattle.Application.Bot.Discord;
+namespace FpvBattle.Infrastructure.Discord;
 
 /// <summary>
 /// Discord bot instance configured for a specific channel

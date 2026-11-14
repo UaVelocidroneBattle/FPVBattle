@@ -14,11 +14,12 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Elasticsearch;
 using Serilog.Sinks.Elasticsearch;
+using FpvBattle.Infrastructure.Discord;
 using FpvBattle.Infrastructure.Persistence;
+using FpvBattle.Infrastructure.Telegram;
 using FpvBattle.Domain;
 using FpvBattle.Hangfire.Metrics;
 using FpvBattle.Application.Bot;
-using FpvBattle.Application.Bot.Telegram;
 using FpvBattle.Application.Bot.Telegram.Commands.Core;
 using FpvBattle.Application.Features.Auth;
 using FpvBattle.Application.Features.PilotBinding;
@@ -146,8 +147,9 @@ public class Startup
             .AddHangfireConfiguration(Configuration)
             .RegisterCustomServices(Configuration)
             .RegisterTelegramCommands()
-            .UseTelegramBotService()
-            .UseDiscordBotService();
+            .AddBotMessaging()
+            .AddTelegramBot()
+            .AddDiscordBot();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<IntermediateCompetitionResult>());
 

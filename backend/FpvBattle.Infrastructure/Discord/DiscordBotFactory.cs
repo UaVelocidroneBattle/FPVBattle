@@ -2,11 +2,12 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Discord;
 using Discord.WebSocket;
+using FpvBattle.Application.Bot.Discord;
 using FpvBattle.Application.Features.Cups;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
-namespace FpvBattle.Application.Bot.Discord;
+namespace FpvBattle.Infrastructure.Discord;
 
 /// <summary>
 /// Factory for creating cup-specific Discord bot channel instances

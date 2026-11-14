@@ -1,4 +1,4 @@
-using FpvBattle.Application.Bot.Telegram.Commands.Core;
+using FpvBattle.Application.Bot.Telegram;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Services;
 using Hangfire;
@@ -6,7 +6,7 @@ using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace FpvBattle.Application.Bot.Telegram;
+namespace FpvBattle.Infrastructure.Telegram;
 
 public interface ITelegramUpdateHandler
 {
