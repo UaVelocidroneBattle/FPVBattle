@@ -72,6 +72,17 @@ public class Repository<T> : IRepository<T> where T : class
         DbSet.Remove(dbEntry);
     }
 
+    /// <summary>
+    /// Stages the already loaded entry for removal. Does not persist - call <see cref="SaveChangesAsync()"/>
+    /// explicitly once all changes for the unit of work are staged.
+    /// </summary>
+    public virtual Task RemoveEntryAsync(T entry)
+    {
+        CheckIfDetached(entry);
+        DbSet.Remove(entry);
+        return Task.CompletedTask;
+    }
+
     public async Task SaveChangesAsync(CancellationToken ct)
     {
         await DbContext.SaveChangesAsync(ct);

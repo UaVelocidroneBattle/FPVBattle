@@ -52,7 +52,7 @@ function DayStreaksPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-white mb-1">Day Streaks</h2>
+                <h1 className="text-xl font-semibold text-white mb-1">Day Streaks</h1>
                 <p className="text-slate-400 text-sm">Pilots ranked by their current consecutive day streak</p>
             </div>
 
@@ -71,7 +71,7 @@ function DayStreaksPage() {
             )}
 
             {loadingState === "Loaded" && rows.length > 0 && (
-                <div className="overflow-hidden -mx-6 sm:mx-0">
+                <div className="overflow-hidden -mx-4 sm:mx-0">
                     <div className="px-3 py-3 border-b border-slate-700/50 flex items-center gap-4">
                         <div className="w-8 flex-shrink-0" />
                         <div className="flex-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pilot</div>

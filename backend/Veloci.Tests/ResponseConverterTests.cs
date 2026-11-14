@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Veloci.Data.Domain;
 using Veloci.Data.Repositories;
-using Veloci.Logic.API.Dto;
+using Veloci.Logic.API.Velocidrone.Dto;
 using Veloci.Logic.Services;
 
 namespace Veloci.Tests;
@@ -456,6 +456,7 @@ public class ResponseConverterTests
         public Task AddRangeAsync(IEnumerable<T> entries) => throw new NotImplementedException();
         public Task UpdateAsync(T entry) => throw new NotImplementedException();
         public Task RemoveAsync(object id) => throw new NotImplementedException();
+        public Task RemoveEntryAsync(T entry) => throw new NotImplementedException();
         public Task SaveChangesAsync() => throw new NotImplementedException();
         public Task SaveChangesAsync(CancellationToken ct) => throw new NotImplementedException();
     }

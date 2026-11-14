@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import GoogleSignInButton from "./GoogleSignInButton";
+import { getInitials } from "./getInitials";
 
 /**
  * Header widget: Google sign-in button when signed out,
@@ -10,11 +11,6 @@ import GoogleSignInButton from "./GoogleSignInButton";
  * (identity, Profile, Sign out) when signed in.
  */
 
-function getInitials(displayName: string, email: string) {
-    const words = displayName.trim().split(/\s+/).filter(Boolean);
-    const initials = words.slice(0, 2).map((word) => word[0]).join("");
-    return (initials || email[0] || "?").toUpperCase();
-}
 function AuthControls() {
     const user = useAuthStore((state) => state.user);
     const [menuOpen, setMenuOpen] = useState(false);

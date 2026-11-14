@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Check, Copy, ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { CompetitionOverviewModel } from "@/api/client";
 import { useCups } from "@/hooks/useCups";
 
@@ -9,6 +9,8 @@ interface ICurrentCompetitionProps {
     overview: CompetitionOverviewModel;
     selectedDate: string | null;
     onDateChange: (date: string | null) => void;
+    /** Shown at the start of the bar. */
+    modeSwitch?: React.ReactNode;
 }
 
 const today = new Date().toISOString().split('T')[0];
@@ -24,16 +26,50 @@ function Separator() {
     return <span className="hidden md:inline text-slate-600 select-none">|</span>;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/** `labelHiddenOnPhones` hands the label's width to a value that reads clearly enough without it. */
+function Field({ label, labelHiddenOnPhones = false, children }: { label: string; labelHiddenOnPhones?: boolean; children: React.ReactNode }) {
     return (
         <span className="flex items-start gap-1.5">
-            <span className="text-emerald-400 shrink-0">{label}:</span>
+            <span className={`text-emerald-400 shrink-0 ${labelHiddenOnPhones ? "hidden sm:inline" : ""}`}>{label}:</span>
             {children}
         </span>
     );
 }
 
-function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICurrentCompetitionProps) {
+function shiftDay(isoDate: string, days: number): string {
+    const date = new Date(`${isoDate}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
+/**
+ * A link rather than a button, so crawlers can walk from today back through
+ * every finished day. Null leads to today.
+ */
+function DayLink({ date, label, onDateChange, children }: { date: string | null; label: string; onDateChange: (date: string | null) => void; children: React.ReactNode }) {
+    const [searchParams] = useSearchParams();
+    const search = new URLSearchParams(searchParams);
+    if (date) {
+        search.set('date', date);
+    } else {
+        search.delete('date');
+    }
+
+    return (
+        <Link
+            to={{ search: search.toString() }}
+            replace
+            onClick={() => onDateChange(date)}
+            aria-label={label}
+            title={label}
+            className="text-slate-400 hover:text-emerald-400 transition-colors"
+        >
+            {children}
+        </Link>
+    );
+}
+
+function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeSwitch }: ICurrentCompetitionProps) {
     const [copied, setCopied] = useState(false);
     const { findCup } = useCups();
 
@@ -53,12 +89,13 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
     };
 
     const datePickerValue = selectedDate ?? today;
+    const nextDay = shiftDay(datePickerValue, 1);
 
     return (
         <div className="px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-3 text-base">
-            <span className="text-xs font-semibold uppercase tracking-wider bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 px-2.5 py-1 shrink-0 text-center">
-                {findCup(cupId)?.name}
-            </span>
+            {/* The cup is already picked in the navigation; the heading stays for screen readers and search engines */}
+            <h1 className="sr-only">{findCup(cupId)?.name}</h1>
+            {modeSwitch && <div className="flex justify-center shrink-0">{modeSwitch}</div>}
 
             {overview.competition == null ? (
                 <>
@@ -69,9 +106,13 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                 <>
                     <Separator />
 
-                    <Field label="Track">
-                        <span>
-                            <span className="text-slate-400">{overview.competition.mapName} - </span>
+                    {/* Phones show the track as a title: the map as a caption above the track name. */}
+                    <Field label="Track" labelHiddenOnPhones>
+                        <span className="flex flex-col sm:block">
+                            <span className="text-sm sm:text-base text-slate-400">
+                                {overview.competition.mapName}
+                                <span className="hidden sm:inline"> - </span>
+                            </span>
                             <button
                                 onClick={() => copyTrackName(overview.competition!.trackName)}
                                 className="inline-flex items-center gap-1.5 text-white hover:text-emerald-400 transition-colors group"
@@ -79,8 +120,8 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                             >
                                 {overview.competition.trackName}
                                 {copied
-                                    ? <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                                    : <Copy className="h-4 w-4 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
+                                    ? <Check className="hidden sm:block h-4 w-4 text-emerald-400 shrink-0" />
+                                    : <Copy className="hidden sm:block h-4 w-4 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
                                 }
                             </button>
                         </span>
@@ -103,7 +144,7 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                     <Separator />
 
                     <Link
-                        className="text-sm text-slate-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5"
+                        className="text-sm text-slate-400 hover:text-emerald-400 transition-colors hidden sm:inline-flex items-center gap-1.5"
                         to={`https://www.velocidrone.com/leaderboard/${overview.competition.mapId}/${overview.competition.trackId}/All`}
                         target="_blank"
                     >
@@ -124,6 +165,9 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                         Back to today
                     </button>
                 )}
+                <DayLink date={shiftDay(datePickerValue, -1)} label="Previous day" onDateChange={onDateChange}>
+                    <ChevronLeft className="h-5 w-5" />
+                </DayLink>
                 <input
                     type="date"
                     value={datePickerValue}
@@ -131,6 +175,11 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange }: ICu
                     onChange={handleDateChange}
                     className="bg-slate-700/50 border border-slate-600 text-slate-200 text-sm px-3 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 [color-scheme:dark]"
                 />
+                {selectedDate && (
+                    <DayLink date={nextDay === today ? null : nextDay} label="Next day" onDateChange={onDateChange}>
+                        <ChevronRight className="h-5 w-5" />
+                    </DayLink>
+                )}
             </div>
         </div>
     );

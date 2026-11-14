@@ -19,7 +19,10 @@ public enum NotificationType
     General = 0,
     Achievement = 1,
     CompetitionResults = 2,
-    LeagueUpdate = 3
+    LeagueUpdate = 3,
+    TeamInvite = 4,
+    TeamJoinRequest = 5,
+    TeamJoinRequestApproved = 6
 }
 
 public static class UserNotificationExtensions

@@ -18,6 +18,7 @@ const ParticipationChart = lazy(() => import('./ParticipationChart'));
 const PilotsPage = () => {
     return (
         <div className="flex flex-col gap-10">
+            <h1 className="sr-only">Pilot numbers</h1>
             <ChartSection
                 title="Pilots count"
                 description="The total number of pilots in FPV Battle, day by day."

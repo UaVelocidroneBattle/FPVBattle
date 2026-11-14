@@ -9,20 +9,17 @@ namespace Veloci.Logic.Services.Tracks;
 public class TrackQueueService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<TrackQueueService>();
-    private readonly ITrackFetcher _trackFetcher;
     private readonly ICupService _cupService;
     private readonly TrackService _trackService;
     private readonly IRepository<QueuedTrack> _trackQueue;
     private readonly IRepository<QuadModel> _quads;
 
     public TrackQueueService(
-        ITrackFetcher trackFetcher,
         ICupService cupService,
         IRepository<QueuedTrack> trackQueue,
         TrackService trackService,
         IRepository<QuadModel> quads)
     {
-        _trackFetcher = trackFetcher;
         _cupService = cupService;
         _trackQueue = trackQueue;
         _trackService = trackService;
@@ -41,8 +38,7 @@ public class TrackQueueService
 
         var cupOptions = _cupService.GetCupOptions(cupId);
         var trackFilter = new TrackFilter(cupOptions.TrackFilter);
-        var maps = await _trackFetcher.FetchMapsAsync();
-        var tracks = trackFilter.GetSuitableTracks(maps);
+        var tracks = await _trackService.GetSuitableTracksAsync(trackFilter);
         var found = tracks.Where(track => track.Name.Trim() == trackName.Trim()).ToList();
 
         if (found.Count == 0)

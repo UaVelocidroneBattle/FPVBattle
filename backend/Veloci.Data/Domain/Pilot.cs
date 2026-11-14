@@ -20,6 +20,7 @@ public class Pilot
     public int TotalRaceDays { get; set; }
     public int DayStreak { get; set; }
     public int MaxDayStreak { get; set; }
+    public DateTime? DayStreakFrozenUntil { get; set; }
     public string Country { get; set; }
     public virtual ICollection<PilotAchievement> Achievements { get; set; }
     public virtual ICollection<DayStreakFreeze> DayStreakFreezes { get; set; }
@@ -28,10 +29,6 @@ public class Pilot
     public virtual ICollection<PilotPlatformAccount> PlatformAccounts { get; set; }
     public virtual ICollection<PilotLeague> Leagues { get; set; } = [];
 
-    /// <summary>
-    /// Called when competition is finished and pilot took place in it.
-    /// </summary>
-    /// <param name="today">Date of the competition to record</param>
     public void OnRaceFlown(DateTime today)
     {
         if (LastRaceDate.HasValue && LastRaceDate.Value.Date == today.Date)
@@ -71,10 +68,18 @@ public class Pilot
     /// <param name="today"></param>
     public void ResetDayStreak(DateTime today)
     {
+        if (IsDayStreakFrozenOn(today))
+            return;
+
         if (SpendFreeze(today))
             return;
 
         DayStreak = 0;
+    }
+
+    public bool IsDayStreakFrozenOn(DateTime date)
+    {
+        return DayStreakFrozenUntil.HasValue && date.Date <= DayStreakFrozenUntil.Value.Date;
     }
 
     private bool SpendFreeze(DateTime today)
@@ -152,6 +157,16 @@ public static class PilotExtensions
         public IQueryable<Pilot> ByName(string name)
         {
             return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        }
+
+        public async Task<Pilot?> FindByNameAsync(string name)
+        {
+            // Velocidrone pilot names are case sensitive ("Jack" and "jack" are different pilots),
+            // so the exact match is confirmed in memory with ordinal semantics instead of
+            // relying on the database collation.
+            var normalized = name.Trim();
+            var candidates = await allPilots.ByName(normalized).ToListAsync();
+            return candidates.FirstOrDefault(p => string.Equals(p.Name, normalized, StringComparison.Ordinal));
         }
 
         public IQueryable<IGrouping<string, Pilot>> GroupedByCountry()

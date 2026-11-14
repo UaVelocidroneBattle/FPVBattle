@@ -1,8 +1,8 @@
-import { useLanguage } from '@/hooks/useLanguage';
+import { useGuideLanguage } from '@/hooks/useLanguage';
 import { translations } from './translations';
 
 function DayStreakPage() {
-    const { language } = useLanguage();
+    const language = useGuideLanguage();
     const t = translations[language];
 
     return (

@@ -34,16 +34,6 @@ public class PilotBindingService
         _users = users;
     }
 
-    public async Task<Pilot?> FindPilotByNameAsync(string name)
-    {
-        // Velocidrone pilot names are case sensitive ("Jack" and "jack" are different pilots),
-        // so the exact match is confirmed in memory with ordinal semantics instead of
-        // relying on the database collation.
-        var normalized = name.Trim();
-        var candidates = await _pilots.GetAll().ByName(normalized).ToListAsync();
-        return candidates.FirstOrDefault(p => string.Equals(p.Name, normalized, StringComparison.Ordinal));
-    }
-
     public async Task<bool> IsPilotLinkedAsync(int pilotId)
     {
         return await _users.GetAll().AnyAsync(u => u.PilotId == pilotId);
@@ -60,7 +50,7 @@ public class PilotBindingService
             return ClaimPilotResult.AlreadyLinked;
 
         var normalizedName = pilotName.Trim();
-        var pilot = await FindPilotByNameAsync(normalizedName);
+        var pilot = await _pilots.GetAll().FindByNameAsync(normalizedName);
 
         if (pilot is not null && await IsPilotLinkedAsync(pilot.Id))
             return ClaimPilotResult.PilotTaken;

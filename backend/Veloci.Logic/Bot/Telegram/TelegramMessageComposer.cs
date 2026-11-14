@@ -257,9 +257,6 @@ public class TelegramMessageComposer
 
         var points = $"Балів: *{time.Points}*";
 
-        if (time.BonusPoints > 0)
-            points += $" +*{time.BonusPoints}*";
-
         return $"{icon} - *{PilotName(time.Pilot.Name)}* ({TrackTimeConverter.MsToSec(time.TrackTime)}s) / {points}";
     }
 

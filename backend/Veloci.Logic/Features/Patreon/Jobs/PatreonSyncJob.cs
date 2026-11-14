@@ -13,10 +13,9 @@ namespace Veloci.Logic.Features.Patreon.Jobs;
 
 public class PatreonSyncJob
 {
-    private static readonly ILogger _log = Log.ForContext<PatreonSyncJob>();
+    private static readonly ILogger Log = Serilog.Log.ForContext<PatreonSyncJob>();
     private readonly IMediator _mediator;
     private readonly PatreonOptions _options;
-
     private readonly IPatreonService _patreonService;
     private readonly IRepository<PatreonSupporter> _supportersRepository;
 
@@ -42,9 +41,10 @@ public class PatreonSyncJob
 
         // Get campaigns first
         var campaigns = await _patreonService.GetCampaignsAsync(ct);
+
         if (!campaigns.Any())
         {
-            _log.Information("No campaigns found in Patreon API");
+            Log.Information("No campaigns found in Patreon API");
             return;
         }
 
@@ -53,11 +53,11 @@ public class PatreonSyncJob
 
         if (!supportersFromApi.Any())
         {
-            _log.Information("No supporters received from Patreon API");
+            Log.Information("No supporters received from Patreon API");
             return;
         }
 
-        _log.Information("Retrieved {Count} supporters from Patreon API", supportersFromApi.Length);
+        Log.Information("Retrieved {Count} supporters from Patreon API", supportersFromApi.Length);
 
         var existingSupporters = await _supportersRepository
             .GetAll()
@@ -65,37 +65,41 @@ public class PatreonSyncJob
 
         var newSupporters = new List<PatreonSupporter>();
         var updatedSupporters = new List<PatreonSupporter>();
+        var newlyPayingSupporters = new List<PatreonSupporter>();
 
         foreach (var supporter in supportersFromApi)
         {
             if (existingSupporters.TryGetValue(supporter.PatreonId, out var existingSupporter))
             {
-                // Update existing supporter
+                var wasPaying = existingSupporter.IsPaying;
                 var hasChanges = UpdateSupporterData(existingSupporter, supporter);
+
                 if (hasChanges)
                 {
                     updatedSupporters.Add(existingSupporter);
                 }
+
+                if (!wasPaying && existingSupporter.IsPaying)
+                {
+                    newlyPayingSupporters.Add(existingSupporter);
+                }
             }
             else
             {
-                // New supporter
                 newSupporters.Add(supporter);
+
+                if (supporter.IsPaying)
+                {
+                    newlyPayingSupporters.Add(supporter);
+                }
             }
         }
 
-        // Save new supporters
         if (newSupporters.Any())
         {
             await _supportersRepository.AddRangeAsync(newSupporters);
             await _supportersRepository.SaveChangesAsync(ct);
-            _log.Information("Added {Count} new supporters", newSupporters.Count);
-
-            // Send notifications for new supporters
-            foreach (var newSupporter in newSupporters)
-            {
-                await _mediator.Publish(new NewPatreonSupporterNotification(newSupporter), ct);
-            }
+            Log.Information("Added {Count} new supporters", newSupporters.Count);
         }
 
         // Update existing supporters
@@ -106,16 +110,21 @@ public class PatreonSyncJob
                 await _supportersRepository.UpdateAsync(updatedSupporter);
             }
 
-            _log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
+            Log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
         }
 
         await _supportersRepository.SaveChangesAsync(ct);
 
-        _log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
+        foreach (var newlyPayingSupporter in newlyPayingSupporters)
+        {
+            await _mediator.Publish(new NewPatreonSupporterNotification(newlyPayingSupporter), ct);
+        }
+
+        Log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
             newSupporters.Count, updatedSupporters.Count);
     }
 
-    private bool UpdateSupporterData(PatreonSupporter existing, PatreonSupporter updated)
+    private static bool UpdateSupporterData(PatreonSupporter existing, PatreonSupporter updated)
     {
         var hasChanges = false;
 

@@ -10,11 +10,16 @@ namespace Veloci.Web.Controllers.Admin.Users;
 public class UsersController : AdminControllerBase
 {
     private readonly IRepository<ApplicationUser> _users;
+    private readonly IRepository<Pilot> _pilots;
     private readonly PilotBindingService _bindingService;
 
-    public UsersController(IRepository<ApplicationUser> users, PilotBindingService bindingService)
+    public UsersController(
+        IRepository<ApplicationUser> users,
+        IRepository<Pilot> pilots,
+        PilotBindingService bindingService)
     {
         _users = users;
+        _pilots = pilots;
         _bindingService = bindingService;
     }
 
@@ -35,7 +40,8 @@ public class UsersController : AdminControllerBase
             PilotName = u.Pilot?.Name,
             CountryName = u.Pilot is null ? null : TextHelper.CountryName(u.Pilot.Country),
             DayStreak = u.Pilot?.DayStreak,
-            Freezies = u.Pilot?.DayStreakFreezeCount
+            Freezies = u.Pilot?.DayStreakFreezeCount,
+            DayStreakFrozenUntil = u.Pilot?.DayStreakFrozenUntil
         }).ToList();
 
         return View(new UsersViewModel { Users = rows });
@@ -48,7 +54,7 @@ public class UsersController : AdminControllerBase
         {
             var user = await _users.FindAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
-            var pilot = await _bindingService.FindPilotByNameAsync(pilotName)
+            var pilot = await _pilots.GetAll().FindByNameAsync(pilotName)
                         ?? throw new InvalidOperationException($"Pilot '{pilotName}' not found (names are case sensitive)");
 
             await _bindingService.LinkAsync(user, pilot);
@@ -97,6 +103,28 @@ public class UsersController : AdminControllerBase
             {
                 pilot.DayStreakFreezes.Add(new DayStreakFreeze(today));
             }
+
+            await _users.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> FreezeDayStreak(string userId, DateTime? until)
+    {
+        try
+        {
+            var user = await _users.FindAsync(userId)
+                       ?? throw new InvalidOperationException("User not found");
+            var pilot = user.Pilot
+                        ?? throw new InvalidOperationException("User is not linked to a pilot");
+
+            pilot.DayStreakFrozenUntil = until?.Date;
 
             await _users.SaveChangesAsync();
         }

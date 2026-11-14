@@ -127,6 +127,66 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Team>().ToTable("Teams");
+        builder.Entity<Team>().HasKey(t => t.Id);
+        builder.Entity<Team>().Property(t => t.Name).HasMaxLength(Team.NameMaxLength).IsRequired().UseCollation("NOCASE");
+        builder.Entity<Team>().Property(t => t.Description).HasMaxLength(Team.DescriptionMaxLength);
+        builder.Entity<Team>().HasIndex(t => t.Name).IsUnique().HasFilter("NOT \"IsDeleted\"");
+        builder.Entity<Team>().Property(t => t.Tag).HasMaxLength(Team.TagMaxLength).UseCollation("NOCASE");
+        builder.Entity<Team>().HasIndex(t => t.Tag).IsUnique().HasFilter("NOT \"IsDeleted\"");
+        builder.Entity<Team>().HasQueryFilter(t => !t.IsDeleted);
+
+        builder.Entity<TeamMember>().ToTable("TeamMembers");
+        builder.Entity<TeamMember>().HasKey(m => new { m.TeamId, m.UserId });
+        builder.Entity<TeamMember>().HasIndex(m => m.UserId).IsUnique();
+        builder.Entity<TeamMember>().HasQueryFilter(m => !m.Team.IsDeleted);
+        builder.Entity<TeamMember>()
+            .HasOne(m => m.Team)
+            .WithMany(t => t.Members)
+            .HasForeignKey(m => m.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamMember>()
+            .HasOne(m => m.User)
+            .WithMany()
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TeamMembershipRequest>().ToTable("TeamMembershipRequests");
+        builder.Entity<TeamMembershipRequest>().HasKey(i => new { i.TeamId, i.UserId });
+        builder.Entity<TeamMembershipRequest>().HasIndex(i => i.UserId);
+        builder.Entity<TeamMembershipRequest>().HasQueryFilter(i => !i.Team.IsDeleted);
+        builder.Entity<TeamMembershipRequest>()
+            .HasOne(i => i.Team)
+            .WithMany(t => t.MembershipRequests)
+            .HasForeignKey(i => i.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamMembershipRequest>()
+            .HasOne(i => i.User)
+            .WithMany()
+            .HasForeignKey(i => i.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamMembershipRequest>()
+            .HasOne(i => i.InvitedByUser)
+            .WithMany()
+            .HasForeignKey(i => i.InvitedByUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TeamCompetitionResult>().ToTable("TeamCompetitionResults");
+        builder.Entity<TeamCompetitionResult>().HasKey(r => r.Id);
+        builder.Entity<TeamCompetitionResult>().HasIndex(r => new { r.CompetitionId, r.TeamId }).IsUnique();
+        builder.Entity<TeamCompetitionResult>().HasIndex(r => r.TeamId);
+        builder.Entity<TeamCompetitionResult>().HasQueryFilter(r => !r.Team.IsDeleted);
+        builder.Entity<TeamCompetitionResult>()
+            .HasOne(r => r.Competition)
+            .WithMany(c => c.TeamCompetitionResults)
+            .HasForeignKey(r => r.CompetitionId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TeamCompetitionResult>()
+            .HasOne(r => r.Team)
+            .WithMany()
+            .HasForeignKey(r => r.TeamId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<QuadModel>().ToTable("QuadModels");
         builder.Entity<QuadModel>().HasKey(p => p.Id);
         builder.Entity<QuadModel>().Property(p => p.Id).ValueGeneratedNever();

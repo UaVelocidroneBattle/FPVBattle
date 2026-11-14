@@ -3,6 +3,7 @@ import { convertMsToSec } from "../utils/utils";
 import PilotName from "@/components/PilotName";
 import CountryFlag from "@/components/ui/CountryFlag";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { rankStyle } from "@/lib/rankStyle";
 
 /** A result of a filtered board keeps the position it held on the full one. */
 export interface LeaderboardResult extends LeaderboardResultModel {
@@ -33,11 +34,14 @@ function rowHighlightClass(isHighlighted: boolean, isEvenRow: boolean): string {
  * a pilot held before the board was filtered.
  */
 const COLUMNS = {
-    running: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[2.5rem_1fr_2rem_5rem]",
-    runningWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem] grid-cols-[4.5rem_1fr_2rem_5rem]",
-    ended: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[2.5rem_1fr_2rem_5rem_3.5rem]",
-    endedWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[4.5rem_1fr_2rem_5rem_3.5rem]",
+    running: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem] grid-cols-[1.5rem_1fr_1.5rem_4rem]",
+    runningWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem] grid-cols-[4.5rem_1fr_1.5rem_4rem]",
+    ended: "md:grid-cols-[2.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[1.5rem_1fr_1.5rem_4rem_2rem]",
+    endedWide: "md:grid-cols-[4.5rem_1fr_auto_2rem_5rem_3.5rem] grid-cols-[4.5rem_1fr_1.5rem_4rem_2rem]",
 };
+
+/** Phones keep the columns tight, leaving the room to the pilot's name. */
+const COLUMN_GAP = "gap-3 md:gap-6";
 
 function columnsFor(isEnded: boolean, withOriginalRanks: boolean): string {
     if (isEnded) return withOriginalRanks ? COLUMNS.endedWide : COLUMNS.ended;
@@ -46,13 +50,6 @@ function columnsFor(isEnded: boolean, withOriginalRanks: boolean): string {
 
 const hasOriginalRanks = (leaderboard: LeagueLeaderboard[]) =>
     leaderboard.some(group => group.results?.some(result => result.originalRank !== undefined));
-
-function rankStyle(localRank: number): string {
-    if (localRank === 1) return "font-bold text-yellow-500";
-    if (localRank === 2) return "font-bold text-slate-400";
-    if (localRank === 3) return "font-bold text-amber-700";
-    return "font-medium text-slate-500";
-}
 
 const formatRank = (rank: number) => String(rank).padStart(2, "0");
 
@@ -104,7 +101,7 @@ function Position({ rank, originalRank }: { rank: number; originalRank?: number 
 
 function ColumnHeaders({ isEnded, cols }: { isEnded: boolean; cols: string }) {
     return (
-        <div className={`px-4 py-2 border-b border-slate-700 grid ${cols} gap-6`}>
+        <div className={`px-4 py-2 border-b border-slate-700 grid ${cols} ${COLUMN_GAP}`}>
             <div className="text-xs font-medium text-slate-500 text-right">#</div>
             <div className="text-xs font-medium text-slate-500">Pilot</div>
             <div className="hidden md:block text-xs font-medium text-slate-500">Quad</div>
@@ -121,7 +118,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
 
     if (isEmpty) {
         return (
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 px-4 py-8 text-slate-400 text-sm">
+            <div className="bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 px-4 py-8 text-slate-400 text-sm">
                 No results yet
             </div>
         );
@@ -134,7 +131,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
 
         return (
             <TooltipProvider delayDuration={150}>
-                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+                <div className="bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 overflow-hidden">
                     <ColumnHeaders isEnded={isEnded} cols={cols} />
                     <ul>
                         {results.map((result, index) => {
@@ -146,9 +143,9 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                                     className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 border-l-4 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
                                     style={{ borderLeftColor: leagueColor }}
                                 >
-                                    <div className={`grid ${cols} items-center gap-6`}>
+                                    <div className={`grid ${cols} items-center ${COLUMN_GAP}`}>
                                         <Position rank={index + 1} originalRank={result.originalRank} />
-                                        <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                        <PilotName name={result.playerName} teamTag={result.teamTag} className="text-sm text-slate-200 truncate" />
                                         <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
                                         <CountryFlag countryCode={result.country} className="text-sm" />
                                         <TimeCell trackTimeMs={result.trackTime ?? 0} gapToLeaderPercent={result.gapToLeaderPercent} />
@@ -173,7 +170,7 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
         <TooltipProvider delayDuration={150}>
             <div className={hasLeagues ? "flex flex-col gap-6" : ""}>
                 {leaderboard.map(group => (
-                    <div key={group.league ?? 'all'} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+                    <div key={group.league ?? 'all'} className="bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 overflow-hidden">
                         {hasLeagues && (
                             <div className="px-4 py-2 border-b border-slate-700 bg-slate-700/20">
                                 <span
@@ -197,9 +194,9 @@ function CurrentLeaderboard({ leaderboard, leagueColors, flat = false, isEnded =
                                                 key={`${result.playerName}-${result.localRank}`}
                                                 className={`px-4 py-3 hover:bg-slate-600/20 transition-colors duration-150 ${rowHighlightClass(isHighlighted, index % 2 === 0)}`}
                                             >
-                                                <div className={`grid ${cols} items-center gap-6`}>
+                                                <div className={`grid ${cols} items-center ${COLUMN_GAP}`}>
                                                     <Position rank={result.localRank ?? 0} originalRank={result.originalRank} />
-                                                    <PilotName name={result.playerName} className="text-sm text-slate-200 truncate" />
+                                                    <PilotName name={result.playerName} teamTag={result.teamTag} className="text-sm text-slate-200 truncate" />
                                                     <p className="hidden md:block text-sm text-slate-400 truncate">{result.modelName}</p>
                                                     <CountryFlag countryCode={result.country} className="text-sm" />
                                                     <TimeCell trackTimeMs={result.trackTime ?? 0} gapToLeaderPercent={result.gapToLeaderPercent} />

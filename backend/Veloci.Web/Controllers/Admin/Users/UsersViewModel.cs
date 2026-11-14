@@ -15,4 +15,5 @@ public class UserRow
     public string? CountryName { get; set; }
     public int? DayStreak { get; set; }
     public int? Freezies { get; set; }
+    public DateTime? DayStreakFrozenUntil { get; set; }
 }

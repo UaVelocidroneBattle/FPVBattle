@@ -1,13 +1,15 @@
 using MediatR;
 using Veloci.Logic.Notifications;
 using Veloci.Logic.Features.Achievements.Services;
+using Veloci.Logic.Features.Leagues.Notifications;
 
 namespace Veloci.Logic.Features.Achievements.NotificationHandlers;
 
 public class AchievementsEventHandler :
     INotificationHandler<CurrentResultUpdated>,
     INotificationHandler<CompetitionFinished>,
-    INotificationHandler<SeasonFinished>
+    INotificationHandler<SeasonFinished>,
+    INotificationHandler<LeagueUpdateNotification>
 {
     private readonly AchievementService _achievementService;
 
@@ -29,7 +31,11 @@ public class AchievementsEventHandler :
 
     public async Task Handle(SeasonFinished notification, CancellationToken cancellationToken)
     {
-        var flatResults = notification.Results.SelectMany(l => l.Results).ToList();
-        await _achievementService.CheckAfterSeasonAsync(flatResults, notification.CupId, cancellationToken);
+        await _achievementService.CheckAfterSeasonAsync(notification.Results,notification.CupId, cancellationToken);
+    }
+
+    public async Task Handle(LeagueUpdateNotification notification, CancellationToken cancellationToken)
+    {
+        await _achievementService.CheckAfterLeagueUpdateAsync(notification.CupId, notification.Updates, cancellationToken);
     }
 }

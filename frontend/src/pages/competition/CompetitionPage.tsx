@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Navigate, useParams } from 'react-router-dom';
 import LeaderBoard from '../../components/LeaderBoard';
 import { getCompetitionStore } from '../../store/competitionStore';
@@ -13,17 +13,33 @@ import { LeagueLeaderboardModel } from '@/api/client';
 import { useHighlightedPilot } from '@/hooks/useHighlightedPilot';
 import CountryFilter, { countryOptionsOf } from '@/components/CountryFilter';
 import { useUrlCountry } from '@/hooks/useUrlCountry';
+import { useUrlFlag } from '@/hooks/useUrlFlag';
+import { useMyTeamPilots } from '@/hooks/useMyTeamPilots';
+import TeamScopeSwitch from '@/components/TeamScopeSwitch';
+import { usePageMetaOverride } from '@/hooks/usePageMeta';
+import { competitionDayMeta, emptyCompetitionDayMeta } from '@/lib/siteMeta';
+import { bleedOnPhones, boardTitleRow } from '@/lib/layout';
+import SegmentedControl from '@/components/ui/SegmentedControl';
+import TeamBoards from './TeamBoards';
 
 const TEN_MINUTES = 10 * 60 * 1000;
 
+// The backend's CompetitionState enum, which the API sends as a number.
+const COMPETITION_STARTED = 0;
+const COMPETITION_CLOSED = 1;
+
 /**
- * Today's board for a single country: only that country's pilots, numbered from
- * one again, each keeping in brackets the position it held on the full board —
- * the reading the global rating uses for its country leaderboards. Grouped, the
- * kept position is the one from the pilot's league; flat, everyone is ranked
- * together, so it is the one from the whole day.
+ * Today's board narrowed to some of its pilots (a country, a team): they are
+ * numbered from one again, each keeping in brackets the position it held on the
+ * full board — the reading the global rating uses for its country leaderboards.
+ * Grouped, the kept position is the one from the pilot's league; flat, everyone
+ * is ranked together, so it is the one from the whole day.
  */
-function countryLeaderboard(groups: LeagueLeaderboardModel[], countryCode: string, flat: boolean): LeagueLeaderboard[] {
+function restrictedLeaderboard(
+    groups: LeagueLeaderboardModel[],
+    keep: (result: LeagueLeaderboardModel["results"][number]) => boolean,
+    flat: boolean,
+): LeagueLeaderboard[] {
     const positionsOnFullBoard = new Map(
         groups
             .flatMap(group => group.results)
@@ -35,13 +51,18 @@ function countryLeaderboard(groups: LeagueLeaderboardModel[], countryCode: strin
         .map(group => ({
             ...group,
             results: group.results
-                .filter(result => result.country === countryCode)
+                .filter(keep)
                 .map((result, index) => flat
                     ? { ...result, originalRank: positionsOnFullBoard.get(result.playerName) }
                     : { ...result, localRank: index + 1, originalRank: result.localRank }),
         }))
         .filter(group => group.results.length > 0);
 }
+
+const BOARD_MODES = [
+    { label: 'Pilots', value: false },
+    { label: 'Teams', value: true },
+];
 
 const pilotCount = (groups: { results: unknown[] }[]) =>
     groups.reduce((total, group) => total + group.results.length, 0);
@@ -74,9 +95,14 @@ function CupCompetition({ cupId }: { cupId: string }) {
         return () => clearInterval(interval);
     }, [cupId]);
 
-    const [flat, setFlat] = useState(false);
+    const [flat, setFlat] = useUrlFlag('flat');
+    const [myTeamSelected, setMyTeamSelected] = useUrlFlag('team');
+    const [teamMode, setTeamMode] = useUrlFlag('teams');
 
     const highlightPilotName = useHighlightedPilot();
+    const myTeamPilots = useMyTeamPilots();
+    // The team board replaces the other filters, and exists only for a member of a team
+    const myTeamOnly = myTeamSelected && myTeamPilots !== null;
 
     // Only today's board is filtered, so only the countries flying today are offered.
     const countryOptions = useMemo(
@@ -84,6 +110,29 @@ function CupCompetition({ cupId }: { cupId: string }) {
         [overview]
     );
     const [country, setCountry] = useUrlCountry(countryOptions);
+
+    const { findCup } = useCups();
+    const cupName = findCup(cupId)?.name ?? cupId;
+    const pastDayMeta = useMemo(() => {
+        if (!selectedDate || state !== 'Loaded' || !overview) return null;
+
+        const competition = overview.competition;
+        // Today's race opened by date is still today's page.
+        if (competition?.state === COMPETITION_STARTED) return null;
+
+        const meta = competition?.state === COMPETITION_CLOSED
+            ? competitionDayMeta({
+                cupName,
+                date: selectedDate,
+                mapName: competition.mapName,
+                trackName: competition.trackName,
+                pilots: pilotCount(overview.leaderboard),
+            })
+            : emptyCompetitionDayMeta(cupName, selectedDate);
+
+        return { ...meta, canonicalPath: `/${cupId}?date=${selectedDate}` };
+    }, [cupId, cupName, selectedDate, state, overview]);
+    usePageMetaOverride(pastDayMeta);
 
     if (state == 'Loading') {
         return <><Spinner /></>
@@ -101,65 +150,86 @@ function CupCompetition({ cupId }: { cupId: string }) {
 
     const leaguesEnabled = overview.competition?.leagues?.enabled ?? false;
 
-    const leaderboard = country.code
-        ? countryLeaderboard(overview.leaderboard, country.code, flat)
-        : overview.leaderboard;
+    const leaderboard = myTeamOnly
+        ? restrictedLeaderboard(overview.leaderboard, result => myTeamPilots.has(result.playerName), true)
+        : country.code
+            ? restrictedLeaderboard(overview.leaderboard, result => result.country === country.code, flat)
+            : overview.leaderboard;
     const todayPilots = pilotCount(leaderboard);
     const seasonPilots = pilotCount(overview.seasonLeaderboard);
+    const isEnded = overview.competition?.state === COMPETITION_CLOSED;
 
     return (
-        <div className="flex flex-col gap-8">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 overflow-hidden">
+        <div className="flex flex-col gap-6 sm:gap-8">
+            <div className={`${bleedOnPhones} bg-slate-800/50 backdrop-blur-sm border-y sm:border border-slate-700 overflow-hidden`}>
                 <CurrentCompetition
                     cupId={cupId}
                     overview={overview}
                     selectedDate={selectedDate}
                     onDateChange={selectDate}
+                    modeSwitch={<SegmentedControl options={BOARD_MODES} value={teamMode} onChange={setTeamMode} ariaLabel="Leaderboard mode" />}
                 />
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium pl-1 flex items-baseline gap-2">
-                            TODAY'S LEADERBOARD
-                            {todayPilots > 0 && (
-                                <span className="text-xs text-slate-500 normal-case tracking-normal font-normal">{todayPilots} pilots</span>
-                            )}
-                        </h3>
-                        <div className="flex items-center gap-4">
-                            <CountryFilter options={countryOptions} value={country} onChange={setCountry} />
-                            {leaguesEnabled && (
-                                <>
-                                    <div className="h-4 w-px bg-slate-600" />
-                                    <button
-                                        role="switch"
-                                        aria-checked={flat}
-                                        onClick={() => setFlat(f => !f)}
-                                        className="flex items-center gap-1.5 cursor-pointer"
-                                    >
-                                        <span className="text-xs text-slate-400">Flat</span>
-                                        <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${flat ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                                            <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${flat ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
-                                        </span>
-                                    </button>
-                                </>
-                            )}
+            {teamMode ? (
+                <TeamBoards cupId={cupId} selectedDate={selectedDate} isEnded={isEnded} />
+            ) : (
+                <div className="grid lg:grid-cols-2 gap-8">
+                    <div className="flex flex-col gap-3">
+                        {/* Phones have no room for the filters beside the title, so they drop below it, centred. */}
+                        <div className={`flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between ${boardTitleRow}`}>
+                            <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium pl-1 flex justify-center sm:justify-start items-baseline gap-2">
+                                TODAY'S LEADERBOARD
+                                {todayPilots > 0 && (
+                                    <span className="hidden sm:inline text-xs text-slate-500 normal-case tracking-normal font-normal">{todayPilots} pilots</span>
+                                )}
+                            </h3>
+                            <div className="self-center sm:self-auto flex items-center gap-4">
+                                {!myTeamOnly && <CountryFilter options={countryOptions} value={country} onChange={setCountry} />}
+                                {leaguesEnabled && !myTeamOnly && (
+                                    <>
+                                        <div className="h-4 w-px bg-slate-600" />
+                                        <button
+                                            role="switch"
+                                            aria-checked={flat}
+                                            onClick={() => setFlat(!flat)}
+                                            className="flex items-center gap-1.5 cursor-pointer"
+                                        >
+                                            <span className="text-xs text-slate-400">Flat</span>
+                                            <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${flat ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+                                                <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${flat ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                                            </span>
+                                        </button>
+                                    </>
+                                )}
+                                {myTeamPilots && (
+                                    <>
+                                        {!myTeamOnly && <div className="h-4 w-px bg-slate-600" />}
+                                        <TeamScopeSwitch myTeam={myTeamOnly} onChange={setMyTeamSelected} />
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        <div className={bleedOnPhones}>
+                            <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat || myTeamOnly} isEnded={isEnded} highlightPilotName={highlightPilotName} />
                         </div>
                     </div>
-                    <CurrentLeaderboard leaderboard={leaderboard} leagueColors={leagueColors} flat={flat} isEnded={overview.competition?.state === 1} highlightPilotName={highlightPilotName} />
-                </div>
 
-                <div className="flex flex-col gap-3">
-                    <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1 flex items-baseline gap-2">
-                        SEASON LEADERBOARD
-                        {seasonPilots > 0 && (
-                            <span className="text-xs text-slate-500 normal-case tracking-normal font-normal">{seasonPilots} pilots</span>
-                        )}
-                    </h3>
-                    <LeaderBoard leaderboard={overview.seasonLeaderboard} leagueColors={leagueColors} highlightPilotName={highlightPilotName} />
+                    <div className="flex flex-col gap-3">
+                        <div className={`flex flex-col justify-center ${boardTitleRow}`}>
+                            <h3 className="text-sm uppercase tracking-wider text-emerald-400 font-medium px-1 flex justify-center sm:justify-start items-baseline gap-2">
+                                SEASON LEADERBOARD
+                                {seasonPilots > 0 && (
+                                    <span className="hidden sm:inline text-xs text-slate-500 normal-case tracking-normal font-normal">{seasonPilots} pilots</span>
+                                )}
+                            </h3>
+                        </div>
+                        <div className={bleedOnPhones}>
+                            <LeaderBoard leaderboard={overview.seasonLeaderboard} leagueColors={leagueColors} highlightPilotName={highlightPilotName} />
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

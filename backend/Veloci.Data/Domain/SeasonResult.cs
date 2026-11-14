@@ -1,11 +1,15 @@
 namespace Veloci.Data.Domain;
 
+/// <summary>
+/// A computed season result for a pilot. Not mapped to DB
+/// </summary>
 public class SeasonResult
 {
     public required string PlayerName { get; set; }
     public int Points { get; set; }
     public int Rank { get; set; }
     public required string Country { get; set; }
+    public string? TeamTag { get; set; }
 }
 
 public class LeagueSeasonLeaderboard

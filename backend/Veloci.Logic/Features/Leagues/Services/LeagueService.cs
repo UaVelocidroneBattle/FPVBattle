@@ -86,6 +86,7 @@ public class LeagueService
 
             leagueUpdates.Add(new LeagueUpdateModel
             {
+                CupId = cupId,
                 OldLeague = pilotLeagueRecord?.League,
                 NewLeague = league,
                 Pilot = pilot
@@ -121,6 +122,7 @@ public class LeagueService
 
             leagueUpdates.Add(new LeagueUpdateModel
             {
+                CupId = cupId,
                 OldLeague = record.League,
                 NewLeague = null,
                 Pilot = record.Pilot

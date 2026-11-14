@@ -15,6 +15,9 @@ docs/
 
 ## Quick Links
 
+### Features
+- [Teams](teams.md)
+
 ### For Developers
 - [Local Development Setup](deployment/local-development.md)
 - [Architectural Decision Records](adr/)

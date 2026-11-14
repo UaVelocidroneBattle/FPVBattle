@@ -4,6 +4,7 @@ using Veloci.Data.Domain;
 using Veloci.Logic.Features.Cups;
 using Veloci.Logic.Features.Leagues.Models;
 using Veloci.Logic.Features.Leagues.Services;
+using Veloci.Logic.Features.Teams;
 
 namespace Veloci.Web.Controllers.Api.Rating;
 
@@ -17,13 +18,16 @@ public class RatingController : ControllerBase
     private readonly RatingQualificationService _qualificationService;
     private readonly ICupService _cupService;
     private readonly IMemoryCache _cache;
+    private readonly TeamTagLookup _teamTags;
 
     public RatingController(
         RatingService ratingService,
         RatingQualificationService qualificationService,
         ICupService cupService,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        TeamTagLookup teamTags)
     {
+        _teamTags = teamTags;
         _ratingService = ratingService;
         _qualificationService = qualificationService;
         _cupService = cupService;
@@ -35,17 +39,30 @@ public class RatingController : ControllerBase
     {
         var cacheKey = $"rating-{cupId}";
 
-        if (_cache.TryGetValue(cacheKey, out RatingModel? cached))
-            return cached!;
+        if (!_cache.TryGetValue(cacheKey, out RatingModel? model))
+        {
+            model = await BuildRatingModelAsync(cupId);
 
-        var model = await BuildRatingModelAsync(cupId);
+            if (model is null)
+                return NotFound();
 
-        if (model is null)
-            return NotFound();
+            _cache.Set(cacheKey, model, CacheDuration);
+        }
 
-        _cache.Set(cacheKey, model, CacheDuration);
+        await ApplyTeamTagsAsync(model!);
 
-        return model;
+        return model!;
+    }
+
+    /// <summary>
+    /// Tags are set on every request rather than cached with the ratings, so a team change shows at once.
+    /// </summary>
+    private async Task ApplyTeamTagsAsync(RatingModel model)
+    {
+        var teamTags = await _teamTags.GetTagsByPilotNameAsync();
+
+        foreach (var rating in model.Ratings.Concat(model.DroppedOutPilots))
+            rating.TeamTag = teamTags.GetValueOrDefault(rating.PilotName);
     }
 
     private async Task<RatingModel?> BuildRatingModelAsync(string cupId)

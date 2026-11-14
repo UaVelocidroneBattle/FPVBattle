@@ -1,5 +1,6 @@
 using Veloci.Data.Repositories;
 using Veloci.Logic.API;
+using Veloci.Logic.API.Velocidrone;
 using Veloci.Logic.Bot.Discord;
 using Veloci.Logic.Bot.Telegram;
 using Veloci.Logic.Features.Patreon;
@@ -21,7 +22,7 @@ public static class ServiceRegistration
     public static IServiceCollection RegisterCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped<Velocidrone>();
+        services.AddVelocidroneClient(configuration);
         services.AddScoped<CompetitionService>();
         services.AddScoped<CompetitionConductor>();
         services.AddScoped<RaceResultsConverter>();
@@ -31,8 +32,6 @@ public static class ServiceRegistration
         services.AddSingleton<DiscordChatMessages>();
         services.AddScoped<RaceResultDeltaAnalyzer>();
         services.AddScoped<ImageService>();
-        //services.AddScoped<ITrackFetcher, WebTrackFetcher>();
-        services.AddScoped<ITrackFetcher, ApiTrackFetcher>();
         services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
         services.AddScoped<PilotService>();

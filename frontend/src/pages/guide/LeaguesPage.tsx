@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLanguage } from '@/hooks/useLanguage';
+import { useGuideLanguage } from '@/hooks/useLanguage';
 import { translations } from './translations';
 import { useCups } from '@/hooks/useCups';
 import { useGlobalRatingStore, LeagueDescriptorModel } from '@/store/globalRatingStore';
@@ -28,7 +28,7 @@ function LeagueLadder({ descriptors, spotsLabel, allRemaining }: { descriptors: 
 }
 
 function LeaguesPage() {
-    const { language } = useLanguage();
+    const language = useGuideLanguage();
     const t = translations[language];
     const { defaultCup, loadingState: cupsLoadingState } = useCups();
     const data = useGlobalRatingStore((state) => state.data);
