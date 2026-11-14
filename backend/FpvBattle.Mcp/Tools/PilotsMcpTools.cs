@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Text.Json;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Notifications;
+using FpvBattle.Logic.Persistence;
 using FpvBattle.Logic.Services.Pilots;
 using FpvBattle.Logic.Services.Pilots.Models;
 using MediatR;

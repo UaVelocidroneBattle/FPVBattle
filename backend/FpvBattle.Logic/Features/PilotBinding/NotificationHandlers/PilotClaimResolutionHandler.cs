@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.PilotBinding.Services;
 using FpvBattle.Logic.Notifications;
+using FpvBattle.Logic.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,7 +1,7 @@
 using System.Text;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;
+using FpvBattle.Logic.Persistence;
 
 namespace FpvBattle.Logic.Bot.Telegram.Commands;
 

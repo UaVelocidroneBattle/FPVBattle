@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
+using FpvBattle.Logic.Persistence;
 
 namespace FpvBattle.Logic.Features.Notifications.Channels;
 

@@ -1,5 +1,5 @@
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
+using FpvBattle.Logic.Persistence;
 
 namespace FpvBattle.Logic.Features.Achievements.Collection.WhoopClass;
 

@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Patreon.Models;
 using FpvBattle.Logic.Features.Patreon.Notifications;
+using FpvBattle.Logic.Persistence;
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

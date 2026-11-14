@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Cups;
+using FpvBattle.Logic.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Logic.Features.Achievements.Collection;

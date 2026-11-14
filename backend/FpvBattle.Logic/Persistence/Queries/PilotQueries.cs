@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace FpvBattle.Infrastructure.Persistence.Queries;
+namespace FpvBattle.Logic.Persistence.Queries;
 
 public static class PilotQueries
 {

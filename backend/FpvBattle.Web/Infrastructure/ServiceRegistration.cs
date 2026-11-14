@@ -1,5 +1,4 @@
 using FpvBattle.Infrastructure.Persistence;
-using FpvBattle.Infrastructure.Persistence.Repositories;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.Bot.Discord;
@@ -15,6 +14,7 @@ using FpvBattle.Logic.Services.Pilots;
 using FpvBattle.Logic.Services.Statistics;
 using FpvBattle.Logic.Services.Tracks;
 using FpvBattle.Web.Controllers.Api.Heatmap;
+using FpvBattle.Logic.Persistence;
 
 namespace FpvBattle.Web.Infrastructure;
 
@@ -22,7 +22,6 @@ public static class ServiceRegistration
 {
     public static IServiceCollection RegisterCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         services.AddVelocidroneClient(configuration);
         services.AddScoped<CompetitionService>();

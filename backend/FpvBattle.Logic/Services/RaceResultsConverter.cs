@@ -1,7 +1,7 @@
 using System.Globalization;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API.Velocidrone.Dto;
+using FpvBattle.Logic.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

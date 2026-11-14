@@ -1,6 +1,5 @@
 using System.Globalization;
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.API.Velocidrone.Dto;
@@ -9,6 +8,7 @@ using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Features.QuadOfTheDay;
 using FpvBattle.Logic.Features.Teams.Leaderboard;
 using FpvBattle.Logic.Notifications;
+using FpvBattle.Logic.Persistence;
 using FpvBattle.Logic.Services.Tracks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Bot.Telegram.Commands.Core;
 using FpvBattle.Logic.Features.Cups;
+using FpvBattle.Logic.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Logic.Bot.Telegram.Commands;

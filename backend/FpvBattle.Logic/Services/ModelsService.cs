@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API;
 using FpvBattle.Logic.API.Velocidrone;
+using FpvBattle.Logic.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Logic.Services;

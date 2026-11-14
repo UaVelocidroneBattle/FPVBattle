@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace FpvBattle.Infrastructure.Persistence;
+namespace FpvBattle.Logic.Persistence;
 
 public interface IApplicationDbContext
 {

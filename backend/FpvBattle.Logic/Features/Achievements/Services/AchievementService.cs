@@ -1,8 +1,8 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Achievements.Notifications;
 using FpvBattle.Logic.Features.Leagues.Models;
+using FpvBattle.Logic.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,5 +1,5 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
+using FpvBattle.Logic.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 

@@ -1,8 +1,8 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Features.Leagues.Models;
 using FpvBattle.Logic.Features.Leagues.Notifications;
+using FpvBattle.Logic.Persistence;
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

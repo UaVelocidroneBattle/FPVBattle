@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
-using FpvBattle.Infrastructure.Persistence.Queries;
 using FpvBattle.Logic.Notifications;
+using FpvBattle.Logic.Persistence;
+using FpvBattle.Logic.Persistence.Queries;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;

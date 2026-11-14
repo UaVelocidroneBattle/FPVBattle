@@ -14,6 +14,7 @@
       <PackageReference Include="MediatR" Version="12.4.1" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
@@ -26,7 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FpvBattle.Infrastructure\FpvBattle.Infrastructure.csproj" />
       <ProjectReference Include="..\FpvBattle.Domain\FpvBattle.Domain.csproj" />
     </ItemGroup>
 

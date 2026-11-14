@@ -1,9 +1,9 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.Features.Achievements.Base;
 using FpvBattle.Logic.Features.Cups;
 using FpvBattle.Logic.Features.Leagues.Services;
 using FpvBattle.Logic.Features.Teams;
+using FpvBattle.Logic.Persistence;
 using FpvBattle.Logic.Services.Pilots.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

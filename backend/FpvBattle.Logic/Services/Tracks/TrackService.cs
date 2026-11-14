@@ -1,7 +1,7 @@
 using FpvBattle.Domain;
-using FpvBattle.Infrastructure.Persistence;
 using FpvBattle.Logic.API.Velocidrone;
 using FpvBattle.Logic.API.Velocidrone.Dto;
+using FpvBattle.Logic.Persistence;
 using FpvBattle.Logic.Services.Tracks.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;

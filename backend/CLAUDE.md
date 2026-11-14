@@ -21,7 +21,7 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 
 #### Don't Repeat Yourself (DRY)
 - **If you spot duplicate code (same helper method in 3+ files), create a task to refactor it AFTER completing the main work**
-- Use extension methods for shared logic (follow the repository pattern shown below)
+- Use extension methods for shared logic (see the query extensions under "Data Access" below)
 - Place extensions in the appropriate domain namespace (e.g., cup logic → `Features/Cups/CupServiceExtensions.cs`)
 
 **Workflow when spotting violations:**
@@ -34,7 +34,7 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 **Preferred approach for this project:**
 
 #### Controller Responsibilities (Application Layer)
-- Handle data access (repository calls, entity fetching)
+- Handle data access (queries through `IApplicationDbContext`, entity fetching)
 - Converts DTO to domain classes and vice versa
 - Coordinate between different services
 - Handle HTTP concerns (model binding, routing, etc.)
@@ -48,7 +48,7 @@ FPV Battle backend follows a **Vertical Slices Architecture** within a **Modular
 #### Example Pattern:
 ```csharp
 // Controller handles data access
-var action = await _actions.FindAsync(model.ActionId);
+var action = await _db.Actions.FindAsync(model.ActionId);
 var user = await GetCurrentUser<ApplicationUser>();
 var dictItem = FindDictItemById(model.DictItemId);
 
@@ -62,37 +62,21 @@ var result = _actionService.EditAction(action, model.Date, model.Comment, dictIt
 - Services focused on business rules
 - Controllers control data fetching optimization
 
-### TKL Repository Pattern
+### Data Access: IApplicationDbContext
 
-**Prefer thin repositories with extension methods over fat repositories.**
+`IApplicationDbContext` (`FpvBattle.Logic/Persistence`) is the single unit of work. There are no repositories.
 
-#### Fat Repository (Avoid)
-- Contains many specific methods like `FindLoansByDate()`, `CountActiveUsers()`
-- Becomes unmanageable as codebase grows
-- Code duplication across similar methods
-- Hard to compose queries
-- Example: `El.Business.Repositories.LoanRepository.cs`
+- **Inject `IApplicationDbContext`**, never `ApplicationDbContext`. It exposes one `DbSet<T>` per entity plus `SaveChangesAsync`.
+- **Stage changes on the sets** (`Add`, `Update`, `Remove`) and **call `SaveChangesAsync` once per use case** in new code.
+- **Adding a set**: declare it on the interface and implement it explicitly in `ApplicationDbContext` (`DbSet<Pilot> IApplicationDbContext.Pilots => Set<Pilot>();`). A public `DbSet` property would be picked up by EF's convention and rename the table.
+- **Query filters** stay as composable `IQueryable<T>` extension methods next to their feature: one concern each, descriptive names, chainable.
 
-#### Thin Repository (Preferred)
-- Only contains basic CRUD operations (`GetAll()`, `FindAsync()`, `Add()`, etc.)
-- Uses extension methods for composable query filters
-- Each extension does ONE thing and returns `IQueryable<T>`
-- Can chain extensions: `.Active().ByDate(now).ForUser(user).ToListAsync()`
-
-#### Extension Method Rules:
-- Create in `[Entity]Extensions.cs` or `[Entity]QueryExtensions.cs`
-- Take `IQueryable<T>` as first parameter, return `IQueryable<T>`
-- Use descriptive names: `Active()`, `ByDate()`, `ForLoan()`
-- Keep simple and focused on single concern
-
-#### Example:
 ```csharp
-// Good: Extension methods (El.DomainEntities.Actions.Action.cs)
-public static IQueryable<Action> ForLoan(this IQueryable<Action> query, Loan loan)
-    => query.Where(a => a.LoanId == loan.Id);
+public static IQueryable<UserNotification> ForUser(this IQueryable<UserNotification> query, string userId)
+    => query.Where(n => n.UserId == userId);
 
 // Usage
-_actions.GetAll().ForLoan(loan).Where(a => a.Date < DateTime.Now).ToListAsync()
+await _db.UserNotifications.ForUser(userId).Unread().CountAsync(ct);
 ```
 
 ## Project Structure
@@ -103,14 +87,14 @@ _actions.GetAll().ForLoan(loan).Where(a => a.Date < DateTime.Now).ToListAsync()
 - **No Dependencies**: No EF Core and no project references
 
 ### FpvBattle.Infrastructure (Infrastructure Layer)
-Everything under `Persistence/`:
+References Domain and Logic; implements Logic's `IApplicationDbContext`. Everything under `Persistence/`:
 - **ApplicationDbContext**: Identity tables plus every configuration in `Configurations/`
 - **Configurations**: One `IEntityTypeConfiguration<T>` per entity holding its Fluent API mapping
-- **Repositories**: Generic repository pattern for data access
-- **Queries**: Query extensions that need EF Core (`Include`, `ToListAsync`, etc.), e.g. `PilotQueries`
 - **Migrations**: Database schema evolution
 
 ### FpvBattle.Logic (Business Logic Layer)
+`Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`). Logic references Domain only, never Infrastructure.
+
 Organized by **vertical slices** (business features):
 
 ```
