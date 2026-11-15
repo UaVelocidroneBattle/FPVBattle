@@ -185,7 +185,8 @@ public class Startup
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-            KnownNetworks = { new IPNetwork(IPAddress.Parse("172.17.0.0"), 16) }
+            // Docker's private bridge range: nginx reaches the container through the compose network gateway
+            KnownNetworks = { new IPNetwork(IPAddress.Parse("172.16.0.0"), 12) }
         });
 
         app.UseRateLimiter();
