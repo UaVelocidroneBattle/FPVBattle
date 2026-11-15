@@ -7,8 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Hangfire.Core" Version="1.8.21" />
-      <PackageReference Include="OpenTelemetry" Version="1.13.0" />
+      <PackageReference Include="Hangfire.Core" Version="1.8.25" />
+      <!-- Hangfire.Core only requires Newtonsoft.Json 11.0.1, which has a known vulnerability (GHSA-5crp-9r3c-p9vr) -->
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+      <PackageReference Include="OpenTelemetry" Version="1.15.3" />
     </ItemGroup>
 
 </Project>

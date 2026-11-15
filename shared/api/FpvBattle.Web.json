@@ -3192,7 +3192,8 @@
         "enum": [
           "Member",
           "Admin",
-          "Owner"
+          "Owner",
+          null
         ]
       },
       "TeamSeasonResultModel": {
