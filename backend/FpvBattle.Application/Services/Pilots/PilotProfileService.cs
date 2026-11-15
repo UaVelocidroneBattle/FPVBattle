@@ -1,8 +1,10 @@
 using FpvBattle.Application.Features.Achievements.Base;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Features.Leagues.Services;
+using FpvBattle.Application.Features.Patreon;
 using FpvBattle.Application.Features.Teams;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Application.Services.Pilots.Models;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;

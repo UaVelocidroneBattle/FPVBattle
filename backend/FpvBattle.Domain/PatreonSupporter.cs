@@ -28,11 +28,3 @@ public class PatreonSupporter
 
     public bool IsPaying => Status == ActivePatronStatus && Amount > 0;
 }
-
-public static class PatreonSupporterExtensions
-{
-    public static IQueryable<PatreonSupporter> Paying(this IQueryable<PatreonSupporter> query)
-    {
-        return query.Where(s => s.Status == PatreonSupporter.ActivePatronStatus && s.Amount > 0);
-    }
-}

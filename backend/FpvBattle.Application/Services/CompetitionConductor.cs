@@ -8,6 +8,7 @@ using FpvBattle.Application.Features.QuadOfTheDay;
 using FpvBattle.Application.Features.Teams.Leaderboard;
 using FpvBattle.Application.Notifications;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Application.Services.Tracks;
 using FpvBattle.Domain;
 using MediatR;

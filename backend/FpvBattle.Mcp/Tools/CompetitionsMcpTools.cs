@@ -2,6 +2,7 @@ using System.ComponentModel;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Notifications;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Application.Services;
 using FpvBattle.Domain;
 using FpvBattle.Mcp.Dto;

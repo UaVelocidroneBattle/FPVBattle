@@ -69,7 +69,7 @@ var result = _actionService.EditAction(action, model.Date, model.Comment, dictIt
 - **Inject `IApplicationDbContext`**, never `ApplicationDbContext`. It exposes one `DbSet<T>` per entity plus `SaveChangesAsync`.
 - **Stage changes on the sets** (`Add`, `Update`, `Remove`) and **call `SaveChangesAsync` once per use case** in new code.
 - **Adding a set**: declare it on the interface and implement it explicitly in `ApplicationDbContext` (`DbSet<Pilot> IApplicationDbContext.Pilots => Set<Pilot>();`). A public `DbSet` property would be picked up by EF's convention and rename the table.
-- **Query filters** stay as composable `IQueryable<T>` extension methods next to their feature: one concern each, descriptive names, chainable.
+- **Query filters** are composable `IQueryable<T>` extension methods in Application, never in Domain: `Features/<Feature>/<Entity>Queries.cs` for an entity a feature owns, `Persistence/Queries/<Entity>Queries.cs` for core entities (Pilot, Competition). One concern each, descriptive names, chainable. `LayerDependencyTests` fails if one appears in Domain.
 
 ```csharp
 public static IQueryable<UserNotification> ForUser(this IQueryable<UserNotification> query, string userId)
@@ -85,12 +85,12 @@ Four projects, each depending only on the ones above it:
 
 ### FpvBattle.Domain
 - **Entities**: Clean POCOs carrying their own business rules (day streak, freezies, leagues, teams)
-- **Query Extensions**: Pure LINQ extensions only (e.g. `ByName`), nothing that needs EF Core to run
+- **Business behaviour only**: entities and rules over loaded data (e.g. `IEnumerable<SeasonResult>.GetByPlace`); query composition over `IQueryable<T>` lives in Application
 - **No Dependencies**: No EF Core and no project references
 
 ### FpvBattle.Application
 Business logic and **ports**: interfaces such as `IVelocidroneClient`, `ITelegramMessenger`, `IDiscordBotFactory`, `IPatreonApiClient`, `IGoogleTokenValidator` and `IWinnerImageRenderer`. A port's signature uses no third-party SDK types. References Domain only.
-- `Persistence/` holds `IApplicationDbContext` and query extensions that need EF Core (e.g. `PilotQueries`)
+- `Persistence/` holds `IApplicationDbContext` and the query extensions for core entities (e.g. `PilotQueries`, `CompetitionQueries`)
 - `Hangfire.Core` and EF Core are the two accepted infrastructure-flavoured packages here: jobs, their attributes and `BackgroundJob` calls stay with their feature. Telegram, Discord, Google, ImageSharp and ASP.NET Core MVC do not belong here (`LayerDependencyTests` enforces it)
 
 Organized by **vertical slices** (business features):

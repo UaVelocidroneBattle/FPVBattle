@@ -7,6 +7,16 @@ public static class PilotQueries
 {
     extension(IQueryable<Pilot> allPilots)
     {
+        public IQueryable<Pilot> ByName(string name)
+        {
+            return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
+        }
+
+        public IQueryable<IGrouping<string, Pilot>> GroupedByCountry()
+        {
+            return allPilots.Where(p => !string.IsNullOrEmpty(p.Country)).GroupBy(p => p.Country);
+        }
+
         public async Task ResetDayStreaksAsync(DateTime today)
         {
             await allPilots
