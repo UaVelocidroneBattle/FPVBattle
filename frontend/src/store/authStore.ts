@@ -57,8 +57,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => {
             try {
                 const response = await postApiAuthRefresh({ body: { refreshToken } });
                 if (!response.data) {
-                    // The token was rejected — the session is over
-                    clearSession();
+                    // Only a rejected token ends the session; a 429 or 5xx is retried later
+                    if (response.response.status === 401) clearSession();
                     return false;
                 }
                 applyTokens(response.data);
