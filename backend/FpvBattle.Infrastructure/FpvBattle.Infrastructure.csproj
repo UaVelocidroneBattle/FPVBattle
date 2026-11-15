@@ -14,7 +14,7 @@
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.15" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="10.0.15" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.15" />
-      <PackageReference Include="SixLabors.ImageSharp" Version="3.2.0" />
+      <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
       <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
       <PackageReference Include="Telegram.Bot" Version="19.0.0" />
     </ItemGroup>
