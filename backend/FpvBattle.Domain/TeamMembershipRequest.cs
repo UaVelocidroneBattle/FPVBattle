@@ -16,16 +16,3 @@ public class TeamMembershipRequest
 
     public bool IsJoinRequest => InvitedByUserId is null;
 }
-
-public static class TeamMembershipRequestExtensions
-{
-    public static IQueryable<TeamMembershipRequest> Invitations(this IQueryable<TeamMembershipRequest> query)
-    {
-        return query.Where(r => r.InvitedByUserId != null);
-    }
-
-    public static IQueryable<TeamMembershipRequest> JoinRequests(this IQueryable<TeamMembershipRequest> query)
-    {
-        return query.Where(r => r.InvitedByUserId == null);
-    }
-}

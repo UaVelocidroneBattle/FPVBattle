@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using FluentAssertions;
 
 namespace FpvBattle.Tests.Architecture;
@@ -47,6 +48,19 @@ public class LayerDependencyTests
 
         references.Should().NotContain(name => name!.StartsWith(sdkPrefix),
             "external SDKs belong in Infrastructure adapters behind Application ports");
+    }
+
+    [Fact]
+    public void Domain_has_no_queryable_extensions()
+    {
+        var queryableExtensions = Assembly.Load(Domain).GetTypes()
+            .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly))
+            .Where(method => method.IsDefined(typeof(ExtensionAttribute), inherit: false))
+            .Where(method => method.GetParameters().FirstOrDefault()?.ParameterType is { IsGenericType: true } receiver
+                && receiver.GetGenericTypeDefinition() == typeof(IQueryable<>))
+            .Select(method => $"{method.DeclaringType!.Name}.{method.Name}");
+
+        queryableExtensions.Should().BeEmpty("query composition belongs in Application, next to the feature that runs the query");
     }
 
     [Fact]

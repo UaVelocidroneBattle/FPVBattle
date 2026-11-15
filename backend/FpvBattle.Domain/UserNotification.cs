@@ -24,21 +24,3 @@ public enum NotificationType
     TeamJoinRequest = 5,
     TeamJoinRequestApproved = 6
 }
-
-public static class UserNotificationExtensions
-{
-    public static IQueryable<UserNotification> ForUser(this IQueryable<UserNotification> query, string userId)
-    {
-        return query.Where(n => n.UserId == userId);
-    }
-
-    public static IQueryable<UserNotification> Unread(this IQueryable<UserNotification> query)
-    {
-        return query.Where(n => n.ReadOn == null);
-    }
-
-    public static IQueryable<UserNotification> Newest(this IQueryable<UserNotification> query)
-    {
-        return query.OrderByDescending(n => n.CreatedOn);
-    }
-}

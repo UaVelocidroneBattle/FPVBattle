@@ -1,6 +1,7 @@
 using System.Globalization;
 using FpvBattle.Application.Notifications;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

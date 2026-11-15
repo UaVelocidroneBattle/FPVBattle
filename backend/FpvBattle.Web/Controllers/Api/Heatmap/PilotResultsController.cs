@@ -2,6 +2,7 @@
 using FpvBattle.Application.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FpvBattle.Application.Persistence.Queries;
 
 namespace FpvBattle.Web.Controllers.Api.Heatmap;
 

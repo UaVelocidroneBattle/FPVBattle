@@ -1,6 +1,7 @@
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Features.Leagues;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

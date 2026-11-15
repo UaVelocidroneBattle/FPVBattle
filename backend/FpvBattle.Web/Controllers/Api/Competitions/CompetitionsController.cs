@@ -5,6 +5,7 @@ using FpvBattle.Application.Features.Teams.Leaderboard;
 using FpvBattle.Application.Services;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
+using FpvBattle.Application.Persistence.Queries;
 
 namespace FpvBattle.Web.Controllers.Api.Competitions;
 

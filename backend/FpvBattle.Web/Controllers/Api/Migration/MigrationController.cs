@@ -18,38 +18,5 @@ public class MigrationController : ControllerBase
         _db = db;
     }
 
-    [HttpGet]
-    public async Task CalculatePilotProperties()
-    {
-        var pilots = await _db.Pilots.ToListAsync();
-        Log.Information("Starting pilot properties migration for {PilotCount} pilots", pilots.Count);
-
-        var updated = 0;
-        var skipped = 0;
-
-        foreach (var pilot in pilots)
-        {
-            var raceDates = _db.CompetitionResults
-                .Where(cr => cr.PilotId == pilot.Id && cr.Competition.State == CompetitionState.Closed)
-                .Select(cr => cr.Competition.StartedOn.Date)
-                .Distinct();
-
-            if (!await raceDates.AnyAsync())
-            {
-                Log.Warning("Pilot {PilotName} has no race dates. Skipping", pilot.Name);
-                skipped++;
-                continue;
-            }
-
-            pilot.CreatedAt = await raceDates.MinAsync();
-            pilot.TotalRaceDays = await raceDates.CountAsync();
-
-            Log.Debug("Updated pilot {PilotName}: CreatedAt={CreatedAt}, TotalRaceDays={TotalRaceDays}",
-                pilot.Name, pilot.CreatedAt, pilot.TotalRaceDays);
-            updated++;
-        }
-
-        await _db.SaveChangesAsync();
-        Log.Information("Pilot properties migration complete. Updated: {Updated}, Skipped: {Skipped}", updated, skipped);
-    }
+    // Write a migration method here
 }

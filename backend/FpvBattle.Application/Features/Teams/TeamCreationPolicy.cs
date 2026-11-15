@@ -1,3 +1,4 @@
+using FpvBattle.Application.Features.Patreon;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;

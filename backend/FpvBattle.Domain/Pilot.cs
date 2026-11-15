@@ -139,19 +139,3 @@ public class Pilot
             : records.Where(l => l.Date.Date <= date.Value.Date).MaxBy(l => l.Date)?.League;
     }
 }
-
-public static class PilotExtensions
-{
-    extension(IQueryable<Pilot> allPilots)
-    {
-        public IQueryable<Pilot> ByName(string name)
-        {
-            return allPilots.Where(p => p.Name == name || p.NameHistory.Select(r => r.OldName).Contains(name));
-        }
-
-        public IQueryable<IGrouping<string, Pilot>> GroupedByCountry()
-        {
-            return allPilots.Where(p => !string.IsNullOrEmpty(p.Country)).GroupBy(p => p.Country);
-        }
-    }
-}

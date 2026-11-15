@@ -2,6 +2,7 @@ using FpvBattle.Application.Features.Achievements.Base;
 using FpvBattle.Application.Features.Achievements.Notifications;
 using FpvBattle.Application.Features.Leagues.Models;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

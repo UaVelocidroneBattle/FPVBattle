@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using FpvBattle.Application.Notifications;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Application.Services.Pilots;
 using FpvBattle.Application.Services.Pilots.Models;
 using FpvBattle.Domain;
