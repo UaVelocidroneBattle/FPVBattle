@@ -1,36 +1,49 @@
 # FPV Battle
 
-FPV Battle is a competition service for [Velocidrone](https://www.velocidrone.com/) simulator: a web dashboard with statistics, plus Telegram and Discord bots running daily community competitions.
+**FPV Battle** is a daily racing league for pilots of the [Velocidrone](https://www.velocidrone.com/) FPV drone simulator. Live at [fpv-battle.fun](https://fpv-battle.fun).
 
-Every day the service picks a new track and announces it in the chat channels. Pilots fly it whenever they like during the day; FPV Battle watches the results, posts leaderboard updates throughout the day, and closes the competition at midnight with final standings and points.
+Every day FPV Battle picks a new track and announces it in the community's Telegram and Discord channels. Pilots fly it whenever it suits them during the day; there is no fixed race time and no lobby. The service watches the track's Velocidrone leaderboard, posts new times and the leaderboard to the chats as the day goes on, and at the end of the day closes the race, awards points and crowns the winners. Points add up into monthly seasons.
+
+The goal is simple: give pilots a reason to fly every day, a race they can win at their level, and a community to share it with.
 
 ## Features
 
-### Competitions
-- **Daily track** — a new track every day, automatic result tracking, periodic leaderboard updates in the chats, and final results with points based on placement.
-- **Cups** — independent competition classes (e.g. open class, whoop), each with its own tracks, channels, and configuration.
-- **Quad of the Day** — an occasional challenge where the daily competition designates a specific quad model, picked at random or dictated by the track itself. Pilots flying the designated quad compete for full points; anyone on a different quad scores a single point.
+### Daily racing
+- **A new track every day** in each cup, chosen from a curated pool. Recently used tracks and tracks the community rated poorly are skipped. Admins can queue specific tracks.
+- **Cups**: separate competitions for open class and whoop class, each with its own track pool and channels.
+- **Points by placement**: 100 for first, 85 for second, and so on down the field. Every pilot who flies scores.
+- **Monthly seasons** with running standings and a podium on the 1st.
+- **Quad of the Day**: some days name a quad model; only pilots who fly it compete for full points.
+- **Track rating polls**: pilots rate each track on Discord, and badly rated tracks leave the rotation.
 
-### Pilot motivation
-- **Daystreaks** — the number of consecutive days a pilot has flown. Every 30 days of streak earns a "freezie", which automatically saves the streak on a missed day.
-- **Achievements** — badges for milestones like streak lengths and race placements, announced in the chats.
-- **Leagues & pace rating** — pilots are ranked by their pace and grouped into leagues per cup, with promotions and relegations announced as they happen.
+### Keeping pilots coming back
+- **Day streaks**: a counter of consecutive days flown, with warnings in the evening before a streak is lost.
+- **Freezies** save a streak on a missed day. Pilots earn one every 30 streak days, and patrons get them monthly.
+- **Achievements**: badges for streak milestones, podiums, perfect-digit times, night flights and more, announced in the chats.
+- **Global Rating**: a pace rating that measures how far behind the fastest pilots someone is on average, recalculated weekly.
+- **Leagues**: each month pilots are placed into Platinum, Gold, Silver and Bronze by their rating. Each league has its own daily leaderboard and season, with promotions and relegations announced.
+
+### Community
+- **Teams**: pilots form teams, invite friends or ask to join. Public teams compete daily on their members' average time.
+- **Telegram and Discord bots** post every step of the day, and Telegram commands look up tracks, pilots and achievements.
+- **Patreon**: supporters are thanked in the chats and receive freezies every month.
 
 ### Web dashboard
-- **Statistics** — leaderboards, global rating, daystreak standings, track history, pilot comparison charts, and a results heatmap.
-- **Pilot profiles** — per-pilot pages with race history, streaks, and achievements.
-- **User accounts** — sign in with Google and link your account to your Velocidrone pilot via a fly-to-verify claim: claim your pilot name, fly the daily track, and the link completes automatically. Accounts can be permanently deleted from the profile page; personal data is removed while pilot race history stays on the leaderboards.
-- **Admin tools** — track queue management, user-pilot links, and claim oversight.
+- **Live competition page** for each cup, with league and team leaderboards.
+- **Statistics**: global rating, day streak standings, track history, pilot counts and participation, countries, and pilot comparison charts.
+- **Pilot profiles** with race history, streaks, leagues, achievements and team.
+- **Accounts**: sign in with Google, link your pilot by flying a race with it, get personal notifications. Accounts can be deleted at any time; race history stays on the leaderboards.
+- **Guide** to the rules, in English and Ukrainian.
+- **Admin tools**: track queue, users and pilot links, pilot claims, teams, patrons and notifications.
 
-### Integrations
-- **Discord & Telegram** — announcements and leaderboards on both platforms, plus bot commands in Telegram.
-- **Patreon** — supporter sync so patrons get recognized.
+## Learn more
 
-## Repository layout
+- [docs/](docs/README.md): how each feature works in detail
+- [CLAUDE.md](CLAUDE.md): architecture and development conventions
 
 | Folder | Contents |
 | --- | --- |
-| [`backend/`](backend/) | ASP.NET Core modular monolith (vertical slices), Entity Framework, Hangfire jobs, bot services |
+| [`backend/`](backend/) | ASP.NET Core 10 modular monolith: Domain, Application, Infrastructure and Web, with Hangfire jobs, the bots and an MCP server |
 | [`frontend/`](frontend/) | React + TypeScript dashboard (Vite, Zustand, TailwindCSS) |
-| [`shared/`](shared/) | OpenAPI specification used to generate the type-safe frontend client |
-| [`docs/`](docs/) | Project documentation and architectural decision records |
+| [`shared/`](shared/) | OpenAPI specification used to generate the frontend API client |
+| [`docs/`](docs/) | Feature documentation and architectural decision records |

@@ -1,94 +1,44 @@
-# CLAUDE.md
+# FPV Battle
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+FPV Battle runs daily community competitions for the [Velocidrone](https://www.velocidrone.com/) FPV simulator. It is made of a web dashboard with admin tools, plus Telegram and Discord bots.
 
-## Project Overview
+Every day the service picks a track and announces it in the chat channels. Pilots fly it whenever they like. The bot tracks results, posts leaderboard updates during the day, and closes the competition at the end of the day with final standings and points by placement.
 
-FPV Battle is a competition service for Velocidrone drone racing — a web dashboard with admin tools plus Telegram and Discord bots. The project consists of:
+## Features
 
-- **Backend**: ASP.NET Core 10.0 modular monolith using vertical slices architecture, with Entity Framework, Hangfire background jobs, and bot services
-- **Frontend**: React + TypeScript dashboard with Vite, Zustand state management, and TailwindCSS
-- **Shared**: OpenAPI specification for type-safe client generation
+- **Daily competitions and cups**: a new track every day per cup (open class, whoop class), each cup with its own channels and settings.
+- **Quad of the Day**: some days name a quad model; pilots flying it compete for full points.
+- **Day streaks and freezies**: consecutive flying days. A freezie saves the streak on a missed day. Pilots earn one every 30 streak days, and patrons get them monthly.
+- **Achievements, leagues and pace rating**: badges for milestones, plus per-cup leagues with promotions and relegations.
+- **Statistics**: leaderboards, global rating, track history, pilot comparison and a results heatmap.
+- **User accounts**: Google sign-in (JWT plus rotating refresh tokens). A fly-to-verify claim links an account to a Velocidrone pilot. Deleting an account removes personal data but keeps race history.
+- **Teams**: pilots create and join teams. Public teams compete on the daily track with the average time of the members who flew. Team deletion is soft and memberships keep their history.
+- **Notifications**: in-app notifications next to the chat announcements.
+- **Patreon**: supporter sync, patron announcements and freezie rewards.
+- **MCP server**: admin tools for Claude at `/mcp`.
 
-The purpose of the bot is to run daily flight competitions. Each day, the bot selects a new track and posts its name in the chat channels. When pilots see the announcement, they can start racing.
+## Repository
 
-Throughout the day, the bot checks results, tracks everyone's progress, and sends periodic updates to the chats, including the current leaderboard. At the end of the day, the competition for that track is closed, and the bot posts the final results. Pilots earn points based on their performance and their final ranking.
+| Folder | Contents |
+| --- | --- |
+| `backend/` | ASP.NET Core 10 solution `FpvBattle.sln`: Domain, Application, Infrastructure, Web, Mcp, Hangfire.Metrics, Tests |
+| `frontend/` | React + TypeScript dashboard (Vite, Zustand, TailwindCSS) |
+| `shared/api/` | OpenAPI spec `FpvBattle.Web.json`, used to generate the frontend client |
+| `docs/` | Feature docs and architectural decision records (`docs/adr/`) |
 
-To encourage people to fly every day, the bot also calculates "daystreaks." A daystreak is the number of consecutive days a pilot has flown without missing a day. Occasionally, a pilot can earn a "freezie," which is an item used to save their daystreak if they are unable to fly.
+## Where to read more
 
-### User Accounts
+| Read | When |
+| --- | --- |
+| [.claude/conventions/code-style.md](.claude/conventions/code-style.md) | Always: quality bar, SOLID and DRY, comments |
+| [.claude/conventions/workflow.md](.claude/conventions/workflow.md) | Always: branches, commits, PRs, docs, common commands |
+| [.claude/conventions/backend.md](.claude/conventions/backend.md) | Backend work: layers, ports and adapters, vertical slices, data access, EF, jobs, bots, admin Razor pages |
+| [.claude/conventions/frontend.md](.claude/conventions/frontend.md) | Frontend work: components, file layout, API client, Zustand rules |
+| [.claude/conventions/testing.md](.claude/conventions/testing.md) | Writing or running tests, architecture tests, frontend build check |
+| [docs/README.md](docs/README.md) | How each feature behaves: competitions, quad of the day, day streaks, leagues, achievements, teams, accounts, notifications, bots, Patreon. Read the feature's doc before changing it |
+| [docs/adr/](docs/adr/) | Why Hangfire, SQLite and the React SPA were chosen |
 
-The web dashboard supports user accounts with Google sign-in (JWT access tokens plus rotating refresh tokens). A user links their account to their Velocidrone pilot through a fly-to-verify claim: they claim a pilot name, and the link completes automatically once that pilot posts a result on the daily track. Users can permanently delete their account from the profile page — deletion removes personal data (email, profile, sign-in methods, sessions), while the pilot and race history remain as community competition data.
+`backend/CLAUDE.md` and `frontend/CLAUDE.md` load the backend and frontend conventions automatically when you work in those folders.
 
-### Teams
-
-Users with a linked pilot can create teams (a user belongs to at most one team) and invite other pilots to them. Anyone, including visitors, can browse teams and their members; members are identified by pilot name only, never by account name or email. Public teams also compete on the daily track: a team's time is the average of its members who flew, and team results are stored when the competition closes. Deleting a team is soft, so its results stay. Details are in [docs/teams.md](docs/teams.md).
-
-## Development Principles
-
-- Always favour most readable and elegant solutions. Developers should be proud of the code. It should be maintainable and literate.
-
-## Code Quality Standards
-
-FPV Battle maintains **enterprise-grade quality standards** across all code layers. When implementing features or fixing issues:
-
-### Quality-First Approach
-- **Never settle for "quick fixes"** - always refactor to maintainable, professional solutions
-- **Extract reusable components** when duplicate logic appears across multiple files
-- **Follow DRY principle** - eliminate code duplication through proper abstraction
-- **Apply single responsibility principle** - each component/service should have one clear purpose
-
-### Code Review Mindset
-- **Question initial implementations** - is this the most maintainable approach?
-- **Consider future developers** - will this code be easy to understand and modify?
-- **Think about scalability** - how will this pattern work with 10x more features?
-- **Prioritize readability** over brevity - clear code is better than clever code
-
-### Refactoring Standards
-When code duplication or quality issues are identified:
-1. **Stop and refactor immediately** - technical debt compounds quickly
-2. **Extract shared components/services** with clear, descriptive names
-3. **Centralize logic** in single locations with well-defined interfaces  
-4. **Update all consumers** to use the new shared implementation
-5. **Test thoroughly** to ensure refactoring maintains functionality
-
-**Remember**: If you're not proud to show the code to senior developers, it's not ready for this codebase.
-
-## Architecture Guidelines
-
-### Backend Architecture (Vertical Slices)
-- **Modular Monolith**: Single deployable unit with clear feature boundaries
-- **Four Projects**: `FpvBattle.Domain` (entities), `FpvBattle.Application` (business logic and ports), `FpvBattle.Infrastructure` (adapters: database, Telegram, Discord, Velocidrone, Patreon, Google, imaging) and `FpvBattle.Web` (composition root, controllers)
-- **Ports and Adapters**: Application declares an interface for anything external, with no third-party SDK types in its signature; Infrastructure implements it. Hangfire.Core and EF Core are the only infrastructure-flavoured packages allowed in Application
-- **Vertical Slices**: Inside Application, features organized by business capability (Achievements, Patreon, Bot) rather than technical layers
-- **Feature Isolation**: Each feature slice contains its own services, models, jobs, and event handlers
-- **Cross-Feature Communication**: Use domain events and well-defined interfaces, avoid direct dependencies
-- **See @backend/CLAUDE.md for detailed backend guidelines**
-
-### Entity Framework Configuration
-- All Entity Framework configuration (MaxLength, Key, indexes, etc.) is done via Fluent API, one `IEntityTypeConfiguration<T>` class per entity in `FpvBattle.Infrastructure/Persistence/Configurations/`
-- Domain models are kept as clean POCOs without data annotation attributes like [MaxLength], [Key], etc.
-- This approach provides better separation of concerns and keeps domain models independent of persistence concerns
-
-### Frontend Architecture (Component-Based)
-- **React** as ui framework
-- **Zustand State Management**: Clean separation of state and actions
-- **Component Organization**: UI components in `src/components/ui/`, business components in `src/components/`, page-specific in `src/pages/`
-- **API Integration**: Generated TypeScript client from OpenAPI specification
-- **See @frontend/CLAUDE.md for detailed frontend guidelines**
-
-## Version Control Guidelines
-
-- When you asked to fix the issue, or implement a feature create separate branch for that. If it is a bug, branch should be `bugs\github-issue-id-description` or for feature - `feature\github-issue-id-describpiton`
-- When you are asked to work a new feature or bug, create and checkout appropriate branch
-- When asked to create github issues, be concise in description. It should be 2-3 sentences
-- When you are asked to commit, create commit messages concise and clean
-
-## Technical Communication Guidelines
-
-### Pull Request Documentation
-- **Focus on actual implementation**, not temporary solutions or workarounds
-- **Avoid repetition** - each point should add unique value to the description
-- **Lead with business value**, follow with technical implementation details
-- **Be concise** - eliminate redundant statements that say the same thing differently
-- **Use concrete language** - describe what was built, not what problems were avoided
+@.claude/conventions/code-style.md
+@.claude/conventions/workflow.md
