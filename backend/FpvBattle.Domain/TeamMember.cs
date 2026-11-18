@@ -4,12 +4,19 @@ namespace FpvBattle.Domain;
 
 public class TeamMember
 {
+    public int Id { get; set; }
     public int TeamId { get; set; }
     public virtual Team Team { get; set; }
     public required string UserId { get; set; }
     public virtual ApplicationUser User { get; set; }
     public TeamRole Role { get; set; }
     public DateTime JoinedOn { get; set; } = DateTime.UtcNow;
+    public DateTime? LeftOn { get; set; }
+
+    public void End(DateTime leftOn)
+    {
+        LeftOn ??= leftOn;
+    }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<TeamRole>))]

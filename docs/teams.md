@@ -2,7 +2,15 @@
 
 Signed-in users with a linked pilot can create teams and invite other pilots to them from the Teams page (`/teams`). Anyone, including visitors, can browse teams and their members.
 
-A user belongs to at most one team. This is a rule, not a setting: the unique index on `TeamMembers.UserId` enforces it, and the API and UI deal with a single team (`TeamsOverviewModel.MyTeam`, `PilotProfileModel.Team`).
+A user belongs to at most one team at a time. This is a rule, not a setting: the unique index on `TeamMembers.UserId`, filtered to current memberships, enforces it, and the API and UI deal with a single team (`TeamsOverviewModel.MyTeam`, `PilotProfileModel.Team`).
+
+## Membership history
+
+A `TeamMember` row is one stint of a user in a team. Leaving, being removed and the team being deleted end it by setting `LeftOn` (`TeamMember.End`) instead of deleting the row, so the teams a pilot has flown for stay known. Rejoining the same team adds a new row; the key is a plain `Id`.
+
+The `CurrentMembers` global query filter hides ended rows, so every query and every `Team.Members` count sees current members only. History queries opt out with `IncludingFormer()` (`TeamMemberQueries`). Nothing shows the history yet.
+
+Memberships ended before the `AddTeamMembershipHistory` migration were deleted, so the history starts there. Rolling the migration back deletes the ended rows, because the old `(TeamId, UserId)` key allows one row per pair. `TeamMembershipHistoryMigrationTests` covers both directions.
 
 ## Roles
 
@@ -92,13 +100,13 @@ Code: `FpvBattle.Application/Features/Teams/Leaderboard` (`TeamLeaderboardCalcul
 
 ## Deletion
 
-Deleting a team is soft. `Team.MarkDeleted` sets `IsDeleted` and removes the members and pending requests, so former members can join or create another team at once. The row stays so the team's past competition results keep its name and tag; they show it with `IsDeleted`.
+Deleting a team is soft. `Team.MarkDeleted` sets `IsDeleted`, ends the memberships and removes the pending requests, so former members can join or create another team at once. The row stays so the team's past competition results keep its name and tag; they show it with `IsDeleted`.
 
 A global query filter hides deleted teams, and their members, requests and results, from every query. Only the team leaderboard queries opt out with `IgnoreQueryFilters()`. The unique indexes on name and tag cover non-deleted teams only, so a deleted team's name and tag can be taken again.
 
 ## Account deletion
 
-Before an account is deleted, a team the user owns goes to its longest-serving admin, then to its longest-serving member, and is deleted (softly, see Deletion) when nobody else is left (`TeamService.RemoveUserFromTeamAsync`).
+Before an account is deleted, a team the user owns goes to its longest-serving admin, then to its longest-serving member, and is deleted (softly, see Deletion) when nobody else is left (`TeamService.RemoveUserFromTeamAsync`). Memberships belong to the account, so deleting it then removes all of them, past ones included; the pilot and its results stay.
 
 ## Admin page
 

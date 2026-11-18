@@ -704,22 +704,33 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FpvBattle.Domain.TeamMember", b =>
                 {
-                    b.Property<int>("TeamId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserId")
+                    b.Property<DateTime>("JoinedOn")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("JoinedOn")
+                    b.Property<DateTime?>("LeftOn")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("TeamId", "UserId");
+                    b.Property<int>("TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"LeftOn\" IS NULL");
 
                     b.ToTable("TeamMembers", (string)null);
                 });

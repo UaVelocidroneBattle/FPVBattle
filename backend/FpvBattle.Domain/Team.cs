@@ -19,13 +19,18 @@ public class Team
 
     /// <summary>
     /// The team stays in the database so its past competition results keep their name and tag.
-    /// Its members and pending requests go, which frees them to join another team.
+    /// Its memberships end and its pending requests go, which frees the members to join another team.
     /// </summary>
     public void MarkDeleted()
     {
+        var deletedOn = DateTime.UtcNow;
+
         IsDeleted = true;
-        DeletedOn = DateTime.UtcNow;
-        Members.Clear();
+        DeletedOn = deletedOn;
+
+        foreach (var member in Members)
+            member.End(deletedOn);
+
         MembershipRequests.Clear();
     }
 }
