@@ -1,3 +1,4 @@
+using FpvBattle.Application.Features.Teams;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,9 +10,10 @@ public sealed class TeamMemberConfiguration : IEntityTypeConfiguration<TeamMembe
     public void Configure(EntityTypeBuilder<TeamMember> builder)
     {
         builder.ToTable("TeamMembers");
-        builder.HasKey(m => new { m.TeamId, m.UserId });
-        builder.HasIndex(m => m.UserId).IsUnique();
-        builder.HasQueryFilter(m => !m.Team.IsDeleted);
+        builder.HasKey(m => m.Id);
+        builder.HasIndex(m => m.UserId).IsUnique().HasFilter("\"LeftOn\" IS NULL");
+        builder.HasQueryFilter("TeamNotDeleted", m => !m.Team.IsDeleted);
+        builder.HasQueryFilter(TeamMemberQueries.CurrentMembersFilter, m => m.LeftOn == null);
         builder.HasOne(m => m.Team)
             .WithMany(t => t.Members)
             .HasForeignKey(m => m.TeamId)

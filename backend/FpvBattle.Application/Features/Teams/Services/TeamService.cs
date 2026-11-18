@@ -285,7 +285,7 @@ public class TeamService
         if (membership.Role is TeamRole.Owner)
             return LeaveTeamResult.OwnerCannotLeave;
 
-        _db.TeamMembers.Remove(membership);
+        membership.End(DateTime.UtcNow);
         await _db.SaveChangesAsync();
 
         Log.Information("User {UserId} left team {TeamName} ({TeamId})", user.Id, team.Name, team.Id);
@@ -319,7 +319,7 @@ public class TeamService
         if (target.Role is TeamRole.Owner)
             return RemoveMemberResult.OwnerCannotBeRemoved;
 
-        _db.TeamMembers.Remove(target);
+        target.End(DateTime.UtcNow);
         await _db.SaveChangesAsync();
 
         Log.Information("Removed user {TargetId} from team {TeamId}", target.UserId, target.TeamId);
@@ -355,7 +355,7 @@ public class TeamService
             successor.Role = TeamRole.Owner;
         }
 
-        _db.TeamMembers.Remove(membership);
+        membership.End(DateTime.UtcNow);
         await _db.SaveChangesAsync();
 
         Log.Information("Removed user {UserId} from team {TeamId} before account deletion", user.Id, membership.TeamId);

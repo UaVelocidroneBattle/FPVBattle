@@ -503,6 +503,63 @@ public class TeamsTests : TeamsTestBase
         (await Controller(member).Details(lonelyTeamId)).Result.Should().BeOfType<NotFoundObjectResult>();
     }
 
+    [Fact]
+    public async Task Leave_EndsTheMembershipAndKeepsItWhenThePilotRejoins()
+    {
+        var owner = AddUser("owner");
+        var member = AddUser("member");
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
+        await JoinAsync(owner, member, teamId);
+
+        await Controller(member).Leave(new TeamReferenceModel { TeamId = teamId });
+        await JoinAsync(owner, member, teamId);
+
+        var memberships = MembershipsOf(member);
+        memberships.Should().HaveCount(2);
+        memberships[0].LeftOn.Should().NotBeNull();
+        memberships[1].LeftOn.Should().BeNull();
+        (await Controller(owner).Details(teamId)).Value!.Members.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task RemoveMember_EndsTheMembership()
+    {
+        var owner = AddUser("owner");
+        var member = AddUser("member");
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
+        await JoinAsync(owner, member, teamId);
+
+        await Controller(owner).RemoveMember(MemberRef(teamId, member));
+
+        MembershipsOf(member).Should().ContainSingle().Which.LeftOn.Should().NotBeNull();
+        (await Controller(member).Overview()).Value!.MyTeam.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Delete_EndsEveryMembershipAndFreesTheMembersForAnotherTeam()
+    {
+        var owner = AddUser("owner");
+        var member = AddUser("member");
+        var teamId = (await Controller(owner).Create(new CreateTeamModel { Tag = NextTag(), Name = "Alpha" })).Value!.Id;
+        await JoinAsync(owner, member, teamId);
+
+        await Controller(owner).Remove(new TeamReferenceModel { TeamId = teamId });
+
+        _db.Set<TeamMember>().IgnoreQueryFilters().Where(m => m.TeamId == teamId).Should().HaveCount(2).And.OnlyContain(m => m.LeftOn != null);
+        (await Controller(member).Create(new CreateTeamModel { Tag = NextTag(), Name = "Beta" })).Value.Should().NotBeNull();
+    }
+
+    private async Task JoinAsync(ApplicationUser owner, ApplicationUser user, int teamId)
+    {
+        await Controller(owner).Invite(new InviteModel { TeamId = teamId, PilotName = PilotNameOf(user) });
+        await Controller(user).Accept(new TeamReferenceModel { TeamId = teamId });
+    }
+
+    private List<TeamMember> MembershipsOf(ApplicationUser user)
+    {
+        return _db.Set<TeamMember>().IncludingFormer().Where(m => m.UserId == user.Id).OrderBy(m => m.Id).ToList();
+    }
+
     private async Task<int> CreateTeamWithMembers(string name, int memberCount)
     {
         var owner = AddUser("owner of " + name);
