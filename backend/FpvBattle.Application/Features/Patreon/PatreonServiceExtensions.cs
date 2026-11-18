@@ -16,6 +16,7 @@ public static class PatreonServiceExtensions
 
         // Register core services
         services.AddScoped<IPatreonService, PatreonService>();
+        services.AddScoped<PatreonUserMatcher>();
 
         // Register MediatR command handler
         services.AddScoped<PatreonSyncJob>();

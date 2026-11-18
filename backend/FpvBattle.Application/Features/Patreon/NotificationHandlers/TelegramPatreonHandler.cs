@@ -6,7 +6,7 @@ using MediatR;
 namespace FpvBattle.Application.Features.Patreon.NotificationHandlers;
 
 public class TelegramPatreonHandler :
-    INotificationHandler<NewPatreonSupporterNotification>,
+    INotificationHandler<NewPatreonSupportersNotification>,
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
@@ -47,11 +47,9 @@ public class TelegramPatreonHandler :
         await _cupMessenger.SendMessageToAllCupsAsync(message);
     }
 
-    public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(NewPatreonSupportersNotification notification, CancellationToken cancellationToken)
     {
-        var message = TelegramMessageGenerator.WelcomeMessage(
-            notification.Supporter.Name,
-            notification.Supporter.TierName);
+        var message = TelegramMessageGenerator.WelcomeMessage(notification.Supporters);
 
         await _cupMessenger.SendMessageToAllCupsAsync(message);
     }

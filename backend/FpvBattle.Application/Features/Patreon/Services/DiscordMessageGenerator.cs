@@ -1,5 +1,6 @@
 using System.Text;
 using FpvBattle.Application.Features.Patreon.Models;
+using FpvBattle.Domain;
 
 namespace FpvBattle.Application.Features.Patreon.Services;
 
@@ -12,7 +13,12 @@ public static class DiscordMessageGenerator
         "🎮 {0} joined our patron squad! Thank you!",
     ];
 
-    public static string WelcomeMessage(string supporterName, string? tierName)
+    public static string WelcomeMessage(IEnumerable<PatreonSupporter> supporters)
+    {
+        return string.Join("\n", supporters.Select(s => WelcomeLine(s.Name, s.TierName)));
+    }
+
+    private static string WelcomeLine(string supporterName, string? tierName)
     {
         var messageIndex = Math.Abs(supporterName.GetHashCode()) % WelcomeMessages.Length;
         var template = WelcomeMessages[messageIndex];
