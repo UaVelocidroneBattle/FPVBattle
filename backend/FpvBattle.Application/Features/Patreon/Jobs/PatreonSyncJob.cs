@@ -14,20 +14,23 @@ namespace FpvBattle.Application.Features.Patreon.Jobs;
 public class PatreonSyncJob
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<PatreonSyncJob>();
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
     private readonly PatreonOptions _options;
     private readonly IPatreonService _patreonService;
     private readonly IApplicationDbContext _db;
+    private readonly PatreonUserMatcher _userMatcher;
 
     public PatreonSyncJob(
         IPatreonService patreonService,
         IApplicationDbContext db,
-        IMediator mediator,
+        PatreonUserMatcher userMatcher,
+        IPublisher publisher,
         IOptions<PatreonOptions> options)
     {
         _patreonService = patreonService;
         _db = db;
-        _mediator = mediator;
+        _userMatcher = userMatcher;
+        _publisher = publisher;
         _options = options.Value;
     }
 
@@ -63,64 +66,73 @@ public class PatreonSyncJob
             .ToDictionaryAsync(s => s.PatreonId, ct);
 
         var newSupporters = new List<PatreonSupporter>();
-        var updatedSupporters = new List<PatreonSupporter>();
-        var newlyPayingSupporters = new List<PatreonSupporter>();
+        var updatedCount = 0;
+        var firstTimePayers = new List<PatreonSupporter>();
+        var now = DateTime.UtcNow;
 
         foreach (var supporter in supportersFromApi)
         {
             if (existingSupporters.TryGetValue(supporter.PatreonId, out var existingSupporter))
             {
-                var wasPaying = existingSupporter.IsPaying;
-                var hasChanges = UpdateSupporterData(existingSupporter, supporter);
-
-                if (hasChanges)
+                if (UpdateSupporterData(existingSupporter, supporter))
                 {
-                    updatedSupporters.Add(existingSupporter);
+                    updatedCount++;
                 }
 
-                if (!wasPaying && existingSupporter.IsPaying)
+                if (existingSupporter.TryRecordFirstPayment(now))
                 {
-                    newlyPayingSupporters.Add(existingSupporter);
+                    firstTimePayers.Add(existingSupporter);
                 }
             }
             else
             {
+                _db.PatreonSupporters.Add(supporter);
                 newSupporters.Add(supporter);
 
-                if (supporter.IsPaying)
+                if (supporter.TryRecordFirstPayment(now))
                 {
-                    newlyPayingSupporters.Add(supporter);
+                    firstTimePayers.Add(supporter);
                 }
             }
         }
 
-        if (newSupporters.Any())
-        {
-            _db.PatreonSupporters.AddRange(newSupporters);
-            await _db.SaveChangesAsync(ct);
-            Log.Information("Added {Count} new supporters", newSupporters.Count);
-        }
-
-        // Update existing supporters
-        if (updatedSupporters.Any())
-        {
-            foreach (var updatedSupporter in updatedSupporters)
-            {
-                _db.PatreonSupporters.Update(updatedSupporter);
-            }
-
-            Log.Information("Updated {Count} existing supporters", updatedSupporters.Count);
-        }
+        await LinkToPilotsByEmailAsync(newSupporters, existingSupporters.Values, ct);
 
         await _db.SaveChangesAsync(ct);
 
-        foreach (var newlyPayingSupporter in newlyPayingSupporters)
+        if (firstTimePayers.Count > 0)
         {
-            await _mediator.Publish(new NewPatreonSupporterNotification(newlyPayingSupporter), ct);
+            await _publisher.Publish(new NewPatreonSupportersNotification(firstTimePayers), ct);
         }
 
         Log.Information("Patreon sync completed successfully. New: {NewCount}, Updated: {UpdatedCount}",
-            newSupporters.Count, updatedSupporters.Count);
+            newSupporters.Count, updatedCount);
+    }
+
+    private async Task LinkToPilotsByEmailAsync(
+        IReadOnlyCollection<PatreonSupporter> newSupporters,
+        IEnumerable<PatreonSupporter> existingSupporters,
+        CancellationToken ct)
+    {
+        var usersByEmail = await _userMatcher.FindUsersByEmailAsync(newSupporters, ct);
+
+        var linkedPilotIds = existingSupporters
+            .Select(s => s.PilotId)
+            .OfType<int>()
+            .ToHashSet();
+
+        foreach (var supporter in newSupporters)
+        {
+            if (supporter.NormalizedEmail is not { } email
+                || usersByEmail.GetValueOrDefault(email)?.Pilot is not { } pilot
+                || !linkedPilotIds.Add(pilot.Id))
+            {
+                continue;
+            }
+
+            supporter.PilotId = pilot.Id;
+            Log.Information("Linked new Patreon supporter {Supporter} to pilot {Pilot} by email", supporter.Name, pilot.Name);
+        }
     }
 
     private static bool UpdateSupporterData(PatreonSupporter existing, PatreonSupporter updated)

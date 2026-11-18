@@ -1,3 +1,4 @@
+using FpvBattle.Application.Features.Patreon.Services;
 using FpvBattle.Application.Features.PilotBinding.Services;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Application.Persistence.Queries;
@@ -11,13 +12,16 @@ public class PatronsController : AdminControllerBase
 {
     private readonly IApplicationDbContext _db;
     private readonly PilotBindingService _bindingService;
+    private readonly PatreonUserMatcher _userMatcher;
 
     public PatronsController(
         IApplicationDbContext db,
-        PilotBindingService bindingService)
+        PilotBindingService bindingService,
+        PatreonUserMatcher userMatcher)
     {
         _db = db;
         _bindingService = bindingService;
+        _userMatcher = userMatcher;
     }
 
     public async Task<IActionResult> Index()
@@ -32,12 +36,12 @@ public class PatronsController : AdminControllerBase
             .Select(s => s.PilotId!.Value)
             .ToList();
 
-        var usersByEmail = await FindUsersMatchingUnlinkedPatronsAsync(supporters);
+        var usersByEmail = await _userMatcher.FindUsersByEmailAsync(supporters.Where(s => s.PilotId is null));
 
         var rows = supporters.Select(s =>
         {
-            var matchedUser = s.PilotId is null && s.Email is not null
-                ? usersByEmail.GetValueOrDefault(s.Email.ToUpperInvariant())
+            var matchedUser = s.PilotId is null && s.NormalizedEmail is { } email
+                ? usersByEmail.GetValueOrDefault(email)
                 : null;
             var suggestedPilot = matchedUser?.Pilot is { } pilot && !linkedPilotIds.Contains(pilot.Id) ? pilot : null;
 
@@ -65,23 +69,6 @@ public class PatronsController : AdminControllerBase
             .ToListAsync();
 
         return View(new PatronsViewModel { Patrons = rows, UnlinkedPilotNames = unlinkedPilotNames });
-    }
-
-    private async Task<Dictionary<string, ApplicationUser>> FindUsersMatchingUnlinkedPatronsAsync(
-        IEnumerable<PatreonSupporter> supporters)
-    {
-        var normalizedEmails = supporters
-            .Where(s => s.PilotId is null && s.Email is not null)
-            .Select(s => s.Email!.ToUpperInvariant())
-            .Distinct()
-            .ToList();
-
-        var users = await _db.Users
-            .Where(u => u.NormalizedEmail != null && normalizedEmails.Contains(u.NormalizedEmail))
-            .Include(u => u.Pilot)
-            .ToListAsync();
-
-        return users.ToDictionary(u => u.NormalizedEmail!);
     }
 
     [HttpPost, ValidateAntiForgeryToken]

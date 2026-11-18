@@ -6,7 +6,7 @@ using MediatR;
 namespace FpvBattle.Application.Features.Patreon.NotificationHandlers;
 
 public class DiscordPatreonHandler :
-    INotificationHandler<NewPatreonSupporterNotification>,
+    INotificationHandler<NewPatreonSupportersNotification>,
     INotificationHandler<MonthlyPatreonSupportersNotification>,
     INotificationHandler<MonthlyAccruedFreeziesNotification>
 {
@@ -45,11 +45,9 @@ public class DiscordPatreonHandler :
         await _generalMessenger.SendMessageAsync(message);
     }
 
-    public async Task Handle(NewPatreonSupporterNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(NewPatreonSupportersNotification notification, CancellationToken cancellationToken)
     {
-        var message = DiscordMessageGenerator.WelcomeMessage(
-            notification.Supporter.Name,
-            notification.Supporter.TierName);
+        var message = DiscordMessageGenerator.WelcomeMessage(notification.Supporters);
 
         await _generalMessenger.SendMessageAsync(message);
     }
