@@ -1,8 +1,10 @@
+@using FpvBattle.Application.Services.Tracks
 @using FpvBattle.Web.Controllers.Admin.TrackQueue
 @model TrackQueueViewModel
 
 @{
     ViewData["Title"] = "Track Queue";
+    ViewData["ContentClass"] = "content-wide";
 }
 
 @if (TempData["Error"] is string error)
@@ -25,9 +27,20 @@
                     }
                 </select>
             </div>
-            <div>
-                <label class="form-label mb-1">Track Name</label>
-                <input type="text" name="trackName" class="form-control" placeholder="Exact track name" required />
+            <div class="flex-grow-1">
+                <label class="form-label mb-1" for="queueTrackSearch">Track</label>
+                <div class="combobox" data-combobox
+                     data-combobox-source="@Url.Action("SuggestTracks")"
+                     data-combobox-params="cupId"
+                     data-combobox-min-length="@TrackQueueService.MinSuggestionTermLength"
+                     data-combobox-pick-message="Pick a track from the suggestions">
+                    <input type="text" id="queueTrackSearch" class="form-control"
+                           placeholder="Search tracks…" autocomplete="off" required />
+                    <input type="hidden" name="trackId" />
+                    <ul class="dropdown-menu combobox-menu">
+                        <li class="combobox-empty" hidden>No tracks found</li>
+                    </ul>
+                </div>
             </div>
             <div>
                 <label class="form-label mb-1">Schedule Date <span class="text-muted">(optional)</span></label>

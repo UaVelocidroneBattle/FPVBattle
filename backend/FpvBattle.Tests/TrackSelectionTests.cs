@@ -60,28 +60,133 @@ public class TrackSelectionTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Deleted")]
-    [InlineData("On deleted scene")]
-    public async Task QueueTrackAsync_ShouldRefuse_WhenTrackIsNotAvailable(string trackName)
+    [InlineData(102)]
+    [InlineData(103)]
+    public async Task QueueTrackAsync_ShouldRefuse_WhenTrackIsNotAvailable(int velocidroneTrackId)
     {
-        var queue = () => QueueService().QueueTrackAsync(CupId, trackName, scheduleOn: null, quadId: null);
+        var queue = () => QueueService().QueueTrackAsync(CupId, StoredId(velocidroneTrackId), scheduleOn: null, quadId: null);
 
-        await queue.Should().ThrowAsync<Exception>().WithMessage($"Track {trackName} not found");
+        await queue.Should().ThrowAsync<Exception>().WithMessage("The track was not found or is no longer available");
     }
 
     [Fact]
-    public async Task QueueTrackAsync_ShouldQueueTheStoredTrack_WhenItIsAvailable()
+    public async Task QueueTrackAsync_ShouldRefuse_WhenTrackIdIsUnknown()
     {
-        await QueueService().QueueTrackAsync(CupId, " Available ", scheduleOn: null, quadId: null);
+        var queue = () => QueueService().QueueTrackAsync(CupId, "unknown", scheduleOn: null, quadId: null);
+
+        await queue.Should().ThrowAsync<Exception>().WithMessage("The track was not found or is no longer available");
+    }
+
+    [Fact]
+    public async Task QueueTrackAsync_ShouldQueueThePickedTrack_WhenAnotherTrackSharesItsName()
+    {
+        var otherScene = new Scene { SceneId = 3, Name = "Other" };
+        _db.Set<Track>().Add(new Track { TrackId = 104, Name = "Available", Scene = otherScene });
+        _db.SaveChanges();
+
+        await QueueService().QueueTrackAsync(CupId, StoredId(104), scheduleOn: null, quadId: null);
+
+        _db.Set<QueuedTrack>().AsNoTracking().Select(q => q.Track.TrackId).Should().Equal(104);
+    }
+
+    [Fact]
+    public async Task QueueTrackAsync_ShouldQueueTheTrack_WhenItIsOutsideTheCupFilter()
+    {
+        var service = QueueService(new TrackFilterOptions { BlacklistPatterns = ["Available"] });
+
+        await service.QueueTrackAsync(CupId, StoredId(101), scheduleOn: null, quadId: null);
 
         _db.Set<QueuedTrack>().AsNoTracking().Select(q => q.Track.TrackId).Should().Equal(101);
     }
 
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldMatchAnywhereIgnoringCase_WithPrefixMatchesFirst()
+    {
+        var scene = _db.Set<Scene>().Single(s => s.SceneId == 1);
+        _db.Set<Track>().AddRange(
+            new Track { TrackId = 104, Name = "Hangar Race", Scene = scene },
+            new Track { TrackId = 105, Name = "Race Hangar", Scene = scene });
+        _db.SaveChanges();
+
+        var suggestions = await QueueService().SuggestTracksAsync(CupId, " RACE ");
+
+        suggestions.Select(s => s.Track.Name).Should().Equal("Race Hangar", "Hangar Race");
+    }
+
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldSkipDeletedTracksAndTracksOnDeletedScenes()
+    {
+        var suggestions = await QueueService().SuggestTracksAsync(CupId, "deleted");
+
+        suggestions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldMarkTracksOutsideTheCupFilter()
+    {
+        var scene = _db.Set<Scene>().Single(s => s.SceneId == 1);
+        _db.Set<Track>().Add(new Track { TrackId = 104, Name = "Available Freestyle", Scene = scene });
+        _db.SaveChanges();
+        var service = QueueService(new TrackFilterOptions { BlacklistPatterns = ["Freestyle"] });
+
+        var suggestions = await service.SuggestTracksAsync(CupId, "avail");
+
+        suggestions.Select(s => (s.Track.Name, s.MatchesCupFilter))
+            .Should().Equal(("Available", true), ("Available Freestyle", false));
+    }
+
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldSuggestNothing_WhenTermIsShorterThanTheMinimum()
+    {
+        var suggestions = await QueueService().SuggestTracksAsync(CupId, "A");
+
+        suggestions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldReportTheLatestRace_IgnoringCancelledCompetitions()
+    {
+        var track = _db.Set<Track>().Single(t => t.TrackId == 101);
+        var raced = DateTime.Now.AddMonths(-8);
+        _db.Set<Competition>().AddRange(
+            new Competition { CupId = "whoop-class", Track = track, State = CompetitionState.Closed, StartedOn = raced.AddDays(-30) },
+            new Competition { CupId = "whoop-class", Track = track, State = CompetitionState.Closed, StartedOn = raced },
+            new Competition { CupId = CupId, Track = track, State = CompetitionState.Cancelled, StartedOn = DateTime.Now.AddDays(-1) });
+        _db.SaveChanges();
+
+        var suggestion = (await QueueService().SuggestTracksAsync(CupId, "available")).Single();
+
+        suggestion.LastRace.Should().BeEquivalentTo(new LastRace(raced, "whoop-class", IsInReuseCooldown: false));
+    }
+
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldFlagTheReuseCooldown_WhenRacedInTheLastSixMonths()
+    {
+        var track = _db.Set<Track>().Single(t => t.TrackId == 101);
+        _db.Set<Competition>().Add(new Competition { CupId = CupId, Track = track, State = CompetitionState.Closed, StartedOn = DateTime.Now.AddMonths(-2) });
+        _db.SaveChanges();
+
+        var suggestion = (await QueueService().SuggestTracksAsync(CupId, "available")).Single();
+
+        suggestion.LastRace!.IsInReuseCooldown.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SuggestTracksAsync_ShouldReportNoRace_WhenTheTrackWasNeverRaced()
+    {
+        var suggestion = (await QueueService().SuggestTracksAsync(CupId, "available")).Single();
+
+        suggestion.LastRace.Should().BeNull();
+    }
+
     private TrackService TrackService() => new(_db);
 
-    private TrackQueueService QueueService()
+    private string StoredId(int velocidroneTrackId) => _db.Set<Track>().Single(t => t.TrackId == velocidroneTrackId).Id;
+
+    private TrackQueueService QueueService(TrackFilterOptions? trackFilter = null)
     {
-        var cups = new CupsConfiguration { Definitions = { [CupId] = new CupOptions { IsEnabled = true } } };
-        return new TrackQueueService(new CupService(Options.Create(cups)), _db, TrackService());
+        var cup = new CupOptions { IsEnabled = true, TrackFilter = trackFilter ?? new TrackFilterOptions() };
+        var cups = new CupsConfiguration { Definitions = { [CupId] = cup } };
+        return new TrackQueueService(new CupService(Options.Create(cups)), _db);
     }
 }

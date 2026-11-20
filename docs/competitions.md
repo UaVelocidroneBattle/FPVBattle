@@ -41,7 +41,7 @@ The `CompetitionConductor` class owns the start, stop and season steps. `Competi
    - pilots rated it below 3 out of 5.
 3. A track with no results on Velocidrone yet is skipped, with up to 10 attempts.
 
-Queuing a track looks it up by name among the same available, cup-filtered tracks. An admin can change the day's track through the MCP server (`change_track`), which cancels the running competition and starts a new one (`TrackRestart`).
+Queuing takes the track picked from the suggestions, by its id, so tracks that share a name stay distinct. Any available track can be queued: the cup filter only guides random picks, so an admin can queue a track outside it. The Track Queue page suggests tracks as you type and marks those outside the selected cup's filter. Each suggestion shows when the track was last raced (cancelled competitions don't count), highlighted while it's inside the 6-month reuse window. An admin can change the day's track through the MCP server (`change_track`), which cancels the running competition and starts a new one (`TrackRestart`).
 
 ### Track and scene lookups
 

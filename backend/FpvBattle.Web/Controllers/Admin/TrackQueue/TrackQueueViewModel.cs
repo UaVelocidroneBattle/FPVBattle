@@ -14,3 +14,7 @@ public class CupQueueModel
     public string CupName { get; set; } = string.Empty;
     public List<QueuedTrack> Tracks { get; set; } = [];
 }
+
+public record ComboboxOption(string Key, string Value, string Label, IReadOnlyList<ComboboxNote> Notes);
+
+public record ComboboxNote(string Text, bool Warning = false);

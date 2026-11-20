@@ -38,16 +38,57 @@ public class TrackQueueController : AdminControllerBase
         return View(new TrackQueueViewModel { Cups = [..cupModels], Quads = quads });
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(string cupId, string trackName, DateTime? scheduleOn, int? quadId)
+    [HttpGet]
+    public async Task<IActionResult> SuggestTracks(string cupId, string term)
     {
+        var suggestions = await _trackQueueService.SuggestTracksAsync(cupId, term ?? string.Empty);
+
+        return Json(suggestions.Select(suggestion => new ComboboxOption(
+            Key: suggestion.Track.Id,
+            Value: suggestion.Track.Name,
+            Label: suggestion.Track.FullName,
+            Notes: SuggestionNotes(suggestion, cupId))));
+    }
+
+    private List<ComboboxNote> SuggestionNotes(TrackSuggestion suggestion, string selectedCupId)
+    {
+        var notes = new List<ComboboxNote>();
+
+        if (!suggestion.MatchesCupFilter)
+            notes.Add(new ComboboxNote("outside cup filter"));
+
+        notes.Add(suggestion.LastRace is { } race
+            ? new ComboboxNote(LastRaceText(race, selectedCupId), Warning: race.IsInReuseCooldown)
+            : new ComboboxNote("never raced"));
+
+        return notes;
+    }
+
+    private string LastRaceText(LastRace race, string selectedCupId)
+    {
+        var text = $"last raced {race.StartedOn:dd.MM.yyyy}";
+
+        return race.CupId == selectedCupId
+            ? text
+            : $"{text} · {_cupService.GetCupOptions(race.CupId).Name}";
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Add(string cupId, string? trackId, DateTime? scheduleOn, int? quadId)
+    {
+        if (string.IsNullOrEmpty(trackId))
+        {
+            TempData["Error"] = "Pick a track from the suggestions";
+            return RedirectToAction(nameof(Index));
+        }
+
         try
         {
-            await _trackQueueService.QueueTrackAsync(cupId, trackName, scheduleOn, quadId);
+            await _trackQueueService.QueueTrackAsync(cupId, trackId, scheduleOn, quadId);
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to queue track {TrackName} for cup {CupId}", trackName, cupId);
+            Log.Warning(ex, "Failed to queue track {TrackId} for cup {CupId}", trackId, cupId);
             TempData["Error"] = ex.Message;
         }
 

@@ -12,6 +12,10 @@ public class TrackService
     private const double MinimumGoodRating = 3;
     private const int ReuseCooldownMonths = 6;
 
+    private static DateTime ReuseCooldownStart => DateTime.Now.AddMonths(-ReuseCooldownMonths);
+
+    public static bool IsInReuseCooldown(DateTime startedOn) => startedOn > ReuseCooldownStart;
+
     private readonly IApplicationDbContext _db;
     private HashSet<string>? _recentlyUsedTrackIds;
 
@@ -58,7 +62,7 @@ public class TrackService
         if (_recentlyUsedTrackIds is not null)
             return _recentlyUsedTrackIds;
 
-        var since = DateTime.Now.AddMonths(-ReuseCooldownMonths);
+        var since = ReuseCooldownStart;
         var ids = await _db.Competitions
             .Where(comp => comp.StartedOn > since)
             .Select(comp => comp.TrackId)

@@ -668,6 +668,30 @@ a {
     color: var(--ink);
 }
 
+/* A remote option: its label on the left, its notes on the right. */
+.combobox-option {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.combobox-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.combobox-note {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.combobox-note-warning {
+    color: var(--warn);
+}
+
 .combobox-empty {
     padding: 0.45rem 0.7rem;
     font-size: 0.88rem;

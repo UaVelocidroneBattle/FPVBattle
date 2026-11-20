@@ -1,4 +1,5 @@
 using FpvBattle.Application.Features.Cups;
+using FpvBattle.Application.Features.Tracks;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -8,47 +9,37 @@ namespace FpvBattle.Application.Services.Tracks;
 
 public class TrackQueueService
 {
+    public const int MinSuggestionTermLength = 2;
+    private const int MaxSuggestions = 40;
+
     private static readonly ILogger Log = Serilog.Log.ForContext<TrackQueueService>();
     private readonly ICupService _cupService;
-    private readonly TrackService _trackService;
     private readonly IApplicationDbContext _db;
 
     public TrackQueueService(
         ICupService cupService,
-        IApplicationDbContext db,
-        TrackService trackService)
+        IApplicationDbContext db)
     {
         _cupService = cupService;
         _db = db;
-        _trackService = trackService;
     }
 
-    public async Task QueueTrackAsync(string cupId, string trackName, DateTime? scheduleOn, int? quadId)
+    public async Task QueueTrackAsync(string cupId, string trackId, DateTime? scheduleOn, int? quadId)
     {
-        Log.Information("Queuing track {TrackName} for cup {CupId}, scheduled on {ScheduledOn}",
-            trackName, cupId, (object?)scheduleOn ?? "next available date");
+        Log.Information("Queuing track {TrackId} for cup {CupId}, scheduled on {ScheduledOn}",
+            trackId, cupId, (object?)scheduleOn ?? "next available date");
 
         if (scheduleOn.HasValue && AlreadyScheduledOnTheDate(cupId, scheduleOn.Value))
         {
             throw new Exception($"There is already a track scheduled on the date {scheduleOn.Value}");
         }
 
-        var cupOptions = _cupService.GetCupOptions(cupId);
-        var trackFilter = new TrackFilter(cupOptions.TrackFilter);
-        var tracks = await _trackService.GetSuitableTracksAsync(trackFilter);
-        var found = tracks.Where(track => track.Name.Trim() == trackName.Trim()).ToList();
+        var track = await QueueableTracks().FirstOrDefaultAsync(t => t.Id == trackId)
+                    ?? throw new Exception("The track was not found or is no longer available");
 
-        if (found.Count == 0)
-        {
-            throw new Exception($"Track {trackName} not found");
-        }
+        if (!CupFilter(cupId).IsTrackSuitable(track))
+            Log.Information("Track '{TrackName}' is outside the track filter of cup {CupId}, queuing it anyway", track.Name, cupId);
 
-        if (found.Count > 1)
-        {
-            throw new Exception($"Multiple tracks found with the name {trackName}");
-        }
-
-        var track = found.Single();
         QuadModel? quad = null;
 
         if (quadId is not null)
@@ -71,6 +62,54 @@ public class TrackQueueService
         Log.Information("✅ Track '{TrackName}' (ID: {TrackId}) queued for cup {CupId}, scheduled on {ScheduledOn}",
             track.Name, track.TrackId, cupId, (object?)scheduleOn ?? "next available date");
     }
+
+    public async Task<List<TrackSuggestion>> SuggestTracksAsync(string cupId, string term)
+    {
+        term = term.Trim();
+
+        if (term.Length < MinSuggestionTermLength)
+            return [];
+
+        var cupFilter = CupFilter(cupId);
+        var tracks = await QueueableTracks().ToListAsync();
+
+        var matches = tracks
+            .Where(track => track.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+            .Select(track => (Track: track, MatchesCupFilter: cupFilter.IsTrackSuitable(track)))
+            .OrderByDescending(match => match.Track.Name.StartsWith(term, StringComparison.OrdinalIgnoreCase))
+            .ThenByDescending(match => match.MatchesCupFilter)
+            .ThenBy(match => match.Track.Name)
+            .ThenBy(match => match.Track.Scene.Name)
+            .Take(MaxSuggestions)
+            .ToList();
+
+        var lastRaces = await GetLastRacesAsync(matches.Select(match => match.Track.Id).ToList());
+
+        return matches
+            .Select(match => new TrackSuggestion(match.Track, match.MatchesCupFilter, lastRaces.GetValueOrDefault(match.Track.Id)))
+            .ToList();
+    }
+
+    // Cancelled competitions were replaced by a track change or a restart, so they don't count as raced
+    private async Task<Dictionary<string, LastRace>> GetLastRacesAsync(List<string> trackIds)
+    {
+        var races = await _db.Competitions
+            .Where(competition => trackIds.Contains(competition.TrackId) && competition.State != CompetitionState.Cancelled)
+            .Select(competition => new { competition.TrackId, competition.StartedOn, competition.CupId })
+            .ToListAsync();
+
+        return races
+            .GroupBy(race => race.TrackId)
+            .Select(group => group.MaxBy(race => race.StartedOn)!)
+            .ToDictionary(
+                race => race.TrackId,
+                race => new LastRace(race.StartedOn, race.CupId, TrackService.IsInReuseCooldown(race.StartedOn)));
+    }
+
+    // Admins may queue any available track: the cup filter only guides random picks
+    private IQueryable<Track> QueueableTracks() => _db.Tracks.Available().Include(t => t.Scene);
+
+    private TrackFilter CupFilter(string cupId) => new(_cupService.GetCupOptions(cupId).TrackFilter);
 
     public async Task<QueuedTrack?> TryDequeueNextTrackAsync(string cupId)
     {
