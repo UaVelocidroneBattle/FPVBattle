@@ -30,7 +30,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     DbSet<TeamMember> IApplicationDbContext.TeamMembers => Set<TeamMember>();
     DbSet<TeamMembershipRequest> IApplicationDbContext.TeamMembershipRequests => Set<TeamMembershipRequest>();
     DbSet<Track> IApplicationDbContext.Tracks => Set<Track>();
-    DbSet<TrackMap> IApplicationDbContext.TrackMaps => Set<TrackMap>();
+    DbSet<Scene> IApplicationDbContext.Scenes => Set<Scene>();
     DbSet<TrackTimeDelta> IApplicationDbContext.TrackTimeDeltas => Set<TrackTimeDelta>();
     DbSet<ApplicationUser> IApplicationDbContext.Users => Users;
     DbSet<UserNotification> IApplicationDbContext.UserNotifications => Set<UserNotification>();

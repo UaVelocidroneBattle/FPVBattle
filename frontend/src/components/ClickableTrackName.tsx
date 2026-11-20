@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
 
 interface ClickableTrackNameProps {
-    mapName: string
+    sceneName: string
     trackName: string
 }
 
-const ClickableTrackName: React.FC<ClickableTrackNameProps> = ({ mapName, trackName }: ClickableTrackNameProps) => {
+function ClickableTrackName({ sceneName, trackName }: ClickableTrackNameProps) {
     const [copied, setCopied] = useState(false)
 
     const copyToClipboard = async () => {
@@ -21,7 +21,7 @@ const ClickableTrackName: React.FC<ClickableTrackNameProps> = ({ mapName, trackN
 
     return (
         <div>
-            <div className="text-slate-400 mb-2">{mapName}</div>
+            <div className="text-slate-400 mb-2">{sceneName}</div>
             <button
                 onClick={copyToClipboard}
                 className="text-xl font-semibold text-white flex items-center gap-2 hover:text-emerald-400 transition-colors duration-200 group w-full max-w-[500px]"

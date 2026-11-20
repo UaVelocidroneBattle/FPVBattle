@@ -49,7 +49,6 @@ public class TrackQueueService
         }
 
         var track = found.Single();
-        var dbTrack = await _trackService.GetOrCreateTrackAsync(track.Map.Name, track.Map.Id, track.Name, track.Id);
         QuadModel? quad = null;
 
         if (quadId is not null)
@@ -59,7 +58,7 @@ public class TrackQueueService
 
         var queuedTrack = new QueuedTrack
         {
-            TrackId = dbTrack.Id,
+            TrackId = track.Id,
             ScheduledOn = scheduleOn,
             AddedOn = DateTime.UtcNow,
             CupId = cupId,
@@ -70,7 +69,7 @@ public class TrackQueueService
         await _db.SaveChangesAsync();
 
         Log.Information("✅ Track '{TrackName}' (ID: {TrackId}) queued for cup {CupId}, scheduled on {ScheduledOn}",
-            dbTrack.Name, dbTrack.TrackId, cupId, (object?)scheduleOn ?? "next available date");
+            track.Name, track.TrackId, cupId, (object?)scheduleOn ?? "next available date");
     }
 
     public async Task<QueuedTrack?> TryDequeueNextTrackAsync(string cupId)

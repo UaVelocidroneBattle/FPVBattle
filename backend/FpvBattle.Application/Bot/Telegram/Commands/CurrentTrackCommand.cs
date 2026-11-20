@@ -23,7 +23,7 @@ public class CurrentTrackCommand : ITelegramCommand
     {
         var activeCompetitions = _db.Competitions.Where(c => c.State == CompetitionState.Started)
             .Include(c => c.Track)
-            .ThenInclude(t => t.Map);
+            .ThenInclude(t => t.Scene);
 
         var openCompetition = await activeCompetitions.ForCup(CupIds.OpenClass).FirstOrDefaultAsync();
         var whoopCompetition = await activeCompetitions.ForCup(CupIds.WhoopClass).FirstOrDefaultAsync();
@@ -38,7 +38,7 @@ public class CurrentTrackCommand : ITelegramCommand
         if (competition is null)
             return "(No track)";
 
-        var trackName = $"*{TelegramMarkdown.Escape(competition.Track.Map.Name)} - " +
+        var trackName = $"*{TelegramMarkdown.Escape(competition.Track.Scene.Name)} - " +
                         $"`{TelegramMarkdown.Escape(competition.Track.Name)}`*";
 
         if (competition.QuadOfTheDay is null)

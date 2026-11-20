@@ -32,10 +32,10 @@ public class DiscordMessageComposer
 
         return $"## 📅  Welcome to **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Track of the day:{Environment.NewLine}" +
-               $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
+               $"{track.Scene.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"{quadOfTheDayText}" +
-               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
+               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Scene.SceneId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
                $"👾 Instructions, statistics and more here:{Environment.NewLine}https://fpv-battle.fun/{Environment.NewLine}⠀";
     }
 

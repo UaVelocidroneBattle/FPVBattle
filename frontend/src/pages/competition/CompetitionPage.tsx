@@ -124,7 +124,7 @@ function CupCompetition({ cupId }: { cupId: string }) {
             ? competitionDayMeta({
                 cupName,
                 date: selectedDate,
-                mapName: competition.mapName,
+                sceneName: competition.sceneName,
                 trackName: competition.trackName,
                 pilots: pilotCount(overview.leaderboard),
             })

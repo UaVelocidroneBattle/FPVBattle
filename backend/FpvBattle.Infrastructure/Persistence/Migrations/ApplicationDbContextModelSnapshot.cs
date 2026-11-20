@@ -627,6 +627,29 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FpvBattle.Domain.Scene", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SceneId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SceneId")
+                        .IsUnique();
+
+                    b.ToTable("Scenes", (string)null);
+                });
+
             modelBuilder.Entity("FpvBattle.Domain.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -763,9 +786,8 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("MapId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -774,33 +796,26 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                     b.Property<string>("RatingId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("TrackId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MapId");
-
-                    b.HasIndex("RatingId");
-
-                    b.ToTable("Tracks", (string)null);
-                });
-
-            modelBuilder.Entity("FpvBattle.Domain.TrackMap", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("MapId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("SceneId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("TrackId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Type")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
-                    b.ToTable("TrackMaps", (string)null);
+                    b.HasIndex("RatingId");
+
+                    b.HasIndex("SceneId");
+
+                    b.HasIndex("TrackId")
+                        .IsUnique();
+
+                    b.ToTable("Tracks", (string)null);
                 });
 
             modelBuilder.Entity("FpvBattle.Domain.TrackRating", b =>
@@ -1333,19 +1348,19 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FpvBattle.Domain.Track", b =>
                 {
-                    b.HasOne("FpvBattle.Domain.TrackMap", "Map")
-                        .WithMany("Tracks")
-                        .HasForeignKey("MapId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("FpvBattle.Domain.TrackRating", "Rating")
                         .WithMany()
                         .HasForeignKey("RatingId");
 
-                    b.Navigation("Map");
+                    b.HasOne("FpvBattle.Domain.Scene", "Scene")
+                        .WithMany("Tracks")
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Rating");
+
+                    b.Navigation("Scene");
                 });
 
             modelBuilder.Entity("FpvBattle.Domain.TrackTime", b =>
@@ -1458,16 +1473,16 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                     b.Navigation("PlatformAccounts");
                 });
 
+            modelBuilder.Entity("FpvBattle.Domain.Scene", b =>
+                {
+                    b.Navigation("Tracks");
+                });
+
             modelBuilder.Entity("FpvBattle.Domain.Team", b =>
                 {
                     b.Navigation("Members");
 
                     b.Navigation("MembershipRequests");
-                });
-
-            modelBuilder.Entity("FpvBattle.Domain.TrackMap", b =>
-                {
-                    b.Navigation("Tracks");
                 });
 
             modelBuilder.Entity("FpvBattle.Domain.TrackResults", b =>

@@ -1,16 +1,16 @@
 using System.Text.RegularExpressions;
 using FpvBattle.Application.Features.Cups;
-using FpvBattle.Application.Services.Tracks.Models;
+using FpvBattle.Domain;
 
 namespace FpvBattle.Application.Services.Tracks;
 
 /// <summary>
-/// Filters tracks based on cup-specific configuration:
-/// scene whitelist, track type whitelist/blacklist, and name blacklist patterns.
+/// Filters tracks by a cup's configuration: scene whitelist, track type whitelist/blacklist, and name blacklist patterns.
+/// A track of unknown type passes only when the cup filters no types, since it cannot be shown to be of an allowed type.
 /// </summary>
 public class TrackFilter
 {
-    private readonly IReadOnlyDictionary<int, string>? _whitelistScenes;
+    private readonly HashSet<int>? _whitelistSceneIds;
     private readonly HashSet<int>? _whitelistTrackTypes;
     private readonly HashSet<int>? _blacklistTrackTypes;
     private readonly Regex[]? _blacklistRegexes;
@@ -18,7 +18,7 @@ public class TrackFilter
     public TrackFilter(TrackFilterOptions options)
     {
         if (options.WhitelistScenes.Count > 0)
-            _whitelistScenes = options.WhitelistScenes;
+            _whitelistSceneIds = options.WhitelistScenes.Keys.ToHashSet();
 
         if (options.WhitelistTrackTypes.Count > 0)
             _whitelistTrackTypes = options.WhitelistTrackTypes.ToHashSet();
@@ -34,43 +34,24 @@ public class TrackFilter
         }
     }
 
-    /// <summary>
-    /// Filters maps to whitelisted scenes, maps scene names, and returns suitable tracks.
-    /// </summary>
-    public List<ParsedTrackModel> GetSuitableTracks(IEnumerable<ParsedMapModel> maps)
+    public List<Track> GetSuitableTracks(IEnumerable<Track> tracks) => tracks.Where(IsTrackSuitable).ToList();
+
+    public bool IsTrackSuitable(Track track) =>
+        IsSceneAllowed(track.Scene) && IsTypeAllowed(track.Type) && IsNameAllowed(track.Name);
+
+    private bool IsSceneAllowed(Scene scene) =>
+        _whitelistSceneIds is null || _whitelistSceneIds.Contains(scene.SceneId);
+
+    private bool IsTypeAllowed(int? type)
     {
-        var filteredMaps = _whitelistScenes != null
-            ? maps.Where(m => _whitelistScenes.ContainsKey(m.Id)).ToList()
-            : maps.ToList();
+        if (_whitelistTrackTypes is null && _blacklistTrackTypes is null)
+            return true;
 
-        if (_whitelistScenes != null)
-        {
-            // A bit of weird solution since we do not get scene names from API
-            // so we need to map scene names from our scene whitelist
-            foreach (var map in filteredMaps)
-                map.Name = _whitelistScenes[map.Id];
-        }
-
-        return filteredMaps
-            .SelectMany(m => m.Tracks)
-            .Where(IsTrackSuitable)
-            .ToList();
+        return type is { } knownType
+               && (_whitelistTrackTypes is null || _whitelistTrackTypes.Contains(knownType))
+               && (_blacklistTrackTypes is null || !_blacklistTrackTypes.Contains(knownType));
     }
 
-    /// <summary>
-    /// Determines if a track passes track-level filters (type and name).
-    /// </summary>
-    public bool IsTrackSuitable(ParsedTrackModel track)
-    {
-        if (_whitelistTrackTypes != null && !_whitelistTrackTypes.Contains(track.Type))
-            return false;
-
-        if (_blacklistTrackTypes != null && _blacklistTrackTypes.Contains(track.Type))
-            return false;
-
-        if (_blacklistRegexes != null && _blacklistRegexes.Any(regex => regex.IsMatch(track.Name)))
-            return false;
-
-        return true;
-    }
+    private bool IsNameAllowed(string name) =>
+        _blacklistRegexes is null || !_blacklistRegexes.Any(regex => regex.IsMatch(name));
 }

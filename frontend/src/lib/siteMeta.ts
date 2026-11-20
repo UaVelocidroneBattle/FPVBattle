@@ -256,19 +256,19 @@ function formatDay(isoDate: string): string {
 export interface CompetitionDay {
     cupName: string;
     date: string;
-    mapName: string;
+    sceneName: string;
     trackName: string;
     pilots: number;
 }
 
 /** A finished day keeps its results at `/<cup>?date=<day>`, named after the track flown that day. */
-export function competitionDayMeta({ cupName, date, mapName, trackName, pilots }: CompetitionDay): PageMeta {
+export function competitionDayMeta({ cupName, date, sceneName, trackName, pilots }: CompetitionDay): PageMeta {
     const day = formatDay(date);
 
     return {
         title: `${trackName} — ${cupName} Results, ${day}${BRAND_SUFFIX}`,
         description:
-            `Final FPV Battle ${cupName} leaderboard for ${day}: lap times and points of ${pilots} pilots on the Velocidrone track ${mapName} – ${trackName}.`,
+            `Final FPV Battle ${cupName} leaderboard for ${day}: lap times and points of ${pilots} pilots on the Velocidrone track ${sceneName} – ${trackName}.`,
     };
 }
 

@@ -146,10 +146,10 @@ public class CompetitionsController : ControllerBase
         return new CompetitionModel
         {
             Id = competition.Id,
-            MapId = competition.Track.Map.MapId,
-            MapName =  competition.Track.Map.Name,
+            SceneId = competition.Track.Scene.SceneId,
+            SceneName = competition.Track.Scene.Name,
             TrackId = competition.Track.TrackId,
-            TrackName =  competition.Track.Name,
+            TrackName = competition.Track.Name,
             StartedOn = competition.StartedOn,
             State = competition.State,
             QuadOfTheDay = competition.QuadOfTheDay?.Name,

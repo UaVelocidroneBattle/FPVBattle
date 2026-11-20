@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FpvBattle.Domain;
 
-public class Track
+public class Track : ISoftDeletable
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -10,11 +10,15 @@ public class Track
 
     public string Name { get; set; }
 
-    public virtual TrackMap Map { get; set; }
-    public string MapId { get; set; }
+    public int? Type { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public virtual Scene Scene { get; set; }
+    public string SceneId { get; set; }
 
     public virtual TrackRating? Rating { get; set; }
 
     [NotMapped]
-    public string FullName => $"{Map.Name} - {Name}";
+    public string FullName => $"{Scene.Name} - {Name}";
 }

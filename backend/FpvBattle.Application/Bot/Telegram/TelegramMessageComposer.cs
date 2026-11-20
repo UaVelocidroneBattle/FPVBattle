@@ -32,7 +32,7 @@ public class TelegramMessageComposer
                $"{rating}" +
                $"{QuadOfTheDayText(quadOfTheDay)}" +
                $"Leaderboard:{Environment.NewLine}" +
-               $"*https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
+               $"*https://www.velocidrone.com/leaderboard/{track.Scene.SceneId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
                $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://fpv-battle.fun/*{Environment.NewLine}";
     }
 
@@ -202,7 +202,7 @@ public class TelegramMessageComposer
     /// Formats a track as a bold "map - `track`" heading, with both names escaped.
     /// </summary>
     private static string TrackHeading(Track track) =>
-        $"*{TelegramMarkdown.Escape(track.Map.Name)} - `{TelegramMarkdown.Escape(track.Name)}`*";
+        $"*{TelegramMarkdown.Escape(track.Scene.Name)} - `{TelegramMarkdown.Escape(track.Name)}`*";
 
     private static string QuadOfTheDayText(string? quadOfTheDay) =>
         quadOfTheDay is null

@@ -1738,10 +1738,10 @@
           "id",
           "startedOn",
           "state",
-          "mapName",
-          "trackName",
+          "sceneId",
+          "sceneName",
           "trackId",
-          "mapId"
+          "trackName"
         ],
         "type": "object",
         "properties": {
@@ -1755,19 +1755,19 @@
           "state": {
             "$ref": "#/components/schemas/CompetitionState"
           },
-          "mapName": {
-            "type": "string"
+          "sceneId": {
+            "type": "integer",
+            "format": "int32"
           },
-          "trackName": {
+          "sceneName": {
             "type": "string"
           },
           "trackId": {
             "type": "integer",
             "format": "int32"
           },
-          "mapId": {
-            "type": "integer",
-            "format": "int32"
+          "trackName": {
+            "type": "string"
           },
           "quadOfTheDay": {
             "type": [

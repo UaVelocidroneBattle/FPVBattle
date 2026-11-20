@@ -12,6 +12,7 @@ public class TeamCompetitionTests : TeamsTestBase
 {
     private const string Cup = "open-class";
     private readonly FixedLeaderboardCalculator _liveLeaderboard = new();
+    private int _nextVelocidroneId = 1;
 
     public TeamCompetitionTests()
     {
@@ -129,12 +130,18 @@ public class TeamCompetitionTests : TeamsTestBase
 
     private Competition AddCompetition(CompetitionState state, DateTime startedOn, params CompetitionResults[] results)
     {
+        var velocidroneId = _nextVelocidroneId++;
         var competition = new Competition
         {
             CupId = Cup,
             State = state,
             StartedOn = startedOn,
-            Track = new Track { Name = "Track", Map = new TrackMap { Name = "Map" } },
+            Track = new Track
+            {
+                TrackId = velocidroneId,
+                Name = "Track",
+                Scene = new Scene { SceneId = velocidroneId, Name = "Scene" }
+            },
             CompetitionResults = [.. results]
         };
 

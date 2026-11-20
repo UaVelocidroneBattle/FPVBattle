@@ -106,11 +106,11 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeS
                 <>
                     <Separator />
 
-                    {/* Phones show the track as a title: the map as a caption above the track name. */}
+                    {/* Phones show the track as a title: the scene as a caption above the track name. */}
                     <Field label="Track" labelHiddenOnPhones>
                         <span className="flex flex-col sm:block">
                             <span className="text-sm sm:text-base text-slate-400">
-                                {overview.competition.mapName}
+                                {overview.competition.sceneName}
                                 <span className="hidden sm:inline"> - </span>
                             </span>
                             <button
@@ -145,7 +145,7 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeS
 
                     <Link
                         className="text-sm text-slate-400 hover:text-emerald-400 transition-colors hidden sm:inline-flex items-center gap-1.5"
-                        to={`https://www.velocidrone.com/leaderboard/${overview.competition.mapId}/${overview.competition.trackId}/All`}
+                        to={`https://www.velocidrone.com/leaderboard/${overview.competition.sceneId}/${overview.competition.trackId}/All`}
                         target="_blank"
                     >
                         Velocidrone leaderboard

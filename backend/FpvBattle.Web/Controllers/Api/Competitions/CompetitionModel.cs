@@ -34,10 +34,10 @@ public class CompetitionModel
     public required string Id { get; set; }
     public required DateTime StartedOn { get; set; }
     public required CompetitionState State { get; set; }
-    public required string MapName { get; set; }
-    public required string TrackName { get; set; }
+    public required int SceneId { get; set; }
+    public required string SceneName { get; set; }
     public required int TrackId { get; set; }
-    public required int MapId { get; set; }
+    public required string TrackName { get; set; }
     public string? QuadOfTheDay { get; set; }
     public LeagueOptions Leagues { get; set; } = new();
 }

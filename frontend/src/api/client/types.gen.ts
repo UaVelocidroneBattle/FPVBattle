@@ -14,10 +14,10 @@ export type CompetitionModel = {
     id: string;
     startedOn: string;
     state: CompetitionState;
-    mapName: string;
-    trackName: string;
+    sceneId: number;
+    sceneName: string;
     trackId: number;
-    mapId: number;
+    trackName: string;
     quadOfTheDay?: null | string;
     leagues?: LeagueOptions;
 };
@@ -947,20 +947,6 @@ export type PostApiNotificationsReadAllResponses = {
 };
 
 export type PostApiNotificationsReadAllResponse = PostApiNotificationsReadAllResponses[keyof PostApiNotificationsReadAllResponses];
-
-export type GetApiMigrationCalculatePilotPropertiesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/migration/CalculatePilotProperties';
-};
-
-export type GetApiMigrationCalculatePilotPropertiesResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
 
 export type GetApiLandingGetData = {
     body?: never;

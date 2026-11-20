@@ -60,7 +60,7 @@ public class TrackFilterOptions
     public List<string> BlacklistPatterns { get; set; } = new();
 
     /// <summary>
-    /// Set of allowed scenes (key: scene ID, value: scene name)
+    /// Allowed scenes by Velocidrone scene id. The value is a readable label only
     /// </summary>
     public Dictionary<int, string> WhitelistScenes { get; set; } = new();
 
