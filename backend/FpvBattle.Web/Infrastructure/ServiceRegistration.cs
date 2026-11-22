@@ -14,7 +14,6 @@ using FpvBattle.Application.Features.Leagues;
 using FpvBattle.Application.Features.QuadOfTheDay;
 using FpvBattle.Application.Services.Pilots;
 using FpvBattle.Application.Services.Statistics;
-using FpvBattle.Application.Services.Tracks;
 using FpvBattle.Web.Controllers.Api.Heatmap;
 using FpvBattle.Application.Persistence;
 
@@ -34,13 +33,11 @@ public static class ServiceRegistration
         services.AddSingleton<TelegramChatMessages>();
         services.AddSingleton<DiscordChatMessages>();
         services.AddScoped<RaceResultDeltaAnalyzer>();
-        services.AddScoped<TrackService>();
         services.AddScoped<PilotResultsCalculator>();
         services.AddScoped<PilotService>();
         services.AddScoped<IPilotProfileService, PilotProfileService>();
         services.AddScoped<PilotPlatformsService>();
         services.AddScoped<PointsCalculator>();
-        services.AddScoped<TrackQueueService>();
         services.AddScoped<ModelsService>();
         services.AddScoped<ILeaderboardCalculator, LeaderboardCalculator>();
         services.AddScoped<ParticipationStatisticsService>();

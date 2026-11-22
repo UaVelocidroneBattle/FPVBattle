@@ -9,7 +9,8 @@ The goal is simple: give pilots a reason to fly every day, a race they can win a
 ## Features
 
 ### Daily racing
-- **A new track every day** in each cup, chosen from a curated pool. Recently used tracks and tracks the community rated poorly are skipped. Admins can queue specific tracks.
+- **A new track every day** in each cup, chosen from Velocidrone's official tracks, mirrored nightly into the database. Recently used tracks and tracks the community rated poorly are skipped.
+- **Track scheduling**: patrons pick tracks for the daily competition, up to a monthly limit per Patreon tier. Admins can schedule tracks too, optionally on a date.
 - **Cups**: separate competitions for open class and whoop class, each with its own track pool and channels.
 - **Points by placement**: 100 for first, 85 for second, and so on down the field. Every pilot who flies scores.
 - **Monthly seasons** with running standings and a podium on the 1st.
@@ -26,7 +27,7 @@ The goal is simple: give pilots a reason to fly every day, a race they can win a
 ### Community
 - **Teams**: pilots form teams, invite friends or ask to join. Public teams compete daily on their members' average time.
 - **Telegram and Discord bots** post every step of the day, and Telegram commands look up tracks, pilots and achievements.
-- **Patreon**: supporters are thanked in the chats and receive freezies every month.
+- **Patreon**: supporters are thanked in the chats, receive freezies every month and can schedule daily tracks.
 
 ### Web dashboard
 - **Live competition page** for each cup, with league and team leaderboards.

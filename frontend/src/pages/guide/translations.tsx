@@ -29,6 +29,7 @@ export const navItems: { path: string; label: Record<Language, string> }[] = [
     { path: 'quad-of-the-day', label: { ua: 'Квад дня',         en: 'Quad of the Day'   } },
     { path: 'achievements',    label: { ua: 'Achievements',      en: 'Achievements'      } },
     { path: 'teams',           label: { ua: 'Команди',           en: 'Teams'             } },
+    { path: 'track-scheduling', label: { ua: 'Планування треків', en: 'Track Scheduling' } },
     { path: 'support',         label: { ua: 'Підтримка',       en: 'Support'         } },
 ];
 
@@ -62,6 +63,9 @@ export interface RulesContent {
     achievementsText: string;
     supportTitle: string;
     supportText: ReactNode;
+    trackSchedulingTitle: string;
+    trackSchedulingIntro: ReactNode;
+    trackSchedulingItems: ReactNode[];
     teamsTitle: string;
     teamsIntro: ReactNode;
     /** Sections of the Teams page; the limits come from the live team settings. */
@@ -151,7 +155,17 @@ export const translations: Record<Language, RulesContent> = {
         achievementsTitle: 'Achievements',
         achievementsText: 'У системі є набір achievements, який постійно розширюється. Вони видаються за досягнення певної кількості day streak, першого місця в гонці, тощо.',
         supportTitle: 'Підтримати нас',
-        supportText: <>Ви можете підтримати проєкт на нашому {link('https://patreon.com/FPVBattle', 'Patreon')} для покриття різних витрат (хостинг, домен, кава, тощо).</>,
+        supportText: <>Ви можете підтримати проєкт на нашому {link('https://patreon.com/FPVBattle', 'Patreon')} для покриття різних витрат (хостинг, домен, кава, тощо). Патрони щомісяця отримують фрізи та можуть самі обирати треки для щоденних змагань: кнопка «Schedule a track» на сторінці щоденних змагань.</>,
+        trackSchedulingTitle: 'Планування треків',
+        trackSchedulingIntro: <>Патрони FPV Battle на {link('https://patreon.com/FPVBattle', 'Patreon')} можуть самі обирати треки для щоденних змагань.</>,
+        trackSchedulingItems: [
+            'Відкрийте сторінку Open Class або Whoop Class і натисніть «Schedule a track» біля треку дня.',
+            'Почніть вводити назву треку й оберіть його з підказок. Сірі треки показують, чому їх не можна обрати: трек уже заплановано, у нього низький рейтинг або на ньому літали протягом останніх 6 місяців.',
+            'Оберіть «Any quad» або квад зі списку, якщо він є. Обраний квад робить цей день Квадом дня.',
+            "Трек потрапляє в кінець черги і стає треком дня, коли до нього дійде черга. У Telegram і Discord його оголосять з підписом «Picked by» та ім'ям вашого пілота.",
+            <>Кількість треків на місяць залежить від вашого рівня на Patreon. Скільки треків залишилося, видно у вашому {internalLink('/profile', 'профілі')}. Там же можна скасувати трек, на якому ще не літали.</>,
+            <>Щоб планувати треки, прив'яжіть свого пілота Velocidrone у {internalLink('/profile', 'профілі')}.</>,
+        ],
         teamsTitle: 'Команди',
         teamsIntro: <>Група пілотів може створити команду. Усі команди та їхніх учасників можна переглянути на сторінці {internalLink('/teams', 'Команди')}.</>,
         teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests, minTeamFinishers }) => [
@@ -279,7 +293,17 @@ export const translations: Record<Language, RulesContent> = {
         achievementsTitle: 'Achievements',
         achievementsText: 'The system has a growing set of achievements, awarded for reaching certain day streak milestones, finishing in first place, and more.',
         supportTitle: 'Support Us',
-        supportText: <>You can support the project on our {link('https://patreon.com/FPVBattle', 'Patreon')} to help cover various costs (hosting, domain, coffee, etc.).</>,
+        supportText: <>You can support the project on our {link('https://patreon.com/FPVBattle', 'Patreon')} to help cover various costs (hosting, domain, coffee, etc.). Patrons get freezies every month and can pick tracks for the daily competition themselves with the "Schedule a track" button on the daily competition page.</>,
+        trackSchedulingTitle: 'Track Scheduling',
+        trackSchedulingIntro: <>FPV Battle supporters on {link('https://patreon.com/FPVBattle', 'Patreon')} can pick tracks for the daily competition themselves.</>,
+        trackSchedulingItems: [
+            'Open the Open Class or Whoop Class page and press "Schedule a track" next to the track of the day.',
+            "Start typing a track name and pick one from the suggestions. Greyed-out tracks show why they can't be picked: already scheduled, a low rating, or raced in the last 6 months.",
+            'Choose "Any quad" or a quad from the list, when there is one. Picking a quad makes that day a Quad of the Day.',
+            'Your track joins the end of the line and becomes the track of the day when its turn comes. Telegram and Discord announce it with "Picked by" and your pilot name.',
+            <>Your Patreon tier sets how many tracks you can schedule each month. Your {internalLink('/profile', 'profile')} shows how many are left, and lets you cancel a track that hasn't been raced yet.</>,
+            <>To schedule tracks, link your Velocidrone pilot on your {internalLink('/profile', 'profile')}.</>,
+        ],
         teamsTitle: 'Teams',
         teamsIntro: <>A group of pilots can create a team. Anyone can browse teams and their members on the {internalLink('/teams', 'Teams')} page.</>,
         teamsSections: ({ maxTeamSize, minPublicTeamSize, minRaceDaysToCreate, allowPatronsToCreate, maxPendingJoinRequests, minTeamFinishers }) => [

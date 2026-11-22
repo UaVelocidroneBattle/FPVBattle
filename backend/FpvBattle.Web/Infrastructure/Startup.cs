@@ -27,6 +27,7 @@ using FpvBattle.Application.Features.Notifications;
 using FpvBattle.Application.Notifications;
 using ModelContextProtocol.AspNetCore;
 using FpvBattle.Application.Features.Teams;
+using FpvBattle.Application.Features.Tracks;
 using FpvBattle.Application.Services;
 using FpvBattle.Mcp.Tools;
 using FpvBattle.Web.Infrastructure.Hangfire;
@@ -99,6 +100,7 @@ public class Startup
         services.AddPilotBinding();
         services.AddNotifications();
         services.AddTeams(Configuration);
+        services.AddTracks(Configuration);
 
         services.AddControllersWithViews();
         services.AddApiRateLimiting(Configuration);

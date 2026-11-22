@@ -43,7 +43,7 @@ public class TeamCreationPolicy
 
     private async Task<bool> IsAllowedPatronAsync(int pilotId)
     {
-        return _settings.AllowPatronsToCreate && await _db.PatreonSupporters.Paying().AnyAsync(s => s.PilotId == pilotId);
+        return _settings.AllowPatronsToCreate && await _db.PatreonSupporters.Paying().ForPilot(pilotId).AnyAsync();
     }
 }
 

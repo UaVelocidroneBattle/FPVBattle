@@ -9,4 +9,6 @@ public interface IVelocidroneClient
     Task<ICollection<ModelDto>> ModelsAsync(CancellationToken cancellationToken = default);
 
     Task<ICollection<TrackDto>> TracksAsync(CancellationToken cancellationToken = default);
+
+    Task<ICollection<SceneryDto>> ScenesAsync(CancellationToken cancellationToken = default);
 }

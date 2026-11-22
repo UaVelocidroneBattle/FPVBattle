@@ -17,7 +17,7 @@ public class DiscordMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track, string? quadOfTheDay)
+    public string StartCompetition(Track track, string? quadOfTheDay, string? pickedByPatron)
     {
         var rating = string.Empty;
 
@@ -30,12 +30,17 @@ public class DiscordMessageComposer
             ? string.Empty
             : $"⚠️ Quad of the day: **{quadOfTheDay}**{Environment.NewLine}{Environment.NewLine}";
 
+        var pickedByPatronText = pickedByPatron is null
+            ? string.Empty
+            : $"Picked by **{pickedByPatron}**{Environment.NewLine}{Environment.NewLine}";
+
         return $"## 📅  Welcome to **FPV Battle**!{Environment.NewLine}{Environment.NewLine}" +
                $"Track of the day:{Environment.NewLine}" +
-               $"{track.Map.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
+               $"{track.Scene.Name} - **{track.Name}**{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"{quadOfTheDayText}" +
-               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Map.MapId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
+               $"{pickedByPatronText}" +
+               $"[Velocidrone leaderboard](https://www.velocidrone.com/leaderboard/{track.Scene.SceneId}/{track.TrackId}/All){Environment.NewLine}{Environment.NewLine}" +
                $"👾 Instructions, statistics and more here:{Environment.NewLine}https://fpv-battle.fun/{Environment.NewLine}⠀";
     }
 

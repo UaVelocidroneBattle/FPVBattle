@@ -14,7 +14,7 @@ FPV Battle is supported through Patreon. The integration recognises patrons in t
 
 | Job | When | What |
 |---|---|---|
-| Accrue freezies to patrons | 1st of the month, 10:08 UTC | Adds freezies to each paying patron's pilot by tier: Level 1 → 1, Level 2 → 3, Level 3 → 5, Level 4 → 10, Level 5 → 20. Then announces the list |
+| Accrue freezies to patrons | 1st of the month, 10:08 UTC | Adds freezies to each paying patron's pilot by tier (`Patreon:MonthlyFreeziesByTier`, currently Level 1 → 1, Level 2 → 3, Level 3 → 5, Level 4 → 10, Level 5 → 20). Then announces the list |
 | Patreon supporters | Mondays 10:05 UTC | Posts the list of current supporters in the chats |
 
-The guide's Support page links to the Patreon campaign. Patrons can also create [teams](teams.md) without meeting the race-days requirement, when `AllowPatronsToCreate` is on.
+The guide's Support page links to the Patreon campaign. Patrons can also create [teams](teams.md) without meeting the race-days requirement, when `AllowPatronsToCreate` is on, and [schedule tracks](track-scheduling.md) for the daily competition, up to a monthly limit per tier.

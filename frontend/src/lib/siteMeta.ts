@@ -106,6 +106,11 @@ export const PAGE_META: Record<string, PageMeta> = {
         description:
             'How teams work in FPV Battle: creating a team, invitations, roles, and team tags on the Velocidrone leaderboards.',
     },
+    '/guide/track-scheduling': {
+        title: `Track Scheduling${BRAND_SUFFIX}`,
+        description:
+            'How FPV Battle supporters on Patreon pick tracks for the daily Velocidrone competition, and the monthly limit per tier.',
+    },
     '/guide/support': {
         title: `Support FPV Battle${BRAND_SUFFIX}`,
         description:
@@ -162,6 +167,11 @@ export const PAGE_META: Record<string, PageMeta> = {
         title: `Команди${BRAND_SUFFIX}`,
         description:
             'Як працюють команди у FPV Battle: створення команди, запрошення, ролі та теги команд у лідербордах Velocidrone.',
+    },
+    '/uk/guide/track-scheduling': {
+        title: `Планування треків${BRAND_SUFFIX}`,
+        description:
+            'Як патрони FPV Battle на Patreon самі обирають треки для щоденних змагань у Velocidrone і скільки треків можна обрати на місяць.',
     },
     '/uk/guide/support': {
         title: `Підтримати FPV Battle${BRAND_SUFFIX}`,
@@ -256,19 +266,19 @@ function formatDay(isoDate: string): string {
 export interface CompetitionDay {
     cupName: string;
     date: string;
-    mapName: string;
+    sceneName: string;
     trackName: string;
     pilots: number;
 }
 
 /** A finished day keeps its results at `/<cup>?date=<day>`, named after the track flown that day. */
-export function competitionDayMeta({ cupName, date, mapName, trackName, pilots }: CompetitionDay): PageMeta {
+export function competitionDayMeta({ cupName, date, sceneName, trackName, pilots }: CompetitionDay): PageMeta {
     const day = formatDay(date);
 
     return {
         title: `${trackName} — ${cupName} Results, ${day}${BRAND_SUFFIX}`,
         description:
-            `Final FPV Battle ${cupName} leaderboard for ${day}: lap times and points of ${pilots} pilots on the Velocidrone track ${mapName} – ${trackName}.`,
+            `Final FPV Battle ${cupName} leaderboard for ${day}: lap times and points of ${pilots} pilots on the Velocidrone track ${sceneName} – ${trackName}.`,
     };
 }
 

@@ -5,6 +5,170 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/track-scheduling/Overview": {
+      "get": {
+        "tags": [
+          "TrackScheduling"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackSchedulingOverviewModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackSchedulingOverviewModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackSchedulingOverviewModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/track-scheduling/Suggestions": {
+      "get": {
+        "tags": [
+          "TrackScheduling"
+        ],
+        "parameters": [
+          {
+            "name": "cupId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SchedulableTrackModel"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SchedulableTrackModel"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SchedulableTrackModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/track-scheduling/Schedule": {
+      "post": {
+        "tags": [
+          "TrackScheduling"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleTrackModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleTrackModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleTrackModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueuedTrackModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueuedTrackModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueuedTrackModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/track-scheduling/Cancel": {
+      "post": {
+        "tags": [
+          "TrackScheduling"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueuedTrackReferenceModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueuedTrackReferenceModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueuedTrackReferenceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/teams/Overview": {
       "get": {
         "tags": [
@@ -1738,10 +1902,10 @@
           "id",
           "startedOn",
           "state",
-          "mapName",
-          "trackName",
+          "sceneId",
+          "sceneName",
           "trackId",
-          "mapId"
+          "trackName"
         ],
         "type": "object",
         "properties": {
@@ -1755,19 +1919,19 @@
           "state": {
             "$ref": "#/components/schemas/CompetitionState"
           },
-          "mapName": {
-            "type": "string"
+          "sceneId": {
+            "type": "integer",
+            "format": "int32"
           },
-          "trackName": {
+          "sceneName": {
             "type": "string"
           },
           "trackId": {
             "type": "integer",
             "format": "int32"
           },
-          "mapId": {
-            "type": "integer",
-            "format": "int32"
+          "trackName": {
+            "type": "string"
           },
           "quadOfTheDay": {
             "type": [
@@ -2738,6 +2902,58 @@
           }
         }
       },
+      "QueuedTrackModel": {
+        "required": [
+          "id",
+          "cupId",
+          "trackName",
+          "sceneName",
+          "addedOn",
+          "queuePosition"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cupId": {
+            "type": "string"
+          },
+          "trackName": {
+            "type": "string"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "quadName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "addedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "queuePosition": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "QueuedTrackReferenceModel": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "RatingModel": {
         "type": "object",
         "properties": {
@@ -2796,6 +3012,88 @@
         "type": "object",
         "properties": {
           "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "SchedulableTrackModel": {
+        "required": [
+          "trackId",
+          "name",
+          "sceneName"
+        ],
+        "type": "object",
+        "properties": {
+          "trackId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "restriction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ScheduleTrackModel": {
+        "required": [
+          "cupId",
+          "trackId"
+        ],
+        "type": "object",
+        "properties": {
+          "cupId": {
+            "type": "string"
+          },
+          "trackId": {
+            "type": "string"
+          },
+          "quadId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SchedulingCupModel": {
+        "required": [
+          "cupId",
+          "name",
+          "quads"
+        ],
+        "type": "object",
+        "properties": {
+          "cupId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SchedulingQuadModel"
+            }
+          }
+        }
+      },
+      "SchedulingQuadModel": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
             "type": "string"
           }
         }
@@ -3303,6 +3601,52 @@
           }
         }
       },
+      "TrackSchedulingOverviewModel": {
+        "required": [
+          "enabled",
+          "monthlyLimit",
+          "usedThisMonth",
+          "remaining",
+          "cups",
+          "myTracks"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "blockedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "monthlyLimit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usedThisMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SchedulingCupModel"
+            }
+          },
+          "myTracks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueuedTrackModel"
+            }
+          }
+        }
+      },
       "UnreadCountModel": {
         "required": [
           "unreadCount"
@@ -3344,6 +3688,9 @@
     }
   },
   "tags": [
+    {
+      "name": "TrackScheduling"
+    },
     {
       "name": "Teams"
     },

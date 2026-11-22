@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type KeyboardEvent } from "react";
 import CountryFlag from "@/components/ui/CountryFlag";
-import { inputClass } from "./teamStyles";
+import { inputClass } from "@/lib/formStyles";
 import { usePilotSuggestions } from "./usePilotSuggestions";
 
 interface PilotSuggestInputProps {

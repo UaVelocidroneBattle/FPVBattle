@@ -23,7 +23,7 @@ public interface IApplicationDbContext
     DbSet<TeamMember> TeamMembers { get; }
     DbSet<TeamMembershipRequest> TeamMembershipRequests { get; }
     DbSet<Track> Tracks { get; }
-    DbSet<TrackMap> TrackMaps { get; }
+    DbSet<Scene> Scenes { get; }
     DbSet<TrackTimeDelta> TrackTimeDeltas { get; }
     DbSet<ApplicationUser> Users { get; }
     DbSet<UserNotification> UserNotifications { get; }

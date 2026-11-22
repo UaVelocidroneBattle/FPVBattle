@@ -20,11 +20,13 @@ function PilotProfilePage() {
         }))
     );
 
+    // Loads on every visit until it succeeds, but never retries in a loop while the server is unreachable
     useEffect(() => {
-        if (pilotsState === 'Idle' || pilotsState === 'Error') {
-            usePilotsStore.getState().fetchPilots();
+        const { state, fetchPilots } = usePilotsStore.getState();
+        if (state === 'Idle' || state === 'Error') {
+            fetchPilots();
         }
-    }, [pilotsState]);
+    }, []);
 
     useEffect(() => {
         if (!pilot) return;

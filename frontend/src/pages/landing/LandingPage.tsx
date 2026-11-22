@@ -8,15 +8,17 @@ import PilotMapSection from './PilotMapSection';
 import CtaSection from './CtaSection';
 
 function LandingPage() {
-    const { state, data, fetch } = useLandingStore(
-        useShallow(s => ({ state: s.state, data: s.data, fetch: s.fetch }))
+    const { state, data } = useLandingStore(
+        useShallow(s => ({ state: s.state, data: s.data }))
     );
 
+    // Loads on every visit until it succeeds, but never retries in a loop while the server is unreachable
     useEffect(() => {
+        const { state, fetch } = useLandingStore.getState();
         if (state === 'Idle' || state === 'Error') {
             fetch();
         }
-    }, [state, fetch]);
+    }, []);
 
     if (state === 'Loading' || state === 'Idle') {
         return <Spinner />;

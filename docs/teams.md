@@ -53,7 +53,7 @@ The `Teams` section of `appsettings.json` (documented in `appsettings.schema.jso
 | `AllowPatronsToCreate` | Lets a paying Patreon supporter create a team without the race days. |
 | `MaxPendingJoinRequests` | Join requests a user can have waiting at once. Default 3. |
 
-Creating a team requires a linked pilot, no team yet, and either `MinRaceDaysToCreate` race days or a paying Patreon membership (when `AllowPatronsToCreate` is on). `TeamCreationPolicy` decides it; the Teams overview returns its reason as `CreateBlockedReason`, which the greyed-out Create team button shows on hover. Site admins creating a team from the admin page skip the race days rule.
+Creating a team requires a linked pilot, no team yet, and either `MinRaceDaysToCreate` race days or a paying Patreon membership (when `AllowPatronsToCreate` is on). `TeamCreationPolicy` decides it; the Teams overview returns its reason as `CreateBlockedReason`, which the greyed-out Create team button shows on hover or tap. Site admins creating a team from the admin page skip the race days rule.
 
 ## Names
 

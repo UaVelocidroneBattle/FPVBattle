@@ -11,4 +11,6 @@ public class QueuedTrack
     public virtual QuadModel? Quad { get; set; }
     public int? QuadId { get; set; }
     public bool Used { get; set; }
+    public virtual ApplicationUser? ScheduledBy { get; set; }
+    public string? ScheduledByUserId { get; set; }
 }

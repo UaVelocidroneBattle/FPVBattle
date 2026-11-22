@@ -1,4 +1,7 @@
+using FpvBattle.Application.Features.Tracks.Scheduling;
+using FpvBattle.Application.Features.Tracks.Selection;
 using FpvBattle.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace FpvBattle.Application.Persistence.Queries;
 
@@ -70,6 +73,26 @@ public static class CompetitionQueries
 
             return query.Where(comp =>
                 comp.StartedOn >= startOfDay && comp.StartedOn < endOfDay);
+        }
+
+        /// <summary>
+        /// The latest race of each given track that was raced. Cancelled competitions were replaced
+        /// by a track change or a restart, so they don't count as raced.
+        /// </summary>
+        public async Task<Dictionary<string, LastRace>> GetLastRacesAsync(IReadOnlyCollection<string> trackIds)
+        {
+            var races = await query
+                .NotCancelled()
+                .Where(comp => trackIds.Contains(comp.TrackId))
+                .Select(comp => new { comp.TrackId, comp.StartedOn, comp.CupId })
+                .ToListAsync();
+
+            return races
+                .GroupBy(race => race.TrackId)
+                .Select(group => group.MaxBy(race => race.StartedOn)!)
+                .ToDictionary(
+                    race => race.TrackId,
+                    race => new LastRace(race.StartedOn, race.CupId, TrackReuseRules.IsInCooldown(race.StartedOn)));
         }
     }
 }

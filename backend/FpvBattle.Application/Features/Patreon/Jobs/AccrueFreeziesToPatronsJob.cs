@@ -5,6 +5,7 @@ using FpvBattle.Domain;
 using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace FpvBattle.Application.Features.Patreon.Jobs;
@@ -14,11 +15,13 @@ public class AccrueFreeziesToPatronsJob
     private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
     private readonly IMediator _mediator;
     private readonly IApplicationDbContext _db;
+    private readonly PatreonOptions _options;
 
-    public AccrueFreeziesToPatronsJob(IMediator mediator, IApplicationDbContext db)
+    public AccrueFreeziesToPatronsJob(IMediator mediator, IApplicationDbContext db, IOptions<PatreonOptions> options)
     {
         _mediator = mediator;
         _db = db;
+        _options = options.Value;
     }
 
     [DisableConcurrentExecution("MonthlyPatreonSupporters", 60)]
@@ -46,7 +49,7 @@ public class AccrueFreeziesToPatronsJob
             if (pilot is null)
                 continue;
 
-            var freeziesToAdd = CalculateFreeziesForSupporter(supporter);
+            var freeziesToAdd = _options.MonthlyFreeziesFor(supporter.TierName);
 
             Log.Information("Accruing {FreeziesToAdd} freezies to pilot {PilotName} for supporting at tier {SupporterTierName}", freeziesToAdd, pilot.Name, supporter.TierName);
 
@@ -67,18 +70,5 @@ public class AccrueFreeziesToPatronsJob
 
         await _db.SaveChangesAsync(ct);
         await _mediator.Publish(new MonthlyAccruedFreeziesNotification(accruedFreezies), ct);
-    }
-
-    private static int CalculateFreeziesForSupporter(PatreonSupporter supporter)
-    {
-        return supporter.TierName switch
-        {
-            "Level 1" => 1,
-            "Level 2" => 3,
-            "Level 3" => 5,
-            "Level 4" => 10,
-            "Level 5" => 20,
-            _ => 0
-        };
     }
 }

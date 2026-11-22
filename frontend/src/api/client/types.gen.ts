@@ -14,10 +14,10 @@ export type CompetitionModel = {
     id: string;
     startedOn: string;
     state: CompetitionState;
-    mapName: string;
-    trackName: string;
+    sceneId: number;
+    sceneName: string;
     trackId: number;
-    mapId: number;
+    trackName: string;
     quadOfTheDay?: null | string;
     leagues?: LeagueOptions;
 };
@@ -272,6 +272,20 @@ export type ProfileModel = {
     pendingClaim?: null | PendingClaimModel;
 };
 
+export type QueuedTrackModel = {
+    id: string;
+    cupId: string;
+    trackName: string;
+    sceneName: string;
+    quadName?: null | string;
+    addedOn: string;
+    queuePosition: number;
+};
+
+export type QueuedTrackReferenceModel = {
+    id: string;
+};
+
 export type RatingModel = {
     calculatedOn?: string;
     ratings?: Array<PilotRatingModel>;
@@ -289,6 +303,30 @@ export type RatingQualificationStatus = 'Qualified' | 'Reachable' | 'OutOfReach'
 
 export type RefreshRequest = {
     refreshToken: string;
+};
+
+export type SchedulableTrackModel = {
+    trackId: string;
+    name: string;
+    sceneName: string;
+    restriction?: null | string;
+};
+
+export type ScheduleTrackModel = {
+    cupId: string;
+    trackId: string;
+    quadId?: number;
+};
+
+export type SchedulingCupModel = {
+    cupId: string;
+    name: string;
+    quads: Array<SchedulingQuadModel>;
+};
+
+export type SchedulingQuadModel = {
+    id: number;
+    name: string;
 };
 
 export type SeasonResult = {
@@ -416,6 +454,16 @@ export type TeamSummaryModel = {
     memberCount: number;
 };
 
+export type TrackSchedulingOverviewModel = {
+    enabled: boolean;
+    blockedReason?: null | string;
+    monthlyLimit: number;
+    usedThisMonth: number;
+    remaining: number;
+    cups: Array<SchedulingCupModel>;
+    myTracks: Array<QueuedTrackModel>;
+};
+
 export type UnreadCountModel = {
     unreadCount: number;
 };
@@ -425,6 +473,71 @@ export type UpdateTeamModel = {
     name: string;
     tag: string;
     description?: null | string;
+};
+
+export type GetApiTrackSchedulingOverviewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/track-scheduling/Overview';
+};
+
+export type GetApiTrackSchedulingOverviewResponses = {
+    /**
+     * OK
+     */
+    200: TrackSchedulingOverviewModel;
+};
+
+export type GetApiTrackSchedulingOverviewResponse = GetApiTrackSchedulingOverviewResponses[keyof GetApiTrackSchedulingOverviewResponses];
+
+export type GetApiTrackSchedulingSuggestionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        cupId?: string;
+        term?: string;
+    };
+    url: '/api/track-scheduling/Suggestions';
+};
+
+export type GetApiTrackSchedulingSuggestionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<SchedulableTrackModel>;
+};
+
+export type GetApiTrackSchedulingSuggestionsResponse = GetApiTrackSchedulingSuggestionsResponses[keyof GetApiTrackSchedulingSuggestionsResponses];
+
+export type PostApiTrackSchedulingScheduleData = {
+    body: ScheduleTrackModel;
+    path?: never;
+    query?: never;
+    url: '/api/track-scheduling/Schedule';
+};
+
+export type PostApiTrackSchedulingScheduleResponses = {
+    /**
+     * OK
+     */
+    200: QueuedTrackModel;
+};
+
+export type PostApiTrackSchedulingScheduleResponse = PostApiTrackSchedulingScheduleResponses[keyof PostApiTrackSchedulingScheduleResponses];
+
+export type PostApiTrackSchedulingCancelData = {
+    body: QueuedTrackReferenceModel;
+    path?: never;
+    query?: never;
+    url: '/api/track-scheduling/Cancel';
+};
+
+export type PostApiTrackSchedulingCancelResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
 };
 
 export type GetApiTeamsOverviewData = {
@@ -947,20 +1060,6 @@ export type PostApiNotificationsReadAllResponses = {
 };
 
 export type PostApiNotificationsReadAllResponse = PostApiNotificationsReadAllResponses[keyof PostApiNotificationsReadAllResponses];
-
-export type GetApiMigrationCalculatePilotPropertiesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/migration/CalculatePilotProperties';
-};
-
-export type GetApiMigrationCalculatePilotPropertiesResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
 
 export type GetApiLandingGetData = {
     body?: never;

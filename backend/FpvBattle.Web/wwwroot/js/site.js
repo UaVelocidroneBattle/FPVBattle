@@ -36,12 +36,22 @@ document.querySelectorAll('table').forEach(table => {
 });
 
 // Searchable select: <div class="combobox" data-combobox> holding an input and a ul.combobox-menu of
-// li > button.dropdown-item options. Typing filters the options, picking one fills the input.
+// li > button.dropdown-item options. Typing filters the options, picking one fills the input with the
+// option's data-value, or its text when it has none.
+// A hidden input in the combobox receives the picked option's data-key. The text is then only a search box:
+// until an option is picked, the form refuses to submit with data-combobox-pick-message.
+// With data-combobox-source the options come from that URL instead: it gets the typed term and the form
+// fields named in data-combobox-params, and returns [{ key, value, label, notes: [{ text, warning }] }].
+// Nothing loads below data-combobox-min-length characters.
 document.querySelectorAll('[data-combobox]').forEach(combobox => {
-    const input = combobox.querySelector('input');
+    const input = combobox.querySelector('input:not([type=hidden])');
+    const keyInput = combobox.querySelector('input[type=hidden]');
     const menu = combobox.querySelector('.combobox-menu');
-    const options = Array.from(menu.querySelectorAll('.dropdown-item'));
     const empty = menu.querySelector('.combobox-empty');
+    const source = combobox.dataset.comboboxSource;
+    const minLength = Number(combobox.dataset.comboboxMinLength ?? 0);
+    const paramNames = (combobox.dataset.comboboxParams ?? '').split(' ').filter(Boolean);
+    let options = Array.from(menu.querySelectorAll('.dropdown-item'));
     let active = -1;
 
     const visibleOptions = () => options.filter(option => !option.parentElement.hidden);
@@ -75,9 +85,16 @@ document.querySelectorAll('[data-combobox]').forEach(combobox => {
     function open() {
         const term = input.value.trim().toLowerCase();
 
-        options.forEach(option => {
-            option.parentElement.hidden = !option.textContent.toLowerCase().includes(term);
-        });
+        if (source && term.length < minLength) {
+            close();
+            return;
+        }
+
+        if (!source) {
+            options.forEach(option => {
+                option.parentElement.hidden = !option.textContent.toLowerCase().includes(term);
+            });
+        }
 
         empty.hidden = visibleOptions().length > 0;
         menu.classList.add('show');
@@ -95,12 +112,87 @@ document.querySelectorAll('[data-combobox]').forEach(combobox => {
     window.addEventListener('scroll', reposition, true);
 
     function choose(option) {
-        input.value = option.textContent.trim();
+        input.value = option.dataset.value ?? option.textContent.trim();
+
+        if (keyInput) {
+            keyInput.value = option.dataset.key;
+            input.setCustomValidity('');
+        }
+
         close();
     }
 
-    input.addEventListener('focus', open);
-    input.addEventListener('input', open);
+    function forgetPick() {
+        keyInput.value = '';
+        input.setCustomValidity(combobox.dataset.comboboxPickMessage ?? 'Pick an option from the list');
+    }
+
+    function showOptions(items) {
+        options.forEach(option => option.parentElement.remove());
+
+        options = items.map(item => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'dropdown-item combobox-option';
+            option.dataset.key = item.key;
+            option.dataset.value = item.value;
+
+            const label = document.createElement('span');
+            label.className = 'combobox-label';
+            label.textContent = item.label;
+            option.append(label);
+
+            (item.notes ?? []).forEach(({ text, warning }) => {
+                const note = document.createElement('span');
+                note.className = warning ? 'combobox-note combobox-note-warning' : 'combobox-note';
+                note.textContent = text;
+                option.append(note);
+            });
+
+            const row = document.createElement('li');
+            row.append(option);
+            menu.insertBefore(row, empty);
+
+            return option;
+        });
+    }
+
+    let latestRequest = 0;
+
+    async function loadOptions() {
+        const term = input.value.trim();
+        const request = ++latestRequest;
+
+        if (term.length < minLength) {
+            showOptions([]);
+            close();
+            return;
+        }
+
+        const query = new URLSearchParams({ term });
+        paramNames.forEach(name => query.set(name, input.form.elements[name].value));
+
+        const response = await fetch(`${source}?${query}`);
+
+        // A slower answer to an older term must not replace the newer one.
+        if (request !== latestRequest || !response.ok) return;
+
+        showOptions(await response.json());
+        open();
+    }
+
+    let loadTimer;
+    const loadSoon = () => {
+        clearTimeout(loadTimer);
+        loadTimer = setTimeout(loadOptions, 200);
+    };
+
+    input.addEventListener('focus', source ? loadOptions : open);
+    input.addEventListener('input', source ? loadSoon : open);
+    if (keyInput) input.addEventListener('input', forgetPick);
+
+    // Options loaded for other params would be stale, so they reload on the next focus.
+    paramNames.forEach(name => input.form.elements[name].addEventListener('change', () => showOptions([])));
 
     input.addEventListener('keydown', event => {
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -126,4 +218,21 @@ document.querySelectorAll('[data-combobox]').forEach(combobox => {
     document.addEventListener('mousedown', event => {
         if (!combobox.contains(event.target)) close();
     });
+});
+
+// A select whose options depend on another field: <select data-options-follow="fieldName"> shows only
+// the options whose data-for matches that field's value, plus those without data-for.
+document.querySelectorAll('[data-options-follow]').forEach(select => {
+    const field = select.form.elements[select.dataset.optionsFollow];
+
+    function showMatchingOptions() {
+        Array.from(select.options).forEach(option => {
+            option.hidden = option.dataset.for !== undefined && option.dataset.for !== field.value;
+        });
+
+        if (select.selectedOptions[0]?.hidden) select.value = '';
+    }
+
+    field.addEventListener('change', showMatchingOptions);
+    showMatchingOptions();
 });

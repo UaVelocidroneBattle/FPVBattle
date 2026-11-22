@@ -4,12 +4,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 import { useTeamsStore } from "@/store/teamsStore";
-import BlockableButton from "./BlockableButton";
+import BlockableButton from "@/components/ui/BlockableButton";
 import TeamFormDialog from "./TeamFormDialog";
 import InvitationsBanner from "./InvitationsBanner";
 import TeamDetails from "./TeamDetails";
 import TeamsSidebar from "./TeamsSidebar";
-import { panelClass, primaryButtonClass } from "./teamStyles";
+import { primaryButtonClass } from "@/lib/formStyles";
+import { panelClass } from "./teamStyles";
 import { useUrlTeamSync } from "./useUrlTeamSync";
 
 /**

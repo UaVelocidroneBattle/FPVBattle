@@ -1,8 +1,10 @@
 @using FpvBattle.Web.Controllers.Admin.TrackQueue
+@using FpvBattle.Application.Features.Tracks.Scheduling
 @model TrackQueueViewModel
 
 @{
     ViewData["Title"] = "Track Queue";
+    ViewData["ContentClass"] = "content-wide";
 }
 
 @if (TempData["Error"] is string error)
@@ -21,13 +23,24 @@
                 <select name="cupId" class="form-select w-auto" required>
                     @foreach (var cup in Model.Cups)
                     {
-                        <option value="@cup.CupId">@cup.CupName</option>
+                        <option value="@cup.Cup.CupId">@cup.Cup.Name</option>
                     }
                 </select>
             </div>
-            <div>
-                <label class="form-label mb-1">Track Name</label>
-                <input type="text" name="trackName" class="form-control" placeholder="Exact track name" required />
+            <div class="flex-grow-1">
+                <label class="form-label mb-1" for="queueTrackSearch">Track</label>
+                <div class="combobox" data-combobox
+                     data-combobox-source="@Url.Action("SuggestTracks")"
+                     data-combobox-params="cupId"
+                     data-combobox-min-length="@TrackSearch.MinTermLength"
+                     data-combobox-pick-message="Pick a track from the suggestions">
+                    <input type="text" id="queueTrackSearch" class="form-control"
+                           placeholder="Search tracks…" autocomplete="off" required />
+                    <input type="hidden" name="trackId" />
+                    <ul class="dropdown-menu combobox-menu">
+                        <li class="combobox-empty" hidden>No tracks found</li>
+                    </ul>
+                </div>
             </div>
             <div>
                 <label class="form-label mb-1">Schedule Date <span class="text-muted">(optional)</span></label>
@@ -35,11 +48,14 @@
             </div>
             <div>
                 <label class="form-label mb-1">Quad <span class="text-muted">(optional)</span></label>
-                <select name="quadId" class="form-select w-auto">
+                <select name="quadId" class="form-select w-auto" data-options-follow="cupId">
                     <option value="">— any —</option>
-                    @foreach (var quad in Model.Quads)
+                    @foreach (var cup in Model.Cups)
                     {
-                        <option value="@quad.Id">@quad.Name</option>
+                        foreach (var quad in cup.Cup.Quads)
+                        {
+                            <option value="@quad.Id" data-for="@cup.Cup.CupId">@quad.Name</option>
+                        }
                     }
                 </select>
             </div>
@@ -52,7 +68,7 @@
 {
     <section class="panel">
         <header class="panel-head">
-            <h2 class="panel-title">@cup.CupName</h2>
+            <h2 class="panel-title">@cup.Cup.Name</h2>
             <span class="panel-count">@cup.Tracks.Count</span>
         </header>
         @if (cup.Tracks.Count == 0)
@@ -67,6 +83,7 @@
                         <tr>
                             <th>Track</th>
                             <th>Quad</th>
+                            <th>Scheduled By</th>
                             <th>Scheduled On</th>
                             <th>Added On</th>
                             <th></th>
@@ -78,6 +95,7 @@
                             <tr>
                                 <td class="mono">@entry.Track.Name</td>
                                 <td>@(entry.Quad?.Name ?? "—")</td>
+                                <td>@(entry.ScheduledBy is { } patron ? patron.Pilot?.Name ?? patron.DisplayName : "admin")</td>
                                 <td>@(entry.ScheduledOn?.ToString("dd.MM.yyyy") ?? "—")</td>
                                 <td>@entry.AddedOn.ToString("dd.MM.yyyy")</td>
                                 <td class="text-end">

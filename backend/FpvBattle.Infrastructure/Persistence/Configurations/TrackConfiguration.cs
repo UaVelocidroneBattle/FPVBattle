@@ -9,5 +9,6 @@ public sealed class TrackConfiguration : IEntityTypeConfiguration<Track>
     public void Configure(EntityTypeBuilder<Track> builder)
     {
         builder.ToTable("Tracks");
+        builder.HasIndex(t => t.TrackId).IsUnique();
     }
 }

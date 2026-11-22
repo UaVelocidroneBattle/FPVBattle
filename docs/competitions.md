@@ -29,17 +29,33 @@ Between start and stop, two global jobs (`HangfireInit`) drive the day:
 - **Update results** runs every 10 minutes (when `ResultsUpdateEnabled`). It reads the Velocidrone leaderboard, finds new or improved times (`RaceResultDeltaAnalyzer`), registers new pilots and renames, and publishes `CurrentResultUpdated`. Achievements, pilot claims and the chat updates react to that event.
 - **Publish current leaderboard** runs every 2 hours. It posts the leaderboard when something has changed since the last post. When nobody, or only one pilot, has flown, it posts a cheer-up message instead, outside quiet hours (23:00–07:00).
 
+**Sync track lookups** (`TracksJobRegistrar`) runs daily at 23:05 UTC, about an hour before the cups start. See [Track and scene lookups](#track-and-scene-lookups).
+
 The `CompetitionConductor` class owns the start, stop and season steps. `CompetitionService` owns the polling.
 
 ## Track selection
 
-1. **The track queue first.** Admins can queue a specific track for a cup, optionally on a date and with a quad (Track Queue admin page, `TrackQueueService`).
-2. **Otherwise random**, from the tracks that pass the cup's `TrackFilter`: allowed scenes, blocked track types and blocked name patterns. A track is skipped when:
-   - it was used in the last 6 months, or
-   - pilots rated it below 3 out of 5.
+1. **The track queue first.** Admins and patrons schedule tracks into a cup's queue, optionally with a quad, and admins optionally on a date (see [track-scheduling.md](track-scheduling.md)). A track dated for today goes first, then undated tracks in the order they were added (`TrackQueueService`).
+2. **Otherwise random**, from the available tracks in the database that pass the cup's `TrackFilter`: allowed scenes (by Velocidrone scene id), allowed or blocked track types, and blocked name patterns. While a cup filters by type, a track of unknown type never passes. A track is skipped when:
+   - it was raced in the last 6 months (cancelled competitions don't count),
+   - pilots rated it below 3 out of 5, or
+   - it is waiting in the track queue.
+
+   These reuse rules live in `TrackReuseRules`.
 3. A track with no results on Velocidrone yet is skipped, with up to 10 attempts.
 
-The track list comes from Velocidrone's official tracks API. An admin can change the day's track through the MCP server (`change_track`), which cancels the running competition and starts a new one (`TrackRestart`).
+Scheduling takes the track picked from the suggestions, by its id, so tracks that share a name stay distinct. An admin may schedule a track outside the cup filter, badly rated or raced in the last 6 months: the Track Queue page suggests tracks as you type and shows those issues as warnings, along with when the track was last raced. An admin can change the day's track through the MCP server (`change_track`), which cancels the running competition and starts a new one (`TrackRestart`).
+
+### Track and scene lookups
+
+Tracks and scenes are stored in the database (`Track`, `Scene`), keyed by their Velocidrone ids (`Scene.SceneId`, `Track.TrackId`; `Track.SceneId` is the foreign key to `Scene.Id`). `TrackLookupSync` is the only code that creates them. Each run it reads Velocidrone's scene list and official track list and:
+
+- adds new scenes and tracks, and updates changed names, track types and scenes;
+- creates a placeholder scene named `Scene <id>` for a track whose scene is missing from the scene list;
+- soft deletes (`IsDeleted`) scenes and tracks Velocidrone no longer returns, and restores them when they come back. Competitions and raced queue entries keep pointing at deleted tracks, so history still loads them, but `Available()` hides them from track selection. A deleted track that is still waiting in the queue is removed from it;
+- skips deletions of a kind when Velocidrone returns fewer than half of the available rows, which guards against a truncated response.
+
+A failed Velocidrone call fails the job, and Hangfire retries it. The sync ignores cup filters: every official track is stored, and the filters apply only when a track is picked.
 
 ### Track rating
 

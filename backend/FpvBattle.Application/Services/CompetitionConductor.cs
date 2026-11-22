@@ -6,10 +6,11 @@ using FpvBattle.Application.Bot.Discord;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Features.QuadOfTheDay;
 using FpvBattle.Application.Features.Teams.Leaderboard;
+using FpvBattle.Application.Features.Tracks.Queue;
+using FpvBattle.Application.Features.Tracks.Selection;
 using FpvBattle.Application.Notifications;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Application.Persistence.Queries;
-using FpvBattle.Application.Services.Tracks;
 using FpvBattle.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -90,6 +91,7 @@ public class CompetitionConductor
 
         Track track;
         QuadModel? quad = null;
+        string? pickedByPatron = null;
 
         var queuedTrack = await _trackQueueService.TryDequeueNextTrackAsync(cupId);
 
@@ -97,6 +99,8 @@ public class CompetitionConductor
         {
             track = queuedTrack.Track;
             quad = queuedTrack.Quad;
+            // Only the public pilot name is announced, never the account's own name
+            pickedByPatron = queuedTrack.ScheduledBy?.Pilot?.Name;
             resultsDto = await _velocidrone.LeaderboardAsync(track.TrackId);
         }
         else
@@ -148,7 +152,7 @@ public class CompetitionConductor
 
         Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} on track {TrackName}", competition.Id, cupId, track.Name);
 
-        await _mediator.Publish(new CompetitionStarted(competition, track, cupOptions));
+        await _mediator.Publish(new CompetitionStarted(competition, track, cupOptions, pickedByPatron));
 
         Log.Information("Competition {CompetitionId} setup completed successfully for cup {CupId}", competition.Id, cupId);
     }

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import type { TeamSummaryModel } from "@/api/client";
 import { useAuthStore } from "@/store/authStore";
 import { useTeamsStore } from "@/store/teamsStore";
-import BlockableButton from "./BlockableButton";
+import BlockableButton from "@/components/ui/BlockableButton";
 import MemberCount from "./MemberCount";
-import { compactPrimaryButtonClass, inputClass, panelClass, sectionTitleClass } from "./teamStyles";
+import { compactPrimaryButtonClass, inputClass } from "@/lib/formStyles";
+import { panelClass, sectionTitleClass } from "./teamStyles";
 
 const SEARCH_DEBOUNCE_MS = 250;
 

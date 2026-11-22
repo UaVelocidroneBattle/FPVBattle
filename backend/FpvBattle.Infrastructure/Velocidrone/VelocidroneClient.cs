@@ -51,6 +51,14 @@ public class VelocidroneClient : IVelocidroneClient
         return response.tracks;
     }
 
+    public async Task<ICollection<SceneryDto>> ScenesAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await PostAsync<SceneriesDto>("api/get-sceneries", content: null, cancellationToken);
+        Log.Information("Retrieved {SceneCount} scenes from Velocidrone API", response.sceneries.Count);
+
+        return response.sceneries;
+    }
+
     private async Task<T> PostAsync<T>(string endpoint, HttpContent? content, CancellationToken cancellationToken)
         where T : VelocidroneResponse
     {
