@@ -575,6 +575,9 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                     b.Property<int?>("QuadId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ScheduledByUserId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("ScheduledOn")
                         .HasColumnType("TEXT");
 
@@ -589,7 +592,11 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("QuadId");
 
-                    b.HasIndex("TrackId");
+                    b.HasIndex("TrackId")
+                        .IsUnique()
+                        .HasFilter("\"Used\" = 0");
+
+                    b.HasIndex("ScheduledByUserId", "AddedOn");
 
                     b.ToTable("TrackQueue", (string)null);
                 });
@@ -1262,6 +1269,11 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("QuadId");
 
+                    b.HasOne("FpvBattle.Domain.ApplicationUser", "ScheduledBy")
+                        .WithMany()
+                        .HasForeignKey("ScheduledByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("FpvBattle.Domain.Track", "Track")
                         .WithMany()
                         .HasForeignKey("TrackId")
@@ -1269,6 +1281,8 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Quad");
+
+                    b.Navigation("ScheduledBy");
 
                     b.Navigation("Track");
                 });

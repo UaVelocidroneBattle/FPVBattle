@@ -1,6 +1,6 @@
 using FluentAssertions;
 using FpvBattle.Application.Features.Cups;
-using FpvBattle.Application.Services.Tracks;
+using FpvBattle.Application.Features.Tracks.Selection;
 using FpvBattle.Domain;
 
 namespace FpvBattle.Tests;

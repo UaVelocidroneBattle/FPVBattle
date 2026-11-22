@@ -1,3 +1,4 @@
+using FpvBattle.Application.Features.Tracks.Scheduling;
 using FpvBattle.Domain;
 
 namespace FpvBattle.Web.Controllers.Admin.TrackQueue;
@@ -5,13 +6,11 @@ namespace FpvBattle.Web.Controllers.Admin.TrackQueue;
 public class TrackQueueViewModel
 {
     public List<CupQueueModel> Cups { get; set; } = [];
-    public List<QuadModel> Quads { get; set; } = [];
 }
 
 public class CupQueueModel
 {
-    public string CupId { get; set; } = string.Empty;
-    public string CupName { get; set; } = string.Empty;
+    public required SchedulingCup Cup { get; set; }
     public List<QueuedTrack> Tracks { get; set; } = [];
 }
 

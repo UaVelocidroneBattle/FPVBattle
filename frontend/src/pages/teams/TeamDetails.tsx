@@ -5,13 +5,14 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/authStore";
 import { type ActionResult, useTeamsStore } from "@/store/teamsStore";
-import BlockableButton from "./BlockableButton";
+import BlockableButton from "@/components/ui/BlockableButton";
 import InviteDialog from "./InviteDialog";
 import JoinRequests from "./JoinRequests";
 import MembersTable from "./MembersTable";
 import PendingInvites from "./PendingInvites";
 import TeamFormDialog from "./TeamFormDialog";
-import { compactPrimaryButtonClass, compactSecondaryButtonClass, panelClass, sectionTitleClass } from "./teamStyles";
+import { compactPrimaryButtonClass, compactSecondaryButtonClass } from "@/lib/formStyles";
+import { panelClass, sectionTitleClass } from "./teamStyles";
 
 type PendingConfirmation =
     | { kind: "delete" }

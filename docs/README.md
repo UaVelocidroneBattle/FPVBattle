@@ -6,7 +6,7 @@ How FPV Battle works, one feature per file. For what the project is, see the [RE
 
 | Doc | Covers |
 |---|---|
-| [competitions.md](competitions.md) | Cups, the daily cycle, track selection and rating, points, seasons |
+| [competitions.md](competitions.md) | Cups, the daily cycle, track selection, the nightly track sync, track rating, points, seasons |
 | [quad-of-the-day.md](quad-of-the-day.md) | How the day's quad is chosen and how it changes scoring |
 | [day-streaks.md](day-streaks.md) | Day streaks, freezies, admin freezes and warnings |
 | [leagues.md](leagues.md) | Pace rating (Global Rating) and monthly leagues |
@@ -16,6 +16,7 @@ How FPV Battle works, one feature per file. For what the project is, see the [RE
 | [notifications.md](notifications.md) | The in-app notification bell |
 | [bots.md](bots.md) | What the Telegram and Discord bots post, and the Telegram commands |
 | [patreon.md](patreon.md) | Patreon sync, patron announcements and freezie rewards |
+| [track-scheduling.md](track-scheduling.md) | Admins and patrons scheduling tracks into a cup's queue, and the patron monthly limits per tier |
 
 ## Architectural decision records
 

@@ -2,6 +2,9 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 import { Spinner } from "@/components/ui/spinner";
+import MyQueuedTracks from "@/components/track-scheduling/MyQueuedTracks";
+import { useTrackSchedulingSync } from "@/hooks/useTrackSchedulingSync";
+import { useTrackSchedulingStore } from "@/store/trackSchedulingStore";
 import PilotBindingSection from "./PilotBindingSection";
 import DeleteAccountSection from "./DeleteAccountSection";
 
@@ -14,6 +17,9 @@ function ProfilePage() {
     const authState = useAuthStore((state) => state.state);
     const profile = useProfileStore((state) => state.profile);
     const profileState = useProfileStore((state) => state.state);
+    const scheduling = useTrackSchedulingStore((state) => state.overview);
+
+    useTrackSchedulingSync();
 
     useEffect(() => {
         if (!user) return;
@@ -49,6 +55,15 @@ function ProfilePage() {
                     <Spinner />
                 )}
             </section>
+
+            {scheduling?.enabled && (scheduling.monthlyLimit > 0 || scheduling.myTracks.length > 0) && (
+                <section className="mt-6 border border-slate-700 bg-slate-800/50 p-6 backdrop-blur-sm">
+                    <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+                        Scheduled tracks
+                    </h2>
+                    <MyQueuedTracks overview={scheduling} />
+                </section>
+            )}
 
             <section className="mt-6 border border-slate-700 bg-slate-800/50 p-6 backdrop-blur-sm">
                 <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-red-400/80">

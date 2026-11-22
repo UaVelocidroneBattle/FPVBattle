@@ -100,7 +100,7 @@ public class Startup
         services.AddPilotBinding();
         services.AddNotifications();
         services.AddTeams(Configuration);
-        services.AddTracks();
+        services.AddTracks(Configuration);
 
         services.AddControllersWithViews();
         services.AddApiRateLimiting(Configuration);

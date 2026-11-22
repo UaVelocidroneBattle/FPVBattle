@@ -1,7 +1,6 @@
-using FpvBattle.Application.Features.Tracks.Models;
 using FpvBattle.Domain;
 
-namespace FpvBattle.Application.Features.Tracks.Services;
+namespace FpvBattle.Application.Features.Tracks.Lookups;
 
 /// <summary>
 /// The stored rows of one lookup kind keyed by their external id, remembering which ids the current sync returned.

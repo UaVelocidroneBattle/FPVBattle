@@ -82,11 +82,20 @@ function CupCompetition({ cupId }: { cupId: string }) {
         }))
     );
 
+    // Idle: nothing loaded yet for the selected day
     useEffect(() => {
-        if (state === 'Idle' || state === 'Error') {
+        if (state === 'Idle') {
             fetchData();
         }
     }, [state, fetchData]);
+
+    // A failed load is retried when the page is opened again, not in a loop while the server is unreachable
+    useEffect(() => {
+        const store = getCompetitionStore(cupId).getState();
+        if (store.state === 'Error') {
+            store.fetch();
+        }
+    }, [cupId]);
 
     useEffect(() => {
         const interval = setInterval(() => {

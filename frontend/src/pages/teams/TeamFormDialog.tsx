@@ -8,7 +8,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useTeamsStore } from "@/store/teamsStore";
-import { inputClass, primaryButtonClass, secondaryButtonClass } from "./teamStyles";
+import { inputClass, primaryButtonClass, secondaryButtonClass } from "@/lib/formStyles";
 
 const NAME_MAX_LENGTH = 32;
 const DESCRIPTION_MAX_LENGTH = 500;

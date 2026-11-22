@@ -1,23 +1,19 @@
 using FpvBattle.Application.Features.Tracks;
+using FpvBattle.Application.Features.Tracks.Queue;
 using FpvBattle.Application.Persistence;
+using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace FpvBattle.Application.Services.Tracks;
+namespace FpvBattle.Application.Features.Tracks.Selection;
 
 public class TrackService
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<TrackService>();
-    private const double MinimumGoodRating = 3;
-    private const int ReuseCooldownMonths = 6;
-
-    private static DateTime ReuseCooldownStart => DateTime.Now.AddMonths(-ReuseCooldownMonths);
-
-    public static bool IsInReuseCooldown(DateTime startedOn) => startedOn > ReuseCooldownStart;
 
     private readonly IApplicationDbContext _db;
-    private HashSet<string>? _recentlyUsedTrackIds;
+    private HashSet<string>? _unpickableTrackIds;
 
     public TrackService(IApplicationDbContext db)
     {
@@ -40,15 +36,15 @@ public class TrackService
 
     public async Task<Track> GetRandomTrackAsync(IReadOnlyList<Track> suitableTracks)
     {
-        var recentlyUsedTrackIds = await GetRecentlyUsedTrackIdsAsync();
+        var unpickableTrackIds = await GetUnpickableTrackIdsAsync();
 
         var candidates = suitableTracks
-            .Where(t => t.Rating?.Value is null or >= MinimumGoodRating && !recentlyUsedTrackIds.Contains(t.Id))
+            .Where(t => TrackReuseRules.IsWellRated(t.Rating) && !unpickableTrackIds.Contains(t.Id))
             .ToList();
 
         if (candidates.Count == 0)
             throw new InvalidOperationException(
-                $"None of the {suitableTracks.Count} suitable tracks is well rated and unused in the last {ReuseCooldownMonths} months");
+                $"None of the {suitableTracks.Count} suitable tracks is well rated, unused in the last {TrackReuseRules.CooldownMonths} months and not waiting in the track queue");
 
         var track = candidates[Random.Shared.Next(candidates.Count)];
         Log.Information("✅ Selected track {TrackName} (ID: {TrackId}) from {CandidateCount} candidates out of {SuitableCount} suitable tracks",
@@ -57,20 +53,28 @@ public class TrackService
         return track;
     }
 
-    private async Task<HashSet<string>> GetRecentlyUsedTrackIdsAsync()
+    // A track waiting in the queue is skipped too, so it isn't raced at random before its turn comes
+    private async Task<HashSet<string>> GetUnpickableTrackIdsAsync()
     {
-        if (_recentlyUsedTrackIds is not null)
-            return _recentlyUsedTrackIds;
+        if (_unpickableTrackIds is not null)
+            return _unpickableTrackIds;
 
-        var since = ReuseCooldownStart;
-        var ids = await _db.Competitions
+        var since = TrackReuseRules.CooldownStart;
+        var recentlyRacedIds = await _db.Competitions
+            .NotCancelled()
             .Where(comp => comp.StartedOn > since)
             .Select(comp => comp.TrackId)
             .ToListAsync();
 
-        _recentlyUsedTrackIds = ids.ToHashSet();
-        Log.Debug("Found {UsedTrackCount} tracks used since {Since}", _recentlyUsedTrackIds.Count, since.ToString("dd.MM.yyyy"));
+        var queuedIds = await _db.QueuedTracks
+            .NotUsed()
+            .Select(queued => queued.TrackId)
+            .ToListAsync();
 
-        return _recentlyUsedTrackIds;
+        _unpickableTrackIds = recentlyRacedIds.Concat(queuedIds).ToHashSet();
+        Log.Debug("Found {RacedCount} tracks raced since {Since} and {QueuedCount} queued tracks",
+            recentlyRacedIds.Count, since.ToString("dd.MM.yyyy"), queuedIds.Count);
+
+        return _unpickableTrackIds;
     }
 }

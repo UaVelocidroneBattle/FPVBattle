@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTeamsStore } from "@/store/teamsStore";
 import PilotSuggestInput from "./PilotSuggestInput";
-import { primaryButtonClass, secondaryButtonClass } from "./teamStyles";
+import { primaryButtonClass, secondaryButtonClass } from "@/lib/formStyles";
 
 const PILOT_NAME_MAX_LENGTH = 128;
 

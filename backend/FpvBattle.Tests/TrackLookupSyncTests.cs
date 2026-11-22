@@ -1,8 +1,7 @@
 using FluentAssertions;
 using FpvBattle.Application.API.Velocidrone;
 using FpvBattle.Application.API.Velocidrone.Dto;
-using FpvBattle.Application.Features.Tracks.Models;
-using FpvBattle.Application.Features.Tracks.Services;
+using FpvBattle.Application.Features.Tracks.Lookups;
 using FpvBattle.Domain;
 using FpvBattle.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
@@ -144,6 +143,26 @@ public class TrackLookupSyncTests : IDisposable
         await SyncAsync();
 
         StoredTracks().Single().SceneName.Should().Be("Dynamic Polyworld");
+    }
+
+    [Fact]
+    public async Task SyncAsync_ShouldRemoveAWaitingQueueEntry_WhenItsTrackIsDeleted_ButKeepRacedEntries()
+    {
+        _velocidrone.Scenes = [Scenery(3, "Hangar")];
+        _velocidrone.Tracks = [OfficialTrack(101, "Kept", sceneId: 3), OfficialTrack(102, "Dropped", sceneId: 3), OfficialTrack(103, "Kept too", sceneId: 3)];
+        await SyncAsync();
+        var dropped = _db.Set<Track>().Single(t => t.TrackId == 102).Id;
+        _db.Set<QueuedTrack>().AddRange(
+            new QueuedTrack { CupId = "open-class", TrackId = dropped, AddedOn = DateTime.UtcNow, Used = true },
+            new QueuedTrack { CupId = "open-class", TrackId = dropped, AddedOn = DateTime.UtcNow },
+            new QueuedTrack { CupId = "open-class", TrackId = _db.Set<Track>().Single(t => t.TrackId == 101).Id, AddedOn = DateTime.UtcNow });
+        _db.SaveChanges();
+
+        _velocidrone.Tracks = [OfficialTrack(101, "Kept", sceneId: 3), OfficialTrack(103, "Kept too", sceneId: 3)];
+        await SyncAsync();
+
+        _db.Set<QueuedTrack>().AsNoTracking().Select(q => q.Track.TrackId + (q.Used ? " raced" : " waiting")).ToList()
+            .Should().BeEquivalentTo("102 raced", "101 waiting");
     }
 
     private async Task<TrackLookupSyncResult> SyncAsync()

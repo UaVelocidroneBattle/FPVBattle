@@ -219,3 +219,20 @@ document.querySelectorAll('[data-combobox]').forEach(combobox => {
         if (!combobox.contains(event.target)) close();
     });
 });
+
+// A select whose options depend on another field: <select data-options-follow="fieldName"> shows only
+// the options whose data-for matches that field's value, plus those without data-for.
+document.querySelectorAll('[data-options-follow]').forEach(select => {
+    const field = select.form.elements[select.dataset.optionsFollow];
+
+    function showMatchingOptions() {
+        Array.from(select.options).forEach(option => {
+            option.hidden = option.dataset.for !== undefined && option.dataset.for !== field.value;
+        });
+
+        if (select.selectedOptions[0]?.hidden) select.value = '';
+    }
+
+    field.addEventListener('change', showMatchingOptions);
+    showMatchingOptions();
+});

@@ -3,6 +3,9 @@ import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink } from "lucide-rea
 import { Link, useSearchParams } from "react-router-dom";
 import { CompetitionOverviewModel } from "@/api/client";
 import { useCups } from "@/hooks/useCups";
+import ScheduleTrackButton from "@/components/track-scheduling/ScheduleTrackButton";
+import { useTrackSchedulingSync } from "@/hooks/useTrackSchedulingSync";
+import { useTrackSchedulingStore } from "@/store/trackSchedulingStore";
 
 interface ICurrentCompetitionProps {
     cupId: string;
@@ -72,6 +75,9 @@ function DayLink({ date, label, onDateChange, children }: { date: string | null;
 function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeSwitch }: ICurrentCompetitionProps) {
     const [copied, setCopied] = useState(false);
     const { findCup } = useCups();
+    const schedulingEnabled = useTrackSchedulingStore((state) => state.overview?.enabled ?? false);
+
+    useTrackSchedulingSync();
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -130,7 +136,7 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeS
                     <Separator />
 
                     <Field label="Quad">
-                        <span className={overview.competition.quadOfTheDay ? "text-white" : "text-slate-500"}>
+                        <span className={`whitespace-nowrap ${overview.competition.quadOfTheDay ? "text-white" : "text-slate-500"}`}>
                             {overview.competition.quadOfTheDay ?? "—"}
                         </span>
                     </Field>
@@ -138,19 +144,28 @@ function CurrentCompetition({ cupId, overview, selectedDate, onDateChange, modeS
                     <Separator />
 
                     <Field label="Season">
-                        <span className="text-white">{getSeasonName(selectedDate)}</span>
+                        <span className="whitespace-nowrap text-white">{getSeasonName(selectedDate)}</span>
                     </Field>
 
                     <Separator />
 
                     <Link
-                        className="text-sm text-slate-400 hover:text-emerald-400 transition-colors hidden sm:inline-flex items-center gap-1.5"
+                        className="text-sm text-slate-400 hover:text-emerald-400 transition-colors hidden sm:inline-flex items-center gap-1.5 whitespace-nowrap"
                         to={`https://www.velocidrone.com/leaderboard/${overview.competition.sceneId}/${overview.competition.trackId}/All`}
                         target="_blank"
+                        title="Velocidrone leaderboard"
                     >
-                        Velocidrone leaderboard
+                        VD leaderboard
                         <ExternalLink className="w-3.5 h-3.5" />
                     </Link>
+                </>
+            )}
+
+            {/* Scheduling is about days to come, so a past day shows "Back to today" instead */}
+            {schedulingEnabled && !selectedDate && (
+                <>
+                    <Separator />
+                    <ScheduleTrackButton cupId={cupId} />
                 </>
             )}
 

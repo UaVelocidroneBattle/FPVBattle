@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Domain;
 
-namespace FpvBattle.Application.Services.Tracks;
+namespace FpvBattle.Application.Features.Tracks.Selection;
 
 /// <summary>
 /// Filters tracks by a cup's configuration: scene whitelist, track type whitelist/blacklist, and name blacklist patterns.
@@ -35,6 +35,23 @@ public class TrackFilter
     }
 
     public List<Track> GetSuitableTracks(IEnumerable<Track> tracks) => tracks.Where(IsTrackSuitable).ToList();
+
+    /// <summary>
+    /// The scene and type rules as a database query. Name patterns are regexes, so only <see cref="IsTrackSuitable"/> applies them.
+    /// </summary>
+    public IQueryable<Track> WhereSceneAndTypeAllowed(IQueryable<Track> tracks)
+    {
+        if (_whitelistSceneIds is { } sceneIds)
+            tracks = tracks.Where(t => sceneIds.Contains(t.Scene.SceneId));
+
+        if (_whitelistTrackTypes is { } allowedTypes)
+            tracks = tracks.Where(t => t.Type != null && allowedTypes.Contains(t.Type.Value));
+
+        if (_blacklistTrackTypes is { } blockedTypes)
+            tracks = tracks.Where(t => t.Type != null && !blockedTypes.Contains(t.Type.Value));
+
+        return tracks;
+    }
 
     public bool IsTrackSuitable(Track track) =>
         IsSceneAllowed(track.Scene) && IsTypeAllowed(track.Type) && IsNameAllowed(track.Name);

@@ -10,5 +10,11 @@ public sealed class QueuedTrackConfiguration : IEntityTypeConfiguration<QueuedTr
     {
         builder.ToTable("TrackQueue");
         builder.HasKey(p => p.Id);
+        builder.HasOne(q => q.ScheduledBy)
+            .WithMany()
+            .HasForeignKey(q => q.ScheduledByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+        builder.HasIndex(q => new { q.ScheduledByUserId, q.AddedOn });
+        builder.HasIndex(q => q.TrackId).IsUnique().HasFilter("\"Used\" = 0");
     }
 }

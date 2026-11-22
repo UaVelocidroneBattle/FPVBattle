@@ -8,7 +8,7 @@ The chats are where the competition lives. Each cup posts to its own Telegram ch
 
 | Event | Message |
 |---|---|
-| `CompetitionStarted` | The new track. On Discord, also the track rating poll |
+| `CompetitionStarted` | The new track, and the patron who picked it when it was [scheduled by a patron](track-scheduling.md). On Discord, also the track rating poll |
 | `CurrentResultUpdated` | New and improved times as they come in |
 | `IntermediateCompetitionResult` | The current leaderboard, every 2 hours when it changed |
 | `CheerUp` | A nudge when nobody, or only one pilot, has flown yet |

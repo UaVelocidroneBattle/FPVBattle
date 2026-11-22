@@ -27,5 +27,6 @@ Admins can see pending claims on the Pilot Claims page. On the Users page they c
 
 Users can permanently delete their account from the profile page (`DELETE /api/profile/account`). This:
 - removes their email, profile, sign-in methods, sessions and pending claim,
-- ends their team membership, and
+- ends their team membership,
+- keeps their [scheduled tracks](track-scheduling.md) that are still waiting in the queue, as if an admin had queued them, and
 - **keeps** the pilot and its race history, which are community competition data that stay on the leaderboards.

@@ -1,16 +1,17 @@
 using FpvBattle.Application.API.Velocidrone;
 using FpvBattle.Application.API.Velocidrone.Dto;
-using FpvBattle.Application.Features.Tracks.Models;
+using FpvBattle.Application.Features.Tracks.Queue;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace FpvBattle.Application.Features.Tracks.Services;
+namespace FpvBattle.Application.Features.Tracks.Lookups;
 
 /// <summary>
 /// Mirrors Velocidrone's scenes and official tracks into the database, the only place track picks read from.
-/// Rows that disappear from Velocidrone are soft deleted, because competitions and the track queue keep pointing at them.
+/// Rows that disappear from Velocidrone are soft deleted, because competitions and raced queue entries keep pointing at them.
+/// A deleted track can never be raced, so it leaves the queue: a patron who scheduled it gets the slot back.
 /// </summary>
 public class TrackLookupSync
 {
@@ -33,7 +34,8 @@ public class TrackLookupSync
         var officialTracks = (await _velocidrone.TracksAsync(ct)).DistinctBy(t => t.track_id).ToList();
 
         var scenes = new LookupIndex<Scene>(await _db.Scenes.ToListAsync(ct), s => s.SceneId);
-        var tracks = new LookupIndex<Track>(await _db.Tracks.ToListAsync(ct), t => t.TrackId);
+        var storedTracks = await _db.Tracks.ToListAsync(ct);
+        var tracks = new LookupIndex<Track>(storedTracks, t => t.TrackId);
 
         foreach (var scenery in sceneries)
             UpsertScene(scenes, scenery.scenery_id, scenery.scenery_name);
@@ -43,6 +45,7 @@ public class TrackLookupSync
 
         DeleteNotReturned(scenes, sceneries.Count, "scenes");
         DeleteNotReturned(tracks, officialTracks.Count, "tracks");
+        await DequeueDeletedTracksAsync(storedTracks, ct);
 
         await _db.SaveChangesAsync(ct);
 
@@ -104,6 +107,22 @@ public class TrackLookupSync
         track.Type = officialTrack.type;
         track.Scene = scene;
         tracks.Returned(track.TrackId, track, changed);
+    }
+
+    private async Task DequeueDeletedTracksAsync(IEnumerable<Track> storedTracks, CancellationToken ct)
+    {
+        var deletedTrackIds = storedTracks.Where(track => track.IsDeleted).Select(track => track.Id).ToList();
+
+        var waiting = await _db.QueuedTracks
+            .NotUsed()
+            .Where(queued => deletedTrackIds.Contains(queued.TrackId))
+            .ToListAsync(ct);
+
+        foreach (var queued in waiting)
+        {
+            Log.Information("Removing track {TrackId} from the {CupId} queue: Velocidrone no longer returns it", queued.TrackId, queued.CupId);
+            _db.QueuedTracks.Remove(queued);
+        }
     }
 
     private static void DeleteNotReturned<T>(LookupIndex<T> lookup, int returnedCount, string kind)

@@ -35,13 +35,16 @@ The `CompetitionConductor` class owns the start, stop and season steps. `Competi
 
 ## Track selection
 
-1. **The track queue first.** Admins can queue a specific track for a cup, optionally on a date and with a quad (Track Queue admin page, `TrackQueueService`).
+1. **The track queue first.** Admins and patrons schedule tracks into a cup's queue, optionally with a quad, and admins optionally on a date (see [track-scheduling.md](track-scheduling.md)). A track dated for today goes first, then undated tracks in the order they were added (`TrackQueueService`).
 2. **Otherwise random**, from the available tracks in the database that pass the cup's `TrackFilter`: allowed scenes (by Velocidrone scene id), allowed or blocked track types, and blocked name patterns. While a cup filters by type, a track of unknown type never passes. A track is skipped when:
-   - it was used in the last 6 months, or
-   - pilots rated it below 3 out of 5.
+   - it was raced in the last 6 months (cancelled competitions don't count),
+   - pilots rated it below 3 out of 5, or
+   - it is waiting in the track queue.
+
+   These reuse rules live in `TrackReuseRules`.
 3. A track with no results on Velocidrone yet is skipped, with up to 10 attempts.
 
-Queuing takes the track picked from the suggestions, by its id, so tracks that share a name stay distinct. Any available track can be queued: the cup filter only guides random picks, so an admin can queue a track outside it. The Track Queue page suggests tracks as you type and marks those outside the selected cup's filter. Each suggestion shows when the track was last raced (cancelled competitions don't count), highlighted while it's inside the 6-month reuse window. An admin can change the day's track through the MCP server (`change_track`), which cancels the running competition and starts a new one (`TrackRestart`).
+Scheduling takes the track picked from the suggestions, by its id, so tracks that share a name stay distinct. An admin may schedule a track outside the cup filter, badly rated or raced in the last 6 months: the Track Queue page suggests tracks as you type and shows those issues as warnings, along with when the track was last raced. An admin can change the day's track through the MCP server (`change_track`), which cancels the running competition and starts a new one (`TrackRestart`).
 
 ### Track and scene lookups
 
@@ -49,7 +52,7 @@ Tracks and scenes are stored in the database (`Track`, `Scene`), keyed by their 
 
 - adds new scenes and tracks, and updates changed names, track types and scenes;
 - creates a placeholder scene named `Scene <id>` for a track whose scene is missing from the scene list;
-- soft deletes (`IsDeleted`) scenes and tracks Velocidrone no longer returns, and restores them when they come back. Competitions and the track queue keep pointing at deleted tracks, so history still loads them, but `Available()` hides them from track selection;
+- soft deletes (`IsDeleted`) scenes and tracks Velocidrone no longer returns, and restores them when they come back. Competitions and raced queue entries keep pointing at deleted tracks, so history still loads them, but `Available()` hides them from track selection. A deleted track that is still waiting in the queue is removed from it;
 - skips deletions of a kind when Velocidrone returns fewer than half of the available rows, which guards against a truncated response.
 
 A failed Velocidrone call fails the job, and Hangfire retries it. The sync ignores cup filters: every official track is stored, and the filters apply only when a track is picked.

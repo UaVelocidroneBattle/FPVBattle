@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { type ActionResult, useTeamsStore } from "@/store/teamsStore";
 import MemberCount from "./MemberCount";
-import { compactPrimaryButtonClass, compactSecondaryButtonClass } from "./teamStyles";
+import { compactPrimaryButtonClass, compactSecondaryButtonClass } from "@/lib/formStyles";
 import { bleedOnPhones } from "@/lib/layout";
 
 interface BannerRowProps {

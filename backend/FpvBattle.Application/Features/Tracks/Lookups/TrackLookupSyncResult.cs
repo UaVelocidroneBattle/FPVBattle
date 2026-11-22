@@ -1,4 +1,4 @@
-namespace FpvBattle.Application.Features.Tracks.Models;
+namespace FpvBattle.Application.Features.Tracks.Lookups;
 
 public sealed record TrackLookupSyncResult(LookupSyncCounts Scenes, LookupSyncCounts Tracks);
 

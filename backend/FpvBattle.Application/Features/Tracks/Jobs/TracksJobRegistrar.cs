@@ -7,10 +7,7 @@ public class TracksJobRegistrar : IJobRegistrar
 {
     public void RegisterJobs()
     {
-        RecurringJob.AddOrUpdate<SyncTrackLookupsJob>(
-            "Sync track lookups",
-            x => x.Handle(CancellationToken.None),
-            "5 23 * * *",
-            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        RecurringJob.AddOrUpdate<SyncTrackLookupsJob>("Sync track lookups",
+            x => x.Handle(CancellationToken.None), "5 23 * * *", new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 }

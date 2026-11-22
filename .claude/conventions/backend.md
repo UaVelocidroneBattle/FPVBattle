@@ -29,7 +29,7 @@ Each project depends only on the projects above it.
 ```
 FpvBattle.Application/
 ├── Features/          # Vertical slices: Achievements, Auth, Cups, Leagues, Notifications,
-│   └── <Feature>/     #   Patreon, PilotBinding, QuadOfTheDay, Teams
+│   └── <Feature>/     #   Patreon, PilotBinding, QuadOfTheDay, Teams, Tracks
 │       ├── Services/              # business logic
 │       ├── Models/                # feature DTOs
 │       ├── Jobs/                  # Hangfire jobs and the feature's IJobRegistrar
@@ -47,6 +47,7 @@ FpvBattle.Application/
 ```
 
 - Organize code by business capability, not by technical layer.
+- A slice with several sub-capabilities groups by those instead of `Services/` and `Models/`. For example, `Features/Tracks` has `Lookups/` (the Velocidrone sync), `Selection/` (the random pick), `Queue/` (the line of waiting tracks) and `Scheduling/` (adding tracks to it, for admins and patrons).
 - Features don't reference each other directly. They communicate through domain events or well-defined interfaces.
 - Put a service in the root `Services/` only when it is truly shared.
 

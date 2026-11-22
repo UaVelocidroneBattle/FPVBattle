@@ -8,4 +8,9 @@ public static class PatreonSupporterQueries
     {
         return query.Where(s => s.Status == PatreonSupporter.ActivePatronStatus && s.Amount > 0);
     }
+
+    public static IQueryable<PatreonSupporter> ForPilot(this IQueryable<PatreonSupporter> query, int pilotId)
+    {
+        return query.Where(s => s.PilotId == pilotId);
+    }
 }

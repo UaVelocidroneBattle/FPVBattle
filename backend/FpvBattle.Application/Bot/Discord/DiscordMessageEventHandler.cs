@@ -69,7 +69,7 @@ public class DiscordMessageEventHandler :
         }
 
         var track = notification.Track;
-        var startMessage = _messageComposer.StartCompetition(track, notification.Competition.QuadOfTheDay?.Name);
+        var startMessage = _messageComposer.StartCompetition(track, notification.Competition.QuadOfTheDay?.Name, notification.PickedByPatron);
         await bot.SendMessageAsync(startMessage);
 
         var leagueNames = _cupService.GetCupOptions(cupId).Leagues.GetAllLeagueNames();

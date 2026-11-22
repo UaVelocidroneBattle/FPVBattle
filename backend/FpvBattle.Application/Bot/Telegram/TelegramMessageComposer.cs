@@ -17,7 +17,7 @@ public class TelegramMessageComposer
         return string.Join($"{Environment.NewLine}{Environment.NewLine}", messages);
     }
 
-    public string StartCompetition(Track track, string? quadOfTheDay)
+    public string StartCompetition(Track track, string? quadOfTheDay, string? pickedByPatron)
     {
         var rating = string.Empty;
 
@@ -31,6 +31,7 @@ public class TelegramMessageComposer
                $"{TrackHeading(track)}{Environment.NewLine}{Environment.NewLine}" +
                $"{rating}" +
                $"{QuadOfTheDayText(quadOfTheDay)}" +
+               $"{PickedByPatronText(pickedByPatron)}" +
                $"Leaderboard:{Environment.NewLine}" +
                $"*https://www.velocidrone.com/leaderboard/{track.Scene.SceneId}/{track.TrackId}/All*{Environment.NewLine}{Environment.NewLine}" +
                $"👾 Інструкція, статистика і інше тут:{Environment.NewLine}*https://fpv-battle.fun/*{Environment.NewLine}";
@@ -203,6 +204,11 @@ public class TelegramMessageComposer
     /// </summary>
     private static string TrackHeading(Track track) =>
         $"*{TelegramMarkdown.Escape(track.Scene.Name)} - `{TelegramMarkdown.Escape(track.Name)}`*";
+
+    private static string PickedByPatronText(string? pilotName) =>
+        pilotName is null
+            ? string.Empty
+            : $"Picked by *{PilotName(pilotName)}*{Environment.NewLine}{Environment.NewLine}";
 
     private static string QuadOfTheDayText(string? quadOfTheDay) =>
         quadOfTheDay is null
