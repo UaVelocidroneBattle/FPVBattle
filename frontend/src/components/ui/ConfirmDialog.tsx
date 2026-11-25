@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -16,9 +16,11 @@ interface ConfirmDialogProps {
     /** Resolves to an error message to show in the dialog, or null when the action succeeded. */
     onConfirm: () => Promise<string | null>;
     onClose: () => void;
+    /** Extra content between the description and the buttons, such as a choice the action depends on. */
+    children?: ReactNode;
 }
 
-function ConfirmDialog({ open, title, description, confirmLabel, onConfirm, onClose }: ConfirmDialogProps) {
+function ConfirmDialog({ open, title, description, confirmLabel, onConfirm, onClose, children }: ConfirmDialogProps) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,8 @@ function ConfirmDialog({ open, title, description, confirmLabel, onConfirm, onCl
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription className="text-slate-400">{description}</DialogDescription>
                 </DialogHeader>
+
+                {children}
 
                 {error && <p className="text-sm text-red-400">{error}</p>}
 

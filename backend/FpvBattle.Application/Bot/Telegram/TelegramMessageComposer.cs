@@ -185,9 +185,13 @@ public class TelegramMessageComposer
         return $"❄️ *{TelegramMarkdown.Escape(pilotName)}* отримав додатковий freezie";
     }
 
-    public string RestartTrack()
+    public string RestartTrack(string? restartedBy)
     {
-        return "🔁️ Усі прибрали руки від контролерів, ми *міняємо трек*";
+        var restartedByText = restartedBy is null
+            ? string.Empty
+            : $"{Environment.NewLine}{Environment.NewLine}Restarted by *{PilotName(restartedBy)}*";
+
+        return $"🔁️ Усі прибрали руки від контролерів, ми *міняємо трек*{restartedByText}";
     }
 
     #region Private

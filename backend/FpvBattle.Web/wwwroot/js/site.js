@@ -236,3 +236,9 @@ document.querySelectorAll('[data-options-follow]').forEach(select => {
     field.addEventListener('change', showMatchingOptions);
     showMatchingOptions();
 });
+
+// Row menus inside a .panel: Bootstrap 5.1 ignores data-bs-strategy, so the panel's overflow: hidden
+// clipped the menu of the last rows. A fixed Popper positions the menu against the viewport instead.
+document.querySelectorAll('[data-bs-toggle="dropdown"][data-bs-strategy="fixed"]').forEach(toggle => {
+    bootstrap.Dropdown.getOrCreateInstance(toggle, { popperConfig: { strategy: 'fixed' } });
+});

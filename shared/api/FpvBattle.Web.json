@@ -1612,6 +1612,27 @@
         }
       }
     },
+    "/api/competitions/restart-track": {
+      "post": {
+        "tags": [
+          "Competitions"
+        ],
+        "parameters": [
+          {
+            "name": "cupId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/competitions/overview": {
       "get": {
         "tags": [
@@ -2083,7 +2104,8 @@
         "required": [
           "id",
           "email",
-          "displayName"
+          "displayName",
+          "canRestartTrack"
         ],
         "type": "object",
         "properties": {
@@ -2095,6 +2117,9 @@
           },
           "displayName": {
             "type": "string"
+          },
+          "canRestartTrack": {
+            "type": "boolean"
           }
         }
       },

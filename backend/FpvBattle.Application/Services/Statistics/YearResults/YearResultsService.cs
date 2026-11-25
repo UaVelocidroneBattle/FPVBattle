@@ -11,7 +11,7 @@ public class YearResultsService
 {
     private readonly IApplicationDbContext _db;
     private readonly CompetitionService _competitionService;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
     private readonly ICupService _cupService;
 
     private readonly DateTime _from;
@@ -19,12 +19,12 @@ public class YearResultsService
 
     public YearResultsService(
         IApplicationDbContext db,
-        IMediator mediator,
+        IPublisher publisher,
         CompetitionService competitionService,
         ICupService cupService)
     {
         _db = db;
-        _mediator = mediator;
+        _publisher = publisher;
         _competitionService = competitionService;
         _cupService = cupService;
 
@@ -54,7 +54,7 @@ public class YearResultsService
                 //Top3Pilots = await GetTop3PilotsAsync(cupId),
             };
 
-            await _mediator.Publish(new Notifications.YearResults(statistics));
+            await _publisher.Publish(new Notifications.YearResults(statistics));
         }
     }
 

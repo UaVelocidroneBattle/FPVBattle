@@ -21,12 +21,9 @@ import { competitionDayMeta, emptyCompetitionDayMeta } from '@/lib/siteMeta';
 import { bleedOnPhones, boardTitleRow } from '@/lib/layout';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import TeamBoards from './TeamBoards';
+import { COMPETITION_CLOSED, COMPETITION_STARTED } from '@/lib/competitionState';
 
 const TEN_MINUTES = 10 * 60 * 1000;
-
-// The backend's CompetitionState enum, which the API sends as a number.
-const COMPETITION_STARTED = 0;
-const COMPETITION_CLOSED = 1;
 
 /**
  * Today's board narrowed to some of its pilots (a country, a team): they are

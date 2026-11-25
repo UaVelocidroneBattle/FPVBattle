@@ -1,3 +1,4 @@
+using FpvBattle.Application.Features.Auth;
 using FpvBattle.Application.Features.Auth.Models;
 using FpvBattle.Application.Features.Auth.Services;
 using FpvBattle.Domain;
@@ -15,15 +16,18 @@ public class AuthController : ControllerBase
     private readonly GoogleAuthService _googleAuthService;
     private readonly TokenService _tokenService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAuthorizationService _authorizationService;
 
     public AuthController(
         GoogleAuthService googleAuthService,
         TokenService tokenService,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IAuthorizationService authorizationService)
     {
         _googleAuthService = googleAuthService;
         _tokenService = tokenService;
         _userManager = userManager;
+        _authorizationService = authorizationService;
     }
 
     /// <summary>
@@ -89,7 +93,8 @@ public class AuthController : ControllerBase
         {
             Id = user.Id,
             Email = email,
-            DisplayName = user.DisplayName ?? email.Split('@')[0]
+            DisplayName = user.DisplayName ?? email.Split('@')[0],
+            CanRestartTrack = (await _authorizationService.AuthorizeAsync(User, AuthPolicies.CanRestartTrack)).Succeeded
         };
     }
 }

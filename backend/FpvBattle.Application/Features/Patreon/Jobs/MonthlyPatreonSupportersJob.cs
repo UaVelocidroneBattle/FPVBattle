@@ -11,15 +11,15 @@ namespace FpvBattle.Application.Features.Patreon.Jobs;
 public class MonthlyPatreonSupportersJob
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
     private readonly IApplicationDbContext _db;
 
     public MonthlyPatreonSupportersJob(
         IApplicationDbContext db,
-        IMediator mediator)
+        IPublisher publisher)
     {
         _db = db;
-        _mediator = mediator;
+        _publisher = publisher;
     }
 
     [DisableConcurrentExecution("MonthlyPatreonSupporters", 60)]
@@ -37,6 +37,6 @@ public class MonthlyPatreonSupportersJob
 
         Log.Information("Found {Count} active supporters for monthly notification", allActiveSupporters.Count);
 
-        await _mediator.Publish(new MonthlyPatreonSupportersNotification(allActiveSupporters), ct);
+        await _publisher.Publish(new MonthlyPatreonSupportersNotification(allActiveSupporters), ct);
     }
 }

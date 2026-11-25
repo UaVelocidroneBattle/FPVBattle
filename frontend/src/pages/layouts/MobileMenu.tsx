@@ -4,6 +4,7 @@ import { LogOut, Menu, X } from "lucide-react";
 import { getInitials } from "@/components/auth/getInitials";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import RestartTrackDialog from "@/components/track-restart/RestartTrackDialog";
 import { useCups } from "@/hooks/useCups";
 import { useAuthStore } from "@/store/authStore";
 import { SocialLinks, TeamsNavLink } from "./NavLinks";
@@ -58,6 +59,7 @@ function AccountSummary({ onNavigate }: { onNavigate: () => void }) {
 
 function MobileMenu() {
     const [open, setOpen] = useState(false);
+    const [restarting, setRestarting] = useState(false);
     const close = () => setOpen(false);
     const user = useAuthStore((state) => state.user);
     const { cups } = useCups();
@@ -78,6 +80,11 @@ function MobileMenu() {
             document.body.style.overflow = previousOverflow;
         };
     }, [open]);
+
+    const startRestart = () => {
+        close();
+        setRestarting(true);
+    };
 
     const signOut = () => {
         close();
@@ -116,6 +123,11 @@ function MobileMenu() {
                                 {cups.map(cup => (
                                     <NavLink key={cup.id} to={`/${cup.id}`} className={rowClass} onClick={close}>{cup.name}</NavLink>
                                 ))}
+                                {user?.canRestartTrack && (
+                                    <button onClick={startRestart} className={`w-full text-left ${rowClass({ isActive: false })}`}>
+                                        Restart track
+                                    </button>
+                                )}
                             </MenuGroup>
 
                             <MenuGroup label="Explore">
@@ -140,6 +152,8 @@ function MobileMenu() {
                     </nav>
                 </>
             )}
+
+            {restarting && <RestartTrackDialog onClose={() => setRestarting(false)} />}
         </>
     );
 }

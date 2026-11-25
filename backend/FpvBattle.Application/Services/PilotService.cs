@@ -12,14 +12,14 @@ public class PilotService
 {
     private static readonly ILogger _log = Log.ForContext<PilotService>();
     private readonly IApplicationDbContext _db;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
 
     public PilotService(
         IApplicationDbContext db,
-        IMediator mediator)
+        IPublisher publisher)
     {
         _db = db;
-        _mediator = mediator;
+        _publisher = publisher;
     }
 
     public async Task UpdatePilotsAsync(List<TrackTimeDelta> deltas, Dictionary<int, string> pilotNames, string cupId)
@@ -52,7 +52,7 @@ public class PilotService
 
             _db.Pilots.Add(newPilot);
             await _db.SaveChangesAsync();
-            await _mediator.Publish(new NewPilot(newPilot, cupId));
+            await _publisher.Publish(new NewPilot(newPilot, cupId));
             return;
         }
 
@@ -82,7 +82,7 @@ public class PilotService
 
         if (renamedEvent is not null)
         {
-            await _mediator.Publish(renamedEvent);
+            await _publisher.Publish(renamedEvent);
         }
     }
 
@@ -112,7 +112,7 @@ public class PilotService
         _log.Information("Found {PilotCount} pilots at risk of losing day streaks: {PilotNames}",
             pilotsToNotify.Count, string.Join(", ", pilotsToNotify.Select(p => $"{p.Name} ({p.DayStreak})")));
 
-        await _mediator.Publish(new DayStreakPotentialLose(pilotsToNotify));
+        await _publisher.Publish(new DayStreakPotentialLose(pilotsToNotify));
     }
 
     public async Task UpdatePilotDayStreaksAsync()

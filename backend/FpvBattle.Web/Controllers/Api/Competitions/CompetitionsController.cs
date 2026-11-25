@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using FpvBattle.Application.Features.Auth;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Features.Teams;
 using FpvBattle.Application.Features.Teams.Leaderboard;
@@ -18,19 +21,25 @@ public class CompetitionsController : ControllerBase
     private readonly ILeaderboardCalculator _leaderboardCalculator;
     private readonly TeamTagLookup _teamTags;
     private readonly TeamLeaderboardService _teamLeaderboard;
+    private readonly TrackRestartService _trackRestartService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public CompetitionsController(
         CompetitionService competitionService,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator,
         TeamTagLookup teamTags,
-        TeamLeaderboardService teamLeaderboard)
+        TeamLeaderboardService teamLeaderboard,
+        TrackRestartService trackRestartService,
+        UserManager<ApplicationUser> userManager)
     {
         _competitionService = competitionService;
         _cupService = cupService;
         _leaderboardCalculator = leaderboardCalculator;
         _teamTags = teamTags;
         _teamLeaderboard = teamLeaderboard;
+        _trackRestartService = trackRestartService;
+        _userManager = userManager;
     }
 
     [HttpGet("/api/competitions/current")]
@@ -38,6 +47,32 @@ public class CompetitionsController : ControllerBase
     {
         var competitions  = await _competitionService.GetCurrentCompetitions().ProjectToModel().ToArrayAsync() ;
         return competitions;
+    }
+
+    /// <summary>
+    /// Cancels the cup's running competition and starts a new one the same way the daily start does.
+    /// </summary>
+    [HttpPost("/api/competitions/restart-track")]
+    [Authorize(Policy = AuthPolicies.CanRestartTrack)]
+    public async Task<IActionResult> RestartTrack([FromQuery] string cupId)
+    {
+        if (!_cupService.CupExists(cupId))
+            return NotFound();
+
+        // Conductors replace a running track; only admins (MCP, Telegram) may start a missing competition
+        var isRunning = await _competitionService.GetCurrentCompetitions().ForCup(cupId).AnyAsync();
+        if (!isRunning)
+            return Conflict("There is no running competition to restart");
+
+        var user = await _userManager.GetUserAsync(User);
+        var result = await _trackRestartService.RestartAsync(cupId, restartedBy: user?.Pilot?.Name);
+
+        return result switch
+        {
+            TrackRestartResult.Restarted => NoContent(),
+            TrackRestartResult.RestartedMomentsAgo => Conflict("The track was restarted moments ago"),
+            _ => NotFound()
+        };
     }
 
     [HttpGet("/api/competitions/overview")]

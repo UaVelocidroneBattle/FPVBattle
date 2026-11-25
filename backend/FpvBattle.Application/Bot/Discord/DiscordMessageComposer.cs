@@ -230,9 +230,13 @@ public class DiscordMessageComposer
         return $"❄️ **{pilotName}** received an extra freezie";
     }
 
-    public string RestartTrack()
+    public string RestartTrack(string? restartedBy)
     {
-        return "🔁️ Hands off the controllers everyone, we're **changing the track**";
+        var restartedByText = restartedBy is null
+            ? string.Empty
+            : $"{Environment.NewLine}{Environment.NewLine}Restarted by **{restartedBy}**";
+
+        return $"🔁️ Hands off the controllers everyone, we're **changing the track**{restartedByText}";
     }
 
     #region Private

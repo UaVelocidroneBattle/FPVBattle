@@ -13,19 +13,19 @@ public class StatisticsService
 {
     private static readonly ILogger _log = Log.ForContext<StatisticsService>();
     private readonly IApplicationDbContext _db;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
 
-    public StatisticsService(IApplicationDbContext db, IMediator mediator)
+    public StatisticsService(IApplicationDbContext db, IPublisher publisher)
     {
         _db = db;
-        _mediator = mediator;
+        _publisher = publisher;
     }
 
     [Obsolete("Need to rework")]
     public async Task PublishEndOfSeasonStatisticsAsync()
     {
         var statistics = await EndOfSeasonStatisticsAsync();
-        await _mediator.Publish(new EndOfSeasonStatisticsNotification(statistics));
+        await _publisher.Publish(new EndOfSeasonStatisticsNotification(statistics));
         _log.Information("End of season statistics published");
     }
 

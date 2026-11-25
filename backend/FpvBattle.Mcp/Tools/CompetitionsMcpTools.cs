@@ -1,13 +1,10 @@
 using System.ComponentModel;
 using FpvBattle.Application.Features.Cups;
-using FpvBattle.Application.Notifications;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Application.Services;
 using FpvBattle.Domain;
 using FpvBattle.Mcp.Dto;
-using Hangfire;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ModelContextProtocol.Server;
 using Serilog;
@@ -19,24 +16,21 @@ public class CompetitionsMcpTools
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionsMcpTools>();
     private readonly CompetitionService _competitionService;
-    private readonly CompetitionConductor _competitionConductor;
+    private readonly TrackRestartService _trackRestartService;
     private readonly ICupService _cupService;
     private readonly IApplicationDbContext _db;
-    private readonly IMediator _mediator;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
 
     public CompetitionsMcpTools(
         CompetitionService competitionService,
         IApplicationDbContext db,
-        CompetitionConductor competitionConductor,
-        IMediator mediator,
+        TrackRestartService trackRestartService,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator)
     {
         _competitionService = competitionService;
         _db = db;
-        _competitionConductor = competitionConductor;
-        _mediator = mediator;
+        _trackRestartService = trackRestartService;
         _cupService = cupService;
         _leaderboardCalculator = leaderboardCalculator;
     }
@@ -138,14 +132,16 @@ public class CompetitionsMcpTools
     }
 
     [McpServerTool]
-    [Description("Cancel the current competition and start a new one with a different track")]
-    public async Task ChangeTrack([Description("Cup unique id, e.g. 'open-class' or 'whoop-class'")] string cupId)
+    [Description("Cancel the current competition and start a new one, picking the track the same way the daily start does. Also starts a competition when none is running. Refused within 5 minutes of the cup's last restart.")]
+    public async Task<string> ChangeTrack([Description("Cup unique id, e.g. 'open-class' or 'whoop-class'")] string cupId)
     {
-        Log.Information("Changing track for cup {CupId}", cupId);
+        var result = await _trackRestartService.RestartAsync(cupId, restartedBy: null);
 
-        await _mediator.Publish(new TrackRestart(cupId));
-        BackgroundJob.Enqueue(() => _competitionConductor.StartNewAsync(cupId));
-
-        Log.Information("Track change initiated for cup {CupId}, new competition scheduled", cupId);
+        return result switch
+        {
+            TrackRestartResult.Restarted => $"Track change started for cup {cupId}, the new competition starts in a few seconds",
+            TrackRestartResult.RestartedMomentsAgo => $"The track in cup {cupId} was restarted moments ago, so nothing was changed",
+            _ => $"Cup {cupId} is not an enabled cup, so nothing was changed"
+        };
     }
 }

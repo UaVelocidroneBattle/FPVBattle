@@ -17,15 +17,15 @@ public class AchievementService
 
     private readonly IApplicationDbContext _db;
     private readonly IEnumerable<IAchievement> _achievements;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
 
     public AchievementService(
         IApplicationDbContext db,
         IServiceProvider serviceProvider,
-        IMediator mediator)
+        IPublisher publisher)
     {
         _db = db;
-        _mediator = mediator;
+        _publisher = publisher;
         _achievements = serviceProvider.GetServices<IAchievement>();
     }
 
@@ -229,7 +229,7 @@ public class AchievementService
         var uniquePilots = results.Select(r => r.Pilot.Name).Distinct().Count();
         Log.Information("Achievement check completed: {TriggeredCount} achievements awarded to {PilotCount} pilots",
             results.Count, uniquePilots);
-        await _mediator.Publish(new GotAchievements(results), cancellationToken);
+        await _publisher.Publish(new GotAchievements(results), cancellationToken);
     }
 
     private IEnumerable<T> GetAchievements<T>() where T : IAchievement

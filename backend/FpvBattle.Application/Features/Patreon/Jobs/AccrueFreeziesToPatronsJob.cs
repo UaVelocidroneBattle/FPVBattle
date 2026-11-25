@@ -13,13 +13,13 @@ namespace FpvBattle.Application.Features.Patreon.Jobs;
 public class AccrueFreeziesToPatronsJob
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<MonthlyPatreonSupportersJob>();
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
     private readonly IApplicationDbContext _db;
     private readonly PatreonOptions _options;
 
-    public AccrueFreeziesToPatronsJob(IMediator mediator, IApplicationDbContext db, IOptions<PatreonOptions> options)
+    public AccrueFreeziesToPatronsJob(IPublisher publisher, IApplicationDbContext db, IOptions<PatreonOptions> options)
     {
-        _mediator = mediator;
+        _publisher = publisher;
         _db = db;
         _options = options.Value;
     }
@@ -69,6 +69,6 @@ public class AccrueFreeziesToPatronsJob
             return;
 
         await _db.SaveChangesAsync(ct);
-        await _mediator.Publish(new MonthlyAccruedFreeziesNotification(accruedFreezies), ct);
+        await _publisher.Publish(new MonthlyAccruedFreeziesNotification(accruedFreezies), ct);
     }
 }

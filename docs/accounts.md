@@ -8,6 +8,7 @@ Visitors can browse everything on the dashboard without an account. An account a
 - The API then issues a short-lived JWT access token (15 minutes) and a refresh token (60 days) (`TokenService`, `Auth` settings).
 - Refresh tokens rotate: each refresh revokes the old token and issues a new pair. Signing out revokes the current token.
 - The admin dashboard has its own ASP.NET Identity login, separate from the dashboard's Google sign-in.
+- Accounts can hold ASP.NET Identity roles, given on the admin Users page. The only role today is `Conductor`, which lets a user restart the day's track (see [competitions.md](competitions.md#restarting-the-track)).
 
 ## Linking a pilot: fly-to-verify
 
