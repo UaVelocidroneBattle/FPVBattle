@@ -32,13 +32,14 @@
         <div class="table-responsive">
             <table class="table table-fixed" id="usersTable">
                 <colgroup>
-                    <col style="width: 24%" />
-                    <col style="width: 18%" />
-                    <col style="width: 14%" />
+                    <col style="width: 21%" />
+                    <col style="width: 15%" />
                     <col style="width: 13%" />
+                    <col style="width: 11%" />
                     <col style="width: 8%" />
                     <col style="width: 8%" />
-                    <col style="width: 12%" />
+                    <col style="width: 10%" />
+                    <col style="width: 11%" />
                     <col style="width: 56px" />
                 </colgroup>
                 <thead>
@@ -49,6 +50,7 @@
                         <th data-sort="country">Country</th>
                         <th data-sort="dayStreak" data-sort-type="number">Day Streak</th>
                         <th data-sort="freezies" data-sort-type="number">Freezies</th>
+                        <th data-sort="roles">Roles</th>
                         <th data-sort="registeredOn">Registered</th>
                         <th></th>
                     </tr>
@@ -63,6 +65,7 @@
                             data-country="@(user.CountryName?.ToLowerInvariant() ?? "")"
                             data-day-streak="@(user.DayStreak ?? -1)"
                             data-freezies="@(user.Freezies ?? -1)"
+                            data-roles="@string.Join(", ", user.Roles).ToLowerInvariant()"
                             data-registered-on="@user.RegisteredOn.ToString("s")">
                             <td class="mono">@user.Email</td>
                             <td>@(user.DisplayName ?? "—")</td>
@@ -70,6 +73,7 @@
                             <td>@(user.CountryName ?? "—")</td>
                             <td class="mono">@(user.DayStreak?.ToString() ?? "—")</td>
                             <td class="mono">@(user.Freezies?.ToString() ?? "—")</td>
+                            <td>@(user.Roles.Count > 0 ? string.Join(", ", user.Roles) : "—")</td>
                             <td class="mono">@user.RegisteredOn.ToString("dd.MM.yyyy HH:mm")</td>
                             <td class="text-end">
                                 <div class="dropdown">
@@ -110,13 +114,31 @@
                                                 </form>
                                             </li>
                                         }
+                                        @if (Model.AvailableRoles.Count > 0)
+                                        {
+                                            <li><hr class="dropdown-divider" /></li>
+                                        }
+                                        @foreach (var role in Model.AvailableRoles)
+                                        {
+                                            var hasRole = user.Roles.Contains(role);
+                                            <li>
+                                                <form asp-action="@(hasRole ? "RemoveRole" : "AddRole")" method="post"
+                                                      onsubmit="return confirm('@(hasRole ? $"Remove the {role} role from this user?" : $"Give this user the {role} role?")');">
+                                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                                    <input type="hidden" name="role" value="@role" />
+                                                    <button type="submit" class="dropdown-item @(hasRole ? "text-danger" : "")">
+                                                        @(hasRole ? $"Remove {role} role" : $"Add {role} role")
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
                                     </ul>
                                 </div>
                             </td>
                         </tr>
                     }
                     <tr id="usersNoMatch" class="no-match-row d-none">
-                        <td colspan="8" class="text-center text-muted">No users match your search.</td>
+                        <td colspan="9" class="text-center text-muted">No users match your search.</td>
                     </tr>
                 </tbody>
             </table>

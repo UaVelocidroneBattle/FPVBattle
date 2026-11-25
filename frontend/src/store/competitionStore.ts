@@ -1,7 +1,13 @@
 import { create, type UseBoundStore, type StoreApi } from 'zustand';
 import api from '../api/api';
-import { CompetitionOverviewModel } from '../api/client';
+import { CompetitionOverviewModel, postApiCompetitionsRestartTrack } from '../api/client';
 import { LoadingStates } from '../lib/loadingStates';
+
+// The new track is picked in the background, so the board is checked until it shows up
+const NEW_TRACK_CHECKS = 6;
+const NEW_TRACK_CHECK_INTERVAL_MS = 5_000;
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface CompetitionState {
   state: LoadingStates;
@@ -12,6 +18,8 @@ export interface CompetitionState {
 export interface CompetitionActions {
   fetch: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** Resolves to an error message, or null once the new track is on the board (or the checks ran out). */
+  restartTrack: () => Promise<string | null>;
   selectDate: (date: string | null) => void;
 }
 
@@ -42,6 +50,30 @@ function createCompetitionStore(cupId: string): UseBoundStore<StoreApi<Competiti
       } catch {
         // Keep existing data on refresh failure — only initial load shows error state
       }
+    },
+    restartTrack: async () => {
+      const restartedCompetitionId = get().data?.competition?.id;
+
+      try {
+        const response = await postApiCompetitionsRestartTrack({ query: { cupId } });
+        if (!response.response.ok) {
+          return typeof response.error === 'string' && response.error
+            ? response.error
+            : 'Could not restart the track. Please try again.';
+        }
+      } catch {
+        return 'Network error. Please try again.';
+      }
+
+      for (let check = 0; check < NEW_TRACK_CHECKS; check++) {
+        await wait(NEW_TRACK_CHECK_INTERVAL_MS);
+        await get().refresh();
+
+        const competition = get().data?.competition;
+        if (competition && competition.id !== restartedCompetitionId) break;
+      }
+
+      return null;
     },
     selectDate: (date: string | null) => {
       set({ selectedDate: date, state: 'Idle' });

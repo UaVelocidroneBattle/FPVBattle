@@ -17,20 +17,20 @@ public class LeagueService
     private readonly RatingService _ratingService;
     private readonly IApplicationDbContext _db;
     private readonly PaceRatingCalculator _paceRatingCalculator;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
 
     public LeagueService(
         ICupService cupService,
         RatingService ratingService,
         IApplicationDbContext db,
         PaceRatingCalculator paceRatingCalculator,
-        IMediator mediator)
+        IPublisher publisher)
     {
         _cupService = cupService;
         _ratingService = ratingService;
         _db = db;
         _paceRatingCalculator = paceRatingCalculator;
-        _mediator = mediator;
+        _publisher = publisher;
     }
 
     [DisableConcurrentExecution("UpdatePilotLeagues", 60)]
@@ -131,7 +131,7 @@ public class LeagueService
 
         if (leagueUpdates.Count != 0)
         {
-            await _mediator.Publish(new LeagueUpdateNotification(cupId, leagueUpdates));
+            await _publisher.Publish(new LeagueUpdateNotification(cupId, leagueUpdates));
         }
 
         Log.Information("Pilot leagues updated for cup {CupId}", cupId);

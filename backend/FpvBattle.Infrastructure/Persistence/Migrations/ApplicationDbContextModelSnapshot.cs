@@ -1012,6 +1012,15 @@ namespace FpvBattle.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "6f1c2b8e-3d4a-4e5f-9a7b-1c2d3e4f5a6b",
+                            ConcurrencyStamp = "b2d6e0f4-8a1c-4e3b-9d5f-7a2c4e6b8d0f",
+                            Name = "Conductor",
+                            NormalizedName = "CONDUCTOR"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

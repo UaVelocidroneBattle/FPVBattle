@@ -3,6 +3,7 @@ using FpvBattle.Application.Helpers;
 using FpvBattle.Application.Persistence;
 using FpvBattle.Application.Persistence.Queries;
 using FpvBattle.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,13 +13,19 @@ public class UsersController : AdminControllerBase
 {
     private readonly IApplicationDbContext _db;
     private readonly PilotBindingService _bindingService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
     public UsersController(
         IApplicationDbContext db,
-        PilotBindingService bindingService)
+        PilotBindingService bindingService,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         _db = db;
         _bindingService = bindingService;
+        _userManager = userManager;
+        _roleManager = roleManager;
     }
 
     public async Task<IActionResult> Index()
@@ -28,6 +35,12 @@ public class UsersController : AdminControllerBase
             .ThenInclude(p => p.DayStreakFreezes)
             .OrderBy(u => u.Email)
             .ToListAsync();
+
+        var roleNames = await _roleManager.Roles
+            .Select(r => r.Name!)
+            .OrderBy(name => name)
+            .ToListAsync();
+        var rolesByUser = await GetRolesByUserAsync(roleNames);
 
         var rows = users.Select(u => new UserRow
         {
@@ -39,10 +52,11 @@ public class UsersController : AdminControllerBase
             CountryName = u.Pilot is null ? null : TextHelper.CountryName(u.Pilot.Country),
             DayStreak = u.Pilot?.DayStreak,
             Freezies = u.Pilot?.DayStreakFreezeCount,
-            DayStreakFrozenUntil = u.Pilot?.DayStreakFrozenUntil
+            DayStreakFrozenUntil = u.Pilot?.DayStreakFrozenUntil,
+            Roles = rolesByUser[u.Id].ToList()
         }).ToList();
 
-        return View(new UsersViewModel { Users = rows });
+        return View(new UsersViewModel { Users = rows, AvailableRoles = roleNames });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -132,5 +146,54 @@ public class UsersController : AdminControllerBase
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddRole(string userId, string role)
+    {
+        await ChangeRoleAsync(userId, role, (user, roleName) => _userManager.AddToRoleAsync(user, roleName));
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveRole(string userId, string role)
+    {
+        await ChangeRoleAsync(userId, role, (user, roleName) => _userManager.RemoveFromRoleAsync(user, roleName));
+        return RedirectToAction(nameof(Index));
+    }
+
+    private async Task ChangeRoleAsync(string userId, string role, Func<ApplicationUser, string, Task<IdentityResult>> change)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user is null)
+        {
+            TempData["Error"] = "User not found";
+            return;
+        }
+
+        if (!await _roleManager.RoleExistsAsync(role))
+        {
+            TempData["Error"] = $"Role '{role}' does not exist";
+            return;
+        }
+
+        var result = await change(user, role);
+
+        if (!result.Succeeded)
+            TempData["Error"] = string.Join(" ", result.Errors.Select(e => e.Description));
+    }
+
+    private async Task<ILookup<string, string>> GetRolesByUserAsync(IEnumerable<string> roleNames)
+    {
+        var memberships = new List<(string UserId, string Role)>();
+
+        foreach (var roleName in roleNames)
+        {
+            var members = await _userManager.GetUsersInRoleAsync(roleName);
+            memberships.AddRange(members.Select(member => (member.Id, roleName)));
+        }
+
+        return memberships.ToLookup(m => m.UserId, m => m.Role);
     }
 }

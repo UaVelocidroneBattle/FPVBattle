@@ -113,7 +113,7 @@ public sealed class PilotConfiguration : IEntityTypeConfiguration<Pilot>
 
 ## Domain events
 
-Domain events use MediatR: an `INotification` record in a `Notifications/` folder, and one `INotificationHandler<T>` per reaction in `NotificationHandlers/`. One event usually has a handler per channel. For example, `GotAchievements` is handled by the Telegram, Discord and in-app handlers.
+Domain events use MediatR: an `INotification` record in a `Notifications/` folder, and one `INotificationHandler<T>` per reaction in `NotificationHandlers/`. Inject MediatR's `IPublisher` to publish them, not `IMediator`: nothing here sends requests, and tests can pass `RecordingPublisher`. One event usually has a handler per channel. For example, `GotAchievements` is handled by the Telegram, Discord and in-app handlers.
 
 ## Background jobs (Hangfire)
 

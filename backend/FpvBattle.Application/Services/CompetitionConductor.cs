@@ -25,7 +25,7 @@ public class CompetitionConductor
     private readonly IVelocidroneClient _velocidrone;
     private readonly IApplicationDbContext _db;
     private readonly TrackService _trackService;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly DiscordMessageComposer _discordMessageComposer;
     private readonly IWinnerImageRenderer _imageService;
@@ -42,7 +42,7 @@ public class CompetitionConductor
         DiscordMessageComposer discordMessageComposer,
         IWinnerImageRenderer imageService,
         TrackService trackService,
-        IMediator mediator,
+        IPublisher publisher,
         IVelocidroneClient velocidrone,
         ICupService cupService,
         IDiscordCupMessenger discordCupMessenger,
@@ -56,7 +56,7 @@ public class CompetitionConductor
         _discordMessageComposer = discordMessageComposer;
         _imageService = imageService;
         _trackService = trackService;
-        _mediator = mediator;
+        _publisher = publisher;
         _velocidrone = velocidrone;
         _cupService = cupService;
         _discordCupMessenger = discordCupMessenger;
@@ -152,7 +152,7 @@ public class CompetitionConductor
 
         Log.Information("🚀 Competition {CompetitionId} started for cup {CupId} on track {TrackName}", competition.Id, cupId, track.Name);
 
-        await _mediator.Publish(new CompetitionStarted(competition, track, cupOptions, pickedByPatron));
+        await _publisher.Publish(new CompetitionStarted(competition, track, cupOptions, pickedByPatron));
 
         Log.Information("Competition {CompetitionId} setup completed successfully for cup {CupId}", competition.Id, cupId);
     }
@@ -178,7 +178,7 @@ public class CompetitionConductor
         await _db.SaveChangesAsync();
 
         var leaderboard = _leaderboardCalculator.GetLeagueLeaderboard(competition);
-        await _mediator.Publish(new CompetitionFinished(competition, leaderboard));
+        await _publisher.Publish(new CompetitionFinished(competition, leaderboard));
 
         Log.Information("Competition {CompetitionId} closure process completed for cup {CupId}", competition.Id, cupId);
     }
@@ -193,7 +193,7 @@ public class CompetitionConductor
 
         competition.State = CompetitionState.Cancelled;
         await _db.SaveChangesAsync();
-        await _mediator.Publish(new CompetitionCancelled(competition));
+        await _publisher.Publish(new CompetitionCancelled(competition));
     }
 
     public async Task StopPollAsync(string cupId)
@@ -245,7 +245,7 @@ public class CompetitionConductor
             return;
 
         Log.Warning("👎 Track {TrackName} received low rating {Rating:F2}/5, marking as bad track", competition.Track.FullName, rating);
-        await _mediator.Publish(new BadTrack(competition, competition.Track));
+        await _publisher.Publish(new BadTrack(competition, competition.Track));
     }
 
     public async Task SeasonResultsAsync(string cupId)
@@ -281,7 +281,7 @@ public class CompetitionConductor
             return;
         }
 
-        await _mediator.Publish(new TempSeasonResults(cupId, results));
+        await _publisher.Publish(new TempSeasonResults(cupId, results));
         Log.Information("Published temporary season results for cup {CupId} with {ResultCount} entries", cupId, totalCount);
     }
 
@@ -316,7 +316,7 @@ public class CompetitionConductor
         // var image = await _imageService.CreateWinnerImageAsync(seasonName, winners);
         // Log.Debug("Generated winner image for season {SeasonName} cup {CupId}", seasonName, cupId);
 
-        await _mediator.Publish(new SeasonFinished(cupId, results, seasonName, winners, Image: null, "winners.png"));
+        await _publisher.Publish(new SeasonFinished(cupId, results, seasonName, winners, Image: null, "winners.png"));
         Log.Information("Season {SeasonName} finalization completed for cup {CupId}", seasonName, cupId);
     }
 

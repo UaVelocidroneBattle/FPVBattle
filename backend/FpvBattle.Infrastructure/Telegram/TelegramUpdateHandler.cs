@@ -18,6 +18,7 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
     private static readonly ILogger _log = Log.ForContext<TelegramUpdateHandler>();
 
     private readonly CompetitionConductor _competitionConductor;
+    private readonly TrackRestartService _trackRestartService;
     private readonly TelegramCommandProcessor _commandProcessor;
     private readonly ICupContextResolver _cupContextResolver;
     private readonly ICupService _cupService;
@@ -25,12 +26,14 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
 
     public TelegramUpdateHandler(
         CompetitionConductor competitionConductor,
+        TrackRestartService trackRestartService,
         TelegramCommandProcessor commandProcessor,
         ICupContextResolver cupContextResolver,
         ICupService cupService,
         ITelegramMessenger messenger)
     {
         _competitionConductor = competitionConductor;
+        _trackRestartService = trackRestartService;
         _commandProcessor = commandProcessor;
         _cupContextResolver = cupContextResolver;
         _cupService = cupService;
@@ -68,8 +71,12 @@ public class TelegramUpdateHandler : ITelegramUpdateHandler
             }
 
             _log.Information("Competition restart requested for cup {CupId} from chat {ChatId}", cupId, chatId);
-            await _messenger.SendMessageAsync(channelId, "Добре 🫡");
-            BackgroundJob.Schedule(() => _competitionConductor.StartNewAsync(cupId), new TimeSpan(0, 0, 5));
+            var result = await _trackRestartService.RestartAsync(cupId, restartedBy: null);
+
+            if (result == TrackRestartResult.Restarted)
+                await _messenger.SendMessageAsync(channelId, "Добре 🫡");
+            else if (result == TrackRestartResult.RestartedMomentsAgo)
+                await _messenger.SendMessageAsync(channelId, "Трек щойно змінили, спробуйте за кілька хвилин");
 
             return;
         }

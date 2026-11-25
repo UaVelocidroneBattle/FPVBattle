@@ -152,7 +152,7 @@ public class TelegramMessageEventHandler :
 
     public async Task Handle(TrackRestart notification, CancellationToken cancellationToken)
     {
-        var message = _messageComposer.RestartTrack();
+        var message = _messageComposer.RestartTrack(notification.RestartedBy);
         await _cupMessenger.SendMessageToCupAsync(notification.CupId, message);
     }
 }

@@ -2,18 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import RestartTrackDialog from "@/components/track-restart/RestartTrackDialog";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { getInitials } from "./getInitials";
 
 /**
  * Header widget: Google sign-in button when signed out,
  * notification bell and initials avatar with a dropdown menu
- * (identity, Profile, Sign out) when signed in.
+ * (identity, Profile, Restart track for conductors, Sign out) when signed in.
  */
 
 function AuthControls() {
     const user = useAuthStore((state) => state.user);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [restarting, setRestarting] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -29,6 +31,11 @@ function AuthControls() {
     }, [menuOpen]);
 
     if (!user) return <GoogleSignInButton />;
+
+    const startRestart = () => {
+        setMenuOpen(false);
+        setRestarting(true);
+    };
 
     const signOut = () => {
         setMenuOpen(false);
@@ -66,6 +73,14 @@ function AuthControls() {
                         >
                             Profile
                         </Link>
+                        {user.canRestartTrack && (
+                            <button
+                                onClick={startRestart}
+                                className="block w-full px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:text-emerald-400"
+                            >
+                                Restart track
+                            </button>
+                        )}
                         <button
                             onClick={signOut}
                             className="block w-full px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:text-emerald-400"
@@ -75,6 +90,8 @@ function AuthControls() {
                     </div>
                 )}
             </div>
+
+            {restarting && <RestartTrackDialog onClose={() => setRestarting(false)} />}
         </div>
     );
 }

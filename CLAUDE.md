@@ -8,6 +8,7 @@ Every day the service picks a track and announces it in the chat channels. Pilot
 
 - **Daily competitions and cups**: a new track every day per cup (open class, whoop class), each cup with its own channels and settings. Tracks and scenes are mirrored nightly from Velocidrone.
 - **Track scheduling**: patrons and admins schedule tracks into a cup's queue through one service with per-role rules. Patrons have a monthly limit per Patreon tier, and the announcement names the patron who picked the track.
+- **Track restart**: users with the Conductor role can swap a cup's running track for a new one from the user menu. Admins give roles on the Users page.
 - **Quad of the Day**: some days name a quad model; pilots flying it compete for full points.
 - **Day streaks and freezies**: consecutive flying days. A freezie saves the streak on a missed day. Pilots earn one every 30 streak days, and patrons get them monthly.
 - **Achievements, leagues and pace rating**: badges for milestones, plus per-cup leagues with promotions and relegations.

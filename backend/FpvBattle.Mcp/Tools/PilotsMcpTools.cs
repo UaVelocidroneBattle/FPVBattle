@@ -20,16 +20,16 @@ public class PilotsMcpTools
     private static readonly ILogger Log = Serilog.Log.ForContext<PilotsMcpTools>();
     private readonly IApplicationDbContext _db;
     private readonly IPilotProfileService _pilotProfileService;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
 
     public PilotsMcpTools(
         IApplicationDbContext db,
         IPilotProfileService pilotProfileService,
-        IMediator mediator)
+        IPublisher publisher)
     {
         _db = db;
         _pilotProfileService = pilotProfileService;
-        _mediator = mediator;
+        _publisher = publisher;
     }
 
     [McpServerTool]
@@ -191,7 +191,7 @@ public class PilotsMcpTools
 
         if (notify)
         {
-            await _mediator.Publish(new FreezieAdded(pilotName));
+            await _publisher.Publish(new FreezieAdded(pilotName));
             Log.Information("Notification sent for pilot {PilotName}", pilotName);
         }
 

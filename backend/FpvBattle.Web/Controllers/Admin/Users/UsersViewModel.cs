@@ -3,6 +3,7 @@ namespace FpvBattle.Web.Controllers.Admin.Users;
 public class UsersViewModel
 {
     public List<UserRow> Users { get; set; } = [];
+    public List<string> AvailableRoles { get; set; } = [];
 }
 
 public class UserRow
@@ -16,4 +17,5 @@ public class UserRow
     public int? DayStreak { get; set; }
     public int? Freezies { get; set; }
     public DateTime? DayStreakFrozenUntil { get; set; }
+    public List<string> Roles { get; set; } = [];
 }

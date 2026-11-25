@@ -93,10 +93,12 @@ public class Startup
         services.AddMemoryCache();
 
         services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddAuthFeature(Configuration);
         services.AddTokenAuthentication(Configuration);
+        services.AddRolePolicies();
         services.AddPilotBinding();
         services.AddNotifications();
         services.AddTeams(Configuration);

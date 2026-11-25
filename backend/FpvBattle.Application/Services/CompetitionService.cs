@@ -20,7 +20,7 @@ public class CompetitionService
     private readonly IApplicationDbContext _db;
     private readonly RaceResultsConverter _resultsConverter;
     private readonly RaceResultDeltaAnalyzer _analyzer;
-    private readonly IMediator _mediator;
+    private readonly IPublisher _publisher;
     private readonly PilotService _pilotService;
     private readonly ICupService _cupService;
     private readonly ILeaderboardCalculator  _leaderboardCalculator;
@@ -29,7 +29,7 @@ public class CompetitionService
         IApplicationDbContext db,
         RaceResultsConverter resultsConverter,
         RaceResultDeltaAnalyzer analyzer,
-        IMediator mediator,
+        IPublisher publisher,
         IVelocidroneClient velocidrone,
         PilotService pilotService,
         ICupService cupService,
@@ -38,7 +38,7 @@ public class CompetitionService
         _db = db;
         _resultsConverter = resultsConverter;
         _analyzer = analyzer;
-        _mediator = mediator;
+        _publisher = publisher;
         _velocidrone = velocidrone;
         _pilotService = pilotService;
         _cupService = cupService;
@@ -96,7 +96,7 @@ public class CompetitionService
         await _db.SaveChangesAsync();
 
         _log.Information("Updated results for competition {CompetitionId} (cup {CupId}): {DeltaCount} new results added", competition.Id, competition.CupId, deltas.Count);
-        await _mediator.Publish(new CurrentResultUpdated(competition, deltas, cupOptions));
+        await _publisher.Publish(new CurrentResultUpdated(competition, deltas, cupOptions));
     }
 
     [AutomaticRetry(Attempts = 3, DelaysInSeconds = [20, 120, 600])]
@@ -142,7 +142,7 @@ public class CompetitionService
 
         _log.Information("🏆 Publishing leaderboard for competition {CompetitionId} with {ResultCount} results", competition.Id, leaderboard.Count);
 
-        await _mediator.Publish(new IntermediateCompetitionResult(leaderboard, competition));
+        await _publisher.Publish(new IntermediateCompetitionResult(leaderboard, competition));
 
         competition.ResultsPosted = true;
         await _db.SaveChangesAsync();
@@ -157,7 +157,7 @@ public class CompetitionService
             return;
         }
 
-        await _mediator.Publish(new CheerUp(cupId, type));
+        await _publisher.Publish(new CheerUp(cupId, type));
     }
 
     private static bool DoNotDisturb(DateTime dateTime)

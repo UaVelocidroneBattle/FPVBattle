@@ -68,6 +68,7 @@ export type CurrentUserModel = {
     id: string;
     email: string;
     displayName: string;
+    canRestartTrack: boolean;
 };
 
 export type DayStreakLeaderboardRow = {
@@ -1176,6 +1177,22 @@ export type GetApiCompetitionsCurrentResponses = {
 };
 
 export type GetApiCompetitionsCurrentResponse = GetApiCompetitionsCurrentResponses[keyof GetApiCompetitionsCurrentResponses];
+
+export type PostApiCompetitionsRestartTrackData = {
+    body?: never;
+    path?: never;
+    query?: {
+        cupId?: string;
+    };
+    url: '/api/competitions/restart-track';
+};
+
+export type PostApiCompetitionsRestartTrackResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetApiCompetitionsOverviewData = {
     body?: never;

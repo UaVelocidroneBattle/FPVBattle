@@ -1,7 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
+using FpvBattle.Application.Features.Auth;
 using FpvBattle.Application.Features.Auth.Models;
 using FpvBattle.Application.Features.Auth.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -31,6 +34,19 @@ public static class AuthServiceExtensions
                 ClockSkew = TimeSpan.FromMinutes(1)
             };
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddRolePolicies(this IServiceCollection services)
+    {
+        services.AddScoped<IAuthorizationHandler, StoredRoleHandler>();
+
+        services.AddAuthorizationBuilder()
+            .AddPolicy(AuthPolicies.CanRestartTrack, policy => policy
+                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser()
+                .AddRequirements(new StoredRoleRequirement(Roles.Conductor)));
 
         return services;
     }

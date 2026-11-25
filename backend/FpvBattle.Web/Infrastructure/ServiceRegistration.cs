@@ -27,6 +27,7 @@ public static class ServiceRegistration
         services.AddVelocidroneClient(configuration);
         services.AddScoped<CompetitionService>();
         services.AddScoped<CompetitionConductor>();
+        services.AddScoped<TrackRestartService>();
         services.AddScoped<RaceResultsConverter>();
         services.AddScoped<TelegramMessageComposer>();
         services.AddScoped<DiscordMessageComposer>();
