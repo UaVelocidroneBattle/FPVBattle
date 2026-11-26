@@ -35,9 +35,9 @@ public class HangfireInit
 
         var resultsUpdateEnabled = configuration.GetValue<bool>("ResultsUpdateEnabled");
         var resultsUpdateSchedule = resultsUpdateEnabled ? "*/10 * * * *" : Cron.Never();
-        RecurringJob.AddOrUpdate<CompetitionService>("Update results", x => x.UpdateResultsAsync(), resultsUpdateSchedule);
+        RecurringJob.AddOrUpdate<ResultsUpdater>("Update results", x => x.UpdateResultsAsync(), resultsUpdateSchedule);
 
-        RecurringJob.AddOrUpdate<CompetitionService>("Publish current leaderboard", x => x.PublishCurrentLeaderboardAsync(), "1 */2 * * *");
+        RecurringJob.AddOrUpdate<LeaderboardPublisher>("Publish current leaderboard", x => x.PublishCurrentLeaderboardAsync(), "1 */2 * * *");
 
         // Need to rework
         // RecurringJob.AddOrUpdate<YearResultsService>("Year results", x => x.Publish(), "15 11 2 1 *");

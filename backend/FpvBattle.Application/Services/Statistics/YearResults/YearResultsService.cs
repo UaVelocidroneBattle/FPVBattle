@@ -10,7 +10,6 @@ namespace FpvBattle.Application.Services.Statistics.YearResults;
 public class YearResultsService
 {
     private readonly IApplicationDbContext _db;
-    private readonly CompetitionService _competitionService;
     private readonly IPublisher _publisher;
     private readonly ICupService _cupService;
 
@@ -20,12 +19,10 @@ public class YearResultsService
     public YearResultsService(
         IApplicationDbContext db,
         IPublisher publisher,
-        CompetitionService competitionService,
         ICupService cupService)
     {
         _db = db;
         _publisher = publisher;
-        _competitionService = competitionService;
         _cupService = cupService;
 
         var today = DateTime.Today;

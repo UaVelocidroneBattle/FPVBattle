@@ -40,6 +40,16 @@ public static class CompetitionQueries
             return query.Where(comp => comp.State == CompetitionState.Closed);
         }
 
+        public IQueryable<Competition> Active()
+        {
+            return query.Where(comp => comp.State == CompetitionState.Started);
+        }
+
+        public IQueryable<Competition> NewestFirst()
+        {
+            return query.OrderByDescending(comp => comp.StartedOn);
+        }
+
         /// <summary>
         /// Filters competitions by cup ID
         /// </summary>

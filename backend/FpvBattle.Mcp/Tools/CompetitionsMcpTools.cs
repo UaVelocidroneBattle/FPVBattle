@@ -15,20 +15,17 @@ namespace FpvBattle.Mcp.Tools;
 public class CompetitionsMcpTools
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<CompetitionsMcpTools>();
-    private readonly CompetitionService _competitionService;
     private readonly TrackRestartService _trackRestartService;
     private readonly ICupService _cupService;
     private readonly IApplicationDbContext _db;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
 
     public CompetitionsMcpTools(
-        CompetitionService competitionService,
         IApplicationDbContext db,
         TrackRestartService trackRestartService,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator)
     {
-        _competitionService = competitionService;
         _db = db;
         _trackRestartService = trackRestartService;
         _cupService = cupService;

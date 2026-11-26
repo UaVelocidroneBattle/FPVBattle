@@ -25,7 +25,8 @@ public static class ServiceRegistration
     {
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         services.AddVelocidroneClient(configuration);
-        services.AddScoped<CompetitionService>();
+        services.AddScoped<ResultsUpdater>();
+        services.AddScoped<LeaderboardPublisher>();
         services.AddScoped<CompetitionConductor>();
         services.AddScoped<TrackRestartService>();
         services.AddScoped<RaceResultsConverter>();
