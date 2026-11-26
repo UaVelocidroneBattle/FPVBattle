@@ -31,7 +31,7 @@ Between start and stop, two global jobs (`HangfireInit`) drive the day:
 
 **Sync track lookups** (`TracksJobRegistrar`) runs daily at 23:05 UTC, about an hour before the cups start. See [Track and scene lookups](#track-and-scene-lookups).
 
-The `CompetitionConductor` class owns the start, stop and season steps. `CompetitionService` owns the polling.
+The `CompetitionConductor` class owns the start, stop and season steps. `ResultsUpdater` runs Update results and `LeaderboardPublisher` runs Publish current leaderboard. They share the `Competition` concurrency lock, so a leaderboard is never built from a half-saved update.
 
 ## Track selection
 

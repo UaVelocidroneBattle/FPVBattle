@@ -5,6 +5,7 @@ using FpvBattle.Application.Features.Auth;
 using FpvBattle.Application.Features.Cups;
 using FpvBattle.Application.Features.Teams;
 using FpvBattle.Application.Features.Teams.Leaderboard;
+using FpvBattle.Application.Persistence;
 using FpvBattle.Application.Services;
 using FpvBattle.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ namespace FpvBattle.Web.Controllers.Api.Competitions;
 [Route("/api/competitions/[action]")]
 public class CompetitionsController : ControllerBase
 {
-    private readonly CompetitionService _competitionService;
+    private readonly IApplicationDbContext _db;
     private readonly ICupService _cupService;
     private readonly ILeaderboardCalculator _leaderboardCalculator;
     private readonly TeamTagLookup _teamTags;
@@ -25,7 +26,7 @@ public class CompetitionsController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
 
     public CompetitionsController(
-        CompetitionService competitionService,
+        IApplicationDbContext db,
         ICupService cupService,
         ILeaderboardCalculator leaderboardCalculator,
         TeamTagLookup teamTags,
@@ -33,7 +34,7 @@ public class CompetitionsController : ControllerBase
         TrackRestartService trackRestartService,
         UserManager<ApplicationUser> userManager)
     {
-        _competitionService = competitionService;
+        _db = db;
         _cupService = cupService;
         _leaderboardCalculator = leaderboardCalculator;
         _teamTags = teamTags;
@@ -45,7 +46,7 @@ public class CompetitionsController : ControllerBase
     [HttpGet("/api/competitions/current")]
     public async Task<CompetitionModel[]> GetCurrent()
     {
-        var competitions  = await _competitionService.GetCurrentCompetitions().ProjectToModel().ToArrayAsync() ;
+        var competitions  = await _db.Competitions.Active().NewestFirst().ProjectToModel().ToArrayAsync();
         return competitions;
     }
 
@@ -60,7 +61,7 @@ public class CompetitionsController : ControllerBase
             return NotFound();
 
         // Conductors replace a running track; only admins (MCP, Telegram) may start a missing competition
-        var isRunning = await _competitionService.GetCurrentCompetitions().ForCup(cupId).AnyAsync();
+        var isRunning = await _db.Competitions.Active().ForCup(cupId).AnyAsync();
         if (!isRunning)
             return Conflict("There is no running competition to restart");
 
@@ -120,10 +121,10 @@ public class CompetitionsController : ControllerBase
     private async Task<Competition?> FindCompetitionAsync(string cupId, DateOnly? date)
     {
         var competitions = date.HasValue
-            ? _competitionService.GetCompetitionsForDate(date.Value)
-            : _competitionService.GetCurrentCompetitions();
+            ? _db.Competitions.OnDate(date.Value.ToDateTime(TimeOnly.MinValue))
+            : _db.Competitions.Active();
 
-        return await competitions.ForCup(cupId).FirstOrDefaultAsync();
+        return await competitions.ForCup(cupId).NewestFirst().FirstOrDefaultAsync();
     }
 
     /// <summary>

@@ -37,7 +37,7 @@ FpvBattle.Application/
 │       ├── NotificationHandlers/  # handlers for events it reacts to
 │       ├── <Entity>Queries.cs     # IQueryable filters for entities it owns
 │       └── <Feature>ServiceExtensions.cs  # DI registration (AddTeams, AddAchievementsServices, ...)
-├── Services/          # Core competition logic shared by features (CompetitionService, LeaderboardCalculator, ...)
+├── Services/          # Core competition logic shared by features (ResultsUpdater, LeaderboardPublisher, LeaderboardCalculator, ...)
 ├── Notifications/     # Core domain events (CompetitionStarted, CompetitionFinished, FreezieAdded, ...)
 ├── Bot/               # Telegram and Discord messaging: composers, cup messengers, Telegram commands
 ├── API/Velocidrone/   # IVelocidroneClient port and its DTOs
